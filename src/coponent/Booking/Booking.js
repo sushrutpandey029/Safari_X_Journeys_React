@@ -3,7 +3,7 @@ import "./Booking.css"
 
 function Booking() {
   return (
-    <div className='container'>Booking</div>
+    <div className='container'></div>
   )
 }
 

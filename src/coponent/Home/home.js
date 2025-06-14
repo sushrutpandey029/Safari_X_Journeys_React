@@ -1,9 +1,7 @@
 import React from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Header from '../Master/header';
 import Footer from '../Master/fotter';
-import 'bootstrap/dist/css/bootstrap.min.css';
+
 import useState from 'react';
 import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube, FaLinkedinIn, FaRegCopyright } from 'react-icons/fa6';
 
@@ -130,7 +128,7 @@ const settings = {
 function Home() {
   return (
     <div>
-      <Header />
+      
 
       <div className="banner">
         <Slider {...settings}>
@@ -530,7 +528,7 @@ function Home() {
 
 
 
-      <Footer />
+     
     </div>
   );
 }
