@@ -5,7 +5,7 @@ import Booking from './coponent/Booking/Booking';
 function App() {
   return (
     <div>
-      { <HOME />}
+       <HOME />
       <Booking/>
     </div>
   );
