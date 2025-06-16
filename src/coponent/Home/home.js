@@ -7,7 +7,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import useState from 'react';
 import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube, FaLinkedinIn, FaRegCopyright } from 'react-icons/fa6';
 
-
 import { Card, Button, Row, Col } from 'react-bootstrap';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
