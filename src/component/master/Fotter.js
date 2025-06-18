@@ -102,9 +102,6 @@ function Footer() {
                             <span>Privacy Policy</span>
                             <span>Manage Cookie</span>
                         </div>
-
-
-
                     </div>
                 </div>
             </footer>
