@@ -1,17 +1,10 @@
-import logo from './logo.svg';
-// import HOME from './coponent/Home/home';
-// import Booking from './coponent/Booking/Booking';
-// import BestGuide from './coponent/bestguide/bestguide';
-import About from './coponent/About/About';
+ import RootNavigation from "./component/navigations/RootNavigation";
 
 function App() {
   return (
     <div>
-      {/* { <HOME />}
-      <Booking/> */}
-     {/* <BestGuide /> */}
-     < About/>
-    </div>
+         <RootNavigation />
+     </div>
   );
 }
 
