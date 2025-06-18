@@ -1,0 +1,11 @@
+.place-box {
+    .card-img-top {
+        height: 250px;
+        object-fit: cover;
+    }
+
+    .explore-btn {
+        padding: 8px 15px;
+        font-size: 13px;
+    }
+}
