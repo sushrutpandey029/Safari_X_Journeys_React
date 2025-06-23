@@ -27,3 +27,12 @@ export const fetchBlog = async () => {
     throw error;
   }
 };
+
+export const contactUs = async (formData) => {
+  try {
+    const response = await axios.post(API.CONTACT_US,formData);
+    return response.data;
+  } catch (err) {
+    throw err;
+  }
+};

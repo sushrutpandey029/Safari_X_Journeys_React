@@ -1,10 +1,10 @@
- import RootNavigation from "./component/navigations/RootNavigation";
+import RootNavigation from "./component/navigations/RootNavigation";
 
 function App() {
   return (
     <div>
-         <RootNavigation />
-     </div>
+      <RootNavigation />
+    </div>
   );
 }
 

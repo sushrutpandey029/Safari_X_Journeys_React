@@ -40,8 +40,8 @@ function Footer() {
                         <div className="col-sm-6 col-md-3 mb-4">
                             <h5>Safari X</h5>
                             <ul>
-                                <li><a href="#" target="_blank" rel="noopener noreferrer">Home</a></li>
-                                <li><a href="#" target="_blank" rel="noopener noreferrer">About Us</a></li>
+                                <li><a href="/" target="_self" rel="noopener noreferrer">Home</a></li>
+                                <li><a href="/about" target="_self" rel="noopener noreferrer">About Us</a></li>
                                 <li><a href="#" target="_blank" rel="noopener noreferrer">Blogs</a></li>
                                 <li><a href="#" target="_blank" rel="noopener noreferrer">Media Centre</a></li>
                                 <li><a href="#" target="_blank" rel="noopener noreferrer">LOGO</a></li>
@@ -51,7 +51,7 @@ function Footer() {
                         <div className="col-sm-6 col-md-3 mb-4">
                             <h5>Support</h5>
                             <ul>
-                                <li><a href="#" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+                                <li><a href="/contact-us" target="_self" rel="noopener noreferrer">Contact Us</a></li>
                                 <li><a href="#" target="_blank" rel="noopener noreferrer">FAQs</a></li>
                                 <li><a href="#" target="_blank" rel="noopener noreferrer">Safari X Travel Resources</a></li>
                                 <li><a href="#" target="_blank" rel="noopener noreferrer">Pre-Departure Info</a></li>
