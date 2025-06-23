@@ -1,6 +1,4 @@
 import React from "react";
-import Header from "../Master/header"; // Make sure file name is header.js
-import Footer from "../Master/fotter"; // Make sure file name is fotter.js
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -75,7 +73,6 @@ const imagePaths = [
 function About() {
   return (
     <div>
-      <Header />
       <div className="banner">
         <Slider {...settings}>
           <div>
@@ -391,7 +388,6 @@ function About() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
   fetchBlog,
 } from "../services/commonService";
 import { BASE_URL } from "../services/apiEndpoints";
+import GuidePreview from "../guides/GuidePreview";
 
 const imageList = [
   { id: 1, src: "/Images/place.jpg", title: "Mountains", path: "/mountains" },
@@ -115,12 +116,6 @@ const dataList = [
     description: "t sodales convallis nisi odio malesuada adipiscing.",
   },
 ];
-
-// const blogs = [
-//   { name: "AULI", image: "/Images/blog.png" },
-//   { name: "Manali", image: "/Images/blog2.jpg" },
-//   { name: "Jammau", image: "/Images/blog3.jpg" },
-// ];
 
 const settings = {
   dots: true,
@@ -258,117 +253,8 @@ function Home() {
         </div>
       </div>
 
-      <div className="best-guide">
-        <div className="container">
-          <div className="row">
-            <div className="col-sm-9">
-              <h2>
-                Our <span>Best Guide</span>
-              </h2>
-              <p className="perra">
-                Lorem ipsum dolor sit amet consectetur. Porttitor dolor
-                malesuada sodales convallis nisi odio malesuada adipiscing.
-                Etiam Lorem ipsum dolor sit amet consectetur. Porttitor dolor
-                malesuada{" "}
-              </p>
-            </div>
-            <div className="col-sm-3 text-end">
-              <Link to={"/best-guides"}>
-                <button className="explore-btn">Explore More</button>
-              </Link>
-            </div>
-
-            <div className="col-sm-3">
-              <div className="box">
-                <img
-                  src="/images/guide.webp"
-                  alt="Banner"
-                  className="img-fluid"
-                />
-                <div class="details">
-                  <h4>LEH LADAKH</h4>
-                  <p>
-                    <span class="label">Name:</span> Tarun Kumar
-                  </p>
-                  <p>
-                    <span class="label">Rating:</span>{" "}
-                    <span class="stars">★★★★</span>
-                  </p>
-                  <p>
-                    <span class="label">Experience:</span> 2 Years
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-sm-3">
-              <div className="box">
-                <img
-                  src="/images/guide.webp"
-                  alt="Banner"
-                  className="img-fluid"
-                />
-                <div class="details">
-                  <h4>LEH LADAKH</h4>
-                  <p>
-                    <span class="label">Name:</span> Tarun Kumar
-                  </p>
-                  <p>
-                    <span class="label">Rating:</span>{" "}
-                    <span class="stars">★★★★</span>
-                  </p>
-                  <p>
-                    <span class="label">Experience:</span> 2 Years
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-sm-3">
-              <div className="box">
-                <img
-                  src="/images/guide.webp"
-                  alt="Banner"
-                  className="img-fluid"
-                />
-                <div class="details">
-                  <h4>LEH LADAKH</h4>
-                  <p>
-                    <span class="label">Name:</span> Tarun Kumar
-                  </p>
-                  <p>
-                    <span class="label">Rating:</span>{" "}
-                    <span class="stars">★★★★</span>
-                  </p>
-                  <p>
-                    <span class="label">Experience:</span> 2 Years
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-sm-3">
-              <div className="box">
-                <img
-                  src="/images/guide.webp"
-                  alt="Banner"
-                  className="img-fluid"
-                />
-                <div class="details">
-                  <h4>LEH LADAKH</h4>
-                  <p>
-                    <span class="label">Name:</span> Tarun Kumar
-                  </p>
-                  <p>
-                    <span class="label">Rating:</span>{" "}
-                    <span class="stars">★★★★</span>
-                  </p>
-                  <p>
-                    <span class="label">Experience:</span> 2 Years
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* guide section */}
+      <GuidePreview />
 
       <div className="best-cab">
         <div className="container">
@@ -523,7 +409,7 @@ function Home() {
       </div>
 
       <div className="Faq">
-        <div className="conatoner">
+        <div className="container-fluid">
           <div className="main">
             <div className="row justify-content-center">
               <div className="col-sm-6">
@@ -602,7 +488,7 @@ function Home() {
                         ? blog.description.substring(0, 100) + "..."
                         : blog.description}
                     </p>
-                     <h6>
+                    <h6>
                       {new Date(blog.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
                         day: "numeric",
