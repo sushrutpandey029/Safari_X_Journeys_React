@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { contactUs } from "../../services/commonService";
+import HomeBanner from "../../home/HomeBanner";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const ContactUs = () => {
     email: "",
     place: "",
   });
+  const [isActive, setIsActive] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,6 +22,7 @@ const ContactUs = () => {
     e.preventDefault();
 
     try {
+      setIsActive(true);
       const res = await contactUs(formData);
       console.log("API response:", res);
 
@@ -37,46 +40,21 @@ const ContactUs = () => {
         alert(" Failed to send message: " + (res.message || "Unknown error"));
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert(" Something went wrong while sending the message.");
+      console.error("Error:", error.response);
+      alert(
+        error.response.data.message ||
+          "Something went wrong while sending the message."
+      );
+    } finally {
+      setIsActive(false);
     }
   };
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
-
-  //     try {
-  //       const res = await fetch(CONTACT_US, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(formData),
-  //       });
-
-  //       const data = await res.json();
-  //       console.log("API response:", data);
-
-  //       if (res.ok) {
-  //         alert("✅ Your message was sent successfully!");
-  //         setFormData({
-  //           firstname: "",
-  //           lastname: "",
-  //           phonenumber: "",
-  //           message: "",
-  //           email: "",
-  //           place: "",
-  //         });
-  //       } else {
-  //         alert(" Failed to send message: " + (data.message || "Unknown error"));
-  //       }
-  //     } catch (error) {
-  //       console.error("Error:", error);
-  //       alert(" Something went wrong while sending the message.");
-  //     }
-  //   };
 
   return (
     <div className="contact">
+        
+      <HomeBanner />
+
       <div className="container py-5">
         <div className="row">
           {/* Left Contact Info */}
@@ -187,8 +165,12 @@ const ContactUs = () => {
                   ></textarea>
                 </div>
 
-                <button type="submit" className="explore-btn">
-                  Send
+                <button
+                  type="submit"
+                  className="explore-btn"
+                  disabled={isActive}
+                >
+                  {isActive ? "Sending..." : "Send"}
                 </button>
               </form>
             </div>
