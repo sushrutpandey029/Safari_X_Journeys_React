@@ -1,0 +1,79 @@
+.user-dash {
+  background-image: linear-gradient(rgb(1 113 235 / 34%), rgb(70 235 162 / 56%)),
+    url("/public/images/hotel-banner.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+  height: 400px;
+  position: relative;
+
+  h2 {
+    color: #ffffff;
+    margin-bottom: 0;
+    text-align: center;
+    font-weight: bold;
+    font-size: 35px;
+    position: absolute;
+    top: 70%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.client-dash {
+  .dashboard-wrapper {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #eaeaea;
+  }
+
+  .dashboard-sidebar {
+    min-height: 100%;
+    border-right: 1px solid #dee2e6;
+  }
+
+  .nav-link {
+    padding: 12px 15px;
+    color: #495057;
+    border-radius: 0;
+    transition: all 0.2s ease-in-out;
+    text-align: left;
+    font-weight: 500;
+    width: 100%;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus,
+  .nav-link.active {
+    background-color: #32acac;
+    color: #fff;
+    width: 100%;
+  }
+
+  .tab-pane h4 {
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+
+  .tab-pane p {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  .btn-danger {
+    padding: 4px 10px;
+    height: auto;
+    font-size: 12px;
+  }
+
+  .btn-success {
+    padding: 4px 10px;
+    height: auto;
+    font-size: 12px;
+  }
+}

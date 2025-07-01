@@ -1,27 +1,14 @@
 import React, { useEffect, useState } from "react";
-
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaXTwitter,
-  FaYoutube,
-  FaLinkedinIn,
-  FaRegCopyright,
-} from "react-icons/fa6";
-
 import { Card, Button, Row, Col } from "react-bootstrap";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import { Link } from "react-router-dom";
 
-import {
-  getBannerData,
-  fetchFaqList,
-  fetchBlog,
-} from "../services/commonService";
+import { Link,useNavigate } from "react-router-dom";
+
+import { fetchFaqList, fetchBlog } from "../services/commonService";
 import { BASE_URL } from "../services/apiEndpoints";
 import GuidePreview from "../guides/GuidePreview";
+import CabPreview from "../cabs/CabPreview";
+import HomeBanner from "./HomeBanner";
+import WhyChooseUs from "../common/WhyChooseUs";
 
 const imageList = [
   { id: 1, src: "/Images/place.jpg", title: "Mountains", path: "/mountains" },
@@ -36,12 +23,6 @@ const imageList = [
   { id: 1, src: "/Images/place.jpg", title: "West-India", path: "/west-india" },
 ];
 
-const cabList = [
-  { name: "AULI", image: "/Images/cab.png" },
-  { name: "Manali", image: "/Images/cab.png" },
-  { name: "Jammau", image: "/Images/cab.png" },
-  { name: "Jaipur", image: "/Images/cab.png" },
-];
 const destinations = [
   { name: "AULI", image: "/Images/place.jpg" },
   { name: "Manali", image: "/Images/place.jpg" },
@@ -59,39 +40,6 @@ const Populardestinations = [
   { name: "Jamussoorie", image: "/Images/popular.png" },
   { name: "Jamussoorie", image: "/Images/popular.png" },
 ];
-
-const choose = [
-  { name: "AULI", image: "/Images/icon1.png" },
-  { name: "Manali", image: "/Images/icon2.png" },
-  { name: "Jammau", image: "/Images/icon3.png" },
-  { name: "Jaipur", image: "/Images/icon4.png" },
-  { name: "Jammau", image: "/Images/icon5.png" },
-  { name: "Jaipur", image: "/Images/icon6.png" },
-];
-
-const PrevArrow = (props) => {
-  const { onClick } = props;
-  return (
-    <img
-      src="/images/right.svg"
-      alt="Previous"
-      className="custom-arrow right-arrow right-arrow"
-      onClick={onClick}
-    />
-  );
-};
-
-const NextArrow = (props) => {
-  const { onClick } = props;
-  return (
-    <img
-      src="/images/left.svg"
-      alt="Next"
-      className="custom-arrow left-arrow"
-      onClick={onClick}
-    />
-  );
-};
 
 const dataList = [
   {
@@ -117,32 +65,10 @@ const dataList = [
   },
 ];
 
-const settings = {
-  dots: true,
-  infinite: true,
-  speed: 800,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  autoplay: false,
-  autoplaySpeed: 2500,
-  arrows: true,
-  nextArrow: <NextArrow />,
-  prevArrow: <PrevArrow />,
-};
-
 function Home() {
-  const [bannerData, setBannerData] = useState([]);
   const [faqData, setFaqData] = useState([]);
   const [blogData, setBlogData] = useState([]);
-
-  const fetchBannerData = async () => {
-    try {
-      const response = await getBannerData();
-      setBannerData(response.data);
-    } catch (error) {
-      console.log("error in getting banner data", error.response);
-    }
-  };
+  const navigate = useNavigate()
 
   const getFaqList = async () => {
     try {
@@ -164,31 +90,13 @@ function Home() {
   };
 
   useEffect(() => {
-    fetchBannerData();
     getFaqList();
     getBlog();
   }, []);
 
   return (
     <div>
-      <div className="banner">
-        <Slider {...settings}>
-          {bannerData.map((item) => (
-            <div key={item.id}>
-              <div className="banner-slide">
-                <img
-                  src={`${BASE_URL}/banner/images/${item.image}`}
-                  className="banner-img"
-                  alt="Banner"
-                />
-                <div className="text-banner text-center">
-                  <h2>{item.title}</h2>
-                </div>
-              </div>
-            </div>
-          ))}
-        </Slider>
-      </div>
+      <HomeBanner />
 
       <div className="container mt-5">
         <div className="row">
@@ -256,37 +164,9 @@ function Home() {
       {/* guide section */}
       <GuidePreview />
 
-      <div className="best-cab">
-        <div className="container">
-          <div className="row">
-            <div className="col-sm-12">
-              <h2>
-                find the <span>best cabs </span>
-              </h2>
-              <p className="perra">
-                Lorem ipsum dolor sit amet consectetur. Porttitor dolor
-                malesuada sodales convallis nisi odio malesuada adipiscing.
-                Etiam Lorem ipsum dolor sit amet consectetur. Porttitor dolor
-                malesuada
-              </p>
-            </div>
-            {cabList.map((cab, index) => (
-              <div className="col-md-3" key={index}>
-                <div className="cab-box">
-                  <img src={cab.image} alt={cab.name} className="img-fluid" />
-                  <div className="d-flex">
-                    <h4>
-                      Hatchback
-                      <span>Starting- 800/day</span>
-                    </h4>
-                    <button className="explore-btn">BOOK NOW</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* cab section */}
+
+      <CabPreview />
 
       <div className="book-hotel ">
         <div className="container">
@@ -302,7 +182,9 @@ function Home() {
                 </h2>
               </div>
               <div className="col-sm-6 text-end my-5">
-                <Button className="explore-btn">View More</Button>
+                <Link to={"/hotel"}>
+                  <Button className="explore-btn">View More</Button>
+                </Link>
               </div>
             </div>
             {Populardestinations.map((dest, index) => (
@@ -338,37 +220,7 @@ function Home() {
         </div>
       </div>
 
-      <div className="why-choose">
-        <div className="container">
-          <div className="row">
-            <div className="col-sm-12 mb-5 text-center">
-              <h2>
-                why <span>Choose </span>us
-              </h2>
-            </div>
-            {choose.map(function (choos, index) {
-              return (
-                <div className="col-sm-4">
-                  <div className="choose-box">
-                    <img
-                      src={choos.image}
-                      alt={choos.name}
-                      className="img-fluid"
-                    />
-                    <h4>Small Groups</h4>
-                    <p>
-                      Lorem ipsum dolor sit amet consectetur. Porttitor dolor
-                      malesuada sodales convallis nisi odio malesuada
-                      adipiscing. Etiam Lorem ipsum dolor sit amet consectetur.
-                      Porttitor dolor malesuada{" "}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      <WhyChooseUs />
 
       <div className="Testionials">
         <div className="container">
@@ -408,6 +260,7 @@ function Home() {
         </div>
       </div>
 
+      {/* FAQ section */}
       <div className="Faq">
         <div className="container-fluid">
           <div className="main">
@@ -468,7 +321,9 @@ function Home() {
               </p>
             </div>
             <div class="col-sm-3 text-end">
-              <button class="explore-btn">Explore More</button>
+              <Link to={"/blogs"}>
+                <button class="explore-btn">Explore More</button>
+              </Link>
             </div>
           </div>
           <div className="row">
@@ -495,7 +350,8 @@ function Home() {
                         month: "long",
                       })}
                     </h6>
-                    <button className="explore-btn">Read More</button>
+                   
+                    <button className="explore-btn" onClick={() => navigate("/blog-detail",{state:{blog}})}>Read More</button>
                   </div>
                 </div>
               );
