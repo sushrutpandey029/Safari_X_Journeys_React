@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { guideChangePassword } from "../../services/guideService";
+import { driverChangePassword } from "../../services/cabService";
 
 function ChangePassword() {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ function ChangePassword() {
     e.preventDefault();
     try {
       console.log("formdata before change paswrod", formData);
-      const resp = await guideChangePassword(formData);
+      const resp = await driverChangePassword(formData);
       if (resp.success) {
         console.log("resp in change passwrod", resp);
         alert(resp.message || "Password changed successfully.");

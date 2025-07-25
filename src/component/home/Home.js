@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Row, Col } from "react-bootstrap";
 
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import { fetchFaqList, fetchBlog } from "../services/commonService";
+import {
+  fetchFaqList,
+  fetchBlog,
+  fetchTestimonialList,
+} from "../services/commonService";
+
 import { BASE_URL } from "../services/apiEndpoints";
 import GuidePreview from "../guides/GuidePreview";
 import CabPreview from "../cabs/CabPreview";
 import HomeBanner from "./HomeBanner";
 import WhyChooseUs from "../common/WhyChooseUs";
+import NewsLater from "../common/NewsLater";
+import ScrollToTop from "../common/ScrollToTop";
 
 const imageList = [
   { id: 1, src: "/Images/place.jpg", title: "Mountains", path: "/mountains" },
@@ -68,7 +75,8 @@ const dataList = [
 function Home() {
   const [faqData, setFaqData] = useState([]);
   const [blogData, setBlogData] = useState([]);
-  const navigate = useNavigate()
+  const [testimonialData, setTestimonialData] = useState([]);
+  const navigate = useNavigate();
 
   const getFaqList = async () => {
     try {
@@ -89,13 +97,29 @@ function Home() {
     }
   };
 
+  const getTestimonials = async () => {
+    try {
+      const response = await fetchTestimonialList();
+      console.log("Testimonials Response: ", response);
+      setTestimonialData(response.data.data);
+    } catch (error) {
+      console.log("error in fetching testimonial list", error.response);
+    }
+  };
+
+  const handleNavigate = (blog) => {
+    navigate(`/blog-detail`, { state: { blog } });
+  };
+
   useEffect(() => {
     getFaqList();
     getBlog();
+    getTestimonials();
   }, []);
 
   return (
     <div>
+      <ScrollToTop />
       <HomeBanner />
 
       <div className="container mt-5">
@@ -140,17 +164,19 @@ function Home() {
                       alt={dest.name}
                       className="img-fluid rounded"
                     />
-                    <h5 className="mt-3">{dest.name}</h5>
-                    <p className="text-muted small">GUIDED TOUR / 2 HOURS</p>
-                    <div className="row">
-                      <div className="col-sm-6 col-6">
-                        <p>Starting From</p>
-                      </div>
-                      <div className="col-sm-6 col-6 text-end">
-                        <span className="text-muted text-decoration-line-through">
-                          ₹42,000
-                        </span>{" "}
-                        <span className="text-primary">₹8,000</span>
+                    <div className="p-2">
+                      <h5 className="mt-3">{dest.name}</h5>
+                      <p className="text-muted small">GUIDED TOUR / 2 HOURS</p>
+                      <div className="row">
+                        <div className="col-sm-6 col-6">
+                          <p>Starting From</p>
+                        </div>
+                        <div className="col-sm-6 col-6 text-end">
+                          <span className="text-muted text-decoration-line-through">
+                            ₹42,000
+                          </span>{" "}
+                          <span className="text-primary">₹8,000</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -165,7 +191,6 @@ function Home() {
       <GuidePreview />
 
       {/* cab section */}
-
       <CabPreview />
 
       <div className="book-hotel ">
@@ -183,7 +208,7 @@ function Home() {
               </div>
               <div className="col-sm-6 text-end my-5">
                 <Link to={"/hotel"}>
-                  <Button className="explore-btn">View More</Button>
+                  <button className="explore-btn">View More</button>
                 </Link>
               </div>
             </div>
@@ -231,37 +256,53 @@ function Home() {
               </h2>
             </div>
             <div className="col-sm-3 text-end ">
-              <Button className="explore-btn">Read All Review</Button>
+              <Link to={"/testimonials"}>
+                <button className="explore-btn">Read All Review</button>
+              </Link>
             </div>
-            <div className="card-container">
-              {dataList.map((item) => (
-                <div key={item.id} className="card">
-                  <div className="Time d-flex">
-                    <h5 className="col-sm-6">{item.name}</h5>
-                    <div className="col-sm-6">
-                      <a className href="#">
-                        {item.time}
-                      </a>
-                    </div>
-                  </div>
 
-                  <div className="col-sm-12 d-flex">
-                    <div className="col-sm-5">
-                      <img src={item.image} alt={item.name} />
+            <div className="card-container">
+              {Array.isArray(testimonialData) &&
+                testimonialData.slice(0, 3).map((item) => (
+                  <div key={item.id} className="card">
+                    <div className="Time row">
+                      <div className="col-sm-6">
+                        <h5 className="mb-1">{item.name}</h5>
+                      </div>
+                      <div className="col-sm-6 text-end">
+                        <div className="text-warning">
+                          {"★".repeat(item.rating)}
+                          {"☆".repeat(5 - item.rating)}
+                        </div>
+                        <div className="text-muted small">{item.time}</div>
+                      </div>
                     </div>
-                    <div className="col-sm-7">
-                      <p className="mb-0">{item.description}</p>
+
+                    <div className="col-sm-12 d-flex">
+                      <div className="col-sm-5">
+                        <img
+                          src={`${BASE_URL}/testimonial/images/${item.image}`}
+                          alt={item.name}
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            borderRadius: "10px",
+                          }}
+                        />
+                      </div>
+                      <div className="col-sm-7">
+                        <p className="mb-0">{item.description}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>
       </div>
 
       {/* FAQ section */}
-      <div className="Faq">
+      <div className="Faq" id="faq">
         <div className="container-fluid">
           <div className="main">
             <div className="row justify-content-center">
@@ -329,8 +370,12 @@ function Home() {
           <div className="row">
             {blogData.slice(0, 3).map(function (blog, index) {
               return (
-                <div className="col-sm-4" key={index}>
-                  <div className="blog-box">
+                <div
+                  className="col-sm-4"
+                  key={index}
+                  onClick={() => handleNavigate(blog)}
+                >
+                  <div className="blog-box" style={{ cursor: "pointer" }}>
                     <img
                       src={`${BASE_URL}/blog/images/${blog.image}`}
                       alt="blog"
@@ -350,8 +395,15 @@ function Home() {
                         month: "long",
                       })}
                     </h6>
-                   
-                    <button className="explore-btn" onClick={() => navigate("/blog-detail",{state:{blog}})}>Read More</button>
+
+                    <button
+                      className="explore-btn"
+                      onClick={() =>
+                        navigate("/blog-detail", { state: { blog } })
+                      }
+                    >
+                      Read More
+                    </button>
                   </div>
                 </div>
               );
@@ -360,42 +412,8 @@ function Home() {
         </div>
       </div>
 
-      <div className="newslater">
-        <div className="container my-5">
-          <div className="row  rounded-4 overflow-hidden ">
-            {/* Left Image Section */}
-            <div className="col-md-6 p-0">
-              <img
-                src="/images/banner.jpeg"
-                alt="Travel"
-                className="img-fluid h-100 w-100 object-cover"
-              />
-            </div>
-
-            {/* Right Content Section */}
-            <div className="col-md-6 d-flex newsletter-box flex-column justify-content-center align-items-start p-4">
-              <h3 className="fw-bold mb-2">
-                Your <span className="text-primary">Travel Journey</span> Starts
-                Here
-              </h3>
-              <p className="mb-3">
-                Sign Up And We'll Send The Best Deals To You
-              </p>
-
-              <form>
-                <input
-                  type="email"
-                  placeholder="Your Email"
-                  className="form-control me-2 rounded-pill"
-                />
-                <button className="explore-btn" type="submit">
-                  Send
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* newslater */}
+      <NewsLater />
     </div>
   );
 }

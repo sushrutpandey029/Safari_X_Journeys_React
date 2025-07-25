@@ -67,13 +67,17 @@ const ContactUs = () => {
             </p>
             <div className="mb-3">
               <i className="bi bi-telephone text-primary"></i>{" "}
-              <strong>48571525684</strong>
+              <strong>9821373111</strong>
               <p className="text-muted mb-0">Monday To Friday 09:00 - 20:00</p>
               <p className="text-muted">Sunday 09:00 - 17:00</p>
             </div>
             <div className="mb-3">
               <i className="bi bi-envelope text-primary"></i>{" "}
-              <strong>Info@SafariX.Com</strong>
+              <strong>info@safariX.com</strong>
+            </div>
+            <div className="mb-3">
+              <i className="bi bi-envelope text-primary"></i>{" "}
+              <strong>no-reply@safarixjourneys.com</strong>
             </div>
             <div>
               <h5>Safari X</h5>

@@ -47,6 +47,7 @@ p {
   background-color: #ccc;
 }
 
+
 /* Date picker */
 .date-picker {
   display: flex;
@@ -65,54 +66,78 @@ header .navbar-brand {
   display: flex;
 }
 
+
 /************ header*************/
 
 /************ banner*************/
+.banner {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.banner-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.banner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .text-banner {
   position: absolute;
   top: 50%;
   left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
   color: white;
-  text-align: center;
   font-size: 2rem;
   font-weight: bold;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
-  transform: translate(-50%, -50%);
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
 }
-.banner-slide {
+
+
+
+/* Typing animation */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    border-color: transparent;
+  }
+  50% {
+    border-color: white;
+  }
+}
+
+.trip-form-container {
   position: relative;
-  width: 100%;
+  z-index: 1050; /* Make sure it appears above */
 }
 
-.banner {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
+.place img {
+  transition: transform 0.4s ease;
+ 
+  border-radius: 8px;
 }
 
-.banner-img {
-  width: 100%;
-  height: 550px;
-  object-fit: cover;
-}
-.custom-arrow {
-  position: absolute;
-  top: 50%;
-  width: 70px;
-  height: 70px;
-  z-index: 5;
-  cursor: pointer;
-  transform: translateY(-50%);
+.place img:hover {
+  transform:scale(1.1);
 }
 
-.left-arrow {
-  left: 5px;
-}
-
-.right-arrow {
-  right: 5px;
-}
 /************ banner*************/
 
 /************ place-guide*************/
@@ -134,7 +159,7 @@ header .navbar-brand {
 
 .trending-destination {
   h2 span {
-    color: #0071eb;
+    color:#61a198;
   }
 
   .perra {
@@ -144,10 +169,10 @@ header .navbar-brand {
 }
 
 .explore-btn {
-  background-color: #0071eb;
+  background-color: #274A62;
   color: white;
   border: none;
-  padding: 8px 20px;
+  padding: 4px 10px;
   border-radius: 25px;
   font-size: 16px;
   cursor: pointer;
@@ -158,9 +183,18 @@ header .navbar-brand {
   background-color: #0056b3;
 }
 
-.destination-card p {
-  margin-bottom: 0;
+
+.destination-card {
+  margin:0px;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
+
+.destination-card:hover {
+  transform: scale(1.05); /* Zoom In */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Optional shadow */
+}
+
+
 
 .destination-card .text-gray {
   color: #555;
@@ -191,7 +225,7 @@ header .navbar-brand {
 }
 
 .best-guide h2 span {
-  color: #0071eb;
+  color: #61a198;
 }
 
 .best-guide .box {
@@ -236,16 +270,31 @@ header .navbar-brand {
     }
   }
 }
+.box {
+  overflow: hidden;
+  position: relative;
+}
+
+.box img {
+  transition: transform 0.4s ease;
+  width: 100%;
+  height: 250px; 
+  object-fit: cover;
+}
+
+.box:hover img {
+  transform:scale(1.1);
+}
 
 /************ best-guide*************/
 
 /************ best-cab*************/
 .best-cab {
-  background-color: #f6f6fa;
+  background-color: #B8E3E9;
   padding: 60px 0px;
 
   h2 span {
-    color: #0071eb;
+    color: #61a198;
   }
 
   .perra {
@@ -263,6 +312,8 @@ header .navbar-brand {
 
     .d-flex {
       position: relative;
+      margin-top: 20px;
+      gap: 20px !important;
     }
 
     h4 {
@@ -279,7 +330,7 @@ header .navbar-brand {
 
     .explore-btn {
       font-size: 12px;
-      padding: 10px 20px;
+      padding: 10px 10px;
       height: 35px;
       line-height: 17px;
       position: absolute;
@@ -300,7 +351,7 @@ header .navbar-brand {
   }
 
   span {
-    color: #0071eb;
+    color: #61a198;
   }
 }
 
@@ -325,11 +376,11 @@ header .navbar-brand {
 
 /************why-choose b*************/
 .why-choose {
-  background-color: #f6f6fa;
+  background-color: #B8E3E9;
   padding: 60px 0px;
 
   h2 span {
-    color: #0071eb;
+    color: #61a198;
   }
 
   .col-sm-4 {
@@ -353,7 +404,7 @@ header .navbar-brand {
   padding: 60px 0px;
 
   h2 span {
-    color: #0071eb;
+    color: #61a198;
   }
 
   .perra {
@@ -391,6 +442,9 @@ header .navbar-brand {
 /************blog*************/
 
 /************testimonial-faq-newslettetr-footer*************/
+.Faq{
+  background-color: #B8E3E9;
+}
 .place-pop {
   display: flex;
 }
@@ -411,7 +465,7 @@ header .navbar-brand {
   padding: 60px 0px;
 
   h2 span {
-    color: #0071eb;
+    color: #61a198;
   }
 }
 
@@ -470,10 +524,12 @@ header .navbar-brand {
   }
 }
 
+
+
 .main .accordion-button {
-  background-color: #f6f6fa;
-  padding: 20px 0px;
-  border-bottom: 1px solid #000000;
+    background-color: #f6f6fa;
+    padding: 16px 10px;
+    border-bottom: 1px solid #000000;
 }
 
 .main .accordion-button:focus {
@@ -481,7 +537,7 @@ header .navbar-brand {
 }
 
 .main {
-  background-color: #f6f6fa;
+ 
   padding: 60px 0px;
 }
 
@@ -504,6 +560,7 @@ header .navbar-brand {
     border: 1px solid #e4e4e4;
     display: flex;
     z-index: 1;
+    position: relative;
 
     p {
       margin-bottom: 0;
@@ -514,7 +571,7 @@ header .navbar-brand {
 }
 
 footer {
-  background-color: #f6f6fa;
+  background-color: #B8E3E9;
   padding: 100px 0px 40px;
   margin-top: -45px;
   position: relative;

@@ -32,9 +32,7 @@ function Blogdetail() {
         </h6>
          <p className="blog-description">{blog.description}</p>
 
-        <div className="">
-          <h1>Related Blog</h1>
-        </div>
+       
       </div>
 
      
