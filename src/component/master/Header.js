@@ -87,9 +87,15 @@ function Header() {
       <header>
         <nav className="navbar navbar-expand-lg">
           <div className="container">
-            <a className="navbar-brand" href="/">
-              LOGO
-            </a>
+          
+ <a className="navbar-brand" href="/">
+  <img 
+    src="/images/Safarix-Logo1.png" 
+    alt="Safarix Logo"
+    height="70"
+  />
+</a>
+
             <button
               className="navbar-toggler"
               type="button"
@@ -98,25 +104,6 @@ function Header() {
             >
               <span className="navbar-toggler-icon"></span>
             </button>
-
-            <form>
-              <div className="search-container">
-                <div className="search-input">
-                  <i className="bi bi-search"></i>
-                  <input
-                    type="text"
-                    placeholder="Find Place And Things To Do"
-                  />
-                </div>
-                <div className="divider"></div>
-                <div className="date-picker">
-                  <i className="bi bi-calendar3"></i>
-                  <span>Any Time</span>
-                  <i className="bi bi-caret-down-fill"></i>
-                </div>
-                <button className="explore-btn">Search</button>
-              </div>
-            </form>
 
             <div
               className="collapse navbar-collapse"
@@ -129,7 +116,7 @@ function Header() {
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" href="#">
+                  <a className="nav-link" href="/cab-lists">
                     Cabs
                   </a>
                 </li>
@@ -141,10 +128,26 @@ function Header() {
               </ul>
             </div>
 
+            <div className="plan my-3" style={{ marginRight: "60px" }}>
+              <button
+                className="explore-btn"
+                onClick={() => navigate("/bot-modal")}
+              >
+                <img
+                  src="/images/car-assistance.png"
+                  alt="icon"
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    // marginRight: "8px",
+                    verticalAlign: "middle",
+                  }}
+                />
+                Plan My Holiday
+              </button>
+            </div>
+
             <div className="user-icon position-relative">
-              <a href="#">
-                <i className="bi bi-heart"></i>
-              </a>
               <a href="#">
                 <i className="bi bi-cart"></i>
               </a>

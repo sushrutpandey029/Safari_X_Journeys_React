@@ -1,24 +1,27 @@
 import React, { useState } from "react";
-import { guideUpdateProfile } from "../../services/guideService";
+import { driverUpdateProfile } from "../../services/cabService";
 import { useSelector, useDispatch } from "react-redux";
 import { saveUserData, getUserData } from "../../utils/storage";
+import { loginSuccess } from "../../redux/slices/authSlice";
 
 function Profile() {
-  const guide = getUserData("guide");
-  console.log("guide in profile", guide);
+  const driver = getUserData("driver");
+  console.log("driver in profile", driver);
 
   const [formData, setFormData] = useState({
     email: "",
-    guidename: "",
+    drivername: "",
   });
 
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     e.preventDefault();
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  //updating user data
   const handleSubmit = async (e) => {
     e.preventDefault();
     const confirmUpdate = window.confirm(
@@ -27,13 +30,17 @@ function Profile() {
     if (!confirmUpdate) return;
     try {
       setLoading(true);
-      const resp = await guideUpdateProfile(formData);
-      console.log("resp in guide update", resp);
+      const resp = await driverUpdateProfile(formData);
+      console.log("resp in driver update", resp);
       if (resp.success) {
-        console.log("resp in update profile", resp);
-        saveUserData("guide", resp.user); //updating data in localstorage
+        dispatch(
+          loginSuccess({
+            user: resp.user,
+            token: resp.token,
+          })
+        );
+        saveUserData("driver", resp);
         alert(resp.message || "Profile updated successfully.");
-
         window.location.reload(true);
       } else {
         alert("Failed to update profile.");
@@ -58,16 +65,16 @@ function Profile() {
           class="form-control"
           placeholder="Email"
           onChange={handleChange}
-          defaultValue={guide?.email}
+          defaultValue={driver?.email}
         />
       </div>
       <div class="mb-3">
         <input
           type="text"
-          name="guidename"
+          name="drivername"
           class="form-control"
-          placeholder="guidename"
-          defaultValue={guide?.guidename}
+          placeholder="drivername"
+          defaultValue={driver?.drivername}
           onChange={handleChange}
         />
       </div>

@@ -5,6 +5,8 @@ import "slick-carousel/slick/slick-theme.css";
 import Button from "react-bootstrap/Button";
 import { getAllGuides } from "../services/guideService";
 import GuideCard from "./GuideCard";
+import { Link } from "react-router-dom";
+
 const PrevArrow = (props) => {
   const { onClick } = props;
   return (
@@ -28,29 +30,7 @@ const NextArrow = (props) => {
   );
 };
 
-const dataList = [
-  {
-    id: 1,
-    name: "Tarun kumar",
-    time: "12 Hr Ago",
-    image: "/Images/guide.webp",
-    description: "t sodales convallis nisi odio malesuada adipiscing.",
-  },
-  {
-    id: 2,
-    name: "Tarun kumar",
-    time: "12 Hr Ago",
-    image: "/Images/guide.webp",
-    description: "t sodales convallis nisi odio malesuada adipiscing.",
-  },
-  {
-    id: 3,
-    name: "Tarun kumar",
-    time: "12 Hr Ago",
-    image: "/Images/guide.webp",
-    description: "t sodales convallis nisi odio malesuada adipiscing.",
-  },
-];
+
 const settings = {
   dots: true,
   infinite: true,
@@ -132,43 +112,7 @@ function GuideList() {
         </div>
       </div>
 
-      <div className="Testionials">
-        <div className="container">
-          <div className="row">
-            <div className="col-sm-9">
-              <h2>
-                Client <span>Testimonials</span>
-              </h2>
-            </div>
-            <div className="col-sm-3 text-end ">
-              <Button className="explore-btn">Read All Review</Button>
-            </div>
-            <div className="card-container">
-              {dataList.map((item) => (
-                <div key={item.id} className="card">
-                  <div className="Time d-flex">
-                    <h5 className="col-sm-6">{item.name}</h5>
-                    <div className="col-sm-6">
-                      <a className href="#">
-                        {item.time}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="col-sm-12 d-flex">
-                    <div className="col-sm-5">
-                      <img src={item.image} alt={item.name} />
-                    </div>
-                    <div className="col-sm-7">
-                      <p className="mb-0">{item.description}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   );
 }

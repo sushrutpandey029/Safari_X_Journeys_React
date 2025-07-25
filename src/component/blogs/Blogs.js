@@ -26,6 +26,7 @@ const Blogs = () => {
   const handleNavigate = (blog) => {
     navigate(`/blog-detail`, { state: { blog } });
   };
+  
   return (
     <div className="blogs">
       <div className="container my-5">

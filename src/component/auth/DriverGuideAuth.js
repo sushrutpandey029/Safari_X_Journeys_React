@@ -3,15 +3,21 @@ import "../home/Home.css";
 import { driverGuideLogin } from "../services/authService";
 import { Modal } from "react-bootstrap";
 import { saveUserData } from "../utils/storage";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../redux/slices/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     role: "driver",
   });
+
+  const dispatch = useDispatch();
 
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
@@ -26,21 +32,33 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
 
       if (response.success === true) {
         if (response.user.role === "guide") {
+          dispatch(
+            loginSuccess({
+              user: response.user,
+              token: response.token,
+            })
+          );
           saveUserData("guide", response.user);
           saveUserData("guide_token", response.token);
           saveUserData("guide_refreshtoken", response.refreshToken);
+          navigate("/guide-dashboard");
         } else if (response.user.role === "driver") {
+          dispatch(
+            loginSuccess({
+              user: response.user,
+              token: response.token,
+            })
+          );
           saveUserData("driver", response.user);
           saveUserData("driver_token", response.token);
           saveUserData("driver_refreshtoken", response.refreshToken);
+          navigate("/driver-dashboard");
         }
 
         setShowDriverGuideLogin(false);
-        alert(response.message);
-        console.log("response in driver or guide login", response);
       }
     } catch (err) {
-      alert(err.response?.data?.message);
+      // alert(err.response?.data?.message);
       console.log("err in driver or guide login", err.response);
     }
   };
@@ -55,7 +73,7 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
     >
       {/* Modal Header */}
       <Modal.Header closeButton>
-        <Modal.Title>Log in</Modal.Title>
+        <Modal.Title>Login</Modal.Title>
       </Modal.Header>
 
       {/* Modal Body */}
@@ -102,22 +120,11 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
 
           {/* Info text */}
           <p className="text-center text-muted mb-3">
-            Check out more easily and access your tickets on any device with
-            your <strong>SafariX</strong> account.
+            Plan your trip, book your tickets, and access everything with  
+                 <strong> SafariX</strong>
           </p>
 
-          {/* Social login buttons */}
-          <div className="d-flex justify-content-between gap-2 mb-3">
-            <button className="btn btn-outline-secondary w-100">
-              <i className="bi bi-google me-2"></i>
-            </button>
-            <button className="btn btn-outline-secondary w-100">
-              <i className="bi bi-apple me-2"></i>
-            </button>
-            <button className="btn btn-outline-secondary w-100">
-              <i className="bi bi-facebook me-2"></i>
-            </button>
-          </div>
+                 
 
           {/* Email */}
           <div className="mb-3">
@@ -175,81 +182,6 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
           </div>
         </>
       </Modal.Body>
-
-      {/* <Modal.Body>
-        <>
-          <p className="text-center text-muted mb-3">
-            Check out more easily and access your tickets on any device with
-            your <strong>SafariX</strong> account.
-          </p>
-
-          <div className="d-flex justify-content-between gap-2 mb-3">
-            <button className="btn btn-outline-secondary w-100">
-              <i className="bi bi-google me-2"></i>
-            </button>
-            <button className="btn btn-outline-secondary w-100">
-              <i className="bi bi-apple me-2"></i>
-            </button>
-            <button className="btn btn-outline-secondary w-100">
-              <i className="bi bi-facebook me-2"></i>
-            </button>
-          </div>
-
-         
-
-          <div className="mb-3">
-            <input
-              type="email"
-              className="form-control"
-              placeholder="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3 position-relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              className="form-control pe-5"
-              placeholder="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-            <span
-              className="position-absolute"
-              style={{
-                right: "10px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                cursor: "pointer",
-              }}
-              onClick={() => setShowPassword((prev) => !prev)}
-            >
-              <i
-                className={`bi ${
-                  showPassword ? "bi-eye-slash-fill" : "bi-eye-fill"
-                }`}
-              ></i>
-            </span>
-          </div>
-
-          <div className="mb-3">
-            <button
-              className={`explore-btn ${
-                isValidEmail(formData.email)
-                  ? "btn-primary text-white"
-                  : "btn-light text-muted"
-              }`}
-              disabled={!isValidEmail(formData.email)}
-              onClick={() => handleLogin()}
-            >
-              Continue
-            </button>
-          </div>
-        </>
-      </Modal.Body> */}
 
       {/* Modal Footer */}
       <Modal.Footer className="flex-column">

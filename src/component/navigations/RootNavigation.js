@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Router } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess } from "../redux/slices/authSlice";
 
@@ -15,7 +15,13 @@ import UserDashboard from "../home/UserDashboard";
 import PrivateRoute from "./PrivateRoute";
 import Blogs from "../blogs/Blogs";
 import Blogdetail from "../blogs/Blogdetail";
-
+import GuideDashboard from "../guides/GuideDashboard";
+import DriverDashboard from "../cabs/DriverDashboard";
+import CabList from "../cabs/CabList";
+import GuideCareers from "../guides/GuideCareers";
+import BotModal from "../common/BotModal";
+import Testimonials from "../common/testimonials/Testimonials";
+ 
 function RootNavigation() {
   const dispatch = useDispatch();
 
@@ -34,6 +40,7 @@ function RootNavigation() {
 
   return (
     <Routes>
+     
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/guides" element={<GuideList />} />
@@ -41,13 +48,34 @@ function RootNavigation() {
         <Route path="/about" element={<About />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/hotel" element={<HotelBooking />} />
-        <Route path="/blogs" element={<Blogs/>}/>
-        <Route path="/blog-detail" element={<Blogdetail/>}/>
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blog-detail" element={<Blogdetail />} />
+        <Route path="/cab-lists" element={<CabList />} />
+        <Route path="/guide-careers" element={<GuideCareers />} />
+        <Route path="/bot-modal" element={<BotModal />} />
+        <Route path="/testimonials" element={<Testimonials />} />
+
         <Route
           path="/user-dashboard"
           element={
             <PrivateRoute allowedRoles={["user"]}>
               <UserDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/guide-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["guide"]}>
+              <GuideDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/driver-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["driver"]}>
+              <DriverDashboard />
             </PrivateRoute>
           }
         />

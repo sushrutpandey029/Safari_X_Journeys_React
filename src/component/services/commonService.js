@@ -36,3 +36,30 @@ export const contactUs = async (formData) => {
     throw err;
   }
 };
+
+export const fetchTestimonialList = async () => {
+  try {
+    const response = await axios.get(API.TESTIMONIAL_LIST);
+    return response;
+  } catch (err) {
+    throw err;
+  }
+};
+
+export const newsLaterSubmit = async (payload) => {
+  try {
+    const resp = await axios.post(API.NEWSLATER, payload);
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+export const chatbotSubmit = async (payload) => {
+  try {
+    const resp = await axios.post(API.CHATBOT_SUBMIT, payload);
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};

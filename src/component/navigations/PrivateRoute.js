@@ -7,6 +7,8 @@ const PrivateRoute = ({ children, allowedRoles }) => {
   const driver = getUserData("driver");
   const guide = getUserData("guide");
 
+  console.log("dataaa", user, driver, guide);
+
   let loggedRole = null;
 
   if (user) {
@@ -19,8 +21,8 @@ const PrivateRoute = ({ children, allowedRoles }) => {
     return <Navigate to={"/"} replace />;
   }
 
-  if (!allowedRoles.include(loggedRole)) {
-    <Navigate to={"/"} replace />;
+  if (!allowedRoles.includes(loggedRole)) {
+    return <Navigate to={"/"} replace />;
   }
 
   return children;

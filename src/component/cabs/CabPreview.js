@@ -35,18 +35,18 @@ function CabPreview() {
             </p>
           </div>
           <div className="col-sm-3 text-end">
-            <Link to={"#"}>
+            <Link to={"/cab-lists"}>
               <button className="explore-btn">Explore More</button>
             </Link>
           </div>
 
-          {cabData.slice(0, 4).map((cab, index) => (
-            <div className="col-md-3 mb-4" key={index}>
+          {cabData.slice(0, 3).map((cab, index) => (
+            <div className="col-md-4 mb-4" key={index}>
               <div className="cab-box">
                 <img
                   src={`${BASE_URL}/cab/images/${cab.imagePath}`}
                   alt={cab.name}
-                  className="img-fluid"
+                  className="img-fluid rounded .2rem"
                 />
                 {/* <img src={cab.image} alt={cab.name} className="img-fluid" /> */}
                 <div className="d-flex">
