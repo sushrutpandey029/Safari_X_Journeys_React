@@ -1,4 +1,4 @@
-export const BASE_URL = "http://192.168.1.9:2625";
+export const BASE_URL = "http://192.168.1.7:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,

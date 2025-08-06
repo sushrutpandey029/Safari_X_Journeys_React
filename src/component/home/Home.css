@@ -338,6 +338,11 @@ header .navbar-brand {
     }
   }
 }
+.best-cab img{
+  height: 200px;
+width: 310px;
+  object-fit: cover;
+}
 
 /************ best-cab*************/
 
@@ -523,8 +528,6 @@ header .navbar-brand {
     padding: 13px 40px;
   }
 }
-
-
 
 .main .accordion-button {
     background-color: #f6f6fa;

@@ -164,7 +164,7 @@ function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="/cab-lists" rel="noopener noreferrer">
+                  <a href="/cabs" rel="noopener noreferrer">
                     Cabs
                   </a>
                 </li>

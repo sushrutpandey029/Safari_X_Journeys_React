@@ -52,6 +52,7 @@ export const guideCareerSubmit = async (payload) => {
     });
     return resp.data;
   } catch (err) {
+    console.log("error in career guide submit",err.response)
     throw err;
   }
 };
