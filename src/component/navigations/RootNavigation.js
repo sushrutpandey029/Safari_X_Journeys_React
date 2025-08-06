@@ -21,7 +21,8 @@ import CabList from "../cabs/CabList";
 import GuideCareers from "../guides/GuideCareers";
 import BotModal from "../common/BotModal";
 import Testimonials from "../common/testimonials/Testimonials";
- 
+import Cabdetail from "../cabs/Cabdetail";
+
 function RootNavigation() {
   const dispatch = useDispatch();
 
@@ -40,7 +41,6 @@ function RootNavigation() {
 
   return (
     <Routes>
-     
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="/guides" element={<GuideList />} />
@@ -50,10 +50,11 @@ function RootNavigation() {
         <Route path="/hotel" element={<HotelBooking />} />
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog-detail" element={<Blogdetail />} />
-        <Route path="/cab-lists" element={<CabList />} />
+        <Route path="/cabs" element={<CabList />} />
         <Route path="/guide-careers" element={<GuideCareers />} />
         <Route path="/bot-modal" element={<BotModal />} />
         <Route path="/testimonials" element={<Testimonials />} />
+        <Route path="/cab-details" element={<Cabdetail />} />
 
         <Route
           path="/user-dashboard"

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { fetchCabList } from "../services/cabService";
 import { BASE_URL } from "../services/apiEndpoints";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function CabPreview() {
   const [cabData, setCabData] = useState([]);
+  const navigate = useNavigate();
 
   const getCabList = async () => {
     try {
@@ -14,6 +15,10 @@ function CabPreview() {
     } catch (err) {
       console.log("err in listing cab", err.response);
     }
+  };
+
+  const handleNavigate = (item) => {
+    navigate("/cab-details", { state: { cab: item } });
   };
 
   useEffect(() => {
@@ -35,7 +40,7 @@ function CabPreview() {
             </p>
           </div>
           <div className="col-sm-3 text-end">
-            <Link to={"/cab-lists"}>
+            <Link to={"/cabs"}>
               <button className="explore-btn">Explore More</button>
             </Link>
           </div>
@@ -54,7 +59,12 @@ function CabPreview() {
                     {cab.cabtype}
                     <span>Starting- {cab.price_per_day}/day</span>
                   </h4>
-                  <button className="explore-btn">BOOK NOW</button>
+                  <button
+                    className="explore-btn"
+                    onClick={() => handleNavigate(cab)}
+                  >
+                    BOOK NOW
+                  </button>
                 </div>
               </div>
             </div>

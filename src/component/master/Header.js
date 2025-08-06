@@ -87,14 +87,13 @@ function Header() {
       <header>
         <nav className="navbar navbar-expand-lg">
           <div className="container">
-          
- <a className="navbar-brand" href="/">
-  <img 
-    src="/images/Safarix-Logo1.png" 
-    alt="Safarix Logo"
-    height="70"
-  />
-</a>
+            <a className="navbar-brand" href="/">
+              <img
+                src="/images/Safarix-Logo1.png"
+                alt="Safarix Logo"
+                height="70"
+              />
+            </a>
 
             <button
               className="navbar-toggler"
@@ -116,7 +115,7 @@ function Header() {
                   </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" href="/cab-lists">
+                  <a className="nav-link" href="/cabs">
                     Cabs
                   </a>
                 </li>
