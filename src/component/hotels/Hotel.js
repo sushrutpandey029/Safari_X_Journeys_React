@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCityList } from "../services/hotelService"; // API functions
 import HotelPopularDestination from "./HotelPopularDestination";
-
+import "./HotelBooking.css";
 function Hotel() {
   const navigate = useNavigate();
 
@@ -91,14 +91,14 @@ function Hotel() {
   return (
     
     <div>
-      <div className="tab-section pt-5 pb-5">
-      <div className="container search-box bg-light rounded shadow-sm">
+      <div className="tab-section">
+      <div className="container search-box rounded shadow-sm">
         <div className="row g-3 align-items-end">
           {/* City */}
           <div className="col-md-2">
             <label className="form-label">City</label>
             <select
-              className="form-select"
+              className="form-control"
               value={selectedCity}
               onChange={(e) => {
                 const cityCode = e.target.value;
@@ -150,7 +150,7 @@ function Hotel() {
           <div className="col-md-4 position-relative">
             <label className="form-label">Rooms/Guests</label>
             <div
-              className="form-select d-flex justify-content-between align-items-center"
+              className="form-control d-flex justify-content-between align-items-center"
               onClick={() => setOpen(!open)}
               style={{ cursor: "pointer" }}
             >
@@ -249,7 +249,7 @@ function Hotel() {
                           {room.ChildrenAges.map((age, cIdx) => (
                             <select
                               key={cIdx}
-                              className="form-select"
+                              className="form-control"
                               style={{ width: "80px" }}
                               value={age}
                               onChange={(e) => {
@@ -305,7 +305,7 @@ function Hotel() {
                 </div>
 
                 <button
-                  className="btn btn-warning w-100 mt-3"
+                  className="btn btn-dark w-100 mt-3"
                   onClick={() => setOpen(false)}
                 >
                   Done
@@ -316,7 +316,7 @@ function Hotel() {
 
           {/* Search Button */}
           <div className="col-md-2">
-            <button className="btn btn-primary w-100" onClick={handleSearch}>
+            <button className="btn form-control btn-primary w-100" onClick={handleSearch}>
               Search
             </button>
           </div>
