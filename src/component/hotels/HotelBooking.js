@@ -20,6 +20,7 @@ function HotelBooking() {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCityName, setSelectedCityName] = useState("");
 
+
   // Date & Rooms
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -260,665 +261,693 @@ function HotelBooking() {
   }, [selectedCity, checkIn, checkOut, rooms, paxRooms, guestNationality]);
 
   return (
-    <div className="container pt-5 pb-5">
-      <div className="row">
-        <div className="col-sm-12">
-          <nav aria-label="breadcrumb">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item">
-                <a href="/">Home</a>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Hotels
-              </li>
-            </ol>
-          </nav>
 
-          {/* search hotel box filter */}
+    <div>
 
-          <div className="search-box p-3 bg-light rounded shadow-sm">
-            <div className="row g-3 align-items-end">
-              {/* City */}
-              <div className="col-md-2">
-                <label className="form-label">City</label>
-                <select
-                  className="form-select"
-                  value={selectedCity}
-                  onChange={(e) => {
-                    const cityCode = e.target.value;
-                    setSelectedCity(cityCode);
+      {/* search hotel box filter */}
 
-                    const cityObj = cityList.find(
-                      (c) =>
-                        (c.CityCode?.toString() || c.Code?.toString()) ===
-                        cityCode.toString()
-                    );
+      <div className="search-box listing-search-form">
+        <div className="container">
+          <div className="row g-3 align-items-end">
+            {/* City */}
+            <div className="col-md-2">
+              <label className="form-label">City</label>
+              <select
+                className="form-control"
+                value={selectedCity}
+                onChange={(e) => {
+                  const cityCode = e.target.value;
+                  setSelectedCity(cityCode);
 
-                    const cityName =
-                      cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
+                  const cityObj = cityList.find(
+                    (c) =>
+                      (c.CityCode?.toString() || c.Code?.toString()) ===
+                      cityCode.toString()
+                  );
 
-                    setSelectedCityName(cityName);
-                    localStorage.setItem("selectedCity", cityCode);
-                    localStorage.setItem("selectedCityName", cityName);
-                  }}
-                  disabled={!selectedCountry || loading}
-                >
-                  <option value="">-- Select City --</option>
-                  {cityList.map((city, index) => (
-                    <option key={index} value={city.CityCode || city.Code}>
-                      {city.CityName || city.Name || city.City}
-                    </option>
-                  ))}
-                </select>
+                  const cityName =
+                    cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
+
+                  setSelectedCityName(cityName);
+                  localStorage.setItem("selectedCity", cityCode);
+                  localStorage.setItem("selectedCityName", cityName);
+                }}
+                disabled={!selectedCountry || loading}
+              >
+                <option value="">-- Select City --</option>
+                {cityList.map((city, index) => (
+                  <option key={index} value={city.CityCode || city.Code}>
+                    {city.CityName || city.Name || city.City}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Check-in */}
+            <div className="col-md-2">
+              <label className="form-label">Check-In</label>
+              <input
+                type="date"
+                className="form-control"
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
+              />
+            </div>
+
+            {/* Check-out */}
+            <div className="col-md-2">
+              <label className="form-label">Check-Out</label>
+              <input
+                type="date"
+                className="form-control"
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
+              />
+            </div>
+
+            {/* Rooms Dropdown */}
+            <div className="col-md-4 position-relative">
+              {/* Dropdown Trigger */}
+              <label className="form-label">Rooms/Guests</label>
+              <div
+                className="form-control d-flex justify-content-between align-items-center"
+                onClick={() => setOpen(!open)}
+                style={{ cursor: "pointer" }}
+              >
+                {rooms} Room{rooms > 1 ? "s" : ""},{" "}
+                {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)}{" "}
+                Guests
+                <span>▼</span>
               </div>
 
-              {/* Check-in */}
-              <div className="col-md-2">
-                <label className="form-label">Check-In</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={checkIn}
-                  onChange={(e) => setCheckIn(e.target.value)}
-                />
-              </div>
-
-              {/* Check-out */}
-              <div className="col-md-2">
-                <label className="form-label">Check-Out</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={checkOut}
-                  onChange={(e) => setCheckOut(e.target.value)}
-                />
-              </div>
-
-              {/* Rooms Dropdown */}
-              <div className="col-md-4 position-relative">
-                {/* Dropdown Trigger */}
-                <label className="form-label">Rooms/Guests</label>
+              {/* Dropdown Content */}
+              {open && (
                 <div
-                  className="form-select d-flex justify-content-between align-items-center"
-                  onClick={() => setOpen(!open)}
-                  style={{ cursor: "pointer" }}
+                  className="border rounded p-3 bg-white shadow-sm position-absolute mt-1"
+                  style={{ zIndex: 1000, width: "100%" }}
                 >
-                  {rooms} Room{rooms > 1 ? "s" : ""},{" "}
-                  {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)}{" "}
-                  Guests
-                  <span>▼</span>
-                </div>
+                  {/* Pax Rooms */}
+                  {paxRooms.map((room, idx) => (
+                    <div key={idx} className="mb-3">
+                      <h6 className="fw-bold mb-2">Room {idx + 1}</h6>
 
-                {/* Dropdown Content */}
-                {open && (
-                  <div
-                    className="border rounded p-3 bg-white shadow-sm position-absolute mt-1"
-                    style={{ zIndex: 1000, width: "100%" }}
-                  >
-                    {/* Pax Rooms */}
-                    {paxRooms.map((room, idx) => (
-                      <div key={idx} className="mb-3">
-                        <h6 className="fw-bold mb-2">Room {idx + 1}</h6>
-
-                        {/* Adults & Children */}
-                        <div className="d-flex align-items-center gap-4 mb-2">
-                          {/* Adults */}
-                          <div>
-                            <label className="form-label">
-                              Adult (Above 12 years)
-                            </label>
-                            <div className="d-flex align-items-center">
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary"
-                                onClick={() => {
-                                  const updated = [...paxRooms];
-                                  if (updated[idx].Adults > 1)
-                                    updated[idx].Adults -= 1;
-                                  setPaxRooms(updated);
-                                }}
-                              >
-                                -
-                              </button>
-                              <span className="px-3">{room.Adults}</span>
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary"
-                                onClick={() => {
-                                  const updated = [...paxRooms];
-                                  if (updated[idx].Adults < 8)
-                                    updated[idx].Adults += 1;
-                                  setPaxRooms(updated);
-                                }}
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Children */}
-                          <div>
-                            <label className="form-label">
-                              Child (Below 12 years)
-                            </label>
-                            <div className="d-flex align-items-center">
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary"
-                                onClick={() => {
-                                  const updated = [...paxRooms];
-                                  if (updated[idx].Children > 0) {
-                                    updated[idx].Children -= 1;
-                                    updated[idx].ChildrenAges = updated[
-                                      idx
-                                    ].ChildrenAges.slice(
-                                      0,
-                                      updated[idx].Children
-                                    );
-                                  }
-                                  setPaxRooms(updated);
-                                }}
-                              >
-                                -
-                              </button>
-                              <span className="px-3">{room.Children}</span>
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary"
-                                onClick={() => {
-                                  const updated = [...paxRooms];
-                                  if (updated[idx].Children < 4) {
-                                    updated[idx].Children += 1;
-                                    updated[idx].ChildrenAges.push(1);
-                                  }
-                                  setPaxRooms(updated);
-                                }}
-                              >
-                                +
-                              </button>
-                            </div>
+                      {/* Adults & Children */}
+                      <div className="d-flex align-items-center gap-4 mb-2">
+                        {/* Adults */}
+                        <div>
+                          <label className="form-label">
+                            Adult (Above 12 years)
+                          </label>
+                          <div className="d-flex align-items-center">
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                const updated = [...paxRooms];
+                                if (updated[idx].Adults > 1)
+                                  updated[idx].Adults -= 1;
+                                setPaxRooms(updated);
+                              }}
+                            >
+                              -
+                            </button>
+                            <span className="px-3">{room.Adults}</span>
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                const updated = [...paxRooms];
+                                if (updated[idx].Adults < 8)
+                                  updated[idx].Adults += 1;
+                                setPaxRooms(updated);
+                              }}
+                            >
+                              +
+                            </button>
                           </div>
                         </div>
 
-                        {/* Children Ages */}
-                        {room.Children > 0 && (
-                          <div>
-                            <label className="form-label">
-                              Age(s) of Children
-                            </label>
-                            <div className="d-flex gap-2">
-                              {room.ChildrenAges.map((age, cIdx) => (
-                                <select
-                                  key={cIdx}
-                                  className="form-select"
-                                  style={{ width: "80px" }}
-                                  value={age}
-                                  onChange={(e) => {
-                                    const updated = [...paxRooms];
-                                    updated[idx].ChildrenAges[cIdx] = Number(
-                                      e.target.value
-                                    );
-                                    setPaxRooms(updated);
-                                  }}
-                                >
-                                  {Array.from(
-                                    { length: 12 },
-                                    (_, i) => i + 1
-                                  ).map((a) => (
-                                    <option key={a} value={a}>
-                                      {a}
-                                    </option>
-                                  ))}
-                                </select>
-                              ))}
-                            </div>
+                        {/* Children */}
+                        <div>
+                          <label className="form-label">
+                            Child (Below 12 years)
+                          </label>
+                          <div className="d-flex align-items-center">
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                const updated = [...paxRooms];
+                                if (updated[idx].Children > 0) {
+                                  updated[idx].Children -= 1;
+                                  updated[idx].ChildrenAges = updated[
+                                    idx
+                                  ].ChildrenAges.slice(
+                                    0,
+                                    updated[idx].Children
+                                  );
+                                }
+                                setPaxRooms(updated);
+                              }}
+                            >
+                              -
+                            </button>
+                            <span className="px-3">{room.Children}</span>
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                const updated = [...paxRooms];
+                                if (updated[idx].Children < 4) {
+                                  updated[idx].Children += 1;
+                                  updated[idx].ChildrenAges.push(1);
+                                }
+                                setPaxRooms(updated);
+                              }}
+                            >
+                              +
+                            </button>
                           </div>
-                        )}
+                        </div>
                       </div>
-                    ))}
 
-                    {/* Add/Remove Room */}
-                    <div className="d-flex justify-content-between">
-                      <button
-                        className="btn btn-sm btn-outline-success"
-                        onClick={() => {
-                          if (rooms < 5) {
-                            setRooms(rooms + 1);
-                            setPaxRooms([
-                              ...paxRooms,
-                              { Adults: 2, Children: 0, ChildrenAges: [] },
-                            ]);
-                          }
-                        }}
-                      >
-                        + Add Room
-                      </button>
-                      {rooms > 1 && (
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => {
-                            setRooms(rooms - 1);
-                            setPaxRooms(paxRooms.slice(0, -1));
-                          }}
-                        >
-                          Remove Room
-                        </button>
+                      {/* Children Ages */}
+                      {room.Children > 0 && (
+                        <div>
+                          <label className="form-label">
+                            Age(s) of Children
+                          </label>
+                          <div className="d-flex gap-2">
+                            {room.ChildrenAges.map((age, cIdx) => (
+                              <select
+                                key={cIdx}
+                                className="form-control"
+                                style={{ width: "80px" }}
+                                value={age}
+                                onChange={(e) => {
+                                  const updated = [...paxRooms];
+                                  updated[idx].ChildrenAges[cIdx] = Number(
+                                    e.target.value
+                                  );
+                                  setPaxRooms(updated);
+                                }}
+                              >
+                                {Array.from(
+                                  { length: 12 },
+                                  (_, i) => i + 1
+                                ).map((a) => (
+                                  <option key={a} value={a}>
+                                    {a}
+                                  </option>
+                                ))}
+                              </select>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
+                  ))}
 
-                    {/* Done Button */}
+                  {/* Add/Remove Room */}
+                  <div className="d-flex justify-content-between">
                     <button
-                      className="btn btn-warning w-100 mt-3"
-                      onClick={() => setOpen(false)}
+                      className="btn btn-sm btn-outline-success"
+                      onClick={() => {
+                        if (rooms < 5) {
+                          setRooms(rooms + 1);
+                          setPaxRooms([
+                            ...paxRooms,
+                            { Adults: 2, Children: 0, ChildrenAges: [] },
+                          ]);
+                        }
+                      }}
                     >
-                      Done
+                      + Add Room
                     </button>
+                    {rooms > 1 && (
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => {
+                          setRooms(rooms - 1);
+                          setPaxRooms(paxRooms.slice(0, -1));
+                        }}
+                      >
+                        Remove Room
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Done Button */}
+                  <button
+                    className="btn btn-warning w-100 mt-3"
+                    onClick={() => setOpen(false)}
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
+            {/* Search Button */}
+            <div className="col-md-2">
+              <button
+                className=" form-control explore-btn w-100"
+                onClick={handleSearch}
+              >
+                Modify Search
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Keyword + Sort */}
+      </div>
+      <div className="container hotel-listing">
+        <div className="row">
+          <div className="col-sm-12">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb">
+                <li className="breadcrumb-item">
+                  <a href="/">Home</a>
+                </li>
+                <li className="breadcrumb-item active" aria-current="page">
+                  Hotels
+                </li>
+              </ol>
+            </nav>
+
+
+          </div>
+
+          <div className="col-sm-3">
+            <div className="filter-box p-3 border rounded">
+              <h5 className="mb-3 fw-bold">FILTER</h5>
+
+              {/* Filter: Show Properties With */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  onClick={() => handleToggle("showProperties")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span>Show Properties With</span>
+                  <span>
+                    <FontAwesomeIcon
+                      icon={toggle.showProperties ? faChevronUp : faChevronDown}
+                    />
+                  </span>
+                </div>
+                {toggle.showProperties && (
+                  <div className="filter-options mt-2">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="bookZero"
+                      />
+                      <label className="form-check-label" htmlFor="bookZero">
+                        Book With ₹0
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="freeCancel"
+                      />
+                      <label className="form-check-label" htmlFor="freeCancel">
+                        Free Cancellation
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="freeBreakfast"
+                      />
+                      <label className="form-check-label" htmlFor="freeBreakfast">
+                        Free Breakfast
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={isRefundable}
+                        onChange={(e) => setIsRefundable(e.target.checked)}
+                        id="refundable"
+                      />
+                      <label className="form-check-label" htmlFor="refundable">
+                        Refundable Only
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
-              {/* Search Button */}
-              <div className="col-md-2">
-                <button
-                  className="btn btn-primary w-100"
-                  onClick={handleSearch}
+
+
+
+
+              {/* Filter: Star Rating */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  onClick={() => handleToggle("star")}
+                  style={{ cursor: "pointer" }}
                 >
-                  Modify Search
-                </button>
-              </div>
-            </div>
-
-            {/* Keyword + Sort */}
-          </div>
-        </div>
-
-        <div className="col-sm-3">
-          <div className="filter-box p-3 border rounded">
-            <h5 className="mb-3 fw-bold">FILTER</h5>
-
-            {/* Filter: Show Properties With */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("showProperties")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Show Properties With</span>
-                <span>
-                  <FontAwesomeIcon
-                    icon={toggle.showProperties ? faChevronUp : faChevronDown}
-                  />
-                </span>
-              </div>
-              {toggle.showProperties && (
-                <div className="filter-options mt-2">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="bookZero"
+                  <span>Star Rating</span>
+                  <span>
+                    <FontAwesomeIcon
+                      icon={toggle.star ? faChevronUp : faChevronDown}
                     />
-                    <label className="form-check-label" htmlFor="bookZero">
-                      Book With ₹0
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="freeCancel"
-                    />
-                    <label className="form-check-label" htmlFor="freeCancel">
-                      Free Cancellation
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="freeBreakfast"
-                    />
-                    <label className="form-check-label" htmlFor="freeBreakfast">
-                      Free Breakfast
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={isRefundable}
-                      onChange={(e) => setIsRefundable(e.target.checked)}
-                      id="refundable"
-                    />
-                    <label className="form-check-label" htmlFor="refundable">
-                      Refundable Only
-                    </label>
-                  </div>
+                  </span>
                 </div>
-              )}
-            </div>
-
-           
-            
-
-            {/* Filter: Star Rating */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("star")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Star Rating</span>
-                <span>
-                  <FontAwesomeIcon
-                    icon={toggle.star ? faChevronUp : faChevronDown}
-                  />
-                </span>
+                {toggle.star && (
+                  <div className="filter-options mt-2">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="s1"
+                      />
+                      <label className="form-check-label" htmlFor="s1">
+                        5 Star <span className="text-muted">[205]</span>
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="s2"
+                      />
+                      <label className="form-check-label" htmlFor="s2">
+                        4 Star <span className="text-muted">[550]</span>
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="s3"
+                      />
+                      <label className="form-check-label" htmlFor="s3">
+                        3 Star <span className="text-muted">[305]</span>
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="s4"
+                      />
+                      <label className="form-check-label" htmlFor="s4">
+                        Budget <span className="text-muted">[750]</span>
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="s5"
+                      />
+                      <label className="form-check-label" htmlFor="s5">
+                        Unrated <span className="text-muted">[500]</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
-              {toggle.star && (
-                <div className="filter-options mt-2">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="s1"
-                    />
-                    <label className="form-check-label" htmlFor="s1">
-                      5 Star <span className="text-muted">[205]</span>
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="s2"
-                    />
-                    <label className="form-check-label" htmlFor="s2">
-                      4 Star <span className="text-muted">[550]</span>
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="s3"
-                    />
-                    <label className="form-check-label" htmlFor="s3">
-                      3 Star <span className="text-muted">[305]</span>
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="s4"
-                    />
-                    <label className="form-check-label" htmlFor="s4">
-                      Budget <span className="text-muted">[750]</span>
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="s5"
-                    />
-                    <label className="form-check-label" htmlFor="s5">
-                      Unrated <span className="text-muted">[500]</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Filter: User Review Rating */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("review")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>User Review Rating</span>
-                <span>
-                  <FontAwesomeIcon
-                    icon={toggle.review ? faChevronUp : faChevronDown}
-                  />
-                </span>
+              {/* Filter: User Review Rating */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  onClick={() => handleToggle("review")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span>User Review Rating</span>
+                  <span>
+                    <FontAwesomeIcon
+                      icon={toggle.review ? faChevronUp : faChevronDown}
+                    />
+                  </span>
+                </div>
+                {toggle.review && (
+                  <div className="filter-options mt-2">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="r1"
+                      />
+                      <label className="form-check-label" htmlFor="r1">
+                        4.5 & Above (Excellent)
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="r2"
+                      />
+                      <label className="form-check-label" htmlFor="r2">
+                        4 & Above (Very Good)
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="r3"
+                      />
+                      <label className="form-check-label" htmlFor="r3">
+                        3 & Above (Good)
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
-              {toggle.review && (
-                <div className="filter-options mt-2">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="r1"
-                    />
-                    <label className="form-check-label" htmlFor="r1">
-                      4.5 & Above (Excellent)
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="r2"
-                    />
-                    <label className="form-check-label" htmlFor="r2">
-                      4 & Above (Very Good)
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="r3"
-                    />
-                    <label className="form-check-label" htmlFor="r3">
-                      3 & Above (Good)
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Filter: Amenities */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("amenities")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Amenities</span>
-                <span>
-                  <FontAwesomeIcon
-                    icon={toggle.amenities ? faChevronUp : faChevronDown}
-                  />
-                </span>
+              {/* Filter: Amenities */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  onClick={() => handleToggle("amenities")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span>Amenities</span>
+                  <span>
+                    <FontAwesomeIcon
+                      icon={toggle.amenities ? faChevronUp : faChevronDown}
+                    />
+                  </span>
+                </div>
+                {toggle.amenities && (
+                  <div className="filter-options mt-2">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="a1"
+                      />
+                      <label className="form-check-label" htmlFor="a1">
+                        Free Cancellation
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="a2"
+                      />
+                      <label className="form-check-label" htmlFor="a2">
+                        24 Hour Front Desk
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="a3"
+                      />
+                      <label className="form-check-label" htmlFor="a3">
+                        Ac
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="a4"
+                      />
+                      <label className="form-check-label" htmlFor="a4">
+                        Bar
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="a5"
+                      />
+                      <label className="form-check-label" htmlFor="a5">
+                        Wi-Fi
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="a6"
+                      />
+                      <label className="form-check-label" htmlFor="a6">
+                        Breakfast
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
-              {toggle.amenities && (
-                <div className="filter-options mt-2">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="a1"
-                    />
-                    <label className="form-check-label" htmlFor="a1">
-                      Free Cancellation
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="a2"
-                    />
-                    <label className="form-check-label" htmlFor="a2">
-                      24 Hour Front Desk
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="a3"
-                    />
-                    <label className="form-check-label" htmlFor="a3">
-                      Ac
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="a4"
-                    />
-                    <label className="form-check-label" htmlFor="a4">
-                      Bar
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="a5"
-                    />
-                    <label className="form-check-label" htmlFor="a5">
-                      Wi-Fi
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="a6"
-                    />
-                    <label className="form-check-label" htmlFor="a6">
-                      Breakfast
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-sm-9">
-          <div className="row mt-3">
-            <div className="col-sm-8 ms-auto d-flex gap-2">
-              <input
-                type="text"
-                className="form-control flex-fill"
-                placeholder="Enter Hotel Name or Location"
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-              />
-              <select
-                className="form-select flex-fill"
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                <option value="Popularity">Popularity</option>
-                <option value="PriceLowHigh">Price (Low to High)</option>
-                <option value="PriceHighLow">Price (High to Low)</option>
-                <option value="Rating">Rating</option>
-              </select>
             </div>
           </div>
 
-          {isSearching ? (
-            <div className="text-center mt-5">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-            </div>
-          ) : (
+          <div className="col-sm-9">
             <div className="row mt-3">
-              {displayedHotels && displayedHotels.length > 0 ? (
-                displayedHotels.map((hotel, idx) => (
-                  <div key={idx} className="col-md-4 mb-4">
-                    <div className="card shadow-sm border-0 h-100 rounded-3">
-                      {/* Hotel Image */}
-                      <div className="card-img-top position-relative">
-                        {hotel.ImageUrls && hotel.ImageUrls.length > 0 ? (
-                          <img
-                            src={hotel.ImageUrls[0].ImageUrl}
-                            alt={hotel.HotelName}
-                            className="img-fluid rounded-top"
-                            style={{
-                              height: "180px",
-                              objectFit: "cover",
-                              width: "100%",
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className="d-flex align-items-center justify-content-center bg-light rounded-top"
-                            style={{ height: "180px" }}
-                          >
-                            <p className="text-muted mb-0">
-                              No Image Available
-                            </p>
-                          </div>
-                        )}
-                      </div>
+              <div className="col-sm-8 ms-auto d-flex gap-2">
+                <input
+                  type="text"
+                  className="form-control flex-fill"
+                  placeholder="Enter Hotel Name or Location"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                />
+               <select
+  className="form-select flex-fill"
+  value={sortOption}
+  onChange={(e) => setSortOption(e.target.value)}
+>
+  <option value="Popularity">Popularity</option>
+  <option value="PriceLowHigh">Price (Low to High)</option>
+  <option value="PriceHighLow">Price (High to Low)</option>
+  <option value="Rating">Rating</option>
+</select>
 
-                      {/* Card Body */}
-                      <div className="card-body">
-                        <small className="text-primary fw-bold">
-                          {hotel.CityName || "Hotel"}
-                        </small>
+              </div>
+            </div>
 
-                        <h6 className="fw-bold mt-2">{hotel.HotelName}</h6>
-                        <p className="text-muted small mb-2">
-                          {hotel.Address}, {hotel.CityName}, {hotel.CountryName}
-                        </p>
-
-                        {/* Rating */}
-                        <div className="mb-2">
-                          {hotel.HotelRating === "FiveStar" && "⭐⭐⭐⭐⭐"}
-                          {hotel.HotelRating === "FourStar" && "⭐⭐⭐⭐"}
-                          {hotel.HotelRating === "ThreeStar" && "⭐⭐⭐"}
-                          {hotel.HotelRating === "TwoStar" && "⭐⭐"}
-                          {hotel.HotelRating === "OneStar" && "⭐"}
+            {isSearching ? (
+              <div className="text-center mt-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="row mt-3">
+                {displayedHotels && displayedHotels.length > 0 ? (
+                  displayedHotels.map((hotel, idx) => (
+                    <div key={idx} className="col-md-4 mb-4">
+                      <div className="card shadow-sm border-0 h-100 rounded-3">
+                        {/* Hotel Image */}
+                        <div className="card-img-top position-relative">
+                          {hotel.ImageUrls && hotel.ImageUrls.length > 0 ? (
+                            <img
+                              src={hotel.ImageUrls[0].ImageUrl}
+                              alt={hotel.HotelName}
+                              className="img-fluid rounded-top"
+                              style={{
+                                height: "180px",
+                                objectFit: "cover",
+                                width: "100%",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              className="d-flex align-items-center justify-content-center bg-light rounded-top"
+                              style={{ height: "180px" }}
+                            >
+                              <p className="text-muted mb-0">No Image Available</p>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Expiry Tag + Button */}
-                        <div className="d-flex justify-content-between align-items-center">
-                         
-                          <button
-                            className="btn btn-primary btn-sm detail"
-                            onClick={() => handleViewDetail(hotel.HotelCode)}
-                          >
-                            View Details
-                          </button>
+                        {/* Card Body */}
+                        <div className="card-body">
+                          <small className="hotel-place">
+                            {hotel.CityName || "Hotel"}
+                          </small>
+
+                          <h6 className="hotel-name">{hotel.HotelName}</h6>
+                          <p className="text-muted small mb-2">
+                            {hotel.Address}, {hotel.CityName}, {hotel.CountryName}
+                          </p>
+
+                          {/* Rating */}
+                          <div className="rating">
+                            {hotel.HotelRating === "FiveStar" && "⭐⭐⭐⭐⭐"}
+                            {hotel.HotelRating === "FourStar" && "⭐⭐⭐⭐"}
+                            {hotel.HotelRating === "ThreeStar" && "⭐⭐⭐"}
+                            {hotel.HotelRating === "TwoStar" && "⭐⭐"}
+                            {hotel.HotelRating === "OneStar" && "⭐"}
+                          </div>
+
+                          {/* Expiry Tag + Button */}
+                          <div className="d-flex justify-content-between align-items-center">
+                            <button
+                              className="btn btn-primary btn-sm detail"
+                              onClick={() => handleViewDetail(hotel.HotelCode)}
+                            >
+                              View Details
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-12 text-center py-5">
-                  <h5>No hotels available</h5>
+                  ))
+                ) : (
+                  <div className="col-12 text-center py-5">
+                    <h5>No hotels available</h5>
 
-                  {selectedCity ? (
-                    <img
-                      src="/images/Safarix-Logo1.png" //✅ apni image ka path yaha dalna
-                      alt="Try changing search"
-                      style={{ maxWidth: "200px", height: "auto" }}
-                    />
-                  ) : (
-                    <img
-                      src="/images/select-city.png" // ✅ dusri image agar city select nahi hai
-                      alt="Select city"
-                      style={{ maxWidth: "200px", height: "auto" }}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                    {selectedCity ? (
+                      <img
+                        src="/images/Safarix-Logo1.png" //✅ apni image ka path yaha dalna
+                        alt="Try changing search"
+                        style={{ maxWidth: "200px", height: "auto" }}
+                      />
+                    ) : (
+                      <img
+                        src="/images/select-city.png" // ✅ dusri image agar city select nahi hai
+                        alt="Select city"
+                        style={{ maxWidth: "200px", height: "auto" }}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* ✅ Bootstrap 5 Pagination */}
+                <nav aria-label="Hotel pagination">
+                  <ul className="pagination justify-content-center float-end">
+                    <li className="page-item disabled">
+                      <button className="page-link">Previous</button>
+                    </li>
+                    <li className="page-item active" aria-current="page">
+                      <button className="page-link">1</button>
+                    </li>
+                    <li className="page-item">
+                      <button className="page-link">2</button>
+                    </li>
+                    <li className="page-item">
+                      <button className="page-link">3</button>
+                    </li>
+                    <li className="page-item">
+                      <button className="page-link">Next</button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
+
     </div>
   );
 }
