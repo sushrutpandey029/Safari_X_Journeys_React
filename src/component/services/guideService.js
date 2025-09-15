@@ -48,11 +48,12 @@ export const guideCareerSubmit = async (payload) => {
     const resp = await axios.post(API.GUIDE_CAREER_SUBMIT, payload, {
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
       },
     });
     return resp.data;
   } catch (err) {
-    console.log("error in career guide submit",err.response)
+    console.log("error in career guide submit", err.response);
     throw err;
   }
 };

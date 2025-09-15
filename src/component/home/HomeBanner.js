@@ -1,11 +1,10 @@
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Button, Row, Col } from "react-bootstrap";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { BASE_URL } from "../services/apiEndpoints";
 import { getBannerData } from "../services/commonService";
-
 
 function HomeBanner() {
   const [bannerData, setBannerData] = useState([]);
@@ -21,27 +20,24 @@ function HomeBanner() {
     fetchBannerData();
   }, []);
   return (
- <div className="banner">
-  {bannerData.map((item) => (
-    <div key={item.id} className="banner-slide">
-      <video
-         src={`${BASE_URL}/banner/images/${item.image}`} 
-        className="banner-video"
-        autoPlay
-        muted
-        loop
-        playsInline
-      />
-      <div className="text-banner text-center">
-        <h2 className="typing-text">{item.titl}</h2>
-      </div>
+    <div className="banner">
+      {bannerData &&
+        bannerData.map((item) => (
+          <div key={item.id} className="banner-slide">
+            <video
+              src={`${BASE_URL}/banner/images/${item.image}`}
+              className="banner-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+            <div className="text-banner text-center">
+              <h2 className="typing-text">{item.titl}</h2>
+            </div>
+          </div>
+        ))}
     </div>
-  ))}
-</div>
-
-
-
-
   );
 }
 

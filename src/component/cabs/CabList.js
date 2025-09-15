@@ -13,7 +13,7 @@ function CabList() {
     price: true,
     star: true,
   });
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleToggle = (section) => {
     setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -29,8 +29,8 @@ function CabList() {
   };
 
   const handleNavigate = (item) => {
-    navigate("/cab-details",{state:{cab:item}})
-  }
+    navigate("/cab-details", { state: { cab: item } });
+  };
 
   useEffect(() => {
     getCabList();
@@ -277,10 +277,13 @@ function CabList() {
                           </h5>
                           <small className="text-muted">+Taxes</small>
                         </div>
-                       
-                        <button className="explore-btn" onClick={() => handleNavigate(cab)}>Book Now</button>
-                        
-                        
+
+                        <button
+                          className="explore-btn"
+                          onClick={() => handleNavigate(cab)}
+                        >
+                          Book Now
+                        </button>
                       </div>
                     </div>
                   </div>

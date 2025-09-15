@@ -14,7 +14,7 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "driver",
+    role: "guide",
   });
 
   const dispatch = useDispatch();
@@ -80,7 +80,7 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
       <Modal.Body>
         <>
           {/* Role Selector */}
-          <div className="mb-3">
+          {/* <div className="mb-3">
             <label className="form-label d-block">Select Role</label>
             <div className="d-flex gap-2">
               <button
@@ -116,15 +116,13 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
                 Guide
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Info text */}
           <p className="text-center text-muted mb-3">
-            Plan your trip, book your tickets, and access everything with  
-                 <strong> SafariX</strong>
+            Plan your trip, book your tickets, and access everything with
+            <strong> Safarix</strong>
           </p>
-
-                 
 
           {/* Email */}
           <div className="mb-3">

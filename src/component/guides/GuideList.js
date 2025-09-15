@@ -30,7 +30,6 @@ const NextArrow = (props) => {
   );
 };
 
-
 const settings = {
   dots: true,
   infinite: true,
@@ -50,6 +49,7 @@ function GuideList() {
   const fetchAllGuides = async () => {
     try {
       const response = await getAllGuides();
+      console.log("guides list", response.data);
       setGuides(response.data);
     } catch (err) {
       console.log("error in getting respone", err.response);
@@ -111,8 +111,6 @@ function GuideList() {
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 }

@@ -41,12 +41,19 @@
 .checkbox-group {
   display: flex;
   flex-wrap: wrap;
+  gap: 50px; 
 }
 
 .checkbox-item {
-  margin-right: 15px;
-  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
 }
+
+.checkbox-item input[type="checkbox"] {
+  margin-right: 8px; 
+}
+
+
 
 .repeater-item {
   border: 1px solid #eee;
@@ -86,4 +93,79 @@ button {
   padding: 5px 10px;
   margin-right: 5px;
   cursor: pointer;
+}
+.AddMore{
+background-color: #4958c9ff;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.Remove-btn{
+   background-color: #e53434ff;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.career-heading {
+    background-color: #274A62; 
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    letter-spacing: 1px;
+  }
+  .career-heading:hover {
+    background-color: #1d3547;
+    transition: background-color 0.3s ease;
+  }
+
+  .form-group label {
+  font-weight: 600;
+  color: #274A62;
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border: 2px dashed #274A62;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-group input[type="file"]:hover {
+  background-color: #eef3f7;
+  border-color: #1d3547;
+}
+
+.form-group input[type="file"]::-webkit-file-upload-button {
+  background-color: #274A62;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.form-group input[type="file"]::-webkit-file-upload-button:hover {
+  background-color: #1d3547;
 }
