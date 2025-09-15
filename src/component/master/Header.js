@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
+
 import AuthModal from "../auth/AuthModal";
 import DriverGuideAuth from "../auth/DriverGuideAuth";
 import { getUserData, removeUserData } from "../utils/storage";
@@ -21,6 +22,7 @@ function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [showDriverGuideLogin, setShowDriverGuideLogin] = useState(false);
+   const [isSticky, setIsSticky] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -82,9 +84,18 @@ function Header() {
     };
   }, []);
 
+   useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 50); // 50px scroll ke baad sticky ho jayega
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div>
-      <header>
+      <header className={isSticky ? "sticky-header" : ""}>
         <nav className="navbar navbar-expand-lg">
           <div className="container">
             <a className="navbar-brand" href="/">
@@ -111,38 +122,34 @@ function Header() {
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li className="nav-item">
                   <a className="nav-link active" href="/guides">
-                    Guided tours
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/cabs">
-                    Cabs
+                    <i class="bi bi-airplane"></i> Flight 
                   </a>
                 </li>
                 <li className="nav-item">
                   <a className="nav-link" href="/hotel">
-                    Hotels
+                  <i class="bi bi-building"></i> Hotel
                   </a>
                 </li>
+                <li className="nav-item">
+                  <a className="nav-link" href="/guide-careers">
+                 <i class="bi bi-taxi-front"></i> Cab
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a className="nav-link" href="/guide-careers">
+                   <i class="bi bi-person-badge"></i> Guide
+                  </a>
+                </li>
+               
               </ul>
             </div>
 
-            <div className="plan my-3" style={{ marginRight: "60px" }}>
+            <div className="plan my-3" style={{ marginRight: "14px" }}>
               <button
-                className="explore-btn"
+                className="holiday"
                 onClick={() => navigate("/bot-modal")}
               >
-                <img
-                  src="/images/car-assistance.png"
-                  alt="icon"
-                  style={{
-                    width: "30px",
-                    height: "30px",
-                    // marginRight: "8px",
-                    verticalAlign: "middle",
-                  }}
-                />
-                Plan My Holiday
+                Plan My Holiday 24 x 7
               </button>
             </div>
 
@@ -170,7 +177,7 @@ function Header() {
                               setShowProfileMenu(false);
                             }}
                           >
-                            Log in or sign up as User
+                            Login or Signup as User
                           </li>
                           <li
                             onClick={() => {
@@ -178,7 +185,7 @@ function Header() {
                               setShowProfileMenu(false);
                             }}
                           >
-                            Log in as Driver or Guide
+                            Login as Guide
                           </li>
                         </>
                       )}

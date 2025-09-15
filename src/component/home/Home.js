@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Card, Button, Row, Col } from "react-bootstrap";
 
 import { Link, useNavigate } from "react-router-dom";
 
@@ -16,6 +15,8 @@ import HomeBanner from "./HomeBanner";
 import WhyChooseUs from "../common/WhyChooseUs";
 import NewsLater from "../common/NewsLater";
 import ScrollToTop from "../common/ScrollToTop";
+import FAQ from "../common/faq/FAQ";
+import HotelPopularDestination from "../hotels/HotelPopularDestination";
 
 const imageList = [
   { id: 1, src: "/Images/place.jpg", title: "Mountains", path: "/mountains" },
@@ -35,17 +36,6 @@ const destinations = [
   { name: "Manali", image: "/Images/place.jpg" },
   { name: "Jammau", image: "/Images/place.jpg" },
   { name: "Jaipur", image: "/Images/place.jpg" },
-];
-
-const Populardestinations = [
-  { name: "leh ladakh", image: "/Images/popular.png" },
-  { name: "MaManaLinali", image: "/Images/popular.png" },
-  { name: "JaDarjeeling", image: "/Images/popular.png" },
-  { name: "Jamussoorie", image: "/Images/popular.png" },
-  { name: "Jamussoorie", image: "/Images/popular.png" },
-  { name: "Jamussoorie", image: "/Images/popular.png" },
-  { name: "Jamussoorie", image: "/Images/popular.png" },
-  { name: "Jamussoorie", image: "/Images/popular.png" },
 ];
 
 const dataList = [
@@ -122,18 +112,88 @@ function Home() {
       <ScrollToTop />
       <HomeBanner />
 
+      <div className="tab-section">
+        <div className="container">
+          {/* Tabs Navigation */}
+          <ul className="nav nav-tabs border-0" id="myTab" role="tablist">
+            <li className="nav-item" role="presentation">
+              <button
+                className="nav-link active"
+                id="flight-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#flight"
+                type="button"
+                role="tab"
+                aria-controls="flight"
+                aria-selected="true"
+              >
+                Flight Booking <i class="bi bi-airplane"></i>
+              </button>
+            </li>
+            <Link to={"/hotel"} style={{ textDecoration: "none" }}>
+              <li className="nav-item" role="presentation">
+                <button
+                  className="nav-link"
+                  id="hotel-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#hotel"
+                  type="button"
+                  role="tab"
+                  aria-controls="hotel"
+                  aria-selected="false"
+                >
+                  Hotel Booking <i class="bi bi-building"></i>
+                </button>
+              </li>
+            </Link>
+
+            <li className="nav-item" role="presentation">
+              <button
+                className="nav-link"
+                id="cab-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#cab"
+                type="button"
+                role="tab"
+                aria-controls="cab"
+                aria-selected="false"
+              >
+                Cab Booking <i class="bi bi-taxi-front"></i>
+              </button>
+            </li>
+            <Link to={"/guides"} style={{ textDecoration: "none" }}>
+              <li className="nav-item" role="presentation">
+                <button
+                  className="nav-link"
+                  id="guide-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#guide"
+                  type="button"
+                  role="tab"
+                  aria-controls="guide"
+                  aria-selected="false"
+                >
+                  Guide Booking <i class="bi bi-person-badge"></i>
+                </button>
+              </li>
+            </Link>
+          </ul>
+        </div>
+      </div>
+
       <div className="container mt-5">
         <div className="row">
-          {imageList.map((img) => (
-            <div className="col mb-5" key={img.id}>
-              <div className="place">
-                <Link to={img.path} className="custom-link">
-                  <img src={img.src} alt={img.title} />
-                  <p className="card-destination">{img.title}</p>
-                </Link>
+          {imageList &&
+            imageList.map((img) => (
+              <div className="col mb-5" key={img.id}>
+                <div className="place">
+                  <Link to={img.path} className="custom-link">
+                    <img src={img.src} alt={img.title} />
+                    <p className="card-destination">{img.title}</p>
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -155,34 +215,37 @@ function Home() {
             </div>
           </div>
           <div className="row">
-            {destinations.map(function (dest, index) {
-              return (
-                <div className="col-md-3" key={index}>
-                  <div className="destination-card">
-                    <img
-                      src={dest.image}
-                      alt={dest.name}
-                      className="img-fluid rounded"
-                    />
-                    <div className="p-2">
-                      <h5 className="mt-3">{dest.name}</h5>
-                      <p className="text-muted small">GUIDED TOUR / 2 HOURS</p>
-                      <div className="row">
-                        <div className="col-sm-6 col-6">
-                          <p>Starting From</p>
-                        </div>
-                        <div className="col-sm-6 col-6 text-end">
-                          <span className="text-muted text-decoration-line-through">
-                            ₹42,000
-                          </span>{" "}
-                          <span className="text-primary">₹8,000</span>
+            {destinations &&
+              destinations.map(function (dest, index) {
+                return (
+                  <div className="col-md-3" key={index}>
+                    <div className="destination-card">
+                      <img
+                        src={dest.image}
+                        alt={dest.name}
+                        className="img-fluid rounded"
+                      />
+                      <div className="p-2">
+                        <h5 className="mt-3">{dest.name}</h5>
+                        <p className="text-muted small">
+                          GUIDED TOUR / 2 HOURS
+                        </p>
+                        <div className="row">
+                          <div className="col-sm-6 col-6">
+                            <p>Starting From</p>
+                          </div>
+                          <div className="col-sm-6 col-6 text-end">
+                            <span className="text-muted text-decoration-line-through">
+                              ₹42,000
+                            </span>{" "}
+                            <span className="text-primary">₹8,000</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
       </div>
@@ -193,7 +256,7 @@ function Home() {
       {/* cab section */}
       <CabPreview />
 
-      <div className="book-hotel ">
+      {/* <div className="book-hotel ">
         <div className="container">
           <div class="row">
             <div className="col-sm-12 d-flex">
@@ -212,38 +275,28 @@ function Home() {
                 </Link>
               </div>
             </div>
-            {Populardestinations.map((dest, index) => (
-              <Col key={index} md={6} lg={3}>
-                <Card className="destination-card ">
-                  <Card.Img variant="top" src={dest.image} />
-                  <Card.Body>
-                    <div className="place-pop">
-                      <div className="col-sm-6">
-                        <Card.Title className="destination-title">
-                          {dest.name}{" "}
-                        </Card.Title>
-                      </div>
-                      <div className="col-sm-6">
-                        <p className="destination-properties text-end">
-                          {dest.properties} Properties
-                        </p>
-                      </div>
-                    </div>
-                    <Card.Text className="destination-price">
-                      <a>Starting from - ₹ 10,000</a> <span>{dest.price}</span>
-                    </Card.Text>
+            {City &&
+              City.map((dest, index) => (
+                <Col key={index} md={6} lg={3}>
+                  <Card
+                    className="destination-card"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleCityClick(cities[index])}
+                  >
+                    <Card.Img variant="top" src={dest.image} />
 
-                    <Card.Text className="destination-desc">
-                      Hotels, Budget Hotels, 3 Star Hotels, 4 Star Hotels, 5
-                      Star Hotels
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
+                    <Card.Body>
+                      <Card.Title>
+                        {cities.length > 0 ? cities[index]?.Name : "Loading..."}
+                      </Card.Title>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
           </div>
         </div>
-      </div>
+      </div> */}
+      <HotelPopularDestination />
 
       <WhyChooseUs />
 
@@ -263,7 +316,7 @@ function Home() {
 
             <div className="card-container">
               {Array.isArray(testimonialData) &&
-                testimonialData.slice(0, 3).map((item) => (
+                testimonialData?.slice(0, 3).map((item) => (
                   <div key={item.id} className="card">
                     <div className="Time row">
                       <div className="col-sm-6">
@@ -302,51 +355,7 @@ function Home() {
       </div>
 
       {/* FAQ section */}
-      <div className="Faq" id="faq">
-        <div className="container-fluid">
-          <div className="main">
-            <div className="row justify-content-center">
-              <div className="col-sm-6">
-                <h2 className="text-start mb-3"> FAQ</h2>
-                <div
-                  class="accordion accordion-flush"
-                  id="accordionFlushExample"
-                >
-                  {faqData.map((item, index) => (
-                    <div class="accordion-item" key={index}>
-                      <h2
-                        class="accordion-header"
-                        id={`flush-heading-${index}`}
-                      >
-                        <button
-                          class="accordion-button collapsed"
-                          type="button"
-                          data-bs-toggle="collapse"
-                          data-bs-target={`#flush-collapse-${index}`}
-                          aria-expanded="false"
-                          aria-controls={`flush-collapse-${index}`}
-                        >
-                          {item.question}
-                          {/* Lorem ipsum dolor sit amet consectetur. Porttitor
-                          dolor malesuada */}
-                        </button>
-                      </h2>
-                      <div
-                        id={`flush-collapse-${index}`}
-                        class="accordion-collapse collapse"
-                        aria-labelledby={`flush-heading-${index}`}
-                        data-bs-parent="#accordionFlushExample"
-                      >
-                        <div class="accordion-body">{item.answer}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <FAQ />
 
       <div className="blog">
         <div className="container">
@@ -368,46 +377,47 @@ function Home() {
             </div>
           </div>
           <div className="row">
-            {blogData.slice(0, 3).map(function (blog, index) {
-              return (
-                <div
-                  className="col-sm-4"
-                  key={index}
-                  onClick={() => handleNavigate(blog)}
-                >
-                  <div className="blog-box" style={{ cursor: "pointer" }}>
-                    <img
-                      src={`${BASE_URL}/blog/images/${blog.image}`}
-                      alt="blog"
-                      className="img-fluid"
-                    />
-                    <h5>{blog.title}</h5>
-                    <h4>{blog.heading}</h4>
-                    <p>
-                      {blog.description.length > 100
-                        ? blog.description.substring(0, 100) + "..."
-                        : blog.description}
-                    </p>
-                    <h6>
-                      {new Date(blog.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        day: "numeric",
-                        month: "long",
-                      })}
-                    </h6>
+            {blogData &&
+              blogData?.slice(0, 3).map(function (blog, index) {
+                return (
+                  <div
+                    className="col-sm-4"
+                    key={index}
+                    onClick={() => handleNavigate(blog)}
+                  >
+                    <div className="blog-box" style={{ cursor: "pointer" }}>
+                      <img
+                        src={`${BASE_URL}/blog/images/${blog.image}`}
+                        alt="blog"
+                        className="img-fluid"
+                      />
+                      <h5>{blog.title}</h5>
+                      <h4>{blog.heading}</h4>
+                      <p>
+                        {blog.description.length > 100
+                          ? blog.description.substring(0, 100) + "..."
+                          : blog.description}
+                      </p>
+                      <h6>
+                        {new Date(blog.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          day: "numeric",
+                          month: "long",
+                        })}
+                      </h6>
 
-                    <button
-                      className="explore-btn"
-                      onClick={() =>
-                        navigate("/blog-detail", { state: { blog } })
-                      }
-                    >
-                      Read More
-                    </button>
+                      <button
+                        className="explore-btn"
+                        onClick={() =>
+                          navigate("/blog-detail", { state: { blog } })
+                        }
+                      >
+                        Read More
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
       </div>

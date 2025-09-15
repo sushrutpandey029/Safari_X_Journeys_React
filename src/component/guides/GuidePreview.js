@@ -9,7 +9,7 @@ const GuidePreview = () => {
   const fetchAllGuides = async () => {
     try {
       const response = await getAllGuides();
-      const filteredGuide = response.data.slice(0, 4);
+      const filteredGuide = response?.data?.slice(0, 4);
       setGuides(filteredGuide);
     } catch (err) {
       console.log("err in respone", err);

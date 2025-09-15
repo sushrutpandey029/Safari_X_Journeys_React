@@ -110,20 +110,31 @@ function About() {
             {/* Left Side - col-sm-4 */}
             <div className="col-sm-4">
               <p>
-                Welcome to our platform! We are passionate about providing the
-                best experience for our users. Our mission is to deliver
-                high-quality content and services that make your journey
-                enjoyable and meaningful.
+                At SAFARIX , we believe travel is more than visiting a place —
+                it’s about experiencing its soul. Founded with the vision of
+                connecting travelers from around the world to authentic local
+                experiences, we specialize in providing certified, trustworthy,
+                and passionate tour guides who make every journey unforgettable.
               </p>
             </div>
 
             {/* Right Side - col-sm-8 */}
             <div className="col-sm-8">
               <p className="offset-sm-2">
-                Welcome to our platform! We are passionate about providing the
-                best experience for our users. Our mission is to deliver
-                high-quality content and services that make your journey
-                enjoyable and meaningful.
+                Our team handpicks guides not just for their knowledge, but for
+                their storytelling skills, cultural insight, and ability to make
+                travelers feel at home in a new land. Whether you want to
+                explore historic monuments, taste local cuisine, experience
+                vibrant festivals, or take hidden paths only locals know, our
+                guides make it possible — safely and seamlessly.
+              </p>
+
+              <p className="offset-sm-2">
+                With transparent pricing, secure bookings, and personalized
+                itineraries, we take the stress out of travel planning. Every
+                tour is designed to suit your pace, interests, and budget,
+                ensuring that your trip is not just a holiday, but a memory for
+                life.
               </p>
             </div>
           </div>
@@ -245,8 +256,6 @@ function About() {
           </div>
         </div>
       </div>
-
-      
 
       <div className="newslater">
         <div className="container my-5">

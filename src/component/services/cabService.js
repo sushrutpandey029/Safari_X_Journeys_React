@@ -6,7 +6,8 @@ import { getUserData, getUserToken } from "../utils/storage";
 
 export const fetchCabList = async () => {
   try {
-    const response = await axios.get(API.CAB_LIST);
+    const response = await axios.get(API.CAB_LIST, { withCredentials: true });
+    console.log("resp of cab list",response)
     return response.data;
   } catch (error) {
     throw error;

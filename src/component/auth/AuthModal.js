@@ -115,7 +115,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
   };
 
   const saveUserInfo = (response) => {
-    saveUserData("safarix_user", JSON.stringify(response.data.user));
+    saveUserData("safarix_user", response.data.user);
     saveUserData("safarix_token", response.data.token);
     saveUserData("safarix_refreshtoken", response.data.refreshToken);
     navigate("/user-dashboard");

@@ -45,7 +45,7 @@ function CabPreview() {
             </Link>
           </div>
 
-          {cabData.slice(0, 3).map((cab, index) => (
+          {cabData && cabData.slice(0, 3).map((cab, index) => (
             <div className="col-md-4 mb-4" key={index}>
               <div className="cab-box">
                 <img

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { Route, Routes, Router } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { Route, Routes } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/slices/authSlice";
 
 import Layout from "./Layout";
@@ -22,6 +22,11 @@ import GuideCareers from "../guides/GuideCareers";
 import BotModal from "../common/BotModal";
 import Testimonials from "../common/testimonials/Testimonials";
 import Cabdetail from "../cabs/Cabdetail";
+import PaymentStatus from "../cashfree-payments/PaymentStatus";
+import TermsConditions from "../common/policy/TermsConditions";
+import PrivacyPolicy from "../common/policy/PrivacyPolicy";
+import HotelDetail from "../hotels/Hoteldetail";
+import Hotel from "../hotels/Hotel";
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -47,7 +52,9 @@ function RootNavigation() {
         <Route path="/places" element={<Places />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/hotel" element={<HotelBooking />} />
+        <Route path="/hotel" element={<Hotel />} />
+        <Route path="/hotel-list" element={<HotelBooking />} />
+
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog-detail" element={<Blogdetail />} />
         <Route path="/cabs" element={<CabList />} />
@@ -55,7 +62,10 @@ function RootNavigation() {
         <Route path="/bot-modal" element={<BotModal />} />
         <Route path="/testimonials" element={<Testimonials />} />
         <Route path="/cab-details" element={<Cabdetail />} />
-
+        <Route path="/payment-status" element={<PaymentStatus />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
         <Route
           path="/user-dashboard"
           element={

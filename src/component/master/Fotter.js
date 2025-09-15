@@ -10,9 +10,7 @@ import {
   FaFacebookF,
   FaInstagram,
   FaXTwitter,
-  FaYoutube,
   FaLinkedinIn,
-  FaRegCopyright,
 } from "react-icons/fa6";
 
 const bots = [
@@ -117,11 +115,6 @@ function Footer() {
                     Blogs
                   </a>
                 </li>
-                <li>
-                  <a href="/" rel="noopener noreferrer">
-                    LOGO
-                  </a>
-                </li>
               </ul>
             </div>
 
@@ -181,9 +174,8 @@ function Footer() {
                 <FaFacebookF />
                 <FaInstagram />
                 <FaXTwitter />
-                <FaYoutube />
+
                 <FaLinkedinIn />
-                <FaRegCopyright />
               </div>
 
               <h5 className="mt-5">Payment Methods</h5>
@@ -208,14 +200,17 @@ function Footer() {
 
           {/* Footer Bottom */}
 
-          <div className="footer-bottom mt-4 border-top pt-3 ">
-            <p className="mb-2">&copy; 2025. All Rights Reserved</p>
-            <div className="d-flex justify-content-center gap-3 mt-0">
-              <span>Terms & Condition</span>
-              <span>Privacy Policy</span>
-              <span>Manage Cookie</span>
-            </div>
-          </div>
+          <div className="footer-bottom mt-4 border-top pt-3">
+  <p className="mb-2">&copy; 2025. All Rights Reserved</p>
+  <div className="d-flex justify-content-center gap-3 mt-0">
+    <a href="/terms-conditions" className="text-decoration-none text-dark">
+      Terms & Condition
+    </a>
+    <a href="/privacy-policy" className="text-decoration-none text-dark">
+      Privacy Policy
+    </a>
+  </div>
+</div>
         </div>
       </footer>
     </div>
@@ -223,3 +218,31 @@ function Footer() {
 }
 
 export default Footer;
+
+
+
+// const searchResp = await searchHotels({
+//           CheckIn: bookingData.checkIn,
+//           CheckOut: bookingData.checkOut,
+//           HotelCodes: [hotelCode], // dynamic hotelCode
+//           GuestNationality: bookingData.guestNationality,
+//           NoOfRooms: 1,
+//           PaxRooms: [
+//             {
+//               Adults: 2,
+//               Children: 1,
+//               ChildrenAges: [7],
+//             },
+//           ],
+//           // PaxRooms: bookingData?.paxRooms?.map((p) => ({
+//           //   Adults: p.Adults,
+//           //   Children: p.Children,
+//           //   ChildrenAges: p.ChildrenAges,
+//           // })),
+//           ResponseTime: bookingData.responseTime,
+//           IsDetailedResponse: bookingData.isDetailedResponse,
+//           Filters: {
+//             Refundable: bookingData.isRefundable,
+//             MealType: bookingData.mealType, // All | WithMeal | RoomOnly
+//           },
+//         });

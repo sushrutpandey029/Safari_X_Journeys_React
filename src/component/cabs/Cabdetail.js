@@ -9,11 +9,29 @@ import { AiOutlineClockCircle } from "react-icons/ai";
 import { BiUserCircle } from "react-icons/bi";
 import { useLocation } from "react-router-dom";
 import { BASE_URL } from "../services/apiEndpoints";
+import useCashfreePayment from "../hooks/useCashfreePayment";
 
 const Cabdetail = () => {
   const location = useLocation();
   const { cab } = location.state;
-  console.log("cab", cab);
+
+  const { startPayment } = useCashfreePayment();
+
+  async function handlePayNow() {
+    const result = await startPayment({
+      userId: 2,
+      serviceType: "cab",
+      serviceProviderId: "TP_CAB_9922",
+      serviceName: "Cab mumbai",
+      serviceDetails: { nothing: "" }, // full JSON snapshot from 3rd party
+      startDate: "2025-08-18",
+      endDate: "2025-08-20",
+      totalAmount: 499,
+      currency: "INR",
+    });
+
+    console.log("payment res", result);
+  }
 
   return (
     <div className="CabDetial">
@@ -100,8 +118,11 @@ const Cabdetail = () => {
                 </div>
               </div>
 
-              <button className="btn btn-primary w-100 mt-4 rounded-5">
-                Pay ₹2309
+              <button
+                className="btn btn-primary w-100 mt-4 rounded-5"
+                onClick={handlePayNow}
+              >
+                Pay ₹4500
               </button>
             </div>
           </div>
