@@ -1,64 +1,54 @@
-// FlightPreview.js
+// src/components/FlightPreview.js
 import React from "react";
-import { Link } from "react-router-dom";
-import "./Flights.css";
 import { Container, Row, Col, Card } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";   // ✅ add this
+import "./Flights.css";
 
+function FlightPreview() {
+  const navigate = useNavigate();   // ✅ hook initialize
 
-function FlightPreview({ flights, BASE_URL }) {
+  const flights = [
+    { route: "Chennai ↔ Mumbai", code: "MAA–BOM", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUzqvRyQXKu8r47QONwkvx8XCHxKXuSIADRA&s" },
+    { route: "Delhi ↔ Ahmedabad", code: "DEL-AMD", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrVsPRKsu_D6CzzJr260cDH3zozOir4ykYBw&s" },
+    { route: "Delhi ↔ Lucknow", code: "DEL-LKO", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5SCk1k4iWyfJGL6wvs88uDjA5kq0pjFK4Q&s" },
+    { route: "Mumbai ↔ Chennai", code: "BOM-MAA", image: "https://img.12go.asia/0/fit/1024/0/ce/1/plain/s3://12go-web-static/static/images/upload-media/4271.jpeg" },
+    { route: "Mumbai ↔ Dubai", code: "BOM-DXB", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU4_qU7y2ajoFif0OUiVgXTQH3cqPVAU2qhA&s" },
+    { route: "Mumbai ↔ Kolkata", code: "BOM-CCU", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPzjeFg1xoMHSGjHcon8xfEC_DUtB9l4E1-w&s" },
+  ];
+
   return (
-    <div className="best-flight py-5">
-  <div className="container">
-    <div className="row">
-      <div className="col-sm-12 d-flex">
-        {/* ✅ Left side title */}
-        <div className="col-sm-6">
-          <h2>
-            Find the <span><br /> Best Flights ✈️</span>
-          </h2>
-          <p className="perra">
-            Discover affordable and comfortable flights to your dream
-            destinations. Compare, choose, and book with just one click.
-          </p>
-        </div>
+    <div className="top-flight-routes py-5">
+      <Container>
+        <h2 className="fw-bold mb-4">
+          Top Flight <span className="text-primary"> Routes</span>
+        </h2>
 
-        {/* ✅ Right side button */}
-        <div className="col-sm-6 text-end my-5">
-          <Link to={"/flight-lists"}>
-            <button className="explore-btn">Explore More</button>
-          </Link>
-        </div>
-      </div>
-
-      {/* ✅ Flight Cards */}
-      {flights && flights.slice(0, 4).map((flight, index) => (
-        <Col key={index} md={6} lg={3}>
-          <Card
-            className="destination-card"
-            style={{ cursor: "pointer" }}
-            // onClick={() => handleFlightClick(flight)} // you can define click handler
-          >
-            {/* Flight image */}
-            <Card.Img
-              variant="top"
-              src={`${BASE_URL}/flight/images/${flight.imagePath}`}
-              alt={flight.flightName}
-            />
-
-            <Card.Body>
-              <Card.Title>
-                {flight.flightName}
-              </Card.Title>
-              <p className="price">Starting - {flight.price}/ticket</p>
-              <button className="explore-btn w-100 mt-2">BOOK NOW</button>
-            </Card.Body>
-          </Card>
-        </Col>
-      ))}
+        <Row className="g-4">
+          {flights.map((flight, index) => (
+            <Col key={index} xs={12} sm={6} md={4}>
+              <Card
+                className="flight-card border-0 shadow-sm text-center"
+                onClick={() => navigate("/flight")}   // ✅ click par navigate karega
+                style={{ cursor: "pointer" }}
+              >
+                <Card.Img
+                  variant="top"
+                  src={flight.image}
+                  alt={flight.route}
+                  className="rounded"
+                />
+                <Card.Body className="p-3">
+                  <h6 className="fw-semibold">{flight.route}</h6>
+                  <p className="code mb-0">{flight.code}</p>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
     </div>
-  </div>
-</div>
-
   );
 }
+
 export default FlightPreview;
+
