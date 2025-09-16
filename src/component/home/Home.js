@@ -20,17 +20,38 @@ import HotelPopularDestination from "../hotels/HotelPopularDestination";
 import FlightPreview from "../flights/Flightpreview";
 
 const imageList = [
-  { id: 1, src: "/Images/place.jpg", title: "Mountains", path: "/mountains" },
-  { id: 1, src: "/Images/place.jpg", title: "Honeymoon", path: "/honeymoon" },
-  { id: 1, src: "/Images/place.jpg", title: "North-East", path: "/north-east" },
-  {
-    id: 1,
-    src: "/Images/place.jpg",
-    title: "South-India",
-    path: "/south-india",
+  { 
+    id: 1, 
+    src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80", 
+    title: "Mountains", 
+    path: "/mountains" 
   },
-  { id: 1, src: "/Images/place.jpg", title: "West-India", path: "/west-india" },
+  { 
+    id: 2, 
+    src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", 
+    title: "Beaches", 
+    path: "/beaches" 
+  },
+  { 
+    id: 3, 
+    src: "https://images.unsplash.com/photo-1609940401221-0ff46bda879b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", 
+    title: "Desert Safari", 
+    path: "/desert" 
+  },
+  {
+    id: 4, 
+    src: "https://images.unsplash.com/photo-1522452237040-82a3b9a47305?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", 
+    title: "Honeymoon", 
+    path: "/honeymoon" 
+  },
+  {
+    id: 5, 
+    src: "https://images.unsplash.com/photo-1508766206392-8bd5cf550d1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", 
+    title: "Hill Stations", 
+    path: "/hills" 
+  }
 ];
+
 
 const destinations = [
   { name: "AULI", image: "/Images/place.jpg" },

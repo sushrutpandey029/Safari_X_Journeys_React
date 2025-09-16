@@ -24,81 +24,32 @@
 
 /* Flights.css */
 
-.best-flight {
-  background-color: #f9fafc;
-  padding: 40px 0;
-  font-family: Arial, sans-serif;
-}
-
-.best-flight .section-title {
+.top-flight-routes h2 {
   font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
+  font-weight: 700;
 }
 
 .flight-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-  margin-bottom: 20px;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .flight-card:hover {
   transform: translateY(-5px);
 }
 
-.flight-card h4 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #222;
+.flight-card img {
+  height: 140px;
+  object-fit: cover;
 }
 
-.flight-details {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  font-size: 14px;
-  color: #555;
-}
-
-.flight-price {
-  font-size: 18px;
-  font-weight: bold;
-  color: #007bff;
-  margin-top: 10px;
-}
-
-.search-form {
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-}
-
-.search-form input,
-.search-form select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
-.search-form button {
-  background: #007bff;
-  color: #fff;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 8px;
+.flight-card h6 {
   font-size: 16px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  margin-bottom: 6px;
 }
 
-.search-form button:hover {
-  background: #0056b3;
+.flight-card .code {
+  color: #007bff;
+  font-weight: 600;
+  font-size: 14px;
 }
