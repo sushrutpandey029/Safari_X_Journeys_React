@@ -50,6 +50,9 @@ function HotelBooking() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [sortOption, setSortOption] = useState("Popularity");
 
+  // pagination 
+
+  
   const navigate = useNavigate();
 
   useEffect(() => {

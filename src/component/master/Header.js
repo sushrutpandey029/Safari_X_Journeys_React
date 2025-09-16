@@ -122,15 +122,9 @@ function Header() {
             >
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li className="nav-item">
-                  <NavLink
-                    to="/"
-                    end
-                    className={({ isActive }) =>
-                      "nav-link" + (isActive ? " active" : "")
-                    }
-                  >
-                    <i className="bi bi-airplane"></i> Flight
-                  </NavLink>
+                  <a className="nav-link active" href="/flight">
+                    <i class="bi bi-airplane"></i> Flight 
+                  </a>
                 </li>
 
                 <li className="nav-item">
