@@ -308,18 +308,24 @@
 /************ banner*************/
 
 .tab-section {
-    padding: 20px 0;
-    border-radius: 0px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, 
-                rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
-  
-                background: url('/public/images/hotel-booking.jpg') no-repeat center center/cover;
-  
-    display: flex;                /* flexbox enable */
-    justify-content: center;      /* horizontal center */
-    align-items: center;          /* vertical center */
-    height: 400px;            /* full screen height (ya jitna chahiye utna set karo) */
-  }
+  padding: 20px 0;
+  border-radius: 0px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, 
+              rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+
+  background: linear-gradient(
+                rgba(0, 0, 0, 0.1),   /* top black overlay */
+                rgba(0, 0, 0, 0.1)    /* bottom black overlay */
+              ),
+              url('/public/images/hotel-booking.jpg') 
+              no-repeat center center / cover;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;  
+}
+
   
   .search-box {
     background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;

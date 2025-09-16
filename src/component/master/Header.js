@@ -1,12 +1,13 @@
+import { NavLink } from "react-router-dom";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../home/Home.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import React, { useState, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { logout } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
-
 
 import AuthModal from "../auth/AuthModal";
 import DriverGuideAuth from "../auth/DriverGuideAuth";
@@ -17,12 +18,14 @@ function Header() {
   const user = getUserData("safarix_user");
   const guide = getUserData("guide");
   const driver = getUserData("driver");
-  console.log("data in header", user, guide, driver);
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [showDriverGuideLogin, setShowDriverGuideLogin] = useState(false);
-   const [isSticky, setIsSticky] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+
+  // ⭐️ Active tab ke liye state
+  const [activeTab, setActiveTab] = useState("flight");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -41,7 +44,6 @@ function Header() {
     window.location.reload(true);
   };
 
-  //driver logout furnciotn
   const handleDriverLogout = async () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (!confirmed) return;
@@ -55,7 +57,6 @@ function Header() {
     window.location.reload(true);
   };
 
-  //guide logout funciton
   const handleGuideLogout = async () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (!confirmed) return;
@@ -84,9 +85,9 @@ function Header() {
     };
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
-      setIsSticky(window.scrollY > 50); // 50px scroll ke baad sticky ho jayega
+      setIsSticky(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -121,27 +122,52 @@ function Header() {
             >
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li className="nav-item">
-                  <a className="nav-link active" href="/guides">
-                    <i class="bi bi-airplane"></i> Flight 
-                  </a>
+                  <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-airplane"></i> Flight
+                  </NavLink>
                 </li>
+
                 <li className="nav-item">
-                  <a className="nav-link" href="/hotel">
-                  <i class="bi bi-building"></i> Hotel
-                  </a>
+                  <NavLink
+                    to="/hotel"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-building"></i> Hotel
+                  </NavLink>
                 </li>
+
                 <li className="nav-item">
-                  <a className="nav-link" href="/guide-careers">
-                 <i class="bi bi-taxi-front"></i> Cab
-                  </a>
+                  <NavLink
+                    to="/guide-careers"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-taxi-front"></i> Cab
+                  </NavLink>
                 </li>
+
                 <li className="nav-item">
-                  <a className="nav-link" href="/guide-careers">
-                   <i class="bi bi-person-badge"></i> Guide
-                  </a>
+                  <NavLink
+                    to="/guide-careers"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-person-badge"></i> Guide
+                  </NavLink>
                 </li>
-               
               </ul>
+
+
             </div>
 
             <div className="plan my-3" style={{ marginRight: "14px" }}>

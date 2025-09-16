@@ -112,6 +112,7 @@ header .navbar-brand {
 }
 
 @keyframes blink {
+
   0%,
   100% {
     border-color: transparent;
@@ -141,25 +142,68 @@ header .navbar-brand {
 
 
 /************ place-guide*************/
+.top-destination{    margin: 70px 0px;}
 .place {
-  img {
-    width: 100%;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 20px;
-    margin-bottom: 25px;
-  }
-
-  .card-destination {
-    text-align: center;
-    font-size: 18px;
-    font-weight: 400;
-  }
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.place img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 15px;
+  transition: transform 0.5s ease;
+}
+
+.place:hover img {
+  transform: scale(1.1);
+}
+
+.place::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: 15px;
+}
+
+.place:hover::after {
+  opacity: 1;
+}
+
+.place .card-destination {
+  position: absolute;
+  bottom: 0px;
+  transform: translateX(-50%);
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  z-index: 2;
+  margin: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 63%), /* darker at bottom */ rgb(0 0 0 / 0%) /* lighter at top */);
+  width: 100%;
+  left: 50%;
+  height: 36px;
+  line-height: 36px;
+}
+
+.place:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+
 .trending-destination {
+  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  padding: 70px 0px;
   h2 span {
-    color: #61a198;
+    color: #498ab5;
   }
 
   .perra {
@@ -224,7 +268,7 @@ header .navbar-brand {
 }
 
 .best-guide h2 span {
-  color: #61a198;
+  color: #498ab5;
 }
 
 .best-guide .box {
@@ -290,11 +334,11 @@ header .navbar-brand {
 
 /************ best-cab*************/
 .best-cab {
-  background-color: #b8e3e9;
-  padding: 60px 0px;
+  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  padding: 70px 0px;
 
   h2 span {
-    color: #61a198;
+    color: #498ab5;
   }
 
   .perra {
@@ -350,14 +394,15 @@ header .navbar-brand {
 /************book-hotel*************/
 
 .book-hotel {
-  padding: 60px 0px;
+  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+    padding: 70px 0px;
 
   h2 {
     margin-bottom: 60px;
   }
 
   span {
-    color: #61a198;
+    color: #498ab5;
   }
 }
 
@@ -382,11 +427,11 @@ header .navbar-brand {
 
 /************why-choose b*************/
 .why-choose {
-  background-color: #b8e3e9;
-  padding: 60px 0px;
+  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  padding: 70px 0px;
 
   h2 span {
-    color: #61a198;
+    color: #498ab5;
   }
 
   .col-md-4 {
@@ -396,6 +441,7 @@ header .navbar-brand {
   .col-md-4:nth-child(3n + 1) {
     border-right: none;
   }
+
   .whychosep {
     text-align: start;
     line-height: 1.5;
@@ -404,11 +450,12 @@ header .navbar-brand {
 
   .choose-box {
     padding: 15px;
-    border: 1px solid #000;
     border-radius: 12px;
     height: 100%;
     background-color: #fff;
   }
+  .why{        font-size: 21px;
+    padding: 16px 0px 8px;}
 }
 
 /************why-choose b*************/
@@ -418,7 +465,7 @@ header .navbar-brand {
   padding: 60px 0px;
 
   h2 span {
-    color: #61a198;
+    color: #498ab5;
   }
 
   .perra {
@@ -457,7 +504,8 @@ header .navbar-brand {
 
 /************testimonial-faq-newslettetr-footer*************/
 .Faq {
-  background-color: #b8e3e9;
+  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  padding: 70px 0px;
 }
 
 .place-pop {
@@ -469,20 +517,25 @@ header .navbar-brand {
 }
 
 .destination-card {
-  border-radius: 10px !important;
+  background-color: #ffffff;
 
- img {
-  border-radius: 10px 10px 0px 0px;
-}
-.card-title{font-size:14px;}
-.card-body{padding: 10px;}
+
+h5{     color: #000000;   }
+.guide-time{color: #c7681f;}
+  .card-title {
+    font-size: 16px;
+  }
+
+  .card-body {
+    padding: 10px;
+  }
 }
 
 .Testionials {
   padding: 60px 0px;
 
   h2 span {
-    color: #61a198;
+    color: #498ab5;
   }
 }
 
@@ -551,9 +604,7 @@ header .navbar-brand {
   box-shadow: none;
 }
 
-.main {
-  padding: 60px 0px;
-}
+
 
 .main h2 {
   text-align: center;
@@ -585,10 +636,11 @@ header .navbar-brand {
 }
 
 footer {
-  background-color: #b8e3e9;
+  background-color: #235376;
   padding: 100px 0px 40px;
   margin-top: -45px;
   position: relative;
+  color: #fff;
   /* z-index: -1; REMOVE THIS */
 
   h5 {
@@ -608,7 +660,7 @@ footer {
   a {
     list-style: none;
     line-height: 40px;
-    color: #000;
+    color: #dcdcdc;
     text-decoration: none;
   }
 }
@@ -756,6 +808,7 @@ footer {
 .chat-popup .card-body {
   font-size: 14px;
 }
+
 .holiday {
   font-size: 15px;
   color: #000000;
@@ -763,11 +816,14 @@ footer {
   border: none;
   border-radius: 10px;
 }
-.navbar-nav .nav-link.active, .navbar-nav .nav-link.show {
+
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link.show {
   color: var(--bs-navbar-active-color);
   background: #d5ebff;
   border: none;
 }
+
 header .nav-link {
   border: 1px solid #dedede;
   border-radius: 10px;
@@ -777,8 +833,9 @@ header .nav-link {
 }
 
 
-  header {
-  transition: all 0.4s ease; /* smooth transition */
+header {
+  transition: all 0.4s ease;
+  /* smooth transition */
 }
 
 .sticky-header {
@@ -789,14 +846,16 @@ header .nav-link {
   width: 100%;
   z-index: 1030;
   background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 header {
-  position: relative; /* default me banner ke upar */
+  position: relative;
+  /* default me banner ke upar */
   width: 100%;
   z-index: 1000;
-  background: transparent; /* agar banner ke sath merge karna ho */
+  background: transparent;
+  /* agar banner ke sath merge karna ho */
 }
 
 .sticky-header {
