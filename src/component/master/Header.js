@@ -121,7 +121,7 @@ function Header() {
             >
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li className="nav-item">
-                  <a className="nav-link active" href="/guides">
+                  <a className="nav-link active" href="/flight">
                     <i class="bi bi-airplane"></i> Flight 
                   </a>
                 </li>
