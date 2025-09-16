@@ -1,0 +1,55 @@
+.best-flight {
+  background: #f9fbff;
+}
+
+.best-flight .section-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.best-flight .section-title span {
+  color: #007bff;
+}
+
+.best-flight .perra {
+  color: #555;
+  font-size: 1rem;
+  margin-top: 10px;
+  max-width: 600px;
+}
+
+
+/* flight */
+
+/* Flights.css */
+
+.top-flight-routes h2 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.flight-card {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.flight-card:hover {
+  transform: translateY(-5px);
+}
+
+.flight-card img {
+  height: 140px;
+  object-fit: cover;
+}
+
+.flight-card h6 {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.flight-card .code {
+  color: #007bff;
+  font-weight: 600;
+  font-size: 14px;
+}
