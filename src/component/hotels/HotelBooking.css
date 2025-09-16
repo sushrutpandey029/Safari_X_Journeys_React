@@ -25,21 +25,12 @@
   }
   
 
-.search-box {
-    border-radius: 10px;
-    background: #0171eb17;
-    padding: 30px;
-}
 
-.form-control,
-.btn,
-.form-select {
-    border-radius: 8px;
-    height: 50px;
-}
+
 
 .search-section {
     margin-top: 30px;
+    background-color: hsl(50 33% 25% / 0.75);
 }
 
 .modify-btn {
@@ -115,7 +106,8 @@
 }
 
 .filter-title span {
-    font-size: 18px;
+    font-size: 15px;
+    color: #12669b;
 }
 
 .filter-title svg {
@@ -311,3 +303,96 @@
 .zoom-image {
   animation: zoomInOut 2s infinite;
 }
+
+
+/************ banner*************/
+
+.tab-section {
+    padding: 20px 0;
+    border-radius: 0px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, 
+                rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  
+                background: url('/public/images/hotel-booking.jpg') no-repeat center center/cover;
+  
+    display: flex;                /* flexbox enable */
+    justify-content: center;      /* horizontal center */
+    align-items: center;          /* vertical center */
+    height: 400px;            /* full screen height (ya jitna chahiye utna set karo) */
+  }
+  
+  .search-box {
+    background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
+    padding: 35px;
+    margin-bottom: 20px;
+  }
+  
+  .listing-search-form {
+    background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
+    padding: 35px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+  .hotel-listing{
+    .card-body {
+        padding-bottom: 30px;
+        position: relative;
+    }
+    .hotel-place{color: #498ab5;}
+    .hotel-name{        color: #c7681f;
+        margin-bottom: 18px;}
+        .text-muted{padding-bottom: 30px;}
+    .btn-primary{        background: #10669b;;
+        font-size: 12px;
+        padding: 0px 23px;
+        transition: 0.5s;
+        position: absolute;
+        bottom: 12px;
+        right: 4px;}
+        .rating{        position: absolute;
+            right: 0px;
+            top: 0px;
+            font-size: 14px;
+            background: #12669b;
+            padding: 10px 20px 10px 20px;
+            border-radius: 0px 0px 0px 40px;
+            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;}
+
+            /* Pagination Custom Style */
+.pagination {
+    margin-top: 20px;
+  }
+  
+  .pagination .page-item .page-link {
+    color: #4788b9; /* primary color */
+    border-radius: 8px;
+    padding: 8px 14px;
+    border: none;
+    margin: 0 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .pagination .page-item .page-link:hover {
+    background-color: #4788b9;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #4788b9;
+    border-color: #4788b9;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .pagination .page-item.disabled .page-link {
+    color: #aaa;
+    background-color: #f8f9fa;
+    border: none;
+    pointer-events: none;
+  }
+  
+  }

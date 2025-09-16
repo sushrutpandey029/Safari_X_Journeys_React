@@ -113,74 +113,7 @@ function Home() {
       <ScrollToTop />
       <HomeBanner />
 
-      <div className="tab-section">
-        <div className="container">
-          {/* Tabs Navigation */}
-          <ul className="nav nav-tabs border-0" id="myTab" role="tablist">
-            <li className="nav-item" role="presentation">
-              <button
-                className="nav-link active"
-                id="flight-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#flight"
-                type="button"
-                role="tab"
-                aria-controls="flight"
-                aria-selected="true"
-              >
-                Flight Booking <i class="bi bi-airplane"></i>
-              </button>
-            </li>
-            <Link to={"/hotel"} style={{ textDecoration: "none" }}>
-              <li className="nav-item" role="presentation">
-                <button
-                  className="nav-link"
-                  id="hotel-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#hotel"
-                  type="button"
-                  role="tab"
-                  aria-controls="hotel"
-                  aria-selected="false"
-                >
-                  Hotel Booking <i class="bi bi-building"></i>
-                </button>
-              </li>
-            </Link>
-
-            <li className="nav-item" role="presentation">
-              <button
-                className="nav-link"
-                id="cab-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#cab"
-                type="button"
-                role="tab"
-                aria-controls="cab"
-                aria-selected="false"
-              >
-                Cab Booking <i class="bi bi-taxi-front"></i>
-              </button>
-            </li>
-            <Link to={"/guides"} style={{ textDecoration: "none" }}>
-              <li className="nav-item" role="presentation">
-                <button
-                  className="nav-link"
-                  id="guide-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#guide"
-                  type="button"
-                  role="tab"
-                  aria-controls="guide"
-                  aria-selected="false"
-                >
-                  Guide Booking <i class="bi bi-person-badge"></i>
-                </button>
-              </li>
-            </Link>
-          </ul>
-        </div>
-      </div>
+     
 
       <div className="container mt-5">
         <div className="row">
