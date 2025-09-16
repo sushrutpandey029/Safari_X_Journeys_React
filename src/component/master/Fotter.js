@@ -203,10 +203,10 @@ function Footer() {
           <div className="footer-bottom mt-4 border-top pt-3">
   <p className="mb-2">&copy; 2025. All Rights Reserved</p>
   <div className="d-flex justify-content-center gap-3 mt-0">
-    <a href="/terms-conditions" className="text-decoration-none text-dark">
+    <a href="/terms-conditions" className="text-decoration-none text-light">
       Terms & Condition
     </a>
-    <a href="/privacy-policy" className="text-decoration-none text-dark">
+    <a href="/privacy-policy" className="text-decoration-none text-light">
       Privacy Policy
     </a>
   </div>
