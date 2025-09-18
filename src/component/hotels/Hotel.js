@@ -316,7 +316,7 @@ function Hotel() {
 
           {/* Search Button */}
           <div className="col-md-2">
-            <button className="btn form-control btn-primary w-100" onClick={handleSearch}>
+            <button className=" form-control explore-btn w-100" onClick={handleSearch}>
               Search
             </button>
           </div>
