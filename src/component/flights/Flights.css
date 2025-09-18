@@ -23,15 +23,19 @@
 /* flight */
 
 /* Flights.css */
+.top-flight-routes{padding: 70px 0px;
 
-.top-flight-routes h2 {
-  font-size: 28px;
-  font-weight: 700;
+  h2 {       margin-bottom: 60px;}
+  span {
+      color: #498ab5; 
+  }
 }
 
 .flight-card {
   transition: transform 0.3s ease;
   cursor: pointer;
+  border-radius: 20px;
+  border: 1px solid #eaeaea;
 }
 
 .flight-card:hover {
@@ -39,17 +43,16 @@
 }
 
 .flight-card img {
-  height: 140px;
+  height: 300px;
   object-fit: cover;
+  padding: 15px;
+  border-radius: 25px !important;
 }
 
-.flight-card h6 {
-  font-size: 16px;
-  margin-bottom: 6px;
-}
+
 
 .flight-card .code {
-  color: #007bff;
+  color: #c7681f;
   font-weight: 600;
   font-size: 14px;
 }
