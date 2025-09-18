@@ -314,33 +314,35 @@
               rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 
   background: linear-gradient(
-                rgba(0, 0, 0, 0.1),   /* top black overlay */
-                rgba(0, 0, 0, 0.1)    /* bottom black overlay */
+                rgba(0, 0, 0, 0.6),   /* top black overlay */
+                rgba(0, 0, 0, 0.2)    /* bottom black overlay */
               ),
               url('/public/images/hotel-booking.jpg') 
               no-repeat center center / cover;
-
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 400px;  
+  height: 600px;  
 }
+.hotel-listing-banner{
+  background: linear-gradient(
+                rgba(0, 0, 0, 0.6),   /* top black overlay */
+                rgba(0, 0, 0, 0.2)    /* bottom black overlay */
+              ),
+              url('/public/images/hotel-listing-banner.jpg') 
+              no-repeat center center / cover;}
 
   
   .search-box {
     background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
     padding: 35px;
-    margin-bottom: 20px;
+    margin-bottom: 0px;
   }
   
-  .listing-search-form {
-    background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
-    padding: 35px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+
 
   .hotel-listing{
+    padding: 70px 0px;
     .card-body {
         padding-bottom: 30px;
         position: relative;
@@ -357,13 +359,12 @@
         bottom: 12px;
         right: 4px;}
         .rating{        position: absolute;
-            right: 0px;
-            top: 0px;
-            font-size: 14px;
-            background: #12669b;
-            padding: 10px 20px 10px 20px;
-            border-radius: 0px 0px 0px 40px;
-            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;}
+          right: 0px;
+          top: 0px;
+          font-size: 12px;
+          background: #12669b;
+          padding: 7px 18px 7px 18px;
+          border-radius: 0px 0px 0px 40px;}
 
             /* Pagination Custom Style */
 .pagination {

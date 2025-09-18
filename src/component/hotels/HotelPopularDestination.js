@@ -49,8 +49,7 @@ function HotelPopularDestination() {
       <div className="col-sm-12 d-flex">
         <div className="col-sm-6">
           <h2>
-            Top Trending <br />
-            <span>Destinations</span>
+            Top Trending <span> Destinations</span>
           </h2>
         </div>
         <div className="col-sm-6 text-end my-5">

@@ -32,12 +32,14 @@ function HomeBanner() {
               loop
               playsInline
             />
-            <div className="text-banner text-center">
-              <h2 className="typing-text">{item.titl}</h2>
-            </div>
+
+            {/* Black Overlay */}
+            <div className="banner-overlay"></div>
+
           </div>
         ))}
     </div>
+
   );
 }
 

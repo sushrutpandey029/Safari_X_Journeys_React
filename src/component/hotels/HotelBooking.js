@@ -52,7 +52,7 @@ function HotelBooking() {
 
   // pagination 
 
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -268,262 +268,262 @@ function HotelBooking() {
     <div>
 
       {/* search hotel box filter */}
+      <div className="tab-section hotel-listing-banner">
+        <div className="container search-box rounded shadow-sm">
+            <div className="row g-3 align-items-end">
+              {/* City */}
+              <div className="col-md-2">
+                <label className="form-label">City</label>
+                <select
+                  className="form-control"
+                  value={selectedCity}
+                  onChange={(e) => {
+                    const cityCode = e.target.value;
+                    setSelectedCity(cityCode);
 
-      <div className="search-box listing-search-form">
-        <div className="container">
-          <div className="row g-3 align-items-end">
-            {/* City */}
-            <div className="col-md-2">
-              <label className="form-label">City</label>
-              <select
-                className="form-control"
-                value={selectedCity}
-                onChange={(e) => {
-                  const cityCode = e.target.value;
-                  setSelectedCity(cityCode);
+                    const cityObj = cityList.find(
+                      (c) =>
+                        (c.CityCode?.toString() || c.Code?.toString()) ===
+                        cityCode.toString()
+                    );
 
-                  const cityObj = cityList.find(
-                    (c) =>
-                      (c.CityCode?.toString() || c.Code?.toString()) ===
-                      cityCode.toString()
-                  );
+                    const cityName =
+                      cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
 
-                  const cityName =
-                    cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
-
-                  setSelectedCityName(cityName);
-                  localStorage.setItem("selectedCity", cityCode);
-                  localStorage.setItem("selectedCityName", cityName);
-                }}
-                disabled={!selectedCountry || loading}
-              >
-                <option value="">-- Select City --</option>
-                {cityList.map((city, index) => (
-                  <option key={index} value={city.CityCode || city.Code}>
-                    {city.CityName || city.Name || city.City}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Check-in */}
-            <div className="col-md-2">
-              <label className="form-label">Check-In</label>
-              <input
-                type="date"
-                className="form-control"
-                value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
-              />
-            </div>
-
-            {/* Check-out */}
-            <div className="col-md-2">
-              <label className="form-label">Check-Out</label>
-              <input
-                type="date"
-                className="form-control"
-                value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
-              />
-            </div>
-
-            {/* Rooms Dropdown */}
-            <div className="col-md-4 position-relative">
-              {/* Dropdown Trigger */}
-              <label className="form-label">Rooms/Guests</label>
-              <div
-                className="form-control d-flex justify-content-between align-items-center"
-                onClick={() => setOpen(!open)}
-                style={{ cursor: "pointer" }}
-              >
-                {rooms} Room{rooms > 1 ? "s" : ""},{" "}
-                {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)}{" "}
-                Guests
-                <span>▼</span>
+                    setSelectedCityName(cityName);
+                    localStorage.setItem("selectedCity", cityCode);
+                    localStorage.setItem("selectedCityName", cityName);
+                  }}
+                  disabled={!selectedCountry || loading}
+                >
+                  <option value="">-- Select City --</option>
+                  {cityList.map((city, index) => (
+                    <option key={index} value={city.CityCode || city.Code}>
+                      {city.CityName || city.Name || city.City}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Dropdown Content */}
-              {open && (
+              {/* Check-in */}
+              <div className="col-md-2">
+                <label className="form-label">Check-In</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={checkIn}
+                  onChange={(e) => setCheckIn(e.target.value)}
+                />
+              </div>
+
+              {/* Check-out */}
+              <div className="col-md-2">
+                <label className="form-label">Check-Out</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={checkOut}
+                  onChange={(e) => setCheckOut(e.target.value)}
+                />
+              </div>
+
+              {/* Rooms Dropdown */}
+              <div className="col-md-4 position-relative">
+                {/* Dropdown Trigger */}
+                <label className="form-label">Rooms/Guests</label>
                 <div
-                  className="border rounded p-3 bg-white shadow-sm position-absolute mt-1"
-                  style={{ zIndex: 1000, width: "100%" }}
+                  className="form-control d-flex justify-content-between align-items-center"
+                  onClick={() => setOpen(!open)}
+                  style={{ cursor: "pointer" }}
                 >
-                  {/* Pax Rooms */}
-                  {paxRooms.map((room, idx) => (
-                    <div key={idx} className="mb-3">
-                      <h6 className="fw-bold mb-2">Room {idx + 1}</h6>
+                  {rooms} Room{rooms > 1 ? "s" : ""},{" "}
+                  {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)}{" "}
+                  Guests
+                  <span>▼</span>
+                </div>
 
-                      {/* Adults & Children */}
-                      <div className="d-flex align-items-center gap-4 mb-2">
-                        {/* Adults */}
-                        <div>
-                          <label className="form-label">
-                            Adult (Above 12 years)
-                          </label>
-                          <div className="d-flex align-items-center">
-                            <button
-                              type="button"
-                              className="btn btn-outline-secondary"
-                              onClick={() => {
-                                const updated = [...paxRooms];
-                                if (updated[idx].Adults > 1)
-                                  updated[idx].Adults -= 1;
-                                setPaxRooms(updated);
-                              }}
-                            >
-                              -
-                            </button>
-                            <span className="px-3">{room.Adults}</span>
-                            <button
-                              type="button"
-                              className="btn btn-outline-secondary"
-                              onClick={() => {
-                                const updated = [...paxRooms];
-                                if (updated[idx].Adults < 8)
-                                  updated[idx].Adults += 1;
-                                setPaxRooms(updated);
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
+                {/* Dropdown Content */}
+                {open && (
+                  <div
+                    className="border rounded p-3 bg-white shadow-sm position-absolute mt-1"
+                    style={{ zIndex: 1000, width: "100%" }}
+                  >
+                    {/* Pax Rooms */}
+                    {paxRooms.map((room, idx) => (
+                      <div key={idx} className="mb-3">
+                        <h6 className="fw-bold mb-2">Room {idx + 1}</h6>
 
-                        {/* Children */}
-                        <div>
-                          <label className="form-label">
-                            Child (Below 12 years)
-                          </label>
-                          <div className="d-flex align-items-center">
-                            <button
-                              type="button"
-                              className="btn btn-outline-secondary"
-                              onClick={() => {
-                                const updated = [...paxRooms];
-                                if (updated[idx].Children > 0) {
-                                  updated[idx].Children -= 1;
-                                  updated[idx].ChildrenAges = updated[
-                                    idx
-                                  ].ChildrenAges.slice(
-                                    0,
-                                    updated[idx].Children
-                                  );
-                                }
-                                setPaxRooms(updated);
-                              }}
-                            >
-                              -
-                            </button>
-                            <span className="px-3">{room.Children}</span>
-                            <button
-                              type="button"
-                              className="btn btn-outline-secondary"
-                              onClick={() => {
-                                const updated = [...paxRooms];
-                                if (updated[idx].Children < 4) {
-                                  updated[idx].Children += 1;
-                                  updated[idx].ChildrenAges.push(1);
-                                }
-                                setPaxRooms(updated);
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Children Ages */}
-                      {room.Children > 0 && (
-                        <div>
-                          <label className="form-label">
-                            Age(s) of Children
-                          </label>
-                          <div className="d-flex gap-2">
-                            {room.ChildrenAges.map((age, cIdx) => (
-                              <select
-                                key={cIdx}
-                                className="form-control"
-                                style={{ width: "80px" }}
-                                value={age}
-                                onChange={(e) => {
+                        {/* Adults & Children */}
+                        <div className="d-flex align-items-center gap-4 mb-2">
+                          {/* Adults */}
+                          <div>
+                            <label className="form-label">
+                              Adult (Above 12 years)
+                            </label>
+                            <div className="d-flex align-items-center">
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary"
+                                onClick={() => {
                                   const updated = [...paxRooms];
-                                  updated[idx].ChildrenAges[cIdx] = Number(
-                                    e.target.value
-                                  );
+                                  if (updated[idx].Adults > 1)
+                                    updated[idx].Adults -= 1;
                                   setPaxRooms(updated);
                                 }}
                               >
-                                {Array.from(
-                                  { length: 12 },
-                                  (_, i) => i + 1
-                                ).map((a) => (
-                                  <option key={a} value={a}>
-                                    {a}
-                                  </option>
-                                ))}
-                              </select>
-                            ))}
+                                -
+                              </button>
+                              <span className="px-3">{room.Adults}</span>
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary"
+                                onClick={() => {
+                                  const updated = [...paxRooms];
+                                  if (updated[idx].Adults < 8)
+                                    updated[idx].Adults += 1;
+                                  setPaxRooms(updated);
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Children */}
+                          <div>
+                            <label className="form-label">
+                              Child (Below 12 years)
+                            </label>
+                            <div className="d-flex align-items-center">
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary"
+                                onClick={() => {
+                                  const updated = [...paxRooms];
+                                  if (updated[idx].Children > 0) {
+                                    updated[idx].Children -= 1;
+                                    updated[idx].ChildrenAges = updated[
+                                      idx
+                                    ].ChildrenAges.slice(
+                                      0,
+                                      updated[idx].Children
+                                    );
+                                  }
+                                  setPaxRooms(updated);
+                                }}
+                              >
+                                -
+                              </button>
+                              <span className="px-3">{room.Children}</span>
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary"
+                                onClick={() => {
+                                  const updated = [...paxRooms];
+                                  if (updated[idx].Children < 4) {
+                                    updated[idx].Children += 1;
+                                    updated[idx].ChildrenAges.push(1);
+                                  }
+                                  setPaxRooms(updated);
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {/* Add/Remove Room */}
-                  <div className="d-flex justify-content-between">
-                    <button
-                      className="btn btn-sm btn-outline-success"
-                      onClick={() => {
-                        if (rooms < 5) {
-                          setRooms(rooms + 1);
-                          setPaxRooms([
-                            ...paxRooms,
-                            { Adults: 2, Children: 0, ChildrenAges: [] },
-                          ]);
-                        }
-                      }}
-                    >
-                      + Add Room
-                    </button>
-                    {rooms > 1 && (
+                        {/* Children Ages */}
+                        {room.Children > 0 && (
+                          <div>
+                            <label className="form-label">
+                              Age(s) of Children
+                            </label>
+                            <div className="d-flex gap-2">
+                              {room.ChildrenAges.map((age, cIdx) => (
+                                <select
+                                  key={cIdx}
+                                  className="form-control"
+                                  style={{ width: "80px" }}
+                                  value={age}
+                                  onChange={(e) => {
+                                    const updated = [...paxRooms];
+                                    updated[idx].ChildrenAges[cIdx] = Number(
+                                      e.target.value
+                                    );
+                                    setPaxRooms(updated);
+                                  }}
+                                >
+                                  {Array.from(
+                                    { length: 12 },
+                                    (_, i) => i + 1
+                                  ).map((a) => (
+                                    <option key={a} value={a}>
+                                      {a}
+                                    </option>
+                                  ))}
+                                </select>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Add/Remove Room */}
+                    <div className="d-flex justify-content-between">
                       <button
-                        className="btn btn-sm btn-outline-danger"
+                        className="btn btn-sm btn-outline-success"
                         onClick={() => {
-                          setRooms(rooms - 1);
-                          setPaxRooms(paxRooms.slice(0, -1));
+                          if (rooms < 5) {
+                            setRooms(rooms + 1);
+                            setPaxRooms([
+                              ...paxRooms,
+                              { Adults: 2, Children: 0, ChildrenAges: [] },
+                            ]);
+                          }
                         }}
                       >
-                        Remove Room
+                        + Add Room
                       </button>
-                    )}
+                      {rooms > 1 && (
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => {
+                            setRooms(rooms - 1);
+                            setPaxRooms(paxRooms.slice(0, -1));
+                          }}
+                        >
+                          Remove Room
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Done Button */}
+                    <button
+                      className="btn btn-warning w-100 mt-3"
+                      onClick={() => setOpen(false)}
+                    >
+                      Done
+                    </button>
                   </div>
+                )}
+              </div>
+              {/* Search Button */}
+              <div className="col-md-2">
+                <button
+                  className=" form-control explore-btn w-100"
+                  onClick={handleSearch}
+                >
+                  Modify Search
+                </button>
+              </div>
+            </div>
 
-                  {/* Done Button */}
-                  <button
-                    className="btn btn-warning w-100 mt-3"
-                    onClick={() => setOpen(false)}
-                  >
-                    Done
-                  </button>
-                </div>
-              )}
-            </div>
-            {/* Search Button */}
-            <div className="col-md-2">
-              <button
-                className=" form-control explore-btn w-100"
-                onClick={handleSearch}
-              >
-                Modify Search
-              </button>
-            </div>
-          </div>
+          {/* Keyword + Sort */}
         </div>
-
-        {/* Keyword + Sort */}
       </div>
+
       <div className="container hotel-listing">
         <div className="row">
           <div className="col-sm-12">
@@ -822,16 +822,16 @@ function HotelBooking() {
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
-               <select
-  className="form-select flex-fill"
-  value={sortOption}
-  onChange={(e) => setSortOption(e.target.value)}
->
-  <option value="Popularity">Popularity</option>
-  <option value="PriceLowHigh">Price (Low to High)</option>
-  <option value="PriceHighLow">Price (High to Low)</option>
-  <option value="Rating">Rating</option>
-</select>
+                <select
+                  className="form-select flex-fill"
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  <option value="Popularity">Popularity</option>
+                  <option value="PriceLowHigh">Price (Low to High)</option>
+                  <option value="PriceHighLow">Price (High to Low)</option>
+                  <option value="Rating">Rating</option>
+                </select>
 
               </div>
             </div>
