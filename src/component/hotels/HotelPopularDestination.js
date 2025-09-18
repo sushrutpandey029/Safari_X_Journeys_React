@@ -43,46 +43,41 @@ function HotelPopularDestination() {
     loadCities();
   }, []);
   return (
-    <div className="book-hotel ">
-      <div className="container">
-        <div class="row">
-          <div className="col-sm-12 d-flex">
-            <div className="col-sm-6">
-              <h2>
-                Book Hotel At{" "}
-                <span>
-                  {" "}
-                  <br></br> Populer Destinations
-                </span>
-              </h2>
-            </div>
-            <div className="col-sm-6 text-end my-5">
-              <Link to={"/hotel"}>
-                <button className="explore-btn">View More</button>
-              </Link>
-            </div>
-          </div>
-          {City &&
-            City.map((dest, index) => (
-              <Col key={index} md={6} lg={3}>
-                <Card
-                  className="destination-card"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleCityClick(cities[index])}
-                >
-                  <Card.Img variant="top" src={dest.image} />
-
-                  <Card.Body>
-                    <Card.Title>
-                      {cities.length > 0 ? cities[index]?.Name : "Loading..."}
-                    </Card.Title>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
+    <div className="book-hotel">
+  <div className="container">
+    <div className="row">
+      <div className="col-sm-12 d-flex">
+        <div className="col-sm-6">
+          <h2>
+            Top Trending <br />
+            <span>Destinations</span>
+          </h2>
+        </div>
+        <div className="col-sm-6 text-end my-5">
+          <Link to={"/hotel"}>
+            <button className="explore-btn">View More</button>
+          </Link>
         </div>
       </div>
+
+      {City &&
+        City.map((dest, index) => (
+          <Col key={index} md={6} lg={3}>
+            <div
+              className="place destination-card"
+              onClick={() => handleCityClick(cities[index])}
+            >
+              <img src={dest.image} alt={cities[index]?.Name || "Destination"} />
+              <div className="card-destination">
+                {cities.length > 0 ? cities[index]?.Name : "Loading..."}
+              </div>
+            </div>
+          </Col>
+        ))}
     </div>
+  </div>
+</div>
+
   );
 }
 
