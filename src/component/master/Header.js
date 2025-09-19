@@ -140,7 +140,7 @@ function Header() {
 
                 <li className="nav-item">
                   <NavLink
-                    to="/guide-careers"
+                    to="/cabs"
                     className={({ isActive }) =>
                       "nav-link" + (isActive ? " active" : "")
                     }
