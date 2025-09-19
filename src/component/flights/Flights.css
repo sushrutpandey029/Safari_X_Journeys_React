@@ -1,5 +1,5 @@
 .flight-section{
- background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url("/public/images/flight.png") no-repeat center center / cover; /* halka white se blue gradient */
+
   border: none;  /* agar border hataana ho */
   box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* thoda shadow fancy look ke liye */
 }
@@ -8,8 +8,6 @@
     padding: 35px!important;
     margin-bottom: 20px;
 }
-
-
 .best-flight {
   background: #f9fbff;
 }

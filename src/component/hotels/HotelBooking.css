@@ -331,6 +331,7 @@
     background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
     padding: 35px;
     margin-bottom: 20px;
+   
   }
   
   .listing-search-form {
@@ -401,4 +402,7 @@
     pointer-events: none;
   }
   
-  }
+}
+.room-pricing-table {
+  scroll-margin-top: 200px; /* 👈 navbar ki height ke hisaab se */
+}

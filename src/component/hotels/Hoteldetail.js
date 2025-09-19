@@ -7,6 +7,7 @@ import { Fancybox } from "@fancyapps/ui";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { useLocation } from "react-router-dom";
+import  { useRef } from "react";
 
 const getValue = (obj, keys, defaultValue = "") => {
   for (let key of keys) {
@@ -27,6 +28,20 @@ const HotelDetail = () => {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false); // ✅ ReadMore toggle states
   const { startPayment } = useCashfreePayment();
+  
+
+
+  const priceTableRef = useRef(null);
+
+  // Scroll handler
+  const scrollToPriceTable = () => {
+    if (priceTableRef.current) {
+      priceTableRef.current.scrollIntoView({
+        behavior: "smooth", // smooth scroll
+        block: "start"      // top pe align hoga
+      });
+    }
+  };
 
   const bookingData = location.state || {};
   console.log("booking data from previous page", bookingData);
@@ -114,19 +129,25 @@ const HotelDetail = () => {
         const roomData = searchHotel?.Rooms || [];
         setRooms(roomData);
 
-        // ✅ Use local `details` (not `hotelDetails` which is stale here)
-        if (details) {
-          setHotel({
-            code: details.HotelCode,
-            name: details.HotelName,
-            description: details.Description,
-            location: details.CityName,
-            rating: details.Rating,
-            price: roomData[0]?.TotalFare || "N/A",
-            currency: searchHotel.Currency || "INR",
-            images: details.Images || [],
-          });
-        }
+      // ✅ Use local `details` (not `hotelDetails` which is stale here)
+if (details) {
+  setHotel({
+    code: details.HotelCode,
+    name: details.HotelName,
+    description: details.Description,
+    location: details.CityName,
+   Address: details.Address, 
+    rating: details.HotelRating,         // ⬅️ fix (API me HotelRating hai)
+    price: roomData?.[0]?.TotalFare || "N/A",   // optional chaining safe
+    currency: searchHotel?.Currency || "INR",   // optional chaining safe
+    images: details.Images || [],
+    facilities: details.HotelFacilities || [],  // ⬅️ add amenities
+    country: details.CountryName,
+    pin: details.PinCode,
+    map: details.Map
+  });
+}
+
       } catch (err) {
         console.error("❌ Error fetching hotel data:", err);
       } finally {
@@ -173,6 +194,9 @@ const HotelDetail = () => {
   const words = hotel.description.split(" ");
   const shouldTruncate = words?.length > 50;
   const shortDesc = words.slice(0, 50).join(" ") + "...";
+
+
+  
 
   return (
     <div className="container my-4">
@@ -263,64 +287,74 @@ const HotelDetail = () => {
           </div>
 
           {/* Right - Details */}
-          <div className="col-md-5">
-            <div className="p-2">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="fw-bold text-success">
-                  ₹{hotel.price}{" "}
-                  <span className="text-muted small">
-                    {hotel.currency} / Night
-                  </span>
-                </h5>
+        <div className="col-md-5">
+  <div className="p-2">
+    <div className="d-flex justify-content-between align-items-center mb-2">
+      
 
-                <button className="btn btn-primary btn-sm">Book Now</button>
-              </div>
+     <button 
+        className="btn btn-primary btn-sm" 
+        onClick={scrollToPriceTable}
+      >
+        Choose room
+      </button>
+    </div>
 
-              {/* ✅ Description with ReadMore */}
-              <div className="small text-muted">
-                {shouldTruncate && !expanded
-                  ? stripHtml(shortDesc)
-                  : stripHtml(hotel.description)}
-              </div>
-              {shouldTruncate && (
-                <button
-                  onClick={toggleReadMore}
-                  className="btn btn-link p-0 small"
-                >
-                  {expanded ? "Read Less" : "Read More"}
-                </button>
-              )}
+    {/* ✅ Hotel Rating, CheckIn & CheckOut */}
+    <div className="mb-2 small">
+      <span className="fw-bold">Address:</span> {hotel.Address}
+    </div>
 
-              <h6 className="fw-bold mt-3">Amenities</h6>
-              <div className="d-flex flex-wrap gap-2 small">
-                {hotel?.facilities?.slice(0, 6).map((f, i) => (
-                  <span key={i} className="badge bg-light text-dark border">
-                    {f}
-                  </span>
-                ))}
-                {hotel?.facilities?.length > 6 && (
-                  <span className="badge bg-light text-primary">+ More</span>
-                )}
-              </div>
+    {/* ✅ Description with ReadMore */}
+    <div className="small text-muted">
+      {shouldTruncate && !expanded
+        ? stripHtml(shortDesc)
+        : stripHtml(hotel.description)}
+    </div>
+    {shouldTruncate && (
+      <button
+        onClick={toggleReadMore}
+        className="btn btn-link p-0 small"
+      >
+        {expanded ? "Read Less" : "Read More"}
+      </button>
+    )}
 
-              <div className="d-flex align-items-center mt-3">
-                <span className="fw-bold">{hotel.location}</span>
-                <a
-                  href={`https://maps.google.com/?q=${hotel.location}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="ms-auto small text-primary"
-                >
-                  See on Map
-                </a>
-              </div>
-            </div>
-          </div>
+    <h6 className="fw-bold mt-3">Amenities</h6>
+    <div className="d-flex flex-wrap gap-2 small">
+      {hotel?.facilities?.slice(0, 6).map((f, i) => (
+        <span key={i} className="badge bg-light text-dark border">
+          {f}
+        </span>
+      ))}
+      {hotel?.facilities?.length > 6 && (
+        <span className="badge bg-light text-primary">+ More</span>
+      )}
+    </div>
+
+    <div className="d-flex align-items-center mt-3">
+      <span className="fw-bold">{hotel.location}</span>
+      <a
+        href={`https://maps.google.com/?q=${hotel.location}`}
+        target="_blank"
+        rel="noreferrer"
+        className="ms-auto small text-primary"
+      >
+        See on Map
+      </a>
+    </div>
+  </div>
+</div>
+
         </div>
       </div>
 
       {/* Room Pricing Table */}
-      <div className="room-pricing-table card shadow-sm border-0 mb-4">
+
+     <div
+        ref={priceTableRef}
+        className="room-pricing-table card shadow-sm border-0 mb-4"
+      >
         <div className="card-header bg-primary text-white">
           <h5 className="mb-0">Room Options & Pricing</h5>
         </div>
@@ -438,6 +472,7 @@ const HotelDetail = () => {
               </tbody>
             </table>
           </div>
+         
         </div>
       </div>
 
