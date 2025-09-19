@@ -202,14 +202,21 @@ function Footer() {
 
           <div className="footer-bottom mt-4 border-top pt-3">
   <p className="mb-2">&copy; 2025. All Rights Reserved</p>
-  <div className="d-flex justify-content-center gap-3 mt-0">
-    <a href="/terms-conditions" className="text-decoration-none text-light">
-      Terms & Condition
-    </a>
-    <a href="/privacy-policy" className="text-decoration-none text-light">
-      Privacy Policy
-    </a>
-  </div>
+ <div className="d-flex justify-content-center align-items-center gap-2 mt-0 text-light">
+  <a href="/terms-conditions" className="text-decoration-none text-light">
+    Terms & Condition
+  </a>
+  <span className="mx-2">|</span>
+  <a href="/privacy-policy" className="text-decoration-none text-light">
+    Privacy Policy
+  </a>
+  <span className="mx-2">|</span>
+  <a href="/cancelation" className="text-decoration-none text-light">
+    Cancellation
+  </a>
+</div>
+
+
 </div>
         </div>
       </footer>
@@ -221,28 +228,3 @@ export default Footer;
 
 
 
-// const searchResp = await searchHotels({
-//           CheckIn: bookingData.checkIn,
-//           CheckOut: bookingData.checkOut,
-//           HotelCodes: [hotelCode], // dynamic hotelCode
-//           GuestNationality: bookingData.guestNationality,
-//           NoOfRooms: 1,
-//           PaxRooms: [
-//             {
-//               Adults: 2,
-//               Children: 1,
-//               ChildrenAges: [7],
-//             },
-//           ],
-//           // PaxRooms: bookingData?.paxRooms?.map((p) => ({
-//           //   Adults: p.Adults,
-//           //   Children: p.Children,
-//           //   ChildrenAges: p.ChildrenAges,
-//           // })),
-//           ResponseTime: bookingData.responseTime,
-//           IsDetailedResponse: bookingData.isDetailedResponse,
-//           Filters: {
-//             Refundable: bookingData.isRefundable,
-//             MealType: bookingData.mealType, // All | WithMeal | RoomOnly
-//           },
-//         });

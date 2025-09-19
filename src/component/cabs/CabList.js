@@ -37,7 +37,7 @@ function CabList() {
   }, []);
 
   return (
-    <div className="container pt-5 pb-5">
+    <div>
       {/* Search Section */}
       <div className="col-sm-12">
         {/* <nav aria-label="breadcrumb">
@@ -63,43 +63,49 @@ function CabList() {
             </ol>
           </nav>
 
-          <div className="search-box">
-            <div className="row mb-4 g-2 align-items-center">
-              <div className="col-md-3">
-                <select className="form-select" defaultValue="">
-                  <option disabled value="">
-                    Trip Type
-                  </option>
-                  <option>One Way</option>
-                  <option>Round Trip</option>
-                  <option>Local</option>
-                </select>
-              </div>
-              <div className="col-md-2">
-                <input type="date" className="form-control" />
-              </div>
-              <div className="col-md-2">
-                <input type="time" className="form-control" />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="From"
-                />
-              </div>
-              <div className="col-md-1">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="+ Add Stops"
-                />
-              </div>
-              <div className="col-md-1">
-                <input type="text" className="form-control" placeholder="To" />
-              </div>
-              <div className="col-md-1">
-                <button className="explore-btn">Search</button>
+          <div className="cab-section ">
+            <div className="container search-box rounded shadow-sm">
+              <div className="row mb-4 g-2 align-items-center">
+                <div className="col-md-3">
+                  <select className="form-select" defaultValue="">
+                    <option disabled value="">
+                      Trip Type
+                    </option>
+                    <option>One Way</option>
+                    <option>Round Trip</option>
+                    <option>Local</option>
+                  </select>
+                </div>
+                <div className="col-md-2">
+                  <input type="date" className="form-control" />
+                </div>
+                <div className="col-md-2">
+                  <input type="time" className="form-control" />
+                </div>
+                <div className="col-md-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="From"
+                  />
+                </div>
+                <div className="col-md-1">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="+ Add Stops"
+                  />
+                </div>
+                <div className="col-md-1">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="To"
+                  />
+                </div>
+                <div className="col-md-1">
+                  <button className="explore-btn">Search</button>
+                </div>
               </div>
             </div>
           </div>
@@ -108,7 +114,8 @@ function CabList() {
 
       <div className="row">
         {/* FILTER COLUMN */}
-        <div className="col-sm-3 mb-4">
+          <div className="container">
+          <div className="col-sm-3 mb-4">
           <div className="cab-card rounded-4 border shadow-sm p-3">
             <h5 className="mb-3 fw-bold">FILTER</h5>
 
@@ -212,9 +219,10 @@ function CabList() {
             </div>
           </div>
         </div>
+        
+       
 
-        {/* CAB CARDS COLUMN */}
-        <div className="col-sm-9">
+       <div className="col-sm-9">
           <div className="row">
             {cabData.map((cab) => (
               <div className="col-sm-4 mb-4" key={cab.cabId}>
@@ -291,9 +299,14 @@ function CabList() {
               </div>
             ))}
           </div>
+       
+
+       </div>
         </div>
+       </div>
+        {/* CAB CARDS COLUMN */}
       </div>
-    </div>
+   
   );
 }
 
