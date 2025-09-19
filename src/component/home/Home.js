@@ -18,7 +18,7 @@ import ScrollToTop from "../common/ScrollToTop";
 import FAQ from "../common/faq/FAQ";
 import HotelPopularDestination from "../hotels/HotelPopularDestination";
 import FlightPreview from "../flights/Flightpreview";
-
+ 
 const imageList = [
   {
     id: 1,
@@ -51,8 +51,6 @@ const imageList = [
     path: "/hills"
   }
 ];
-
-
 
 
 const destinations = [
@@ -171,6 +169,7 @@ function Home() {
       <CabPreview />
 
       <FlightPreview />
+
 
       {/* <div className="book-hotel ">
         <div className="container">

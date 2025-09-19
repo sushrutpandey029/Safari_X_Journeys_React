@@ -28,6 +28,8 @@ import PrivacyPolicy from "../common/policy/PrivacyPolicy";
 import HotelDetail from "../hotels/Hoteldetail";
 import Hotel from "../hotels/Hotel";
 import Flight from "../flights/Flight";
+import Cancellation from "../common/policy/Cancelation";
+
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -68,6 +70,8 @@ function RootNavigation() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
         <Route path="/flight" element={<Flight />} />
+        <Route path="cancelation" element={< Cancellation/>} />
+       
         <Route
           path="/user-dashboard"
           element={

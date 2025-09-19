@@ -1,3 +1,15 @@
+.flight-section{
+ background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url("/public/images/flight.png") no-repeat center center / cover; /* halka white se blue gradient */
+  border: none;  /* agar border hataana ho */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* thoda shadow fancy look ke liye */
+}
+.flight-form{
+  background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
+    padding: 35px!important;
+    margin-bottom: 20px;
+}
+
+
 .best-flight {
   background: #f9fbff;
 }
@@ -56,3 +68,60 @@
   font-weight: 600;
   font-size: 14px;
 }
+.flight-form{
+  padding:50px 50px;
+}
+
+
+.travellers-wrapper {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.traveller-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.traveller-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.traveller-btn {
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.traveller-btn:hover {
+  background: #eaeaea;
+}
+
+.traveller-btn.active {
+  background: #007bff;
+  color: white;
+ 
+  font-weight: bold;
+}
+.explore-btn{
+   background-color: #274a62;
+    color: white;
+    border: none;
+    padding: 4px 20px;
+    border-radius: 16px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+
+
+
