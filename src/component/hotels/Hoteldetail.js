@@ -7,6 +7,7 @@ import { Fancybox } from "@fancyapps/ui";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { useLocation } from "react-router-dom";
+import { useRef } from "react";
 
 const getValue = (obj, keys, defaultValue = "") => {
   for (let key of keys) {
@@ -27,6 +28,20 @@ const HotelDetail = () => {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false); // ✅ ReadMore toggle states
   const { startPayment } = useCashfreePayment();
+
+
+  const priceTableRef = useRef(null);
+
+  // Scroll handler
+  const scrollToPriceTable = () => {
+    if (priceTableRef.current) {
+      priceTableRef.current.scrollIntoView({
+        behavior: "smooth", // smooth scroll
+        block: "start"      // top pe align hoga
+      });
+    }
+  };
+
 
   const bookingData = location.state || {};
   console.log("booking data from previous page", bookingData);
@@ -121,10 +136,15 @@ const HotelDetail = () => {
             name: details.HotelName,
             description: details.Description,
             location: details.CityName,
-            rating: details.Rating,
-            price: roomData[0]?.TotalFare || "N/A",
-            currency: searchHotel.Currency || "INR",
+            Address: details.Address,
+            rating: details.HotelRating,         // ⬅️ fix (API me HotelRating hai)
+            price: roomData?.[0]?.TotalFare || "N/A",   // optional chaining safe
+            currency: searchHotel?.Currency || "INR",   // optional chaining safe
             images: details.Images || [],
+            facilities: details.HotelFacilities || [],  // ⬅️ add amenities
+            country: details.CountryName,
+            pin: details.PinCode,
+            map: details.Map
           });
         }
       } catch (err) {
@@ -155,7 +175,7 @@ const HotelDetail = () => {
 
   if (loading)
     return (
-      <div className="container my-4 text-center">
+      <div className="container my-4 text-center" >
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -175,313 +195,300 @@ const HotelDetail = () => {
   const shortDesc = words.slice(0, 50).join(" ") + "...";
 
   return (
-    <div className="container my-4">
-      <div className="hotel-card shadow-sm border-0 mb-4 p-3">
-        {/* Title & Rating */}
-        <div className="d-flex justify-content-between align-items-start mb-2">
-          <h4 className="fw-bold mb-0">{hotel.name}</h4>
-          <span className="badge bg-primary">⭐ {hotel.rating}</span>
-        </div>
+    <div>
+      <div className="hotel-detail-page">
+        <div className="container">
+          <div className="row">
 
-        <div className="row g-3">
-          {/* Left - Images */}
-          <div className="col-md-7">
-            <a
-              href={hotel.images[0]}
-              data-fancybox="gallery"
-              data-caption={hotel.name}
-            >
-              <img
-                src={hotel.images[0]}
-                alt="Hotel"
-                className="hotel-main-img rounded img-fluid"
-                style={{ width: "100%", height: "300px", objectFit: "cover" }}
-              />
-            </a>
 
-            {/* Sub Images */}
-            <div className="hotel-sub-imgs d-flex gap-2 flex-wrap mt-2">
-              {hotel?.images?.slice(1, 4).map((img, i) => (
-                <div
-                  key={i}
-                  className="hotel-sub-img-wrapper"
-                  style={{ width: "30%", position: "relative" }}
-                >
-                  <a
-                    href={img}
-                    data-fancybox="gallery"
-                    data-caption={`${hotel.name} - Image ${i + 2}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`Hotel-${i}`}
-                      className="hotel-sub-img rounded img-fluid"
-                      style={{
-                        width: "100%",
-                        height: "100px",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </a>
-
-                  {i === 2 && hotel?.images?.length > 4 && (
-                    <div
-                      className="hotel-overlay"
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: "rgba(0,0,0,0.5)",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      +{hotel?.images?.length - 4} More
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Hidden images for Fancybox */}
-              {hotel?.images?.slice(4).map((img, j) => (
+            <div className="row g-3">
+              {/* Left - Images */}
+              <div className="col-md-7">
                 <a
-                  key={j}
-                  href={img}
+                  href={hotel.images[0]}
                   data-fancybox="gallery"
-                  data-caption={`${hotel.name} - Extra Image`}
-                  style={{ display: "none" }}
+                  data-caption={hotel.name}
                 >
-                  <img src={img} alt={`Hidden-${j}`} />
+                  <img
+                    src={hotel.images[0]}
+                    alt="Hotel"
+                    className="hotel-main-img rounded img-fluid"
+                  />
                 </a>
-              ))}
-            </div>
-          </div>
 
-          {/* Right - Details */}
-          <div className="col-md-5">
-            <div className="p-2">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="fw-bold text-success">
-                  ₹{hotel.price}{" "}
-                  <span className="text-muted small">
-                    {hotel.currency} / Night
-                  </span>
-                </h5>
+                {/* Sub Images */}
+                <div className="hotel-sub-imgs d-flex gap-2 flex-wrap mt-2">
+                  {hotel?.images?.slice(1, 4).map((img, i) => (
+                    <div
+                      key={i}
+                      className="hotel-sub-img-wrapper"
+                      style={{ width: "30%", position: "relative" }}
+                    >
+                      <a
+                        href={img}
+                        data-fancybox="gallery"
+                        data-caption={`${hotel.name} - Image ${i + 2}`}
+                      >
+                        <img
+                          src={img}
+                          alt={`Hotel-${i}`}
+                          className="hotel-sub-img rounded img-fluid"
+                          style={{
+                            width: "100%",
+                            height: "100px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </a>
 
-                <button className="btn btn-primary btn-sm">Book Now</button>
+                      {i === 2 && hotel?.images?.length > 4 && (
+                        <div
+                          className="hotel-overlay"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: "rgba(0,0,0,0.5)",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          +{hotel?.images?.length - 4} More
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Hidden images for Fancybox */}
+                  {hotel?.images?.slice(4).map((img, j) => (
+                    <a
+                      key={j}
+                      href={img}
+                      data-fancybox="gallery"
+                      data-caption={`${hotel.name} - Extra Image`}
+                      style={{ display: "none" }}
+                    >
+                      <img src={img} alt={`Hidden-${j}`} />
+                    </a>
+                  ))}
+                </div>
               </div>
 
-              {/* ✅ Description with ReadMore */}
-              <div className="small text-muted">
-                {shouldTruncate && !expanded
-                  ? stripHtml(shortDesc)
-                  : stripHtml(hotel.description)}
-              </div>
-              {shouldTruncate && (
-                <button
-                  onClick={toggleReadMore}
-                  className="btn btn-link p-0 small"
-                >
-                  {expanded ? "Read Less" : "Read More"}
-                </button>
-              )}
+              {/* Right - Details */}
+              <div className="col-md-5">
+                <div className="right-details">
 
-              <h6 className="fw-bold mt-3">Amenities</h6>
-              <div className="d-flex flex-wrap gap-2 small">
-                {hotel?.facilities?.slice(0, 6).map((f, i) => (
-                  <span key={i} className="badge bg-light text-dark border">
-                    {f}
-                  </span>
-                ))}
-                {hotel?.facilities?.length > 6 && (
-                  <span className="badge bg-light text-primary">+ More</span>
-                )}
-              </div>
 
-              <div className="d-flex align-items-center mt-3">
-                <span className="fw-bold">{hotel.location}</span>
-                <a
-                  href={`https://maps.google.com/?q=${hotel.location}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="ms-auto small text-primary"
-                >
-                  See on Map
-                </a>
+                  {/* Title & Rating */}
+                  <h3 className="fw-bold">{hotel.location}</h3>
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                 
+                    <h4 className="fw-bold mb-0">{hotel.name}</h4>
+                    <span className="badge bg-primary">⭐ {hotel.rating}</span>
+                  </div>
+
+                  {/* ✅ Hotel Rating, CheckIn & CheckOut */}
+
+                 
+                  <div className="mb-2 small">
+                    <span className="fw-bold">Address:</span> {hotel.Address}
+                  </div>
+
+                  {/* ✅ Description with ReadMore */}
+                  <div className="p-tag">
+                    {shouldTruncate && !expanded
+                      ? stripHtml(shortDesc)
+                      : stripHtml(hotel.description)}
+                  </div>
+                  {shouldTruncate && (
+                    <button
+                      onClick={toggleReadMore}
+                      className="btn btn-link p-0 small"
+                    >
+                      {expanded ? "Read Less" : "Read More"}
+                    </button>
+                  )}
+
+                  <h6 className="fw-bold mt-3">Amenities</h6>
+                  <div className="d-flex flex-wrap gap-2 small aminities">
+                    {hotel?.facilities?.slice(0, 6).map((f, i) => (
+                      <span key={i} className="badge bg-light text-dark border">
+                        {f}
+                      </span>
+                    ))}
+                    {hotel?.facilities?.length > 6 && (
+                      <span className="badge bg-light text-primary">+ More</span>
+                    )}
+                  </div>
+
+                  <div className="d-flex align-items-center mt-3">
+                    
+                    <a
+                      href={`https://maps.google.com/?q=${hotel.location}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ms-auto small text-primary"
+                    >
+                      See on Map
+                    </a>
+                  </div>
+                  <div className="d-flex align-items-center mt-3">
+                  <button 
+        className="explore-btn" 
+        onClick={scrollToPriceTable}
+      >
+        Choose room
+      </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+
 
       {/* Room Pricing Table */}
-      <div className="room-pricing-table card shadow-sm border-0 mb-4">
-        <div className="card-header bg-primary text-white">
-          <h5 className="mb-0">Room Options & Pricing</h5>
-        </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th scope="col">Room Type</th>
-                  <th scope="col">Inclusions</th>
-                  <th scope="col">Base Price</th>
-                  <th scope="col">Total Fare</th>
-                  <th scope="col">Tax</th>
-                  <th scope="col">Meal Type</th>
-                  <th scope="col">Cancellation Policy</th>
-                  <th scope="col">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rooms?.length > 0 ? (
-                  rooms?.map((room, index) => {
-                    const basePrice =
-                      room.DayRates?.[0]?.[0]?.BasePrice || "N/A";
-                    const roomName = room.Name?.[0] || "Room";
-                    const isRefundable = room.IsRefundable ? "Yes" : "No";
+      <div className="room-detail">
+        <div className="container">
+       <div
+        ref={priceTableRef}
+        className="room-pricing-table card shadow-sm border-0 mb-4"
+      >
+            {/* Card Header */}
+            <div className="card-header bg-gradient text-white py-3">
+              <h5 className="mb-0 fw-bold">
+                <i className="bi bi-door-open me-2"></i> Room Options & Pricing
+              </h5>
+            </div>
 
-                    return (
-                      <tr key={index}>
-                        <td>
-                          <div className="fw-medium">{roomName}</div>
-                          <div className="small text-muted">
-                            {room.BookingCode && `Code: ${room.BookingCode}`}
-                          </div>
-                        </td>
-                        <td>
-                          {room.Inclusion ? (
-                            <div className="small">
-                              {room?.Inclusion?.split(",").map((item, i) => (
-                                <span
-                                  key={i}
-                                  className="badge bg-light text-dark me-1 mb-1"
-                                >
-                                  {item.trim()}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            "No inclusions"
-                          )}
-                        </td>
-                        <td className="text-nowrap">
-                          <span className="fw-medium text-success">
-                            ₹{basePrice}
-                          </span>
-                        </td>
-                        <td className="text-nowrap">
-                          <span className="fw-medium text-primary">
-                            ₹{room.TotalFare || "N/A"}
-                          </span>
-                        </td>
-                        <td className="text-nowrap">
-                          <span className="text-muted">
-                            ₹{room.TotalTax || "N/A"}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="badge bg-info">
-                            {room.MealType || "N/A"}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="small">
-                            {room?.CancelPolicies ? (
-                              room?.CancelPolicies?.map((policy, i) => (
-                                <div key={i}>
-                                  {policy.FromDate}:{" "}
-                                  {policy.ChargeType === "Percentage"
-                                    ? `${policy.CancellationCharge}%`
-                                    : `₹${policy.CancellationCharge}`}
+            {/* Card Body */}
+            <div className="card-body p-0">
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Room Type</th>
+                      <th>Inclusions</th>
+                      <th>Base Price</th>
+                      <th>Total Fare</th>
+                      <th>Tax</th>
+                      <th>Meal Type</th>
+                      <th>Cancellation</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rooms?.length > 0 ? (
+                      rooms?.map((room, index) => {
+                        const basePrice =
+                          room.DayRates?.[0]?.[0]?.BasePrice || "N/A";
+                        const roomName = room.Name?.[0] || "Room";
+                        const isRefundable = room.IsRefundable ? "Yes" : "No";
+
+                        return (
+                          <tr key={index}>
+                            <td>
+                              <div className="fw-semibold text-dark">{roomName}</div>
+                              <div className="small text-muted">
+                                {/* {room.BookingCode && `Code: ${room.BookingCode}`} */}
+                              </div>
+                            </td>
+
+                            <td>
+                              {room.Inclusion ? (
+                                <div className="d-flex flex-wrap gap-1">
+                                  {room?.Inclusion?.split(",").map((item, i) => (
+                                    <span
+                                      key={i}
+                                      className="badge bg-light text-dark border"
+                                    >
+                                      {item.trim()}
+                                    </span>
+                                  ))}
                                 </div>
-                              ))
-                            ) : (
-                              <span
-                                className={
-                                  isRefundable === "Yes"
-                                    ? "text-success"
-                                    : "text-danger"
-                                }
-                              >
-                                {isRefundable === "Yes"
-                                  ? "Refundable"
-                                  : "Non-refundable"}
+                              ) : (
+                                <span className="text-muted small">No inclusions</span>
+                              )}
+                            </td>
+
+                            <td className="text-success fw-semibold">
+                              ₹{basePrice}
+                            </td>
+
+                            <td className="text-primary fw-semibold">
+                              ₹{room.TotalFare || "N/A"}
+                            </td>
+
+                            <td className="text-muted">₹{room.TotalTax || "N/A"}</td>
+
+                            <td>
+                              <span className="badge bg-info text-dark">
+                                {room.MealType || "N/A"}
                               </span>
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <button
-                            onClick={() => handleBook(room)}
-                            className="btn btn-sm btn-primary"
-                          >
-                            Book
-                          </button>
+                            </td>
+
+                            <td>
+                              {room?.CancelPolicies ? (
+                                <div className="small">
+                                  {room?.CancelPolicies?.map((policy, i) => (
+                                    <div
+                                      key={i}
+                                      className="badge bg-light text-dark border me-1 mb-1"
+                                    >
+                                      {policy.FromDate}:{" "}
+                                      {policy.ChargeType === "Percentage"
+
+                                        ? `${policy.CancellationCharge}%`
+                                        : `₹${policy.CancellationCharge}`}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span
+                                  className={`badge ${isRefundable === "Yes"
+                                    ? "bg-success"
+                                    : "bg-danger"
+                                    }`}
+                                >
+                                  {isRefundable}
+                                </span>
+                              )}
+                            </td>
+
+                            <td>
+                              <button
+                                onClick={() => handleBook(room)}
+                                className="btn btn-sm book-btn"
+                              >
+                                Book
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="text-center py-4 text-muted">
+                          No room information available
                         </td>
                       </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="8" className="text-center py-4">
-                      No room information available
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
 
-      <style>{`
-    .hotel-card {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 12px;
-    }
-    .room-pricing-table {
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .room-pricing-table .table {
-      margin-bottom: 0;
-    }
-    .room-pricing-table .table th {
-      border-top: none;
-      font-weight: 600;
-      vertical-align: middle;
-    }
-    .room-pricing-table .table td {
-      vertical-align: middle;
-    }
-    .hotel-main-img {
-      transition: transform 0.3s ease;
-    }
-    .hotel-main-img:hover {
-      transform: scale(1.02);
-    }
-    .hotel-sub-img {
-      transition: transform 0.3s ease;
-    }
-    .hotel-sub-img:hover {
-      transform: scale(1.05);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-      border: none;
-    }
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
-      transform: translateY(-1px);
-    }
-  `}</style>
     </div>
   );
 };
