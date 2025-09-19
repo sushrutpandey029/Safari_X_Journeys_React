@@ -3,7 +3,9 @@ import React, { useState } from "react";
 import { Dropdown } from "react-bootstrap";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { Lock } from "lucide-react";
+import { LockFill } from "react-bootstrap-icons";
 import "./Flights.css";
 
 const Flight = () => {
@@ -42,13 +44,18 @@ const Flight = () => {
   // Toggle states for filters (object)
   const [toggle, setToggle] = useState({
     showProperties: true,
-    star: true,
-    review: true,
-    amenities: true,
+    airlines: false,
+    aircraft: false,
+    price: false,
+    departure: false,
+    popular: false,
   });
 
   const handleToggle = (section) => {
-    setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
+    setToggle((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
   };
 
   const addCity = () => {
@@ -69,8 +76,9 @@ const Flight = () => {
       {/* 🔹 Flight Search Form */}
 
       <div className="flight-section">
-          <div className="container search-box rounded shadow-sm flight-form">
-            <div className="d-flex gap-3 mb-3">
+        <div className=" search-box  rounded shadow-sm flight-form ">
+          <div className="container">
+            <div className=" d-flex gap-3 mb-3">
               <Form.Check
                 type="radio"
                 label="One Way"
@@ -95,6 +103,7 @@ const Flight = () => {
             </div>
 
             {/* Flight Segments */}
+
             {flights.map((flight, index) => (
               <Row className="align-items-end mb-3" key={index}>
                 <Col md={3}>
@@ -242,259 +251,338 @@ const Flight = () => {
             </Row>
           </div>
         </div>
-    
+      </div>
 
-  
-        <div className="container py-5">
-        <div className="col-sm-3">
-          <div className="filter-box p-3 border rounded shadow-sm">
-            <h5 className="mb-3 fw-bold">FILTER</h5>
-            {/* Show Properties With */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("showProperties")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Show Properties With</span>
-                <span>
+      <div className="container py-5">
+        <Row>
+          {/* ===== Filter Sidebar ===== */}
+          <Col sm={3}>
+            <div className="filter-box p-3 border rounded shadow-sm">
+              <h5 className="mb-3 fw-bold">FILTER</h5>
+
+              {/* Show Properties With */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("showProperties")}
+                >
+                  <span>Show Properties With</span>
                   <FontAwesomeIcon
                     icon={toggle.showProperties ? faChevronUp : faChevronDown}
                   />
-                </span>
-              </div>
-              {toggle.showProperties && (
-                <div className="filter-options mt-2">
-                  {[
-                    "Book With ₹0",
-                    "Free Cancellation",
-                    "Free Breakfast",
-                    "Pay at Hotel",
-                  ].map((label, i) => (
-                    <div className="form-check" key={i}>
+                </div>
+                {toggle.showProperties && (
+                  <div className="filter-options mt-2">
+                    {[
+                      "Book With ₹0",
+                      "Free Cancellation",
+                      "Free Breakfast",
+                      "Pay at Hotel",
+                    ].map((label, i) => (
+                      <div className="form-check" key={i}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`spw${i}`}
+                        />
+                        <label className="form-check-label" htmlFor={`spw${i}`}>
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                    <div className="form-check">
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        id={`spw${i}`}
+                        id="refundable"
                       />
-                      <label className="form-check-label" htmlFor={`spw${i}`}>
-                        {label}
+                      <label className="form-check-label" htmlFor="refundable">
+                        Refundable Only
                       </label>
                     </div>
-                  ))}
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={isRefundable}
-                      onChange={(e) => setIsRefundable(e.target.checked)}
-                      id="refundable"
-                    />
-                    <label className="form-check-label" htmlFor="refundable">
-                      Refundable Only
-                    </label>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Airlines */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("airlines")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Airlines</span>
-                <span>
+              {/* Airlines */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("airlines")}
+                >
+                  <span>Airlines</span>
                   <FontAwesomeIcon
                     icon={toggle.airlines ? faChevronUp : faChevronDown}
                   />
-                </span>
-              </div>
-              {toggle.airlines && (
-                <div className="filter-options mt-2">
-                  {[
-                    "IndiGo [120]",
-                    "Air India [80]",
-                    "SpiceJet [70]",
-                    "Vistara [60]",
-                  ].map((label, i) => (
-                    <div className="form-check" key={i}>
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`airline${i}`}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor={`airline${i}`}
-                      >
-                        {label}
-                      </label>
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
+                {toggle.airlines && (
+                  <div className="filter-options mt-2">
+                    {[
+                      "IndiGo [120]",
+                      "Air India [80]",
+                      "SpiceJet [70]",
+                      "Vistara [60]",
+                    ].map((label, i) => (
+                      <div className="form-check" key={i}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`airline${i}`}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`airline${i}`}
+                        >
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* Aircraft Size */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("aircraft")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Aircraft Size</span>
-                <span>
+              {/* Aircraft Size */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("aircraft")}
+                >
+                  <span>Aircraft Size</span>
                   <FontAwesomeIcon
                     icon={toggle.aircraft ? faChevronUp : faChevronDown}
                   />
-                </span>
-              </div>
-              {toggle.aircraft && (
-                <div className="filter-options mt-2">
-                  {["Small", "Medium", "Large", "Wide-body"].map((label, i) => (
-                    <div className="form-check" key={i}>
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`aircraft${i}`}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor={`aircraft${i}`}
-                      >
-                        {label}
-                      </label>
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
+                {toggle.aircraft && (
+                  <div className="filter-options mt-2">
+                    {["Small", "Medium", "Large", "Wide-body"].map(
+                      (label, i) => (
+                        <div className="form-check" key={i}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`aircraft${i}`}
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`aircraft${i}`}
+                          >
+                            {label}
+                          </label>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
 
-            {/* One-way Price */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("price")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>One-way Price</span>
-                <span>
+              {/* One-way Price */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("price")}
+                >
+                  <span>One-way Price</span>
                   <FontAwesomeIcon
                     icon={toggle.price ? faChevronUp : faChevronDown}
                   />
-                </span>
-              </div>
-              {toggle.price && (
-                <div className="filter-options mt-2">
-                  {[
-                    "< ₹2000",
-                    "₹2000 - ₹5000",
-                    "₹5000 - ₹10000",
-                    "> ₹10000",
-                  ].map((label, i) => (
-                    <div className="form-check" key={i}>
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`price${i}`}
-                      />
-                      <label className="form-check-label" htmlFor={`price${i}`}>
-                        {label}
-                      </label>
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
+                {toggle.price && (
+                  <div className="filter-options mt-2">
+                    {[
+                      "< ₹2000",
+                      "₹2000 - ₹5000",
+                      "₹5000 - ₹10000",
+                      "> ₹10000",
+                    ].map((label, i) => (
+                      <div className="form-check" key={i}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`price${i}`}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`price${i}`}
+                        >
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* Departure Time */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("departure")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Departure Time</span>
-                <span>
+              {/* Departure Time */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("departure")}
+                >
+                  <span>Departure Time</span>
                   <FontAwesomeIcon
                     icon={toggle.departure ? faChevronUp : faChevronDown}
                   />
-                </span>
-              </div>
-              {toggle.departure && (
-                <div className="filter-options mt-2">
-                  {[
-                    "Early Morning (00:00-06:00)",
-                    "Morning (06:00-12:00)",
-                    "Afternoon (12:00-18:00)",
-                    "Evening (18:00-24:00)",
-                  ].map((label, i) => (
-                    <div className="form-check" key={i}>
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`departure${i}`}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor={`departure${i}`}
-                      >
-                        {label}
-                      </label>
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
+                {toggle.departure && (
+                  <div className="filter-options mt-2">
+                    {[
+                      "Early Morning (00:00-06:00)",
+                      "Morning (06:00-12:00)",
+                      "Afternoon (12:00-18:00)",
+                      "Evening (18:00-24:00)",
+                    ].map((label, i) => (
+                      <div className="form-check" key={i}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`departure${i}`}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`departure${i}`}
+                        >
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* Popular Filters */}
-            <div className="filter-group mb-3">
-              <div
-                className="filter-title d-flex justify-content-between"
-                onClick={() => handleToggle("popular")}
-                style={{ cursor: "pointer" }}
-              >
-                <span>Popular Filters</span>
-                <span>
+              {/* Popular Filters */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("popular")}
+                >
+                  <span>Popular Filters</span>
                   <FontAwesomeIcon
                     icon={toggle.popular ? faChevronUp : faChevronDown}
                   />
-                </span>
-              </div>
-              {toggle.popular && (
-                <div className="filter-options mt-2">
-                  {[
-                    "Non-stop Flights",
-                    "Refundable Only",
-                    "Premium Airlines",
-                    "Short Duration",
-                  ].map((label, i) => (
-                    <div className="form-check" key={i}>
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`popular${i}`}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor={`popular${i}`}
-                      >
-                        {label}
-                      </label>
-                    </div>
-                  ))}
                 </div>
-              )}
+                {toggle.popular && (
+                  <div className="filter-options mt-2">
+                    {[
+                      "Non-stop Flights",
+                      "Refundable Only",
+                      "Premium Airlines",
+                      "Short Duration",
+                    ].map((label, i) => (
+                      <div className="form-check" key={i}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`popular${i}`}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`popular${i}`}
+                        >
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </Col>
 
+          {/* ===== Flight Details Section ===== */}
+          <Col sm={9}>
+            <Card className="shadow-sm p-3 mb-4 rounded-3">
+              <Row className="align-items-center">
+                {/* Airline Info */}
+                <Col md={3} className="d-flex align-items-center">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Air_India_Express_logo.svg/512px-Air_India_Express_logo.svg.png"
+                    alt="Airline Logo"
+                    style={{ width: "40px", marginRight: "10px" }}
+                  />
+                  <div>
+                    <h6 className="mb-0">Air India Express</h6>
+                    <small className="text-muted">IX 1971</small>
+                  </div>
+                </Col>
+
+                {/* Departure */}
+                <Col md={3} className="text-center">
+                  <h5 className="mb-0">08:50</h5>
+                  <small className="text-muted">Ghaziabad</small>
+                  <br />
+                  <small className="text-muted">(32 KM from New Delhi)</small>
+                </Col>
+
+                {/* Duration */}
+                <Col md={2} className="text-center">
+                  <p className="mb-1 text-success fw-bold">02 h 50 m</p>
+                  <small className="text-muted">Non stop</small>
+                </Col>
+
+                {/* Arrival */}
+                <Col md={2} className="text-center">
+                  <h5 className="mb-0">11:40</h5>
+                  <small className="text-muted">Bengaluru</small>
+                </Col>
+
+                {/* Price + Button */}
+                <Col md={2} className="text-end">
+                  <h5 className="fw-bold">₹ 5,509</h5>
+                  <small className="text-muted">per adult</small>
+                  <br />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="mt-2 rounded-pill"
+                  >
+                    VIEW PRICES
+                  </Button>
+                </Col>
+              </Row>
+
+              {/* Lock Price */}
+              <Row className="mt-3">
+                <Col>
+                  <div className="d-flex align-items-center bg-light p-2 rounded-2">
+                    <span className="me-2 text-primary">🔒</span>
+                    <small className="text-primary">
+                      Lock this price starting from ₹496
+                    </small>
+                  </div>
+                </Col>
+              </Row>
+
+              {/* Deal */}
+              <Row className="mt-2">
+                <Col>
+                  <div className="bg-warning bg-opacity-25 p-2 rounded-2">
+                    <small className="text-dark">
+                      🔴 EXCLUSIVE DEAL: Get FLAT ₹266 OFF using <b>TRYMMT</b>{" "}
+                      code for you
+                    </small>
+                  </div>
+                </Col>
+              </Row>
+
+              {/* Details Link */}
+              <Row className="mt-2">
+                <Col className="text-end">
+                  <a href="#" className="text-primary">
+                    View Flight Details
+                  </a>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+      </div>
     </div>
-   
   );
 };
 

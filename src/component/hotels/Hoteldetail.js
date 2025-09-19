@@ -194,6 +194,9 @@ const HotelDetail = () => {
   const shouldTruncate = words?.length > 50;
   const shortDesc = words.slice(0, 50).join(" ") + "...";
 
+
+  
+
   return (
     <div>
       <div className="hotel-detail-page">

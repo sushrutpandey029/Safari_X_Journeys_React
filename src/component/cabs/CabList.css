@@ -9,7 +9,6 @@
   object-fit: contain;
 }
 
-
 .dot {
   margin: 0 6px;
   color: #007bff;
@@ -38,7 +37,6 @@
   background-color: #0056b3;
 }
 
-
 .spacious-title {
   font-size: 1rem;
   font-weight: 600;
@@ -53,4 +51,16 @@
 .cab-features li {
   margin-bottom: 4px;
   line-height: 1.4;
+}
+.cab-section {
+  padding: 20px 0;
+  border-radius: 0px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),
+    url("/public/images/cab-banner.png") no-repeat center center / cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 350px;
 }

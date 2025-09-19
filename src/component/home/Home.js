@@ -168,7 +168,7 @@ function Home() {
       {/* cab section */}
       <CabPreview />
 
-      <FlightPreview />
+    
 
 
       {/* <div className="book-hotel ">
