@@ -7,7 +7,7 @@ import Layout from "./Layout";
 import Home from "../home/Home";
 import BestGuide from "../bestguide/BestGuide";
 import Places from "../places/Places";
-import About from "../about/About";
+// import About from "../about/About";
 import GuideList from "../guides/GuideList";
 import ContactUs from "../common/contactUs/ContactUs";
 import HotelBooking from "../hotels/HotelBooking";
@@ -28,6 +28,10 @@ import PrivacyPolicy from "../common/policy/PrivacyPolicy";
 import HotelDetail from "../hotels/Hoteldetail";
 import Hotel from "../hotels/Hotel";
 import Flight from "../flights/Flight";
+import Cancellation from "../common/policy/Cancelation";
+import About from "../common/policy/About";
+import HotelCheckout from "../hotels/Hotelcheckout";
+
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -51,7 +55,7 @@ function RootNavigation() {
         <Route index element={<Home />} />
         <Route path="/guides" element={<GuideList />} />
         <Route path="/places" element={<Places />} />
-        <Route path="/about" element={<About />} />
+        {/* <Route path="/about" element={<About />} /> */}
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/hotel" element={<Hotel />} />
         <Route path="/hotel-list" element={<HotelBooking />} />
@@ -68,6 +72,10 @@ function RootNavigation() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
         <Route path="/flight" element={<Flight />} />
+        <Route path="cancelation" element={< Cancellation/>} />
+        <Route path="about" element={< About/>} />
+        <Route path="hotel-checkout" element={< HotelCheckout/>} />
+       
         <Route
           path="/user-dashboard"
           element={

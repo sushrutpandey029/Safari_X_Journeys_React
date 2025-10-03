@@ -246,9 +246,9 @@
 
 .hotel-main-img {
   width: 100%;
-  height: 300px;
   object-fit: cover;
   cursor: pointer;
+  height: 400px;
 }
 
 .hotel-sub-imgs {
@@ -314,8 +314,8 @@
               rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 
   background: linear-gradient(
-                rgba(0, 0, 0, 0.1),   /* top black overlay */
-                rgba(0, 0, 0, 0.1)    /* bottom black overlay */
+                rgba(0, 0, 0, 0.6),   /* top black overlay */
+                rgba(0, 0, 0, 0.2)    /* bottom black overlay */
               ),
               url('/public/images/hotel-booking.jpg') 
               no-repeat center center / cover;
@@ -323,22 +323,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 400px;  
+  height: 600px;  
 }
 
   
   .search-box {
     background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
-    padding: 35px;
-    margin-bottom: 20px;
+    padding: 40px;
+
+    .explore-btn{padding: 10px 15px;}
   }
   
-  .listing-search-form {
-    background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
-    padding: 35px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+
 
   .hotel-listing{
     .card-body {
@@ -356,14 +352,10 @@
         position: absolute;
         bottom: 12px;
         right: 4px;}
-        .rating{        position: absolute;
-            right: 0px;
-            top: 0px;
-            font-size: 14px;
-            background: #12669b;
-            padding: 10px 20px 10px 20px;
-            border-radius: 0px 0px 0px 40px;
-            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;}
+        .rating{         position: absolute;
+        right: 7px;
+        top:0px;
+        }
 
             /* Pagination Custom Style */
 .pagination {
@@ -402,3 +394,51 @@
   }
   
   }
+
+  .hotel-detail-page{margin-top: 108px;     background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
+    padding: 40px;}
+
+    .room-detail{padding: 70px 0px;
+      .card-header.bg-gradient {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        background-color: #4788b9;
+      }
+      .table thead th {
+        font-weight: 600;
+      }
+      .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: 0.2s ease;
+      }
+      .book-btn {
+        background: linear-gradient(135deg, #568fbe, #00b37a);
+        color: #fff;
+        border: none;
+        transition: 0.2s ease;
+        border-radius: 20px;
+        padding: 3px 16px;
+        font-weight: 500;
+      }
+      .book-btn:hover {
+        background: linear-gradient(135deg, #0056b3, #004494);
+        transform: translateY(-2px);
+      }
+    
+    }
+
+
+    .right-details {    
+      h4{        color: #4788b9;
+        font-size: 20px;
+}
+    .small{color: #807777;
+      font-size: 1rem;}
+    .p-tag{font-size: 15px;}
+    .btn-link {color: #c7681f;}
+  
+    }
+.aminities{}
+
+.room-pricing-table{
+  scroll-margin-top:150px;
+}

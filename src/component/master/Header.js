@@ -1,5 +1,4 @@
-import { NavLink } from "react-router-dom";
-
+import { NavLink, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../home/Home.css";
@@ -24,12 +23,13 @@ function Header() {
   const [showDriverGuideLogin, setShowDriverGuideLogin] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
 
-  // ⭐️ Active tab ke liye state
-  const [activeTab, setActiveTab] = useState("flight");
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const profileMenuRef = useRef(null);
+  const location = useLocation();
+
+  const isTransparentHeader =
+    location.pathname === "/" || location.pathname === "/hotel";
 
   const handleLogout = async () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
@@ -86,22 +86,32 @@ function Header() {
   }, []);
 
   useEffect(() => {
+    if (!isTransparentHeader) return; // scroll listener sirf home/hotel me lagega
+
     const handleScroll = () => {
       setIsSticky(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isTransparentHeader]);
 
   return (
     <div>
-      <header className={isSticky ? "sticky-header" : ""}>
+      <header
+        className={
+          isTransparentHeader
+            ? isSticky
+              ? "sticky-header"
+              : "transparent-header"
+            : "sticky-header"
+        }
+      >
         <nav className="navbar navbar-expand-lg">
           <div className="container">
             <a className="navbar-brand" href="/">
               <img
-                src="/images/Safarix-Logo1.png"
+                src="/images/Safarix-Black.png"
                 alt="Safarix Logo"
                 height="70"
               />
@@ -121,34 +131,32 @@ function Header() {
               id="navbarSupportedContent"
             >
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
+                {/* Flight */}
                 <li className="nav-item">
-                  <a className="nav-link active" href="/flight">
-                    <i class="bi bi-airplane"></i> Flight 
-                  </a>
+                  <NavLink
+                    to="/flight"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-airplane"></i> Flight
+                  </NavLink>
                 </li>
 
+                {/* Hotel (default active if /) */}
                 <li className="nav-item">
                   <NavLink
                     to="/hotel"
                     className={({ isActive }) =>
-                      "nav-link" + (isActive ? " active" : "")
+                      "nav-link" +
+                      (isActive || location.pathname === "/" ? " active" : "")
                     }
                   >
                     <i className="bi bi-building"></i> Hotel
                   </NavLink>
                 </li>
 
-                <li className="nav-item">
-                  <NavLink
-                    to="/guide-careers"
-                    className={({ isActive }) =>
-                      "nav-link" + (isActive ? " active" : "")
-                    }
-                  >
-                    <i className="bi bi-taxi-front"></i> Cab
-                  </NavLink>
-                </li>
-
+                {/* Guide */}
                 <li className="nav-item">
                   <NavLink
                     to="/guide-careers"
@@ -159,9 +167,19 @@ function Header() {
                     <i className="bi bi-person-badge"></i> Guide
                   </NavLink>
                 </li>
+
+                {/* Cab */}
+                <li className="nav-item">
+                  <NavLink
+                    to="/cabs"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-taxi-front"></i> Cab
+                  </NavLink>
+                </li>
               </ul>
-
-
             </div>
 
             <div className="plan my-3" style={{ marginRight: "14px" }}>
@@ -173,6 +191,7 @@ function Header() {
               </button>
             </div>
 
+            {/* User Icon & Profile Menu */}
             <div className="user-icon position-relative">
               <a href="#">
                 <i className="bi bi-cart"></i>

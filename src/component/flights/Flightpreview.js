@@ -17,17 +17,17 @@ function FlightPreview() {
   ];
 
   return (
-    <div className="top-flight-routes py-5">
+    <div className="top-flight-routes">
       <Container>
-        <h2 className="fw-bold mb-4">
-          Top Flight <span className="text-primary"> Routes</span>
+        <h2>
+          Top Flight <span> Routes</span>
         </h2>
 
         <Row className="g-4">
           {flights.map((flight, index) => (
             <Col key={index} xs={12} sm={6} md={4}>
               <Card
-                className="flight-card border-0 shadow-sm text-center"
+                className="flight-card shadow-sm text-center"
                 onClick={() => navigate("/flight")}   // ✅ click par navigate karega
                 style={{ cursor: "pointer" }}
               >
@@ -35,10 +35,9 @@ function FlightPreview() {
                   variant="top"
                   src={flight.image}
                   alt={flight.route}
-                  className="rounded"
                 />
-                <Card.Body className="p-3">
-                  <h6 className="fw-semibold">{flight.route}</h6>
+                <Card.Body className="p-3 pt-0">
+                  <h6>{flight.route}</h6>
                   <p className="code mb-0">{flight.code}</p>
                 </Card.Body>
               </Card>

@@ -19,41 +19,40 @@ import FAQ from "../common/faq/FAQ";
 import HotelPopularDestination from "../hotels/HotelPopularDestination";
 import FlightPreview from "../flights/Flightpreview";
 
+import SearchBox from "../flights/Searchbox";
+
 const imageList = [
   {
     id: 1,
     src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
     title: "Mountains",
-    path: "/mountains"
+    path: "/mountains",
   },
   {
     id: 2,
     src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
     title: "Beaches",
-    path: "/beaches"
+    path: "/beaches",
   },
   {
     id: 3,
     src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
     title: "Desert Safari",
-    path: "/desert"
+    path: "/desert",
   },
   {
     id: 4,
     src: "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
     title: "Honeymoon",
-    path: "/honeymoon"
+    path: "/honeymoon",
   },
   {
     id: 5,
     src: "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
     title: "Hill Stations",
-    path: "/hills"
-  }
+    path: "/hills",
+  },
 ];
-
-
-
 
 const destinations = [
   { name: "AULI", image: "/Images/place.jpg" },
@@ -156,13 +155,7 @@ function Home() {
         </div>
       </div>
 
-
-
       <HotelPopularDestination />
-
-   
-
-
 
       {/* guide section */}
       <GuidePreview />
@@ -212,7 +205,6 @@ function Home() {
           </div>
         </div>
       </div> */}
-
 
       <WhyChooseUs />
 
