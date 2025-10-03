@@ -4,7 +4,7 @@ import "./TermsConditions.css"; // Reuse the same styles for a matching look
 function PrivacyPolicy() {
   return (
  
-  <div className="privacy">
+  <div className="privacy" style={{marginTop:"90px"}}>
      <div className="terms-container container-fluid">
   {/* Header Section */}
   <div className="terms-header">

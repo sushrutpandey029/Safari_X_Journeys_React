@@ -3,7 +3,7 @@ import React from "react";
 
 const Cancellation = () => {
   return (
-    <div className="refund">
+    <div className="refund" style={{marginTop:"90px"}}>
       <div className="terms-container container-fluid">
         {/* Header Section */}
         <div className="terms-header">

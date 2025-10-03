@@ -126,6 +126,17 @@ header {
 
 
 /************ banner*************/
+
+
+.banner-searchbox {
+  position: absolute;
+  top: 50%; /* banner ke beech me */
+  left: 50%;
+  transform: translate(-50%, -50%);
+ 
+  z-index: 999;
+}
+
 .banner {
   position: relative;
   width: 100%;

@@ -2,7 +2,7 @@ import React from "react";
 
 const About= () => {
   return (
-    <div className="about">
+    <div className="about" style={{marginTop:"90px"}}>
       <div className="terms-container container-fluid">
         {/* Header Section */}
         <div className="terms-header">
