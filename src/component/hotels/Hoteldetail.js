@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom"; // ✅ useNavigate added
 import { getHotelDetail, searchHotels } from "../services/hotelService";
 import "./HotelBooking.css";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import { Fancybox } from "@fancyapps/ui";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
-import { useLocation } from "react-router-dom";
-import { useRef } from "react";
 
 const getValue = (obj, keys, defaultValue = "") => {
   for (let key of keys) {
@@ -20,31 +18,31 @@ const getValue = (obj, keys, defaultValue = "") => {
 
 const HotelDetail = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ hook called inside component
 
   const { hotelCode } = useParams();
   const [hotel, setHotel] = useState(null);
   const [hotelDetails, setHotelDetails] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false); // ✅ ReadMore toggle states
+  const [expanded, setExpanded] = useState(false);
   const { startPayment } = useCashfreePayment();
-
-
   const priceTableRef = useRef(null);
 
-  // Scroll handler
-  const scrollToPriceTable = () => {
-    if (priceTableRef.current) {
-      priceTableRef.current.scrollIntoView({
-        behavior: "smooth", // smooth scroll
-        block: "start"      // top pe align hoga
-      });
-    }
-  };
 
+  
 
   const bookingData = location.state || {};
   console.log("booking data from previous page", bookingData);
+
+  const scrollToPriceTable = () => {
+    if (priceTableRef.current) {
+      priceTableRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   async function getUserIP() {
     try {
@@ -58,34 +56,44 @@ const HotelDetail = () => {
     }
   }
 
-  // Book hotel
-  async function handleBook(room) {
-    const userdetails = await getUserData("safarix_user");
-    const ip = await getUserIP();
+ // ✅ Book hotel and navigate to checkout
+async function handleBook(room) {
+  const userdetails = await getUserData("safarix_user");
+  const ip = await getUserIP();
 
-    const payload = {
-      userId: userdetails?.id,
-      serviceType: "hotel",
-      serviceDetails: {
-        hotelCode: hotelDetails.HotelCode,
-        checkIn: bookingData.checkIn,
-        checkOut: bookingData.checkOut,
-        GuestNationality: bookingData.guestNationality,
-        NoOfRooms: bookingData.NoOfRooms,
-        totalAmount: room.TotalFare,
-        BookingCode: room.BookingCode, // ✅ fixed
-        enduserip: ip,
-        currency: "INR",
-        PaxRooms: bookingData?.PaxRooms,
-        ResponseTime: bookingData.ResponseTime,
-        IsDetailedResponse: bookingData.IsDetailedResponse,
-        Filters: bookingData.Filters,
-      },
-      startDate: bookingData.checkIn,
-      endDate: bookingData.checkOut,
+  const payload = {
+    userId: userdetails?.id,
+    serviceType: "hotel",
+    serviceDetails: {
+      hotelCode: hotelDetails.HotelCode,
+      hotelName: hotelDetails.HotelName,          // ✅ Hotel name
+      hotelRating: hotelDetails.StarRating,       // ✅ Hotel rating
+      hotelAddress: hotelDetails?.Address || "",  // ✅ (optional) Address
+      checkIn: bookingData.checkIn,
+      checkOut: bookingData.checkOut,
+      GuestNationality: bookingData.guestNationality,
+      NoOfRooms: bookingData.NoOfRooms,
       totalAmount: room.TotalFare,
+      BookingCode: room.BookingCode,
+      RoomType: room.RoomTypeName,                // ✅ Room type
+      RoomCategory: room.RoomCategory || "",      // ✅ Room category
+      RoomMealPlan: room.MealType || "",          // ✅ Meal plan
+      RoomOccupancy: room.Occupancy || "",        // ✅ Occupancy details
+      enduserip: ip,
       currency: "INR",
-    };
+      PaxRooms: bookingData?.PaxRooms,
+      ResponseTime: bookingData.ResponseTime,
+      IsDetailedResponse: bookingData.IsDetailedResponse,
+      Filters: bookingData.Filters,
+    },
+    startDate: bookingData.checkIn,
+    endDate: bookingData.checkOut,
+    totalAmount: room.TotalFare,
+    currency: "INR",
+  };
+
+    // ✅ Navigate to checkout page with payload
+    navigate("/hotel-checkout", { state: { payload } });
 
     const result = await startPayment(payload);
     console.log("payment res", result);
@@ -137,14 +145,14 @@ const HotelDetail = () => {
             description: details.Description,
             location: details.CityName,
             Address: details.Address,
-            rating: details.HotelRating,         // ⬅️ fix (API me HotelRating hai)
-            price: roomData?.[0]?.TotalFare || "N/A",   // optional chaining safe
-            currency: searchHotel?.Currency || "INR",   // optional chaining safe
+            rating: details.HotelRating, // ⬅️ fix (API me HotelRating hai)
+            price: roomData?.[0]?.TotalFare || "N/A", // optional chaining safe
+            currency: searchHotel?.Currency || "INR", // optional chaining safe
             images: details.Images || [],
-            facilities: details.HotelFacilities || [],  // ⬅️ add amenities
+            facilities: details.HotelFacilities || [], // ⬅️ add amenities
             country: details.CountryName,
             pin: details.PinCode,
-            map: details.Map
+            map: details.Map,
           });
         }
       } catch (err) {
@@ -175,7 +183,7 @@ const HotelDetail = () => {
 
   if (loading)
     return (
-      <div className="container my-4 text-center" >
+      <div className="container my-4 text-center">
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -194,16 +202,11 @@ const HotelDetail = () => {
   const shouldTruncate = words?.length > 50;
   const shortDesc = words.slice(0, 50).join(" ") + "...";
 
-
-  
-
   return (
     <div>
       <div className="hotel-detail-page">
         <div className="container">
           <div className="row">
-
-
             <div className="row g-3">
               {/* Left - Images */}
               <div className="col-md-7">
@@ -285,19 +288,15 @@ const HotelDetail = () => {
               {/* Right - Details */}
               <div className="col-md-5">
                 <div className="right-details">
-
-
                   {/* Title & Rating */}
                   <h3 className="fw-bold">{hotel.location}</h3>
                   <div className="d-flex justify-content-between align-items-start mb-2">
-                 
                     <h4 className="fw-bold mb-0">{hotel.name}</h4>
                     <span className="badge bg-primary">⭐ {hotel.rating}</span>
                   </div>
 
                   {/* ✅ Hotel Rating, CheckIn & CheckOut */}
 
-                 
                   <div className="mb-2 small">
                     <span className="fw-bold">Address:</span> {hotel.Address}
                   </div>
@@ -325,12 +324,13 @@ const HotelDetail = () => {
                       </span>
                     ))}
                     {hotel?.facilities?.length > 6 && (
-                      <span className="badge bg-light text-primary">+ More</span>
+                      <span className="badge bg-light text-primary">
+                        + More
+                      </span>
                     )}
                   </div>
 
                   <div className="d-flex align-items-center mt-3">
-                    
                     <a
                       href={`https://maps.google.com/?q=${hotel.location}`}
                       target="_blank"
@@ -341,12 +341,12 @@ const HotelDetail = () => {
                     </a>
                   </div>
                   <div className="d-flex align-items-center mt-3">
-                  <button 
-        className="explore-btn" 
-        onClick={scrollToPriceTable}
-      >
-        Choose room
-      </button>
+                    <button
+                      className="explore-btn"
+                      onClick={scrollToPriceTable}
+                    >
+                      Choose room
+                    </button>
                   </div>
                 </div>
               </div>
@@ -355,15 +355,13 @@ const HotelDetail = () => {
         </div>
       </div>
 
-
-
       {/* Room Pricing Table */}
       <div className="room-detail">
         <div className="container">
-       <div
-        ref={priceTableRef}
-        className="room-pricing-table card shadow-sm border-0 mb-4"
-      >
+          <div
+            ref={priceTableRef}
+            className="room-pricing-table card shadow-sm border-0 mb-4"
+          >
             {/* Card Header */}
             <div className="card-header bg-gradient text-white py-3">
               <h5 className="mb-0 fw-bold">
@@ -398,7 +396,9 @@ const HotelDetail = () => {
                         return (
                           <tr key={index}>
                             <td>
-                              <div className="fw-semibold text-dark">{roomName}</div>
+                              <div className="fw-semibold text-dark">
+                                {roomName}
+                              </div>
                               <div className="small text-muted">
                                 {/* {room.BookingCode && `Code: ${room.BookingCode}`} */}
                               </div>
@@ -407,17 +407,21 @@ const HotelDetail = () => {
                             <td>
                               {room.Inclusion ? (
                                 <div className="d-flex flex-wrap gap-1">
-                                  {room?.Inclusion?.split(",").map((item, i) => (
-                                    <span
-                                      key={i}
-                                      className="badge bg-light text-dark border"
-                                    >
-                                      {item.trim()}
-                                    </span>
-                                  ))}
+                                  {room?.Inclusion?.split(",").map(
+                                    (item, i) => (
+                                      <span
+                                        key={i}
+                                        className="badge bg-light text-dark border"
+                                      >
+                                        {item.trim()}
+                                      </span>
+                                    )
+                                  )}
                                 </div>
                               ) : (
-                                <span className="text-muted small">No inclusions</span>
+                                <span className="text-muted small">
+                                  No inclusions
+                                </span>
                               )}
                             </td>
 
@@ -429,7 +433,9 @@ const HotelDetail = () => {
                               ₹{room.TotalFare || "N/A"}
                             </td>
 
-                            <td className="text-muted">₹{room.TotalTax || "N/A"}</td>
+                            <td className="text-muted">
+                              ₹{room.TotalTax || "N/A"}
+                            </td>
 
                             <td>
                               <span className="badge bg-info text-dark">
@@ -447,7 +453,6 @@ const HotelDetail = () => {
                                     >
                                       {policy.FromDate}:{" "}
                                       {policy.ChargeType === "Percentage"
-
                                         ? `${policy.CancellationCharge}%`
                                         : `₹${policy.CancellationCharge}`}
                                     </div>
@@ -455,10 +460,11 @@ const HotelDetail = () => {
                                 </div>
                               ) : (
                                 <span
-                                  className={`badge ${isRefundable === "Yes"
-                                    ? "bg-success"
-                                    : "bg-danger"
-                                    }`}
+                                  className={`badge ${
+                                    isRefundable === "Yes"
+                                      ? "bg-success"
+                                      : "bg-danger"
+                                  }`}
                                 >
                                   {isRefundable}
                                 </span>
@@ -489,9 +495,7 @@ const HotelDetail = () => {
             </div>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 };

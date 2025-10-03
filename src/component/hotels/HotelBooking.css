@@ -352,14 +352,10 @@
         position: absolute;
         bottom: 12px;
         right: 4px;}
-        .rating{        position: absolute;
-            right: 0px;
-            top: 0px;
-            font-size: 14px;
-            background: #12669b;
-            padding: 10px 20px 10px 20px;
-            border-radius: 0px 0px 0px 40px;
-            box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;}
+        .rating{         position: absolute;
+        right: 7px;
+        top:0px;
+        }
 
             /* Pagination Custom Style */
 .pagination {

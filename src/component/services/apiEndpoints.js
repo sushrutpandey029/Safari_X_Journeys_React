@@ -1,12 +1,13 @@
 // export const BASE_URL = "https://fdc7b4f21736.ngrok-free.app";
-// export const BASE_URL = "http://localhost:2625";
-// export const BASE_URL = "http://192.168.1.14:2625";
-export const BASE_URL = "http://node.millclient.com:3001";
+export const BASE_URL = "http://192.168.1.5:2625";
+// export const BASE_URL = "https://32978cdd37a2.ngrok-free.app";
+// export const BASE_URL = "http://node.millclient.com:3001";
+// http://192.168.0.10:2625/
+
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
   CAB_LIST: `${BASE_URL}/api/cab/list`,
-
   DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/driver-guide/role-based-login`,
   DRIVER_GUIDE_LOGOUT: `${BASE_URL}/api/driver-guide/logout`,
   NEWSLATER: `${BASE_URL}/api/news/later`,
@@ -36,11 +37,13 @@ export const API = {
   // INITIATE_PAYMENT : `${BASE_URL}/api/payment/initiate`,
   // CHECK_PAYMENT_STATUS:`${BASE_URL}/api/payment/verify`,
   // Booking + Payment
+
   CREATE_BOOKING_DRAFT: `${BASE_URL}/api/booking/create-draft`,
   INITIATE_PAYMENT: `${BASE_URL}/api/payment/initiate`,
   CHECK_PAYMENT_STATUS: `${BASE_URL}/api/payment/verify`,
   GET_PAYMENT_STATUS: (orderId) =>
     `${BASE_URL}/api/payment-status?order_id=${orderId}`,
+
 
   // hotels
   // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
@@ -49,6 +52,21 @@ export const API = {
   HOTEL_CODE_LIST_NEW: `${BASE_URL}/api/search-list-new`,
   HOTEL_DETAIL: `${BASE_URL}/api/hotels`,
   HOTEL_SEARCH: `${BASE_URL}/api/search-hotels`,
-
   CITY_LIST_FILTER: `${BASE_URL}/api/filter/citylist`,
+  HOTEL_BY_CATEGORY: `${BASE_URL}/api/getHotelCityByCategory`,
+  // flights
+  Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
+
 };
+
+
+
+
+
+
+
+
+
+
+
+

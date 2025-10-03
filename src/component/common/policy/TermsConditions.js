@@ -3,7 +3,7 @@ import "./TermsConditions.css";
 
 function TermsConditions() {
   return (
-   <div className="terms-container">
+   <div className="terms-container" style={{marginTop:"90px"}}>
   {/* Header Section */}
   <div className="terms-header">
     <h1>Terms & Conditions</h1>

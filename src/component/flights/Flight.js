@@ -1,19 +1,22 @@
 // src/components/Flight.js
-import React, { useState } from "react";
-import { Dropdown } from "react-bootstrap";
-import { Form, Button, Row, Col, Card } from "react-bootstrap";
+import React, { useState, useEffect, useRef } from "react";
+import { Form, Button, Row, Col, Card, Dropdown } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { Lock } from "lucide-react";
-import { LockFill } from "react-bootstrap-icons";
 import "./Flights.css";
+import { getIndianAirports } from "../services/flightService";
+import axios from "axios";
 
 const Flight = () => {
   // Flight segments (multi-city form)
   const [flights, setFlights] = useState([
-    { from: "Delhi", to: "Bengaluru", date: "2025-09-16" },
-    { from: "Bengaluru", to: "Mumbai", date: "2025-10-15" },
+    { from: "", to: "", date: "2025-09-16" },
   ]);
+
+  // Dynamic airports data - API se fetch hoga
+  const [airports, setAirports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [isRefundable, setIsRefundable] = useState(false);
   const [travellers, setTravellers] = useState(1);
@@ -23,6 +26,208 @@ const Flight = () => {
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
+
+  // Fetch airports data from API
+ // Fetch airports data from API
+useEffect(() => {
+  const fetchAirports = async () => {
+    try {
+      const response = await axios.get(
+        "http://192.168.1.15:2625/flight/getIndianAirports"
+      );
+
+      console.log("response in fetch airports", response);
+
+      if (response.data && response.data.status && response.data.data) {
+        setAirports(response.data.data); // ✅ Yahan airports state update karna hai
+      }
+    } catch (error) {
+      console.log("Error fetching airports in file:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAirports();
+}, []);
+
+
+  // Custom Airport Dropdown Component
+  const AirportDropdown = ({
+    value,
+    onChange,
+    placeholder = "Select Airport",
+    type = "from",
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filteredAirports, setFilteredAirports] = useState([]);
+    const dropdownRef = useRef(null);
+
+    // Filter airports based on search term
+    useEffect(() => {
+      if (searchTerm) {
+        const filtered = airports.filter(
+          (airport) =>
+            airport.city_name
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            airport.airport_name
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            airport.airport_code
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
+        );
+        setFilteredAirports(filtered);
+      } else {
+        setFilteredAirports(airports.slice(0, 10)); // Show first 10 by default
+      }
+    }, [searchTerm, airports]);
+
+    // Close dropdown when clicking outside
+   useEffect(() => {
+  if (searchTerm) {
+    const filtered = airports.filter((airport) => {
+      const city = airport.city_name || "";
+      const name = airport.airport_name || "";
+      const code = airport.airport_code || "";
+
+      return (
+        city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        code.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+    setFilteredAirports(filtered);
+  } else {
+    setFilteredAirports(airports.slice(0, 10)); // Show first 10 by default
+  }
+}, [searchTerm, airports]);
+
+
+    const handleSelect = (airport) => {
+      onChange(airport.airport_code);
+      setIsOpen(false);
+      setSearchTerm("");
+    };
+
+    const selectedAirport = airports.find(
+      (airport) => airport.airport_code === value
+    );
+
+    // Get nearby airports for Delhi (example)
+    const getNearbyAirports = () => {
+      return [
+        {
+          airport_code: "DEL",
+          city_name: "New Delhi",
+          airport_name: "Indira Gandhi International Airport",
+        },
+        {
+          airport_code: "GWL",
+          city_name: "Gwalior",
+          airport_name: "Gwalior Airport",
+        },
+        {
+          airport_code: "JDH",
+          city_name: "Johdpur",
+          airport_name: "Johdpur Airport",
+        },
+      ];
+    };
+
+    return (
+      <div className="position-relative" ref={dropdownRef}>
+        <Form.Control
+          type="text"
+          placeholder={placeholder}
+          value={
+            isOpen
+              ? searchTerm
+              : selectedAirport
+              ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
+              : ""
+          }
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (!isOpen) setIsOpen(true);
+          }}
+          onFocus={() => {
+            setIsOpen(true);
+            setFilteredAirports(airports.slice(0, 10));
+          }}
+          className="custom-dropdown-input"
+        />
+
+        {isOpen && (
+          <div className="custom-dropdown-menu">
+            {/* Search Header */}
+            <div className="dropdown-header">
+              <small className="text-muted">SUGGESTIONS</small>
+            </div>
+
+            {/* Filtered Airport Results */}
+            {filteredAirports.length > 0 ? (
+              filteredAirports.map((airport) => (
+                <div
+                  key={airport.airport_code}
+                  className={`dropdown-item ${
+                    value === airport.airport_code ? "selected" : ""
+                  }`}
+                  onClick={() => handleSelect(airport)}
+                >
+                  <div className="airport-option">
+                    <div className="airport-main">
+                      <strong>{airport.city_name}</strong>
+                      <span className="airport-code">
+                        {airport.airport_code}
+                      </span>
+                    </div>
+                    <div className="airport-name text-muted">
+                      {airport.airport_name}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="dropdown-item text-muted">No airports found</div>
+            )}
+
+            {/* Nearby Airports Section */}
+            {type === "from" && searchTerm.toLowerCase().includes("delhi") && (
+              <>
+                <div className="dropdown-header mt-2">
+                  <small className="text-muted">
+                    3 Nearby Airports found | within 200 km
+                  </small>
+                </div>
+                {getNearbyAirports().map((airport) => (
+                  <div
+                    key={airport.airport_code}
+                    className="dropdown-item"
+                    onClick={() => handleSelect(airport)}
+                  >
+                    <div className="airport-option">
+                      <div className="airport-main">
+                        <strong>{airport.city_name}</strong>
+                        <span className="airport-code">
+                          {airport.airport_code}
+                        </span>
+                      </div>
+                      <div className="airport-name text-muted">
+                        {airport.airport_name}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderButtons = (count, setter, max = 9) => {
     return (
@@ -67,6 +272,18 @@ const Flight = () => {
     setFlights(newFlights);
   };
 
+  const handleFromChange = (index, value) => {
+    const newFlights = [...flights];
+    newFlights[index].from = value;
+    setFlights(newFlights);
+  };
+
+  const handleToChange = (index, value) => {
+    const newFlights = [...flights];
+    newFlights[index].to = value;
+    setFlights(newFlights);
+  };
+
   const searchFlights = () => {
     console.log("Search button clicked!");
   };
@@ -74,8 +291,7 @@ const Flight = () => {
   return (
     <div>
       {/* 🔹 Flight Search Form */}
-
-      <div className="flight-section">
+      <div className="flight-section" style={{ marginTop: "110px" }}>
         <div className=" search-box  rounded shadow-sm flight-form ">
           <div className="container">
             <div className=" d-flex gap-3 mb-3">
@@ -103,36 +319,27 @@ const Flight = () => {
             </div>
 
             {/* Flight Segments */}
-
             {flights.map((flight, index) => (
               <Row className="align-items-end mb-3" key={index}>
                 <Col md={3}>
                   <Form.Group>
                     <Form.Label>From</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="From City"
+                    <AirportDropdown
                       value={flight.from}
-                      onChange={(e) => {
-                        const newFlights = [...flights];
-                        newFlights[index].from = e.target.value;
-                        setFlights(newFlights);
-                      }}
+                      onChange={(value) => handleFromChange(index, value)}
+                      placeholder="From City"
+                      type="from"
                     />
                   </Form.Group>
                 </Col>
                 <Col md={3}>
                   <Form.Group>
                     <Form.Label>To</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="To City"
+                    <AirportDropdown
                       value={flight.to}
-                      onChange={(e) => {
-                        const newFlights = [...flights];
-                        newFlights[index].to = e.target.value;
-                        setFlights(newFlights);
-                      }}
+                      onChange={(value) => handleToChange(index, value)}
+                      placeholder="To City"
+                      type="to"
                     />
                   </Form.Group>
                 </Col>
@@ -171,7 +378,6 @@ const Flight = () => {
             ))}
 
             {/* Travellers & Class */}
-
             <Row className="g-3">
               {/* Travellers Dropdown */}
               <Col md={3}>
@@ -179,7 +385,7 @@ const Flight = () => {
                   <Dropdown.Toggle
                     id="travellers-dropdown"
                     variant="light"
-                    style={{ width: "100%", padding: "10px 16px" }} // toggle size bada
+                    style={{ width: "100%", padding: "10px 16px" }}
                   >
                     Travellers: {adults + children + infants}
                   </Dropdown.Toggle>
@@ -208,7 +414,7 @@ const Flight = () => {
                   <Dropdown.Toggle
                     id="class-dropdown"
                     variant="light"
-                    style={{ width: "100%", padding: "10px 16px" }} // toggle size bada
+                    style={{ width: "100%", padding: "10px 16px" }}
                   >
                     Class: {travelClass}
                   </Dropdown.Toggle>
@@ -243,7 +449,7 @@ const Flight = () => {
                     fontSize: "16px",
                     backgroundColor: "#274a62",
                   }}
-                  onClick={searchFlights} // tumhara existing search function
+                  onClick={searchFlights}
                 >
                   Search
                 </Button>

@@ -111,7 +111,7 @@ function Header() {
           <div className="container">
             <a className="navbar-brand" href="/">
               <img
-                src="/images/Safarix-Logo1.png"
+                src="/images/Safarix-Black.png"
                 alt="Safarix Logo"
                 height="70"
               />
@@ -131,6 +131,18 @@ function Header() {
               id="navbarSupportedContent"
             >
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
+                {/* Flight */}
+                <li className="nav-item">
+                  <NavLink
+                    to="/flight"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-airplane"></i> Flight
+                  </NavLink>
+                </li>
+
                 {/* Hotel (default active if /) */}
                 <li className="nav-item">
                   <NavLink
@@ -153,18 +165,6 @@ function Header() {
                     }
                   >
                     <i className="bi bi-person-badge"></i> Guide
-                  </NavLink>
-                </li>
-
-                {/* Flight */}
-                <li className="nav-item">
-                  <NavLink
-                    to="/flight"
-                    className={({ isActive }) =>
-                      "nav-link" + (isActive ? " active" : "")
-                    }
-                  >
-                    <i className="bi bi-airplane"></i> Flight
                   </NavLink>
                 </li>
 

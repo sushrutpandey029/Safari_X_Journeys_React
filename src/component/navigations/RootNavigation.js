@@ -30,6 +30,7 @@ import Hotel from "../hotels/Hotel";
 import Flight from "../flights/Flight";
 import Cancellation from "../common/policy/Cancelation";
 import About from "../common/policy/About";
+import HotelCheckout from "../hotels/Hotelcheckout";
 
 
 function RootNavigation() {
@@ -73,6 +74,7 @@ function RootNavigation() {
         <Route path="/flight" element={<Flight />} />
         <Route path="cancelation" element={< Cancellation/>} />
         <Route path="about" element={< About/>} />
+        <Route path="hotel-checkout" element={< HotelCheckout/>} />
        
         <Route
           path="/user-dashboard"
