@@ -1,11 +1,11 @@
 // src/components/Flight.js
 import React, { useState, useEffect, useRef } from "react";
-import { Form, Button, Row, Col, Card, Dropdown } from "react-bootstrap";
+import { Form, Button, Row, Col, Card, Dropdown, Spinner, Alert } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import "./Flights.css";
-import { getIndianAirports } from "../services/flightService";
 import axios from "axios";
+import { getIndianAirports, Flight_authenticate, Flight_search } from "../services/flightService";
 
 const Flight = () => {
   // Flight segments (multi-city form)
@@ -13,44 +13,86 @@ const Flight = () => {
     { from: "", to: "", date: "2025-09-16" },
   ]);
 
-  // Dynamic airports data - API se fetch hoga
+  // Dynamic airports data
   const [airports, setAirports] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [isRefundable, setIsRefundable] = useState(false);
-  const [travellers, setTravellers] = useState(1);
-  const [tripType, setTripType] = useState("multi");
+  // Authentication and search states
+  const [token, setToken] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
+  // User details
+  const [userIP, setUserIP] = useState("");
+  const [isRefundable, setIsRefundable] = useState(false);
+  const [tripType, setTripType] = useState("multi");
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
 
-  // Fetch airports data from API
- // Fetch airports data from API
-useEffect(() => {
-  const fetchAirports = async () => {
-    try {
-      const response = await axios.get(
-        "http://192.168.1.15:2625/flight/getIndianAirports"
-      );
-
-      console.log("response in fetch airports", response);
-
-      if (response.data && response.data.status && response.data.data) {
-        setAirports(response.data.data); // ✅ Yahan airports state update karna hai
-      }
-    } catch (error) {
-      console.log("Error fetching airports in file:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Cabin class mapping
+  const cabinClassMap = {
+    "Economy": 1,
+    "Premium Economy": 2,
+    "Business": 3,
+    "First Class": 4
   };
 
-  fetchAirports();
-}, []);
+  // Journey type mapping
+  const journeyTypeMap = {
+    "oneway": 1,
+    "round": 2,
+    "multi": 3
+  };
 
+  // Fetch user IP, authenticate and get airports - ALL IN ONE FLOW
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Step 1: Get user IP
+        const ipResponse = await axios.get("https://api.ipify.org?format=json");
+        const userIp = ipResponse.data.ip;
+        setUserIP(userIp);
+        console.log("✅ Step 1 - User IP:", userIp);
+
+        // Step 2: Authenticate
+        const authResponse = await Flight_authenticate(userIp);
+        console.log("✅ Step 2 - Auth Response:", authResponse);
+
+        const tokenId = authResponse?.TokenId || authResponse?.data?.TokenId;
+        if (!tokenId) throw new Error("No TokenId found in auth response");
+
+        setToken(tokenId);
+        console.log("✅ Step 3 - Token saved:", tokenId);
+
+        // Step 4: Fetch airports
+        const airportsResponse = await getIndianAirports();
+        console.log("✅ Step 4 - Airports Response:", airportsResponse);
+
+        if (airportsResponse?.data) {
+          setAirports(airportsResponse.data);
+        } else if (Array.isArray(airportsResponse)) {
+          setAirports(airportsResponse);
+        } else {
+          throw new Error("Invalid airports response format");
+        }
+
+      } catch (error) {
+        console.error("Initialization error:", error);
+        setError(`Initialization failed: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeApp();
+  }, []);
 
   // Custom Airport Dropdown Component
   const AirportDropdown = ({
@@ -67,44 +109,37 @@ useEffect(() => {
     // Filter airports based on search term
     useEffect(() => {
       if (searchTerm) {
-        const filtered = airports.filter(
-          (airport) =>
-            airport.city_name
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            airport.airport_name
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            airport.airport_code
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
-        );
+        const filtered = airports.filter((airport) => {
+          const city = airport.city_name || "";
+          const name = airport.airport_name || "";
+          const code = airport.airport_code || "";
+
+          return (
+            city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            code.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        });
         setFilteredAirports(filtered);
       } else {
-        setFilteredAirports(airports.slice(0, 10)); // Show first 10 by default
+        setFilteredAirports(airports.slice(0, 10));
       }
     }, [searchTerm, airports]);
 
     // Close dropdown when clicking outside
-   useEffect(() => {
-  if (searchTerm) {
-    const filtered = airports.filter((airport) => {
-      const city = airport.city_name || "";
-      const name = airport.airport_name || "";
-      const code = airport.airport_code || "";
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+          setSearchTerm("");
+        }
+      };
 
-      return (
-        city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        code.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-    setFilteredAirports(filtered);
-  } else {
-    setFilteredAirports(airports.slice(0, 10)); // Show first 10 by default
-  }
-}, [searchTerm, airports]);
-
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
 
     const handleSelect = (airport) => {
       onChange(airport.airport_code);
@@ -115,27 +150,6 @@ useEffect(() => {
     const selectedAirport = airports.find(
       (airport) => airport.airport_code === value
     );
-
-    // Get nearby airports for Delhi (example)
-    const getNearbyAirports = () => {
-      return [
-        {
-          airport_code: "DEL",
-          city_name: "New Delhi",
-          airport_name: "Indira Gandhi International Airport",
-        },
-        {
-          airport_code: "GWL",
-          city_name: "Gwalior",
-          airport_name: "Gwalior Airport",
-        },
-        {
-          airport_code: "JDH",
-          city_name: "Johdpur",
-          airport_name: "Johdpur Airport",
-        },
-      ];
-    };
 
     return (
       <div className="position-relative" ref={dropdownRef}>
@@ -162,12 +176,10 @@ useEffect(() => {
 
         {isOpen && (
           <div className="custom-dropdown-menu">
-            {/* Search Header */}
             <div className="dropdown-header">
               <small className="text-muted">SUGGESTIONS</small>
             </div>
 
-            {/* Filtered Airport Results */}
             {filteredAirports.length > 0 ? (
               filteredAirports.map((airport) => (
                 <div
@@ -191,37 +203,9 @@ useEffect(() => {
                 </div>
               ))
             ) : (
-              <div className="dropdown-item text-muted">No airports found</div>
-            )}
-
-            {/* Nearby Airports Section */}
-            {type === "from" && searchTerm.toLowerCase().includes("delhi") && (
-              <>
-                <div className="dropdown-header mt-2">
-                  <small className="text-muted">
-                    3 Nearby Airports found | within 200 km
-                  </small>
-                </div>
-                {getNearbyAirports().map((airport) => (
-                  <div
-                    key={airport.airport_code}
-                    className="dropdown-item"
-                    onClick={() => handleSelect(airport)}
-                  >
-                    <div className="airport-option">
-                      <div className="airport-main">
-                        <strong>{airport.city_name}</strong>
-                        <span className="airport-code">
-                          {airport.airport_code}
-                        </span>
-                      </div>
-                      <div className="airport-name text-muted">
-                        {airport.airport_name}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </>
+              <div className="dropdown-item text-muted">
+                {loading ? "Loading airports..." : "No airports found"}
+              </div>
             )}
           </div>
         )}
@@ -246,7 +230,7 @@ useEffect(() => {
     );
   };
 
-  // Toggle states for filters (object)
+  // Toggle states for filters
   const [toggle, setToggle] = useState({
     showProperties: true,
     airlines: false,
@@ -268,8 +252,10 @@ useEffect(() => {
   };
 
   const removeCity = (index) => {
-    const newFlights = flights.filter((_, i) => i !== index);
-    setFlights(newFlights);
+    if (flights.length > 1) {
+      const newFlights = flights.filter((_, i) => i !== index);
+      setFlights(newFlights);
+    }
   };
 
   const handleFromChange = (index, value) => {
@@ -284,17 +270,341 @@ useEffect(() => {
     setFlights(newFlights);
   };
 
-  const searchFlights = () => {
-    console.log("Search button clicked!");
+  // SIMPLIFIED SEARCH FUNCTION - Direct API response use karo
+  const searchFlights = async () => {
+    if (!token) {
+      setSearchError("Please wait while we authenticate...");
+      return;
+    }
+
+    // Validate form
+    for (let flight of flights) {
+      if (!flight.from || !flight.to || !flight.date) {
+        setSearchError("Please fill all fields");
+        return;
+      }
+    }
+
+    setSearchLoading(true);
+    setSearchError(null);
+    setSearchResults([]);
+
+    try {
+      // Prepare segments for API
+      const segments = flights.map(flight => ({
+        Origin: flight.from,
+        Destination: flight.to,
+        FlightCabinClass: cabinClassMap[travelClass],
+        PreferredDepartureTime: `${flight.date}T00:00:00`,
+        PreferredArrivalTime: `${flight.date}T00:00:00`
+      }));
+
+      const searchPayload = {
+        EndUserIp: userIP,
+        TokenId: token,
+        AdultCount: adults,
+        ChildCount: children,
+        InfantCount: infants,
+        DirectFlight: false,
+        OneStopFlight: false,
+        JourneyType: journeyTypeMap[tripType],
+        PreferredAirlines: [],
+        Segments: segments,
+        Sources: ["GDS"]
+      };
+
+      console.log("🔍 SEARCH PAYLOAD:", JSON.stringify(searchPayload, null, 2));
+      
+      // API call
+      const searchResponse = await Flight_search(searchPayload);
+      console.log("📨 FULL API RESPONSE:", searchResponse);
+
+      // DIRECT APPROACH: API jo bhi response de raha hai, use directly set karo
+      let foundFlights = [];
+
+      // Multiple possible response formats handle karo
+      if (searchResponse && searchResponse.data) {
+        // Format 1: searchResponse.data.Response.Results
+        if (searchResponse.data.Response && searchResponse.data.Response.Results) {
+          foundFlights = searchResponse.data.Response.Results.flat();
+        }
+        // Format 2: searchResponse.data.Results
+        else if (searchResponse.data.Results) {
+          foundFlights = searchResponse.data.Results.flat();
+        }
+        // Format 3: Direct array
+        else if (Array.isArray(searchResponse.data)) {
+          foundFlights = searchResponse.data;
+        }
+        // Format 4: Nested data
+        else if (searchResponse.data.data && Array.isArray(searchResponse.data.data)) {
+          foundFlights = searchResponse.data.data;
+        }
+      }
+      // Direct response check
+      else if (Array.isArray(searchResponse)) {
+        foundFlights = searchResponse;
+      }
+      // Response object check
+      else if (searchResponse && searchResponse.Results) {
+        foundFlights = searchResponse.Results.flat();
+      }
+
+      console.log(`🎯 Extracted ${foundFlights.length} flights`);
+
+      if (foundFlights.length > 0) {
+        setSearchResults(foundFlights);
+        setSearchError(null);
+      } else {
+        setSearchError("No flights found. Please try different search criteria.");
+      }
+
+    } catch (error) {
+      console.error("💥 SEARCH ERROR:", error);
+      setSearchError(error.message || "Failed to search flights");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Format price with commas
+  const formatPrice = (price) => {
+    if (!price) return "0";
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  // Format time from ISO string
+  const formatTime = (isoString) => {
+    if (!isoString) return "08:50";
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    } catch (error) {
+      return "08:50";
+    }
+  };
+
+  // Format duration from minutes
+  const formatDuration = (minutes) => {
+    if (!minutes) return "02h 50m";
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  // SIMPLIFIED RENDER FUNCTION - Direct API data use karo
+  const renderFlightResults = () => {
+    console.log("🔍 renderFlightResults called with:", {
+      searchLoading,
+      searchError, 
+      resultsCount: searchResults.length,
+      searchResults
+    });
+
+    if (searchLoading) {
+      return (
+        <div className="text-center py-5">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Searching flights...</span>
+          </Spinner>
+          <p className="mt-2">Searching for the best flights...</p>
+        </div>
+      );
+    }
+
+    if (searchError) {
+      return (
+        <Alert variant="danger" className="text-center">
+          {searchError}
+        </Alert>
+      );
+    }
+
+    if (searchResults.length === 0) {
+      return (
+        <div className="text-center py-5 text-muted">
+          <h5>No flights found</h5>
+          <p>Try adjusting your search criteria</p>
+        </div>
+      );
+    }
+
+    return searchResults.map((flight, index) => {
+      console.log(`✈️ Flight ${index}:`, flight);
+
+      // DIRECT DATA EXTRACTION - API ke structure ke hisab se
+      const segments = flight.Segments || [];
+      const fareInfo = flight.Fare || {};
+      
+      // First segment data
+      let segmentData = {};
+      if (segments.length > 0) {
+        const firstSegment = segments[0];
+        segmentData = Array.isArray(firstSegment) ? firstSegment[0] || {} : firstSegment || {};
+      }
+
+      const airlineInfo = segmentData.Airline || {};
+      const originInfo = segmentData.Origin || {};
+      const destinationInfo = segmentData.Destination || {};
+
+      // Airport details
+      const originAirport = originInfo.Airport || {};
+      const destinationAirport = destinationInfo.Airport || {};
+
+      // Fare calculation
+      const publishedFare = fareInfo.PublishedFare || 0;
+      const offeredFare = fareInfo.OfferedFare || publishedFare;
+      const savings = publishedFare - offeredFare;
+
+      return (
+        <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
+          <Row className="align-items-center">
+            {/* Airline Info */}
+            <Col md={3} className="d-flex align-items-center">
+              <div className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center" 
+                   style={{ width: "50px", height: "50px" }}>
+                <strong className="text-primary">
+                  {airlineInfo.AirlineCode || "AI"}
+                </strong>
+              </div>
+              <div>
+                <h6 className="mb-0">
+                  {airlineInfo.AirlineName || "Air India"}
+                </h6>
+                <small className="text-muted">
+                  {airlineInfo.FlightNumber ? `Flight ${airlineInfo.FlightNumber}` : "Flight 2993"}
+                </small>
+                <br />
+                <small className={flight.IsRefundable ? "text-success" : "text-danger"}>
+                  {flight.IsRefundable ? "🔄 Refundable" : "❌ Non-Refundable"}
+                </small>
+              </div>
+            </Col>
+
+            {/* Departure */}
+            <Col md={2} className="text-center">
+              <h5 className="mb-0">
+                {formatTime(originInfo.DepTime)}
+              </h5>
+              <small className="text-muted">
+                {originAirport.AirportCode || "DEL"}
+              </small>
+              <br />
+              <small className="text-muted small">
+                {originAirport.CityName || "Delhi"}
+              </small>
+            </Col>
+
+            {/* Duration */}
+            <Col md={2} className="text-center">
+              <p className="mb-1 text-success fw-bold">
+                {formatDuration(segmentData.Duration)}
+              </p>
+              <small className="text-muted">
+                {segmentData.StopOver ? "With Stop" : "Non stop"}
+              </small>
+              <br />
+              <small className="text-muted small">
+                {segmentData.Craft || "32N"}
+              </small>
+            </Col>
+
+            {/* Arrival */}
+            <Col md={2} className="text-center">
+              <h5 className="mb-0">
+                {formatTime(destinationInfo.ArrTime)}
+              </h5>
+              <small className="text-muted">
+                {destinationAirport.AirportCode || "BOM"}
+              </small>
+              <br />
+              <small className="text-muted small">
+                {destinationAirport.CityName || "Mumbai"}
+              </small>
+            </Col>
+
+            {/* Price + Button */}
+            <Col md={3} className="text-end">
+              <h5 className="fw-bold text-primary">
+                ₹ {formatPrice(offeredFare)}
+              </h5>
+              <small className="text-muted">per adult</small>
+              {savings > 0 && (
+                <>
+                  <br />
+                  <small className="text-success small">
+                    Save ₹{formatPrice(savings)}
+                  </small>
+                </>
+              )}
+              <br />
+              <Button
+                variant="primary"
+                size="sm"
+                className="mt-2 rounded-pill px-4"
+              >
+                VIEW PRICES
+              </Button>
+            </Col>
+          </Row>
+
+          {/* Flight Details */}
+          <Row className="mt-3">
+            <Col>
+              <div className="bg-light p-2 rounded-2">
+                <small className="text-muted">
+                  <strong>Baggage:</strong> {segmentData.Baggage || "15 KG"} • 
+                  <strong> Cabin:</strong> {segmentData.CabinBaggage || "7 KG"} • 
+                  <strong> Class:</strong> {travelClass}
+                </small>
+              </div>
+            </Col>
+          </Row>
+
+          {/* Deal */}
+          <Row className="mt-2">
+            <Col>
+              <div className="bg-warning bg-opacity-25 p-2 rounded-2">
+                <small className="text-dark">
+                  🔴 EXCLUSIVE DEAL: Get FLAT ₹266 OFF using <b>TRYMMT</b> code for you
+                </small>
+              </div>
+            </Col>
+          </Row>
+
+          {/* Additional Info */}
+          <Row className="mt-2">
+            <Col className="text-end">
+              <a href="#" className="text-primary" onClick={(e) => {
+                e.preventDefault();
+                console.log("Flight details:", flight);
+              }}>
+                View Flight Details
+              </a>
+            </Col>
+          </Row>
+        </Card>
+      );
+    });
   };
 
   return (
     <div>
-      {/* 🔹 Flight Search Form */}
+      {/* Flight Search Form */}
       <div className="flight-section" style={{ marginTop: "110px" }}>
-        <div className=" search-box  rounded shadow-sm flight-form ">
+        <div className="search-box rounded shadow-sm flight-form">
           <div className="container">
-            <div className=" d-flex gap-3 mb-3">
+            {error && <Alert variant="warning">{error}</Alert>}
+            
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-3">
+                <Spinner animation="border" size="sm" className="me-2" />
+                <span>Initializing application...</span>
+              </div>
+            )}
+            
+            <div className="d-flex gap-3 mb-3">
               <Form.Check
                 type="radio"
                 label="One Way"
@@ -354,11 +664,11 @@ useEffect(() => {
                         newFlights[index].date = e.target.value;
                         setFlights(newFlights);
                       }}
+                      min={new Date().toISOString().split('T')[0]}
                     />
                   </Form.Group>
                 </Col>
 
-                {/* Add / Remove Button */}
                 <Col md={3}>
                   {index === flights.length - 1 ? (
                     <Button className="explore-btn" onClick={addCity}>
@@ -369,6 +679,7 @@ useEffect(() => {
                       className="explore-btn"
                       variant="outline-danger"
                       onClick={() => removeCity(index)}
+                      disabled={flights.length === 1}
                     >
                       Remove
                     </Button>
@@ -379,7 +690,6 @@ useEffect(() => {
 
             {/* Travellers & Class */}
             <Row className="g-3">
-              {/* Travellers Dropdown */}
               <Col md={3}>
                 <Dropdown style={{ width: "100%" }}>
                   <Dropdown.Toggle
@@ -408,7 +718,6 @@ useEffect(() => {
                 </Dropdown>
               </Col>
 
-              {/* Class Dropdown */}
               <Col md={3}>
                 <Dropdown style={{ width: "100%" }}>
                   <Dropdown.Toggle
@@ -422,24 +731,19 @@ useEffect(() => {
                     <Dropdown.Item onClick={() => setTravelClass("Economy")}>
                       Economy
                     </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => setTravelClass("Premium Economy")}
-                    >
+                    <Dropdown.Item onClick={() => setTravelClass("Premium Economy")}>
                       Premium Economy
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => setTravelClass("Business")}>
                       Business
                     </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => setTravelClass("First Class")}
-                    >
+                    <Dropdown.Item onClick={() => setTravelClass("First Class")}>
                       First Class
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
               </Col>
 
-              {/* Search Button */}
               <Col md={3}>
                 <Button
                   className="explore-btn"
@@ -450,8 +754,16 @@ useEffect(() => {
                     backgroundColor: "#274a62",
                   }}
                   onClick={searchFlights}
+                  disabled={searchLoading || !token || loading}
                 >
-                  Search
+                  {searchLoading ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Searching...
+                    </>
+                  ) : (
+                    "Search Flights"
+                  )}
                 </Button>
               </Col>
             </Row>
@@ -461,11 +773,11 @@ useEffect(() => {
 
       <div className="container py-5">
         <Row>
-          {/* ===== Filter Sidebar ===== */}
+          {/* Filter Sidebar */}
           <Col sm={3}>
             <div className="filter-box p-3 border rounded shadow-sm">
               <h5 className="mb-3 fw-bold">FILTER</h5>
-
+              
               {/* Show Properties With */}
               <div className="filter-group mb-3">
                 <div
@@ -502,6 +814,8 @@ useEffect(() => {
                         className="form-check-input"
                         type="checkbox"
                         id="refundable"
+                        checked={isRefundable}
+                        onChange={() => setIsRefundable(!isRefundable)}
                       />
                       <label className="form-check-label" htmlFor="refundable">
                         Refundable Only
@@ -700,91 +1014,9 @@ useEffect(() => {
             </div>
           </Col>
 
-          {/* ===== Flight Details Section ===== */}
+          {/* Flight Results Section */}
           <Col sm={9}>
-            <Card className="shadow-sm p-3 mb-4 rounded-3">
-              <Row className="align-items-center">
-                {/* Airline Info */}
-                <Col md={3} className="d-flex align-items-center">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Air_India_Express_logo.svg/512px-Air_India_Express_logo.svg.png"
-                    alt="Airline Logo"
-                    style={{ width: "40px", marginRight: "10px" }}
-                  />
-                  <div>
-                    <h6 className="mb-0">Air India Express</h6>
-                    <small className="text-muted">IX 1971</small>
-                  </div>
-                </Col>
-
-                {/* Departure */}
-                <Col md={3} className="text-center">
-                  <h5 className="mb-0">08:50</h5>
-                  <small className="text-muted">Ghaziabad</small>
-                  <br />
-                  <small className="text-muted">(32 KM from New Delhi)</small>
-                </Col>
-
-                {/* Duration */}
-                <Col md={2} className="text-center">
-                  <p className="mb-1 text-success fw-bold">02 h 50 m</p>
-                  <small className="text-muted">Non stop</small>
-                </Col>
-
-                {/* Arrival */}
-                <Col md={2} className="text-center">
-                  <h5 className="mb-0">11:40</h5>
-                  <small className="text-muted">Bengaluru</small>
-                </Col>
-
-                {/* Price + Button */}
-                <Col md={2} className="text-end">
-                  <h5 className="fw-bold">₹ 5,509</h5>
-                  <small className="text-muted">per adult</small>
-                  <br />
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="mt-2 rounded-pill"
-                  >
-                    VIEW PRICES
-                  </Button>
-                </Col>
-              </Row>
-
-              {/* Lock Price */}
-              <Row className="mt-3">
-                <Col>
-                  <div className="d-flex align-items-center bg-light p-2 rounded-2">
-                    <span className="me-2 text-primary">🔒</span>
-                    <small className="text-primary">
-                      Lock this price starting from ₹496
-                    </small>
-                  </div>
-                </Col>
-              </Row>
-
-              {/* Deal */}
-              <Row className="mt-2">
-                <Col>
-                  <div className="bg-warning bg-opacity-25 p-2 rounded-2">
-                    <small className="text-dark">
-                      🔴 EXCLUSIVE DEAL: Get FLAT ₹266 OFF using <b>TRYMMT</b>{" "}
-                      code for you
-                    </small>
-                  </div>
-                </Col>
-              </Row>
-
-              {/* Details Link */}
-              <Row className="mt-2">
-                <Col className="text-end">
-                  <a href="#" className="text-primary">
-                    View Flight Details
-                  </a>
-                </Col>
-              </Row>
-            </Card>
+            {renderFlightResults()}
           </Col>
         </Row>
       </div>
