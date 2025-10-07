@@ -12,3 +12,36 @@ export const getIndianAirports = async () => {
     return { status: false, data: [] };
   }
 };
+export const Flight_authenticate = async (endUserIp) => {
+  try {
+    const body = {
+      ClientId: "ApiIntegrationNew",
+      UserName: "SAFARIX",
+      Password: "SAFARIX@123",
+      EndUserIp: endUserIp,
+    };
+
+    const response = await axios.post(API.Flight_authenticate, body);
+    console.log("Flight_authenticate Response:", response.data);
+    return response.data;
+  } catch (err) {
+    console.error("Error in Flight_authenticate:", err);
+    return { status: false };
+  }
+};
+
+// ✅ Flight Search API
+export const Flight_search = async (searchData) => {
+  try {
+    const resp = await axios.post(API.flight_search, searchData, {
+      headers: { "Content-Type": "application/json" } // ensure JSON headers
+    });
+
+    console.log("✅ API Response in Flight_search:", resp.data);
+    return resp.data || { status: false, data: [] };
+
+  } catch (err) {
+    console.error("❌ Error in Flight_search:", err);
+    return { status: false, data: [] };
+  }
+};
