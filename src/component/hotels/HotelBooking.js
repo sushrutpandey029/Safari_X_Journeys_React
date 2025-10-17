@@ -48,7 +48,7 @@ function HotelBooking() {
   // Extra UI filters - NEW FILTER STATES ADDED
   const [searchKeyword, setSearchKeyword] = useState("");
   const [sortOption, setSortOption] = useState("Popularity");
-  
+
   // NEW FILTER STATES
   const [selectedStarRatings, setSelectedStarRatings] = useState([]);
   const [selectedUserRatings, setSelectedUserRatings] = useState([]);
@@ -58,7 +58,7 @@ function HotelBooking() {
     bookWithZero: false,
     freeCancellation: false,
     freeBreakfast: false,
-    refundable: false
+    refundable: false,
   });
 
   // pagination
@@ -137,7 +137,7 @@ function HotelBooking() {
       // 🔹 Step 4: Call Search API
       const res = await searchHotels(payload);
       console.log("Hotel Search Response:", res);
-      console.log("HotelResult", JSON.stringify(res.HotelResult));
+      // console.log("HotelResult", JSON.stringify(res.HotelResult));
       if (res?.data?.HotelResult) {
         setSearchResults(res.data.HotelResult);
       } else {
@@ -213,33 +213,33 @@ function HotelBooking() {
 
   // NEW FILTER HANDLERS
   const handleStarRatingChange = (rating) => {
-    setSelectedStarRatings(prev => 
-      prev.includes(rating) 
-        ? prev.filter(r => r !== rating)
+    setSelectedStarRatings((prev) =>
+      prev.includes(rating)
+        ? prev.filter((r) => r !== rating)
         : [...prev, rating]
     );
   };
 
   const handleUserRatingChange = (rating) => {
-    setSelectedUserRatings(prev =>
+    setSelectedUserRatings((prev) =>
       prev.includes(rating)
-        ? prev.filter(r => r !== rating)
+        ? prev.filter((r) => r !== rating)
         : [...prev, rating]
     );
   };
 
   const handleAmenityChange = (amenity) => {
-    setSelectedAmenities(prev =>
+    setSelectedAmenities((prev) =>
       prev.includes(amenity)
-        ? prev.filter(a => a !== amenity)
+        ? prev.filter((a) => a !== amenity)
         : [...prev, amenity]
     );
   };
 
   const handleShowPropertyChange = (property) => {
-    setShowProperties(prev => ({
+    setShowProperties((prev) => ({
       ...prev,
-      [property]: !prev[property]
+      [property]: !prev[property],
     }));
   };
 
@@ -249,39 +249,43 @@ function HotelBooking() {
 
     // Search keyword filter
     if (searchKeyword) {
-      filtered = filtered.filter(hotel =>
-        hotel.HotelName?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        hotel.CityName?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        hotel.Address?.toLowerCase().includes(searchKeyword.toLowerCase())
+      filtered = filtered.filter(
+        (hotel) =>
+          hotel.HotelName?.toLowerCase().includes(
+            searchKeyword.toLowerCase()
+          ) ||
+          hotel.CityName?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+          hotel.Address?.toLowerCase().includes(searchKeyword.toLowerCase())
       );
     }
 
     // Star rating filter
     if (selectedStarRatings.length > 0) {
       const ratingMap = {
-        '5 Star': 'FiveStar',
-        '4 Star': 'FourStar', 
-        '3 Star': 'ThreeStar',
-        '2 Star': 'TwoStar',
-        '1 Star': 'OneStar',
-        'Budget': 'Budget',
-        'Unrated': 'Unrated'
+        "5 Star": "FiveStar",
+        "4 Star": "FourStar",
+        "3 Star": "ThreeStar",
+        "2 Star": "TwoStar",
+        "1 Star": "OneStar",
+        Budget: "Budget",
+        Unrated: "Unrated",
       };
 
-      filtered = filtered.filter(hotel => {
-        const hotelRating = hotel.HotelRating || 'Unrated';
-        return selectedStarRatings.some(rating => 
-          hotelRating === ratingMap[rating] || 
-          (rating === 'Unrated' && !hotel.HotelRating)
+      filtered = filtered.filter((hotel) => {
+        const hotelRating = hotel.HotelRating || "Unrated";
+        return selectedStarRatings.some(
+          (rating) =>
+            hotelRating === ratingMap[rating] ||
+            (rating === "Unrated" && !hotel.HotelRating)
         );
       });
     }
 
     // User rating filter (assuming we have a UserRating field)
     if (selectedUserRatings.length > 0) {
-      filtered = filtered.filter(hotel => {
+      filtered = filtered.filter((hotel) => {
         const userRating = hotel.UserRating || 0;
-        return selectedUserRatings.some(rating => {
+        return selectedUserRatings.some((rating) => {
           if (rating === "4.5 & Above") return userRating >= 4.5;
           if (rating === "4 & Above") return userRating >= 4;
           if (rating === "3 & Above") return userRating >= 3;
@@ -292,16 +296,22 @@ function HotelBooking() {
 
     // Show properties filter
     if (showProperties.refundable) {
-      filtered = filtered.filter(hotel => hotel.Refundable === true);
+      filtered = filtered.filter((hotel) => hotel.Refundable === true);
     }
 
     // Sort logic
     if (sortOption === "PriceLowHigh") {
-      filtered = [...filtered].sort((a, b) => (a.MinPrice || 0) - (b.MinPrice || 0));
+      filtered = [...filtered].sort(
+        (a, b) => (a.MinPrice || 0) - (b.MinPrice || 0)
+      );
     } else if (sortOption === "PriceHighLow") {
-      filtered = [...filtered].sort((a, b) => (b.MinPrice || 0) - (a.MinPrice || 0));
+      filtered = [...filtered].sort(
+        (a, b) => (b.MinPrice || 0) - (a.MinPrice || 0)
+      );
     } else if (sortOption === "Rating") {
-      filtered = [...filtered].sort((a, b) => (b.HotelRating || 0) - (a.HotelRating || 0));
+      filtered = [...filtered].sort(
+        (a, b) => (b.HotelRating || 0) - (a.HotelRating || 0)
+      );
     }
     // Popularity is default
 
@@ -361,6 +371,7 @@ function HotelBooking() {
       if (rooms) setRooms(rooms);
       if (paxRooms) setPaxRooms(paxRooms);
     }
+    
   }, [location.state]);
   // sirf jab navigation se data aaye
 
@@ -369,7 +380,12 @@ function HotelBooking() {
     if (selectedCity && checkIn && checkOut) {
       handleSearch();
     }
-  }, [selectedCity, checkIn, checkOut, rooms, paxRooms, guestNationality]);
+  }, [selectedCity]);
+  // useEffect(() => {
+  //   if (selectedCity && checkIn && checkOut) {
+  //     handleSearch();
+  //   }
+  // }, [selectedCity, checkIn, checkOut, rooms, paxRooms, guestNationality]);
 
   return (
     <div>
@@ -697,7 +713,9 @@ function HotelBooking() {
                         type="checkbox"
                         id="bookZero"
                         checked={showProperties.bookWithZero}
-                        onChange={() => handleShowPropertyChange('bookWithZero')}
+                        onChange={() =>
+                          handleShowPropertyChange("bookWithZero")
+                        }
                       />
                       <label className="form-check-label" htmlFor="bookZero">
                         Book With ₹0
@@ -709,7 +727,9 @@ function HotelBooking() {
                         type="checkbox"
                         id="freeCancel"
                         checked={showProperties.freeCancellation}
-                        onChange={() => handleShowPropertyChange('freeCancellation')}
+                        onChange={() =>
+                          handleShowPropertyChange("freeCancellation")
+                        }
                       />
                       <label className="form-check-label" htmlFor="freeCancel">
                         Free Cancellation
@@ -721,7 +741,9 @@ function HotelBooking() {
                         type="checkbox"
                         id="freeBreakfast"
                         checked={showProperties.freeBreakfast}
-                        onChange={() => handleShowPropertyChange('freeBreakfast')}
+                        onChange={() =>
+                          handleShowPropertyChange("freeBreakfast")
+                        }
                       />
                       <label
                         className="form-check-label"
@@ -735,7 +757,7 @@ function HotelBooking() {
                         className="form-check-input"
                         type="checkbox"
                         checked={showProperties.refundable}
-                        onChange={() => handleShowPropertyChange('refundable')}
+                        onChange={() => handleShowPropertyChange("refundable")}
                         id="refundable"
                       />
                       <label className="form-check-label" htmlFor="refundable">
@@ -762,20 +784,25 @@ function HotelBooking() {
                 </div>
                 {toggle.star && (
                   <div className="filter-options mt-2">
-                    {['5 Star', '4 Star', '3 Star', 'Budget', 'Unrated'].map((rating) => (
-                      <div className="form-check" key={rating}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`star-${rating}`}
-                          checked={selectedStarRatings.includes(rating)}
-                          onChange={() => handleStarRatingChange(rating)}
-                        />
-                        <label className="form-check-label" htmlFor={`star-${rating}`}>
-                          {rating}
-                        </label>
-                      </div>
-                    ))}
+                    {["5 Star", "4 Star", "3 Star", "Budget", "Unrated"].map(
+                      (rating) => (
+                        <div className="form-check" key={rating}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`star-${rating}`}
+                            checked={selectedStarRatings.includes(rating)}
+                            onChange={() => handleStarRatingChange(rating)}
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`star-${rating}`}
+                          >
+                            {rating}
+                          </label>
+                        </div>
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -796,7 +823,11 @@ function HotelBooking() {
                 </div>
                 {toggle.review && (
                   <div className="filter-options mt-2">
-                    {['4.5 & Above (Excellent)', '4 & Above (Very Good)', '3 & Above (Good)'].map((rating) => (
+                    {[
+                      "4.5 & Above (Excellent)",
+                      "4 & Above (Very Good)",
+                      "3 & Above (Good)",
+                    ].map((rating) => (
                       <div className="form-check" key={rating}>
                         <input
                           className="form-check-input"
@@ -805,7 +836,10 @@ function HotelBooking() {
                           checked={selectedUserRatings.includes(rating)}
                           onChange={() => handleUserRatingChange(rating)}
                         />
-                        <label className="form-check-label" htmlFor={`review-${rating}`}>
+                        <label
+                          className="form-check-label"
+                          htmlFor={`review-${rating}`}
+                        >
                           {rating}
                         </label>
                       </div>
@@ -830,7 +864,14 @@ function HotelBooking() {
                 </div>
                 {toggle.amenities && (
                   <div className="filter-options mt-2">
-                    {['Free Cancellation', '24 Hour Front Desk', 'Ac', 'Bar', 'Wi-Fi', 'Breakfast'].map((amenity) => (
+                    {[
+                      "Free Cancellation",
+                      "24 Hour Front Desk",
+                      "Ac",
+                      "Bar",
+                      "Wi-Fi",
+                      "Breakfast",
+                    ].map((amenity) => (
                       <div className="form-check" key={amenity}>
                         <input
                           className="form-check-input"
@@ -839,7 +880,10 @@ function HotelBooking() {
                           checked={selectedAmenities.includes(amenity)}
                           onChange={() => handleAmenityChange(amenity)}
                         />
-                        <label className="form-check-label" htmlFor={`amenity-${amenity}`}>
+                        <label
+                          className="form-check-label"
+                          htmlFor={`amenity-${amenity}`}
+                        >
                           {amenity}
                         </label>
                       </div>
@@ -901,32 +945,34 @@ function HotelBooking() {
                           </p>
 
                           {/* Rating */}
-                         <div className="rating">
-  {[...Array(5)].map((_, i) => {
-    const rating =
-      hotel.HotelRating === "FiveStar"
-        ? 5
-        : hotel.HotelRating === "FourStar"
-        ? 4
-        : hotel.HotelRating === "ThreeStar"
-        ? 3
-        : hotel.HotelRating === "TwoStar"
-        ? 2
-        : hotel.HotelRating === "OneStar"
-        ? 1
-        : 0;
+                          <div className="rating">
+                            {[...Array(5)].map((_, i) => {
+                              const rating =
+                                hotel.HotelRating === "FiveStar"
+                                  ? 5
+                                  : hotel.HotelRating === "FourStar"
+                                  ? 4
+                                  : hotel.HotelRating === "ThreeStar"
+                                  ? 3
+                                  : hotel.HotelRating === "TwoStar"
+                                  ? 2
+                                  : hotel.HotelRating === "OneStar"
+                                  ? 1
+                                  : 0;
 
-    return (
-      <span
-        key={i}
-        style={{ color: i < rating ? "#10669b" : "#ccc", fontSize: "20px", }}
-      >
-        ★
-      </span>
-    );
-  })}
-</div>
-
+                              return (
+                                <span
+                                  key={i}
+                                  style={{
+                                    color: i < rating ? "#10669b" : "#ccc",
+                                    fontSize: "20px",
+                                  }}
+                                >
+                                  ★
+                                </span>
+                              );
+                            })}
+                          </div>
 
                           {/* Expiry Tag + Button */}
                           <div className="d-flex justify-content-between align-items-center">
@@ -991,5 +1037,3 @@ function HotelBooking() {
 }
 
 export default HotelBooking;
-
-

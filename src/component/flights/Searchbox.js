@@ -4,8 +4,8 @@ import { Dropdown } from "react-bootstrap";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { Lock } from "lucide-react";
-import { LockFill } from "react-bootstrap-icons";
+// import { Lock } from "lucide-react";
+// import { LockFill } from "react-bootstrap-icons";
 import "./Flights.css";
 
 const SearchBox = ({ placeholder = "Search...", onSearch }) => {

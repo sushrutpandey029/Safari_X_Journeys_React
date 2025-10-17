@@ -29,10 +29,8 @@ const HotelDetail = () => {
   const { startPayment } = useCashfreePayment();
   const priceTableRef = useRef(null);
 
-
-  
-
   const bookingData = location.state || {};
+
   console.log("booking data from previous page", bookingData);
 
   const scrollToPriceTable = () => {
@@ -56,47 +54,47 @@ const HotelDetail = () => {
     }
   }
 
- // ✅ Book hotel and navigate to checkout
-async function handleBook(room) {
-  const userdetails = await getUserData("safarix_user");
-  const ip = await getUserIP();
+  // ✅ Book hotel and navigate to checkout
+  async function handleBook(room) {
+    const userdetails = await getUserData("safarix_user");
+    const ip = await getUserIP();
 
-  const payload = {
-    userId: userdetails?.id,
-    serviceType: "hotel",
-    serviceDetails: {
-      hotelCode: hotelDetails.HotelCode,
-      hotelName: hotelDetails.HotelName,          // ✅ Hotel name
-      hotelRating: hotelDetails.StarRating,       // ✅ Hotel rating
-      hotelAddress: hotelDetails?.Address || "",  // ✅ (optional) Address
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut,
-      GuestNationality: bookingData.guestNationality,
-      NoOfRooms: bookingData.NoOfRooms,
+    const payload = {
+      userId: userdetails?.id,
+      serviceType: "hotel",
+      serviceDetails: {
+        hotelCode: hotelDetails.HotelCode,
+        hotelName: hotelDetails.HotelName, // ✅ Hotel name
+        hotelRating: hotelDetails.StarRating, // ✅ Hotel rating
+        hotelAddress: hotelDetails?.Address || "", // ✅ (optional) Address
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        GuestNationality: bookingData.guestNationality,
+        NoOfRooms: bookingData.NoOfRooms,
+        totalAmount: room.TotalFare,
+        BookingCode: room.BookingCode,
+        RoomType: room.RoomTypeName, // ✅ Room type
+        RoomCategory: room.RoomCategory || "", // ✅ Room category
+        RoomMealPlan: room.MealType || "", // ✅ Meal plan
+        RoomOccupancy: room.Occupancy || "", // ✅ Occupancy details
+        enduserip: ip,
+        currency: "INR",
+        PaxRooms: bookingData?.PaxRooms,
+        ResponseTime: bookingData.ResponseTime,
+        IsDetailedResponse: bookingData.IsDetailedResponse,
+        Filters: bookingData.Filters,
+      },
+      startDate: bookingData.checkIn,
+      endDate: bookingData.checkOut,
       totalAmount: room.TotalFare,
-      BookingCode: room.BookingCode,
-      RoomType: room.RoomTypeName,                // ✅ Room type
-      RoomCategory: room.RoomCategory || "",      // ✅ Room category
-      RoomMealPlan: room.MealType || "",          // ✅ Meal plan
-      RoomOccupancy: room.Occupancy || "",        // ✅ Occupancy details
-      enduserip: ip,
       currency: "INR",
-      PaxRooms: bookingData?.PaxRooms,
-      ResponseTime: bookingData.ResponseTime,
-      IsDetailedResponse: bookingData.IsDetailedResponse,
-      Filters: bookingData.Filters,
-    },
-    startDate: bookingData.checkIn,
-    endDate: bookingData.checkOut,
-    totalAmount: room.TotalFare,
-    currency: "INR",
-  };
+    };
 
     // ✅ Navigate to checkout page with payload
     navigate("/hotel-checkout", { state: { payload } });
 
-    const result = await startPayment(payload);
-    console.log("payment res", result);
+    // const result = await startPayment(payload);
+    // console.log("payment res", result);
   }
 
   // Fetch hotel details + search results
@@ -105,10 +103,7 @@ async function handleBook(room) {
       try {
         // ✅ Details
         const detailResp = await getHotelDetail(hotelCode);
-        console.log(
-          "gethotel details resp",
-          JSON.stringify(detailResp, null, 2)
-        );
+        console.log("gethotel details resp", detailResp);
 
         const details = detailResp?.data?.HotelDetails?.[0] || null;
         setHotelDetails(details);

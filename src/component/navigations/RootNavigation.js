@@ -31,7 +31,7 @@ import Flight from "../flights/Flight";
 import Cancellation from "../common/policy/Cancelation";
 import About from "../common/policy/About";
 import HotelCheckout from "../hotels/Hotelcheckout";
-
+import BookingView from "../home/user-dashboard-pages/BookingView";
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -59,6 +59,7 @@ function RootNavigation() {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/hotel" element={<Hotel />} />
         <Route path="/hotel-list" element={<HotelBooking />} />
+        <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
 
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog-detail" element={<Blogdetail />} />
@@ -70,12 +71,12 @@ function RootNavigation() {
         <Route path="/payment-status" element={<PaymentStatus />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
+
         <Route path="/flight" element={<Flight />} />
-        <Route path="cancelation" element={< Cancellation/>} />
-        <Route path="about" element={< About/>} />
-        <Route path="hotel-checkout" element={< HotelCheckout/>} />
-       
+        <Route path="cancelation" element={<Cancellation />} />
+        <Route path="about" element={<About />} />
+        <Route path="hotel-checkout" element={<HotelCheckout />} />
+        <Route path="view-booking" element={<BookingView />} />
         <Route
           path="/user-dashboard"
           element={

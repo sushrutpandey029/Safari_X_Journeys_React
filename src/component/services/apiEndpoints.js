@@ -1,9 +1,8 @@
-// export const BASE_URL = "https://fdc7b4f21736.ngrok-free.app";
-export const BASE_URL = "http://192.168.1.5:2625";
-// export const BASE_URL = "https://32978cdd37a2.ngrok-free.app";
-// export const BASE_URL = "http://node.millclient.com:3001";
-// http://192.168.0.10:2625/
+// export const BASE_URL = "https://260f505254c1.ngrok-free.app";
+export const BASE_URL = "http://192.168.1.13:2625";
+// export const BASE_URL = "http://localhost:2625";
 
+// export const BASE_URL = "http://node.millclient.com:3001";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -22,6 +21,7 @@ export const API = {
   TESTIMONIAL_LIST: `${BASE_URL}/api/testimonial/list`,
   USER_CHANGE_PASSWORD: (id) => `${BASE_URL}/api/user/change-password/${id}`,
   USER_UPDATE_PROFILE: (id) => `${BASE_URL}/api/user/update-profile/${id}`,
+  USER_BOOKING_DETAILS: (id) => `${BASE_URL}/api/user/booking-details/${id}`,
 
   //driver
 
@@ -44,7 +44,6 @@ export const API = {
   GET_PAYMENT_STATUS: (orderId) =>
     `${BASE_URL}/api/payment-status?order_id=${orderId}`,
 
-
   // hotels
   // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
   CITY_LIST: `${BASE_URL}/api/citylist`,
@@ -56,17 +55,4 @@ export const API = {
   HOTEL_BY_CATEGORY: `${BASE_URL}/api/getHotelCityByCategory`,
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
