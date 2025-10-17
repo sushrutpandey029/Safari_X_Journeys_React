@@ -58,7 +58,9 @@ export const API = {
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
   Flight_authenticate: `${BASE_URL}/flight/authenticate`,
   flight_search: `${BASE_URL}/flight/search-flights`,
-
+  Flight_farerule: `${BASE_URL}/flight/fare-rules`,
+  Flight_farequote: `${BASE_URL}/flight/fare-quote`,
+ 
 };
 
 

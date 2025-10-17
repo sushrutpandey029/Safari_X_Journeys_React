@@ -169,3 +169,472 @@ background-color: #4958c9ff;
 .form-group input[type="file"]::-webkit-file-upload-button:hover {
   background-color: #1d3547;
 }
+
+.guide-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+
+/* GuideDetails.css */
+.guidedetail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  margin-top: 100px !important ;
+}
+
+/* Header Styles */
+.guide-header {
+  margin-bottom: 20px;
+}
+
+.back-button {
+  color: #0066cc;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+.guide-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.guide-basic-info h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.location-experience {
+  font-size: 14px;
+  color: #666;
+}
+
+.location-experience span {
+  margin-right: 10px;
+}
+
+.language-rating-section {
+  text-align: right;
+}
+
+.primary-language h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.rating {
+  font-size: 14px;
+  color: #333;
+}
+
+.other-languages-table table {
+  border-collapse: collapse;
+  margin-top: 5px;
+}
+
+.other-languages-table td {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  text-align: center;
+}
+
+.specialties-section {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.specialty-item {
+  font-size: 14px;
+  color: #333;
+}
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 20px 0;
+}
+
+/* Tabs Navigation */
+.tabs-navigation {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 10px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 10px 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+  color: #333;
+  border-bottom-color: #333;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+/* Main Content Layout */
+.main-content-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* Content Area */
+.content-area {
+  min-height: 500px;
+}
+
+.about-content h2,
+.tours-content h2,
+.gallery-content h2,
+.reviews-content h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.description, .extended-description {
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* Certifications */
+.certifications-section h3 {
+  margin: 30px 0 15px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.certifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.certification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkbox {
+  font-family: monospace;
+  color: #666;
+}
+
+.certification-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.certification-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.certification-org {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Tours */
+.tour-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tour-item {
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.tour-item h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.tour-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Gallery */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.gallery-item {
+  height: 120px;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  background: #f9f9f9;
+}
+
+/* Reviews */
+.review-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.review-item {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 20px;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.review-rating {
+  color: #ffc107;
+  font-size: 14px;
+}
+
+.review-text {
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.review-date {
+  color: #666;
+  font-size: 12px;
+}
+
+/* Booking Sidebar */
+.booking-sidebar {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 25px;
+  position: sticky;
+  top: 20px;
+}
+
+.calendar-widget h3,
+.quick-info-widget h3,
+.contact-widget h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.month-header {
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.calendar {
+  background: white;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 500;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: #666;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-day {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.calendar-day.other-month {
+  color: #ccc;
+}
+
+.calendar-day:hover {
+  background: #e3f2fd;
+}
+
+.calendar-day.selected {
+  background: #1976d2;
+  color: white;
+}
+
+.quick-info-widget ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.quick-info-widget li {
+  padding: 5px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.book-now-button,
+.message-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.book-now-button {
+  background: #1976d2;
+  color: white;
+}
+
+.book-now-button:hover {
+  background: #1565c0;
+}
+
+.message-button {
+  background: white;
+  color: #1976d2;
+  border: 1px solid #1976d2;
+}
+
+.message-button:hover {
+  background: #f5f5f5;
+}
+
+.contact-widget {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 20px;
+}
+
+.contact-widget p {
+  margin: 8px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Loading and Error States */
+.loading, .error {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.loading h3, .error h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.error p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: #1976d2;
+  color: white;
+}
+
+.btn-outline {
+  background: white;
+  color: #1976d2;
+  border: 1px solid #1976d2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .guide-main-info {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .language-rating-section {
+    text-align: left;
+  }
+  
+  .tabs-navigation {
+    overflow-x: auto;
+  }
+  
+  .booking-sidebar {
+    position: static;
+  }
+}

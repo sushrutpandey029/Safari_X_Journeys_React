@@ -1,17 +1,42 @@
 // src/components/Flight.js
 import React, { useState, useEffect, useRef } from "react";
-import { Form, Button, Row, Col, Card, Dropdown, Spinner, Alert } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  Dropdown,
+  Spinner,
+  Alert,
+} from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import "./Flights.css";
 import axios from "axios";
-import { getIndianAirports, Flight_authenticate, Flight_search } from "../services/flightService";
+import {
+  getIndianAirports,
+  Flight_authenticate,
+  Flight_search,
+} from "../services/flightService";
+import { Modal } from "react-bootstrap";
+import FlightDetail from "./Flghitdetail";
 
 const Flight = () => {
   // Flight segments (multi-city form)
   const [flights, setFlights] = useState([
-    { from: "", to: "", date: "2025-09-16" },
+    { from: "", to: "", date: "" },
   ]);
+
+  useEffect(() => {
+    if (!flights[0]?.date) {
+      const newFlights = [...flights];
+      newFlights[0].date = new Date().toISOString().split("T")[0];
+      setFlights(newFlights);
+    }
+  }, []);
 
   // Dynamic airports data
   const [airports, setAirports] = useState([]);
@@ -27,26 +52,44 @@ const Flight = () => {
   // User details
   const [userIP, setUserIP] = useState("");
   const [isRefundable, setIsRefundable] = useState(false);
-  const [tripType, setTripType] = useState("multi");
+  const [tripType, setTripType] = useState("one way");
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
 
+  // fare rule detaile
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedFlight, setSelectedFlight] = useState(null); // Add this state
+
+  // Update the onViewPrices function
+  const onViewPrices = (flight) => {
+    console.log("flight in view price", flight);
+    setSelectedFlight(flight);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedFlight(null);
+  };
   // Cabin class mapping
   const cabinClassMap = {
-    "Economy": 1,
+    Economy: 1,
     "Premium Economy": 2,
-    "Business": 3,
-    "First Class": 4
+    Business: 3,
+    "First Class": 4,
   };
 
   // Journey type mapping
   const journeyTypeMap = {
-    "oneway": 1,
-    "round": 2,
-    "multi": 3
+    oneway: 1,
+    round: 2,
+    multi: 3,
   };
+
+  
 
   // Fetch user IP, authenticate and get airports - ALL IN ONE FLOW
   useEffect(() => {
@@ -82,7 +125,6 @@ const Flight = () => {
         } else {
           throw new Error("Invalid airports response format");
         }
-
       } catch (error) {
         console.error("Initialization error:", error);
         setError(`Initialization failed: ${error.message}`);
@@ -129,7 +171,10 @@ const Flight = () => {
     // Close dropdown when clicking outside
     useEffect(() => {
       const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
           setIsOpen(false);
           setSearchTerm("");
         }
@@ -291,12 +336,12 @@ const Flight = () => {
 
     try {
       // Prepare segments for API
-      const segments = flights.map(flight => ({
+      const segments = flights.map((flight) => ({
         Origin: flight.from,
         Destination: flight.to,
         FlightCabinClass: cabinClassMap[travelClass],
         PreferredDepartureTime: `${flight.date}T00:00:00`,
-        PreferredArrivalTime: `${flight.date}T00:00:00`
+        PreferredArrivalTime: `${flight.date}T00:00:00`,
       }));
 
       const searchPayload = {
@@ -310,11 +355,11 @@ const Flight = () => {
         JourneyType: journeyTypeMap[tripType],
         PreferredAirlines: [],
         Segments: segments,
-        Sources: ["GDS"]
+        Sources: ["GDS"],
       };
 
       console.log("🔍 SEARCH PAYLOAD:", JSON.stringify(searchPayload, null, 2));
-      
+
       // API call
       const searchResponse = await Flight_search(searchPayload);
       console.log("📨 FULL API RESPONSE:", searchResponse);
@@ -325,7 +370,10 @@ const Flight = () => {
       // Multiple possible response formats handle karo
       if (searchResponse && searchResponse.data) {
         // Format 1: searchResponse.data.Response.Results
-        if (searchResponse.data.Response && searchResponse.data.Response.Results) {
+        if (
+          searchResponse.data.Response &&
+          searchResponse.data.Response.Results
+        ) {
           foundFlights = searchResponse.data.Response.Results.flat();
         }
         // Format 2: searchResponse.data.Results
@@ -337,7 +385,10 @@ const Flight = () => {
           foundFlights = searchResponse.data;
         }
         // Format 4: Nested data
-        else if (searchResponse.data.data && Array.isArray(searchResponse.data.data)) {
+        else if (
+          searchResponse.data.data &&
+          Array.isArray(searchResponse.data.data)
+        ) {
           foundFlights = searchResponse.data.data;
         }
       }
@@ -356,9 +407,10 @@ const Flight = () => {
         setSearchResults(foundFlights);
         setSearchError(null);
       } else {
-        setSearchError("No flights found. Please try different search criteria.");
+        setSearchError(
+          "No flights found. Please try different search criteria."
+        );
       }
-
     } catch (error) {
       console.error("💥 SEARCH ERROR:", error);
       setSearchError(error.message || "Failed to search flights");
@@ -378,7 +430,11 @@ const Flight = () => {
     if (!isoString) return "08:50";
     try {
       const date = new Date(isoString);
-      return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+      return date.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
     } catch (error) {
       return "08:50";
     }
@@ -396,9 +452,9 @@ const Flight = () => {
   const renderFlightResults = () => {
     console.log("🔍 renderFlightResults called with:", {
       searchLoading,
-      searchError, 
+      searchError,
       resultsCount: searchResults.length,
-      searchResults
+      searchResults,
     });
 
     if (searchLoading) {
@@ -435,12 +491,14 @@ const Flight = () => {
       // DIRECT DATA EXTRACTION - API ke structure ke hisab se
       const segments = flight.Segments || [];
       const fareInfo = flight.Fare || {};
-      
+
       // First segment data
       let segmentData = {};
       if (segments.length > 0) {
         const firstSegment = segments[0];
-        segmentData = Array.isArray(firstSegment) ? firstSegment[0] || {} : firstSegment || {};
+        segmentData = Array.isArray(firstSegment)
+          ? firstSegment[0] || {}
+          : firstSegment || {};
       }
 
       const airlineInfo = segmentData.Airline || {};
@@ -461,8 +519,10 @@ const Flight = () => {
           <Row className="align-items-center">
             {/* Airline Info */}
             <Col md={3} className="d-flex align-items-center">
-              <div className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center" 
-                   style={{ width: "50px", height: "50px" }}>
+              <div
+                className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center"
+                style={{ width: "50px", height: "50px" }}
+              >
                 <strong className="text-primary">
                   {airlineInfo.AirlineCode || "AI"}
                 </strong>
@@ -472,10 +532,16 @@ const Flight = () => {
                   {airlineInfo.AirlineName || "Air India"}
                 </h6>
                 <small className="text-muted">
-                  {airlineInfo.FlightNumber ? `Flight ${airlineInfo.FlightNumber}` : "Flight 2993"}
+                  {airlineInfo.FlightNumber
+                    ? `Flight ${airlineInfo.FlightNumber}`
+                    : "Flight 2993"}
                 </small>
                 <br />
-                <small className={flight.IsRefundable ? "text-success" : "text-danger"}>
+                <small
+                  className={
+                    flight.IsRefundable ? "text-success" : "text-danger"
+                  }
+                >
                   {flight.IsRefundable ? "🔄 Refundable" : "❌ Non-Refundable"}
                 </small>
               </div>
@@ -483,9 +549,7 @@ const Flight = () => {
 
             {/* Departure */}
             <Col md={2} className="text-center">
-              <h5 className="mb-0">
-                {formatTime(originInfo.DepTime)}
-              </h5>
+              <h5 className="mb-0">{formatTime(originInfo.DepTime)}</h5>
               <small className="text-muted">
                 {originAirport.AirportCode || "DEL"}
               </small>
@@ -511,9 +575,7 @@ const Flight = () => {
 
             {/* Arrival */}
             <Col md={2} className="text-center">
-              <h5 className="mb-0">
-                {formatTime(destinationInfo.ArrTime)}
-              </h5>
+              <h5 className="mb-0">{formatTime(destinationInfo.ArrTime)}</h5>
               <small className="text-muted">
                 {destinationAirport.AirportCode || "BOM"}
               </small>
@@ -542,6 +604,7 @@ const Flight = () => {
                 variant="primary"
                 size="sm"
                 className="mt-2 rounded-pill px-4"
+                onClick={() => onViewPrices(flight)} // ✅ Parent function call
               >
                 VIEW PRICES
               </Button>
@@ -553,9 +616,9 @@ const Flight = () => {
             <Col>
               <div className="bg-light p-2 rounded-2">
                 <small className="text-muted">
-                  <strong>Baggage:</strong> {segmentData.Baggage || "15 KG"} • 
-                  <strong> Cabin:</strong> {segmentData.CabinBaggage || "7 KG"} • 
-                  <strong> Class:</strong> {travelClass}
+                  <strong>Baggage:</strong> {segmentData.Baggage || "15 KG"} •
+                  <strong> Cabin:</strong> {segmentData.CabinBaggage || "7 KG"}{" "}
+                  •<strong> Class:</strong> {travelClass}
                 </small>
               </div>
             </Col>
@@ -566,7 +629,8 @@ const Flight = () => {
             <Col>
               <div className="bg-warning bg-opacity-25 p-2 rounded-2">
                 <small className="text-dark">
-                  🔴 EXCLUSIVE DEAL: Get FLAT ₹266 OFF using <b>TRYMMT</b> code for you
+                  🔴 EXCLUSIVE DEAL: Get FLAT ₹266 OFF using <b>TRYMMT</b> code
+                  for you
                 </small>
               </div>
             </Col>
@@ -575,10 +639,14 @@ const Flight = () => {
           {/* Additional Info */}
           <Row className="mt-2">
             <Col className="text-end">
-              <a href="#" className="text-primary" onClick={(e) => {
-                e.preventDefault();
-                console.log("Flight details:", flight);
-              }}>
+              <a
+                href="#"
+                className="text-primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("Flight details:", flight);
+                }}
+              >
                 View Flight Details
               </a>
             </Col>
@@ -595,7 +663,7 @@ const Flight = () => {
         <div className="search-box rounded shadow-sm flight-form">
           <div className="container">
             {error && <Alert variant="warning">{error}</Alert>}
-            
+
             {/* Loading State */}
             {loading && (
               <div className="text-center py-3">
@@ -603,155 +671,186 @@ const Flight = () => {
                 <span>Initializing application...</span>
               </div>
             )}
-            
-            <div className="d-flex gap-3 mb-3">
-              <Form.Check
-                type="radio"
-                label="One Way"
-                name="tripType"
-                checked={tripType === "oneway"}
-                onChange={() => setTripType("oneway")}
-              />
-              <Form.Check
-                type="radio"
-                label="Round Trip"
-                name="tripType"
-                checked={tripType === "round"}
-                onChange={() => setTripType("round")}
-              />
-              <Form.Check
-                type="radio"
-                label="Multi City"
-                name="tripType"
-                checked={tripType === "multi"}
-                onChange={() => setTripType("multi")}
-              />
-            </div>
+            {/* One Row Flight Search Bar */}
+            <Row className="align-items-end g-2 mb-3 travellers">
+              {/* Trip Type */}
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold small">
+                    Trip Type
+                  </Form.Label>
+                  <Form.Select
+                    value={tripType}
+                    onChange={(e) => setTripType(e.target.value)}
+                    className="form-control"
+                  >
+                    <option value="oneway">One Way</option>
+                    <option value="round">Round Trip</option>
+                    <option value="multi">Multi City</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
 
-            {/* Flight Segments */}
-            {flights.map((flight, index) => (
-              <Row className="align-items-end mb-3" key={index}>
-                <Col md={3}>
+              {/* From */}
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold small">From</Form.Label>
+                  <AirportDropdown
+                    value={flights[0].from}
+                    onChange={(value) => handleFromChange(0, value)}
+                    placeholder="From City"
+                    type="from"
+                  />
+                </Form.Group>
+              </Col>
+
+              {/* To */}
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold small">To</Form.Label>
+                  <AirportDropdown
+                    value={flights[0].to}
+                    onChange={(value) => handleToChange(0, value)}
+                    placeholder="To City"
+                    type="to"
+                  />
+                </Form.Group>
+              </Col>
+
+              {/* Departure Date */}
+           <Col md={2}>
+  <Form.Group>
+    <Form.Label className="fw-semibold small">Depart</Form.Label>
+    <DatePicker
+      selected={
+        flights[0]?.date
+          ? new Date(flights[0].date)
+          : new Date() // default: current date
+      }
+      onChange={(date) => {
+        const newFlights = [...flights];
+        newFlights[0].date = date.toISOString().split("T")[0];
+        setFlights(newFlights);
+      }}
+      minDate={new Date()} // can't pick past dates
+      dateFormat="EEE, MMM d, yyyy"
+      className="form-control"
+    />
+  </Form.Group>
+</Col>
+
+
+              {/* Return Date (Only for Round Trip) */}
+              {tripType === "round" && (
+                <Col md={2}>
                   <Form.Group>
-                    <Form.Label>From</Form.Label>
-                    <AirportDropdown
-                      value={flight.from}
-                      onChange={(value) => handleFromChange(index, value)}
-                      placeholder="From City"
-                      type="from"
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group>
-                    <Form.Label>To</Form.Label>
-                    <AirportDropdown
-                      value={flight.to}
-                      onChange={(value) => handleToChange(index, value)}
-                      placeholder="To City"
-                      type="to"
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={3}>
-                  <Form.Group>
-                    <Form.Label>Departure</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={flight.date}
-                      onChange={(e) => {
+                    <Form.Label className="fw-semibold small">
+                      Return
+                    </Form.Label>
+                    <DatePicker
+                      selected={
+                        flights[0].returnDate
+                          ? new Date(flights[0].returnDate)
+                          : flights[0].date
+                          ? new Date(flights[0].date)
+                          : new Date()
+                      }
+                      onChange={(date) => {
                         const newFlights = [...flights];
-                        newFlights[index].date = e.target.value;
+                        newFlights[0].returnDate = date
+                          .toISOString()
+                          .split("T")[0];
                         setFlights(newFlights);
                       }}
-                      min={new Date().toISOString().split('T')[0]}
+                      minDate={
+                        flights[0].date ? new Date(flights[0].date) : new Date()
+                      }
+                      dateFormat="EEE, MMM d, yyyy"
+                      className="form-control"
+                      placeholderText="Select Return"
                     />
                   </Form.Group>
                 </Col>
+              )}
 
-                <Col md={3}>
-                  {index === flights.length - 1 ? (
-                    <Button className="explore-btn" onClick={addCity}>
-                      + Add Another City
-                    </Button>
-                  ) : (
-                    <Button
-                      className="explore-btn"
-                      variant="outline-danger"
-                      onClick={() => removeCity(index)}
-                      disabled={flights.length === 1}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </Col>
-              </Row>
-            ))}
+              {/* Travellers */}
+            <Col md={2}>
+  <Form.Group>
+    <Form.Label className="fw-semibold small">
+      Passengers & Class
+    </Form.Label>
+    <Dropdown className="AddClass" style={{ width: "100%"}}>
+      <Dropdown.Toggle
+        id="travellers-dropdown"
+        variant="light"
+        className="AddClass-toggle"
+        style={{
+          width: "100%",
+          padding: "8px 12px",
+          textAlign: "left",
+          backgroundColor: "transparent",
+        }}
+      >
+        {adults} Adult{adults > 1 ? "s" : ""},{" "}
+        {travelClass || "Economy"}
+      </Dropdown.Toggle>
 
-            {/* Travellers & Class */}
-            <Row className="g-3">
-              <Col md={3}>
-                <Dropdown style={{ width: "100%" }}>
-                  <Dropdown.Toggle
-                    id="travellers-dropdown"
-                    variant="light"
-                    style={{ width: "100%", padding: "10px 16px" }}
-                  >
-                    Travellers: {adults + children + infants}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ minWidth: "100%" }}>
-                    <Row className="p-2">
-                      <Col xs={12}>
-                        <Form.Label>Adults (12y+)</Form.Label>
-                        {renderButtons(adults, setAdults, 9)}
-                      </Col>
-                      <Col xs={12}>
-                        <Form.Label>Children (2y-12y)</Form.Label>
-                        {renderButtons(children, setChildren, 6)}
-                      </Col>
-                      <Col xs={12}>
-                        <Form.Label>Infants (below 2y)</Form.Label>
-                        {renderButtons(infants, setInfants, 6)}
-                      </Col>
-                    </Row>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </Col>
+      <Dropdown.Menu
+        className="AddClass-menu"
+        style={{ minWidth: "100%" }}
+      >
+        <Row className="p-2">
+          <Col xs={12}>
+            <Form.Label>Adults (12y+)</Form.Label>
+            {renderButtons(adults, setAdults, 9)}
+          </Col>
+          <Col xs={12}>
+            <Form.Label>Children (2y-12y)</Form.Label>
+            {renderButtons(children, setChildren, 6)}
+          </Col>
+          <Col xs={12}>
+            <Form.Label>Infants (below 2y)</Form.Label>
+            {renderButtons(infants, setInfants, 6)}
+          </Col>
 
-              <Col md={3}>
-                <Dropdown style={{ width: "100%" }}>
-                  <Dropdown.Toggle
-                    id="class-dropdown"
-                    variant="light"
-                    style={{ width: "100%", padding: "10px 16px" }}
-                  >
-                    Class: {travelClass}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ minWidth: "100%" }}>
-                    <Dropdown.Item onClick={() => setTravelClass("Economy")}>
-                      Economy
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setTravelClass("Premium Economy")}>
-                      Premium Economy
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setTravelClass("Business")}>
-                      Business
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setTravelClass("First Class")}>
-                      First Class
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </Col>
-
-              <Col md={3}>
+          {/* ✨ Added Flight Class Selection */}
+          <Col xs={12} className="mt-3">
+            <Form.Label>Travel Class</Form.Label>
+            <div className="d-flex flex-wrap gap-2">
+              {["Economy", "Premium", "Business"].map((cls) => (
                 <Button
-                  className="explore-btn"
+                  key={cls}
+                  variant={
+                    travelClass === cls ? "primary" : "outline-secondary"
+                  }
+                  size="sm"
+                  className="rounded-pill"
+                  onClick={() => setTravelClass(cls)}
+                >
+                  {cls}
+                </Button>
+              ))}
+            </div>
+          </Col>
+        </Row>
+      </Dropdown.Menu>
+    </Dropdown>
+  </Form.Group>
+</Col>
+
+
+
+              {/* Search Button */}
+              <Col md={2}>
+                <Button
+                  className="explore-btn w-100"
                   style={{
-                    width: "100%",
                     padding: "10px 16px",
                     fontSize: "16px",
-                    backgroundColor: "#274a62",
+                    background: "linear-gradient(90deg, #2b87da, #1e63b5)",
+                    border: "none",
+                    borderRadius: "30px",
+                    color: "white",
                   }}
                   onClick={searchFlights}
                   disabled={searchLoading || !token || loading}
@@ -762,11 +861,107 @@ const Flight = () => {
                       Searching...
                     </>
                   ) : (
-                    "Search Flights"
+                    "Search"
                   )}
                 </Button>
               </Col>
             </Row>
+
+            {/* Multi City Repeater Section */}
+            {tripType === "multi" &&
+              flights.map((flight, index) => (
+                <Row
+                  key={index}
+                  className="align-items-end g-2 mb-3 travellers"
+                >
+                  {/* From */}
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">
+                        From
+                      </Form.Label>
+                      <AirportDropdown
+                        value={flight.from}
+                        onChange={(value) => handleFromChange(index, value)}
+                        placeholder="From City"
+                        type="from"
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  {/* To */}
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">To</Form.Label>
+                      <AirportDropdown
+                        value={flight.to}
+                        onChange={(value) => handleToChange(index, value)}
+                        placeholder="To City"
+                        type="to"
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  {/* Departure Date */}
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">
+                        Depart
+                      </Form.Label>
+                      <DatePicker
+                        selected={
+                          flight.date ? new Date(flight.date) : new Date()
+                        }
+                        onChange={(date) => {
+                          const newFlights = [...flights];
+                          newFlights[index].date = date
+                            .toISOString()
+                            .split("T")[0];
+                          setFlights(newFlights);
+                        }}
+                        minDate={new Date()}
+                        dateFormat="EEE, MMM d, yyyy"
+                        className="form-control"
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  {/* Add / Remove City Buttons */}
+                  <Col md={2} className="d-flex gap-2">
+                    {index === flights.length - 1 ? (
+                      <Button
+                        variant="outline-primary"
+                        className="rounded-pill"
+                        onClick={() =>
+                          setFlights([
+                            ...flights,
+                            {
+                              from: "",
+                              to: "",
+                              date: new Date().toISOString().split("T")[0],
+                            },
+                          ])
+                        }
+                      >
+                        + Add City
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline-danger"
+                        className="rounded-pill,"
+                        onClick={() => {
+                          const newFlights = flights.filter(
+                            (_, i) => i !== index
+                          );
+                          setFlights(newFlights);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </Col>
+                </Row>
+              ))}
           </div>
         </div>
       </div>
@@ -777,7 +972,7 @@ const Flight = () => {
           <Col sm={3}>
             <div className="filter-box p-3 border rounded shadow-sm">
               <h5 className="mb-3 fw-bold">FILTER</h5>
-              
+
               {/* Show Properties With */}
               <div className="filter-group mb-3">
                 <div
@@ -1015,11 +1210,16 @@ const Flight = () => {
           </Col>
 
           {/* Flight Results Section */}
-          <Col sm={9}>
-            {renderFlightResults()}
-          </Col>
+          <Col sm={9}>{renderFlightResults()}</Col>
         </Row>
       </div>
+      {/* Flight Detail Modal */}
+      <FlightDetail
+  flightData={selectedFlight}
+  travelClass={travelClass}
+  showModal={showModal}
+  onHide={handleCloseModal}
+/>
     </div>
   );
 };

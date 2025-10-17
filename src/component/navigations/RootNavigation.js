@@ -32,7 +32,8 @@ import Cancellation from "../common/policy/Cancelation";
 import About from "../common/policy/About";
 import HotelCheckout from "../hotels/Hotelcheckout";
 import FlightDetail from "../flights/Flghitdetail";
-
+import Flightcheckout from "../flights/Flightcheckout";
+import Guidedetail from '../guides/Guidedetail';
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -76,8 +77,11 @@ function RootNavigation() {
         <Route path="cancelation" element={< Cancellation/>} />
         <Route path="about" element={< About/>} />
         <Route path="hotel-checkout" element={< HotelCheckout/>} />
-        <Route path="/flight-detail" element={<FlightDetail />} />
-       
+        <Route path="/flight-detail" element={<FlightDetail/>} />
+        <Route path="/flight-checkout" element={<Flightcheckout/>} />
+
+         <Route path="/guide/:guideId" element={<Guidedetail />} />
+
         <Route
           path="/user-dashboard"
           element={

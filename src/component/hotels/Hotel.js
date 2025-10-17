@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { getCityList } from "../services/hotelService"; // API functions
 import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 function Hotel() {
   const navigate = useNavigate();
 
@@ -95,56 +97,60 @@ function Hotel() {
       <div className="container search-box rounded shadow-sm">
         <div className="row g-3 align-items-end">
           {/* City */}
-          <div className="col-md-2">
-            <label className="form-label">City</label>
-            <select
-              className="form-control"
-              value={selectedCity}
-              onChange={(e) => {
-                const cityCode = e.target.value;
-                setSelectedCity(cityCode);
+         <div className="col-md-2">
+  <label className="form-label">City</label>
+  <select
+    className="form-control"
+    value={selectedCity}
+    onChange={(e) => {
+      const cityCode = e.target.value;
+      setSelectedCity(cityCode);
 
-                const cityObj = cityList.find(
-                  (c) =>
-                    (c.CityCode?.toString() || c.Code?.toString()) ===
-                    cityCode.toString()
-                );
-                const cityName =
-                  cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
-                setSelectedCityName(cityName);
-              }}
-              disabled={loading}
-            >
-              <option value="">-- Select City --</option>
-              {cityList.map((city, idx) => (
-                <option key={idx} value={city.CityCode || city.Code}>
-                  {city.CityName || city.Name || city.City}
-                </option>
-              ))}
-            </select>
-          </div>
+      const cityObj = cityList.find(
+        (c) =>
+          (c.CityCode?.toString() || c.Code?.toString()) ===
+          cityCode.toString()
+      );
+      const cityName =
+        cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
+      setSelectedCityName(cityName);
+    }}
+    disabled={loading}
+  >
+    <option value="">-- Select City --</option>
+    {cityList.map((city, idx) => (
+      <option key={idx} value={city.CityCode || city.Code}>
+        {city.CityName || city.Name || city.City}
+      </option>
+    ))}
+  </select>
+</div>
 
-          {/* Check-in */}
-          <div className="col-md-2">
-            <label className="form-label">Check-In</label>
-            <input
-              type="date"
-              className="form-control"
-              value={checkIn}
-              onChange={(e) => setCheckIn(e.target.value)}
-            />
-          </div>
+{/* ✅ Check-in (Now using DatePicker, same look & logic) */}
+<div className="col-md-2">
+  <label className="form-label">Check-In</label>
+  <DatePicker
+    selected={checkIn ? new Date(checkIn) : null}
+    onChange={(date) => setCheckIn(date.toISOString().split("T")[0])}
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={new Date()}          // optional: block past dates
+    placeholderText="Select Check-In"
+  />
+</div>
 
           {/* Check-out */}
-          <div className="col-md-2">
-            <label className="form-label">Check-Out</label>
-            <input
-              type="date"
-              className="form-control"
-              value={checkOut}
-              onChange={(e) => setCheckOut(e.target.value)}
-            />
-          </div>
+         <div className="col-md-2">
+  <label className="form-label">Check-Out</label>
+  <DatePicker
+    selected={checkOut ? new Date(checkOut) : null}
+    onChange={(date) => setCheckOut(date.toISOString().split("T")[0])}
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={checkIn ? new Date(checkIn) : new Date()}  // ✅ Prevent earlier dates
+    placeholderText="Select Check-Out"
+  />
+</div>
 
           {/* Rooms/Guests */}
           <div className="col-md-4 position-relative">
