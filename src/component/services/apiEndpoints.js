@@ -1,8 +1,10 @@
-// export const BASE_URL = "https://260f505254c1.ngrok-free.app";
-export const BASE_URL = "http://192.168.1.13:2625";
-// export const BASE_URL = "http://localhost:2625";
+// export const BASE_URL = "https://fdc7b4f21736.ngrok-free.app";
 
+// export const BASE_URL = "https://32978cdd37a2.ngrok-free.app";
 // export const BASE_URL = "http://node.millclient.com:3001";
+// http://192.168.0.10:2625/
+// export const BASE_URL = "http://192.168.1.10:2625";
+export const BASE_URL = "http://localhost:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -53,6 +55,12 @@ export const API = {
   HOTEL_SEARCH: `${BASE_URL}/api/search-hotels`,
   CITY_LIST_FILTER: `${BASE_URL}/api/filter/citylist`,
   HOTEL_BY_CATEGORY: `${BASE_URL}/api/getHotelCityByCategory`,
+  HOTEL_CANCEL: `${BASE_URL}/api/hotel/cancel`,
+
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
+  Flight_authenticate: `${BASE_URL}/flight/authenticate`,
+  flight_search: `${BASE_URL}/flight/search-flights`,
+  Flight_farerule: `${BASE_URL}/flight/fare-rules`,
+  Flight_farequote: `${BASE_URL}/flight/fare-quote`,
 };

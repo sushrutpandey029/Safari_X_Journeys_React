@@ -31,6 +31,9 @@ import Flight from "../flights/Flight";
 import Cancellation from "../common/policy/Cancelation";
 import About from "../common/policy/About";
 import HotelCheckout from "../hotels/Hotelcheckout";
+import FlightDetail from "../flights/Flghitdetail";
+import Flightcheckout from "../flights/Flightcheckout";
+import Guidedetail from '../guides/Guidedetail';
 import BookingView from "../home/user-dashboard-pages/BookingView";
 
 function RootNavigation() {
@@ -73,10 +76,15 @@ function RootNavigation() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
         <Route path="/flight" element={<Flight />} />
-        <Route path="cancelation" element={<Cancellation />} />
-        <Route path="about" element={<About />} />
-        <Route path="hotel-checkout" element={<HotelCheckout />} />
-        <Route path="view-booking" element={<BookingView />} />
+        <Route path="cancelation" element={< Cancellation/>} />
+        <Route path="about" element={< About/>} />
+        <Route path="hotel-checkout" element={< HotelCheckout/>} />
+        <Route path="/flight-detail" element={<FlightDetail/>} />
+        <Route path="/flight-checkout" element={<Flightcheckout/>} />
+        <Route path="/view-booking" element={<BookingView/>} />
+
+         <Route path="/guide/:guideId" element={<Guidedetail />} />
+
         <Route
           path="/user-dashboard"
           element={

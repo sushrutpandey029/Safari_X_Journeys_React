@@ -89,3 +89,12 @@ export const fetchHotelByCategory = async () => {
     throw err;
   }
 };
+
+export const hotelCancel = async () => {
+  try {
+    const resp = await axios.post(API.HOTEL_CANCEL);
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};

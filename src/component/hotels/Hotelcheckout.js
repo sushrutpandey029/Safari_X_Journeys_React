@@ -410,7 +410,6 @@ const HotelCheckout = () => {
     e.preventDefault();
 
     const userdetails = await getUserData("safarix_user");
-    // Split guest name safely
     const nameParts = guestName.trim().split(" ");
     const firstName = nameParts[0] || "";
     const lastNamePart = lastName || nameParts.slice(1).join(" ") || "";

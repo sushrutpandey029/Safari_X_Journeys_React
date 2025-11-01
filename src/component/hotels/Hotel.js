@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { getCityList } from "../services/hotelService"; // API functions
 import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 function Hotel() {
   const navigate = useNavigate();
 

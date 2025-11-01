@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./HotelBooking.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronUp,
@@ -431,27 +433,31 @@ function HotelBooking() {
               </select>
             </div>
 
-            {/* Check-in */}
-            <div className="col-md-2">
-              <label className="form-label">Check-In</label>
-              <input
-                type="date"
-                className="form-control"
-                value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
-              />
-            </div>
 
-            {/* Check-out */}
-            <div className="col-md-2">
-              <label className="form-label">Check-Out</label>
-              <input
-                type="date"
-                className="form-control"
-                value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
-              />
-            </div>
+          <div className="col-md-2">
+  <label className="form-label">Check-In</label>
+  <DatePicker
+    selected={checkIn ? new Date(checkIn) : null}
+    onChange={(date) => setCheckIn(date.toISOString().split("T")[0])}
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={new Date()} // optional: disable past dates
+    placeholderText="Select Check-In"
+  />
+</div>
+
+{/* Check-Out */}
+<div className="col-md-2">
+  <label className="form-label">Check-Out</label>
+  <DatePicker
+    selected={checkOut ? new Date(checkOut) : null}
+    onChange={(date) => setCheckOut(date.toISOString().split("T")[0])}
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={checkIn ? new Date(checkIn) : new Date()} // optional: checkout after check-in
+    placeholderText="Select Check-Out"
+  />
+</div>
 
             {/* Rooms Dropdown */}
             <div className="col-md-4 position-relative">
