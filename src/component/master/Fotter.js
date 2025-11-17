@@ -179,22 +179,31 @@ function Footer() {
               </div>
 
               <h5 className="mt-5">Payment Methods</h5>
-              <div className="d-flex gap-2 flex-wrap">
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                {/* Chatbot Icon */}
-                {/* <div
-                  className="chatbot-icon d-flex justify-content-center align-items-center"
-                  onClick={toggleChat}
-                >
-                  <i className="bi bi-globe-americas"></i>
-                </div> */}
-                {/* Chat Popup */}
-                {showChat && <BotModal toggleChat={toggleChat} />}
-              </div>
+             <div className="d-flex gap-2 flex-wrap">
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/paymen.png" alt="UPI" className="payment-icon" />
+  </div>
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/payments/visa.png" alt="Visa" className="payment-icon" />
+  </div>
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/payments/mastercard.png" alt="MasterCard" className="payment-icon" />
+  </div>
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/payments/rupay.png" alt="RuPay" className="payment-icon" />
+  </div>
+  
+  {/* Chatbot Icon */}
+  {/* <div
+    className="chatbot-icon d-flex justify-content-center align-items-center"
+    onClick={toggleChat}
+  >
+    <i className="bi bi-globe-americas"></i>
+  </div> */}
+
+  {/* Chat Popup */}
+  {showChat && <BotModal toggleChat={toggleChat} />}
+</div>
             </div>
           </div>
 
@@ -202,14 +211,21 @@ function Footer() {
 
           <div className="footer-bottom mt-4 border-top pt-3">
   <p className="mb-2">&copy; 2025. All Rights Reserved</p>
-  <div className="d-flex justify-content-center gap-3 mt-0">
-    <a href="/terms-conditions" className="text-decoration-none text-dark">
-      Terms & Condition
-    </a>
-    <a href="/privacy-policy" className="text-decoration-none text-dark">
-      Privacy Policy
-    </a>
-  </div>
+ <div className="d-flex justify-content-center align-items-center gap-2 mt-0 text-light">
+  <a href="/terms-conditions" className="text-decoration-none text-light">
+    Terms & Condition
+  </a>
+  <span className="mx-2">|</span>
+  <a href="/privacy-policy" className="text-decoration-none text-light">
+    Privacy Policy
+  </a>
+  <span className="mx-2">|</span>
+  <a href="/cancelation" className="text-decoration-none text-light">
+    Cancellation
+  </a>
+</div>
+
+
 </div>
         </div>
       </footer>
@@ -221,28 +237,3 @@ export default Footer;
 
 
 
-// const searchResp = await searchHotels({
-//           CheckIn: bookingData.checkIn,
-//           CheckOut: bookingData.checkOut,
-//           HotelCodes: [hotelCode], // dynamic hotelCode
-//           GuestNationality: bookingData.guestNationality,
-//           NoOfRooms: 1,
-//           PaxRooms: [
-//             {
-//               Adults: 2,
-//               Children: 1,
-//               ChildrenAges: [7],
-//             },
-//           ],
-//           // PaxRooms: bookingData?.paxRooms?.map((p) => ({
-//           //   Adults: p.Adults,
-//           //   Children: p.Children,
-//           //   ChildrenAges: p.ChildrenAges,
-//           // })),
-//           ResponseTime: bookingData.responseTime,
-//           IsDetailedResponse: bookingData.isDetailedResponse,
-//           Filters: {
-//             Refundable: bookingData.isRefundable,
-//             MealType: bookingData.mealType, // All | WithMeal | RoomOnly
-//           },
-//         });

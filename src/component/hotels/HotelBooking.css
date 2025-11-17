@@ -25,21 +25,12 @@
   }
   
 
-.search-box {
-    border-radius: 10px;
-    background: #0171eb17;
-    padding: 30px;
-}
 
-.form-control,
-.btn,
-.form-select {
-    border-radius: 8px;
-    height: 50px;
-}
+
 
 .search-section {
     margin-top: 30px;
+    background-color: hsl(50 33% 25% / 0.75);
 }
 
 .modify-btn {
@@ -115,7 +106,8 @@
 }
 
 .filter-title span {
-    font-size: 18px;
+    font-size: 15px;
+    color: #12669b;
 }
 
 .filter-title svg {
@@ -254,9 +246,9 @@
 
 .hotel-main-img {
   width: 100%;
-  height: 300px;
   object-fit: cover;
   cursor: pointer;
+  height: 400px;
 }
 
 .hotel-sub-imgs {
@@ -310,4 +302,143 @@
 
 .zoom-image {
   animation: zoomInOut 2s infinite;
+}
+
+
+/************ banner*************/
+
+.tab-section {
+  padding: 20px 0;
+  border-radius: 0px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, 
+              rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+
+  background: linear-gradient(
+                rgba(0, 0, 0, 0.6),   /* top black overlay */
+                rgba(0, 0, 0, 0.2)    /* bottom black overlay */
+              ),
+              url('/public/images/hotel-booking.jpg') 
+              no-repeat center center / cover;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 600px;  
+}
+
+  
+  .search-box {
+    background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
+    padding: 40px;
+
+    .explore-btn{padding: 10px 15px;}
+  }
+  
+
+
+  .hotel-listing{
+    .card-body {
+        padding-bottom: 30px;
+        position: relative;
+    }
+    .hotel-place{color: #498ab5;}
+    .hotel-name{        color: #c7681f;
+        margin-bottom: 18px;}
+        .text-muted{padding-bottom: 30px;}
+    .btn-primary{        background: #10669b;;
+        font-size: 12px;
+        padding: 0px 23px;
+        transition: 0.5s;
+        position: absolute;
+        bottom: 12px;
+        right: 4px;}
+        .rating{         position: absolute;
+        right: 7px;
+        top:0px;
+        }
+
+            /* Pagination Custom Style */
+.pagination {
+    margin-top: 20px;
+  }
+  
+  .pagination .page-item .page-link {
+    color: #4788b9; /* primary color */
+    border-radius: 8px;
+    padding: 8px 14px;
+    border: none;
+    margin: 0 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .pagination .page-item .page-link:hover {
+    background-color: #4788b9;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #4788b9;
+    border-color: #4788b9;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .pagination .page-item.disabled .page-link {
+    color: #aaa;
+    background-color: #f8f9fa;
+    border: none;
+    pointer-events: none;
+  }
+  
+  }
+
+  .hotel-detail-page{margin-top: 108px;     background: linear-gradient(135deg, rgb(241 229 229 / 90%), /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */) !important;
+    padding: 40px;}
+
+    .room-detail{padding: 70px 0px;
+      .card-header.bg-gradient {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        background-color: #4788b9;
+      }
+      .table thead th {
+        font-weight: 600;
+      }
+      .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: 0.2s ease;
+      }
+      .book-btn {
+        background: linear-gradient(135deg, #568fbe, #00b37a);
+        color: #fff;
+        border: none;
+        transition: 0.2s ease;
+        border-radius: 20px;
+        padding: 3px 16px;
+        font-weight: 500;
+      }
+      .book-btn:hover {
+        background: linear-gradient(135deg, #0056b3, #004494);
+        transform: translateY(-2px);
+      }
+    
+    }
+
+
+    .right-details {    
+      h4{        color: #4788b9;
+        font-size: 20px;
+}
+    .small{color: #807777;
+      font-size: 1rem;}
+    .p-tag{font-size: 15px;}
+    .btn-link {color: #c7681f;}
+  
+    }
+.aminities{}
+
+.room-pricing-table{
+  scroll-margin-top:150px;
 }

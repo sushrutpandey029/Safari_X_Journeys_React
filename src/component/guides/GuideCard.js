@@ -28,9 +28,9 @@ function GuideCard({ guide }) {
           <p>
             <span class="label">Rating:</span> <span class="stars">★★★★</span>
           </p>
-          <p>
+          {/* <p>
             <span className="label">Experience:</span> {experienceYears} years
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

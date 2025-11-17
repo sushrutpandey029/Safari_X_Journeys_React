@@ -238,7 +238,7 @@ const GuideCareers = () => {
   };
 
   return (
-    <div className="guide-careers-form">
+    <div className="guide-careers-form" style={{marginTop: "100px"}}>
       <h2 class="career-heading">Guide Career Application</h2>
       <form onSubmit={handleSubmit}>
         {/* Personal Information Section */}
@@ -849,37 +849,41 @@ const GuideCareers = () => {
           <h3>Availability & Preferences</h3>
           <div className="row">
             <div className="col-sm-12">
-              <div className="form-group">
-                <label>Available Days</label>
-                <div className="checkbox-group">
-                  {weekDays.map((day, index) => (
-                    <div key={index} className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        id={`day-${index}`}
-                        checked={formData.availability.days.includes(day)}
-                        onChange={(e) => {
-                          let updatedDays = [...formData.availability.days];
-                          if (e.target.checked) {
-                            updatedDays.push(day);
-                          } else {
-                            updatedDays = updatedDays.filter((d) => d !== day);
-                          }
-                          setFormData({
-                            ...formData,
-                            availability: {
-                              ...formData.availability,
-                              days: updatedDays,
-                            },
-                          });
-                        }}
-                      />
-                      <label htmlFor={`day-${index}`}>{day}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+  <div className="form-group">
+    <label>Available Days</label>
+    <div className="checkbox-group d-flex flex-wrap gap-3">
+      {weekDays.map((day, index) => (
+        <div key={index} className="form-check">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id={`day-${index}`}
+            checked={formData.availability.days.includes(day)}
+            onChange={(e) => {
+              let updatedDays = [...formData.availability.days];
+              if (e.target.checked) {
+                updatedDays.push(day);
+              } else {
+                updatedDays = updatedDays.filter((d) => d !== day);
+              }
+              setFormData({
+                ...formData,
+                availability: {
+                  ...formData.availability,
+                  days: updatedDays,
+                },
+              });
+            }}
+          />
+          <label className="form-check-label" htmlFor={`day-${index}`}>
+            {day}
+          </label>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
 
             <div className="row">
               <div className="col-sm-6">
@@ -1038,7 +1042,6 @@ const GuideCareers = () => {
                 >
                   <option value="">Select ID type</option>
                   <option value="Aadhar Card">Aadhar Card</option>
-                  <option value="Driver's License">Driver's License</option>
                   <option value="PAN Card">PAN Card</option>
                 </select>
               </div>

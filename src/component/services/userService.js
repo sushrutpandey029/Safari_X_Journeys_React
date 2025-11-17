@@ -35,3 +35,13 @@ export const userUpdateProfile = async (payload) => {
     throw error;
   }
 };
+
+export const userBookingDetails = async (id) => {
+  console.log("id in bookin details", id);
+  try {
+    const resp = await axios.get(API.USER_BOOKING_DETAILS(id));
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};

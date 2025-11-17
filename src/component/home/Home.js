@@ -17,18 +17,41 @@ import NewsLater from "../common/NewsLater";
 import ScrollToTop from "../common/ScrollToTop";
 import FAQ from "../common/faq/FAQ";
 import HotelPopularDestination from "../hotels/HotelPopularDestination";
+import FlightPreview from "../flights/Flightpreview";
+
+import SearchBox from "../flights/Searchbox";
 
 const imageList = [
-  { id: 1, src: "/Images/place.jpg", title: "Mountains", path: "/mountains" },
-  { id: 1, src: "/Images/place.jpg", title: "Honeymoon", path: "/honeymoon" },
-  { id: 1, src: "/Images/place.jpg", title: "North-East", path: "/north-east" },
   {
     id: 1,
-    src: "/Images/place.jpg",
-    title: "South-India",
-    path: "/south-india",
+    src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+    title: "Mountains",
+    path: "/mountains",
   },
-  { id: 1, src: "/Images/place.jpg", title: "West-India", path: "/west-india" },
+  {
+    id: 2,
+    src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+    title: "Beaches",
+    path: "/beaches",
+  },
+  {
+    id: 3,
+    src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
+    title: "Desert Safari",
+    path: "/desert",
+  },
+  {
+    id: 4,
+    src: "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
+    title: "Honeymoon",
+    path: "/honeymoon",
+  },
+  {
+    id: 5,
+    src: "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
+    title: "Hill Stations",
+    path: "/hills",
+  },
 ];
 
 const destinations = [
@@ -112,149 +135,35 @@ function Home() {
       <ScrollToTop />
       <HomeBanner />
 
-      <div className="tab-section">
+      <div className="top-destination">
         <div className="container">
-          {/* Tabs Navigation */}
-          <ul className="nav nav-tabs border-0" id="myTab" role="tablist">
-            <li className="nav-item" role="presentation">
-              <button
-                className="nav-link active"
-                id="flight-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#flight"
-                type="button"
-                role="tab"
-                aria-controls="flight"
-                aria-selected="true"
-              >
-                Flight Booking <i class="bi bi-airplane"></i>
-              </button>
-            </li>
-            <Link to={"/hotel"} style={{ textDecoration: "none" }}>
-              <li className="nav-item" role="presentation">
-                <button
-                  className="nav-link"
-                  id="hotel-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#hotel"
-                  type="button"
-                  role="tab"
-                  aria-controls="hotel"
-                  aria-selected="false"
-                >
-                  Hotel Booking <i class="bi bi-building"></i>
-                </button>
-              </li>
-            </Link>
-
-            <li className="nav-item" role="presentation">
-              <button
-                className="nav-link"
-                id="cab-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#cab"
-                type="button"
-                role="tab"
-                aria-controls="cab"
-                aria-selected="false"
-              >
-                Cab Booking <i class="bi bi-taxi-front"></i>
-              </button>
-            </li>
-            <Link to={"/guides"} style={{ textDecoration: "none" }}>
-              <li className="nav-item" role="presentation">
-                <button
-                  className="nav-link"
-                  id="guide-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#guide"
-                  type="button"
-                  role="tab"
-                  aria-controls="guide"
-                  aria-selected="false"
-                >
-                  Guide Booking <i class="bi bi-person-badge"></i>
-                </button>
-              </li>
-            </Link>
-          </ul>
-        </div>
-      </div>
-
-      <div className="container mt-5">
-        <div className="row">
-          {imageList &&
-            imageList.map((img) => (
-              <div className="col mb-5" key={img.id}>
-                <div className="place">
-                  <Link to={img.path} className="custom-link">
-                    <img src={img.src} alt={img.title} />
-                    <p className="card-destination">{img.title}</p>
-                  </Link>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      <div className="trending-destination">
-        <div className="container">
-          <div className="row">
-            <div className="col-sm-9">
-              <h2>
-                Top Trending <span>Destinations</span>
-              </h2>
-              <p className="perra">
-                Explore The Hottest Travel Spots Around The Globe.
-              </p>
-            </div>
-            <div className="col-sm-3 text-end">
-              <Link to={"/places"}>
-                <button className="explore-btn">Explore More</button>
-              </Link>
-            </div>
-          </div>
-          <div className="row">
-            {destinations &&
-              destinations.map(function (dest, index) {
-                return (
-                  <div className="col-md-3" key={index}>
-                    <div className="destination-card">
-                      <img
-                        src={dest.image}
-                        alt={dest.name}
-                        className="img-fluid rounded"
-                      />
-                      <div className="p-2">
-                        <h5 className="mt-3">{dest.name}</h5>
-                        <p className="text-muted small">
-                          GUIDED TOUR / 2 HOURS
-                        </p>
-                        <div className="row">
-                          <div className="col-sm-6 col-6">
-                            <p>Starting From</p>
-                          </div>
-                          <div className="col-sm-6 col-6 text-end">
-                            <span className="text-muted text-decoration-line-through">
-                              ₹42,000
-                            </span>{" "}
-                            <span className="text-primary">₹8,000</span>
-                          </div>
-                        </div>
+          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
+            {imageList &&
+              imageList.map((img) => (
+                <div className="col" key={img.id}>
+                  <div className="place">
+                    <Link to={img.path} className="custom-link">
+                      <img src={img.src} alt={img.title} />
+                      <div className="overlay">
+                        <p className="card-destination">{img.title}</p>
                       </div>
-                    </div>
+                    </Link>
                   </div>
-                );
-              })}
+                </div>
+              ))}
           </div>
         </div>
       </div>
+
+      <HotelPopularDestination />
 
       {/* guide section */}
       <GuidePreview />
 
       {/* cab section */}
       <CabPreview />
+
+     
 
       {/* <div className="book-hotel ">
         <div className="container">
@@ -296,7 +205,6 @@ function Home() {
           </div>
         </div>
       </div> */}
-      <HotelPopularDestination />
 
       <WhyChooseUs />
 

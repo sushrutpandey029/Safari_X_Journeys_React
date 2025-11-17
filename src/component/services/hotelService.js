@@ -25,7 +25,7 @@ export const getHotelCodeList = async (countryCode, cityCode) => {
   try {
     const resp = await axios.post(API.HOTEL_CODE_LIST, {
       CountryCode: countryCode,
-      CityCode: cityCode, // 👈 यहीं dynamic city जा रहा है
+      CityCode: cityCode,
     });
     return resp.data;
   } catch (err) {
@@ -35,6 +35,7 @@ export const getHotelCodeList = async (countryCode, cityCode) => {
 
 export const getHotelCodeListNew = async (countryCode, cityCode) => {
   try {
+    console.log("code", countryCode, cityCode);
     const resp = await axios.post(API.HOTEL_CODE_LIST_NEW, {
       CountryCode: countryCode,
       CityCode: cityCode,
@@ -74,6 +75,24 @@ export const fetchCityList = async (countryCode) => {
     const resp = await axios.post(API.CITY_LIST_FILTER, {
       CountryCode: countryCode,
     });
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+export const fetchHotelByCategory = async () => {
+  try {
+    const resp = await axios.post(API.HOTEL_BY_CATEGORY);
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+export const hotelCancel = async () => {
+  try {
+    const resp = await axios.post(API.HOTEL_CANCEL);
     return resp.data;
   } catch (err) {
     throw err;
