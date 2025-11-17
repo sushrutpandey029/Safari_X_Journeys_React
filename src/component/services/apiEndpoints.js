@@ -4,7 +4,7 @@
 // export const BASE_URL = "http://node.millclient.com:3001";
 // http://192.168.0.10:2625/
 // export const BASE_URL = "http://192.168.1.10:2625";
-export const BASE_URL = "http://localhost:2625";
+export const BASE_URL = "http://192.168.1.5:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -63,4 +63,11 @@ export const API = {
   flight_search: `${BASE_URL}/flight/search-flights`,
   Flight_farerule: `${BASE_URL}/flight/fare-rules`,
   Flight_farequote: `${BASE_URL}/flight/fare-quote`,
+
+
+
+  // BUS
+Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
+Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
+Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
 };

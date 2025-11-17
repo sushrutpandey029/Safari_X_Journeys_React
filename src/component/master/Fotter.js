@@ -179,22 +179,31 @@ function Footer() {
               </div>
 
               <h5 className="mt-5">Payment Methods</h5>
-              <div className="d-flex gap-2 flex-wrap">
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                <div className="payment-box bg-secondary p-2 rounded"></div>
-                {/* Chatbot Icon */}
-                {/* <div
-                  className="chatbot-icon d-flex justify-content-center align-items-center"
-                  onClick={toggleChat}
-                >
-                  <i className="bi bi-globe-americas"></i>
-                </div> */}
-                {/* Chat Popup */}
-                {showChat && <BotModal toggleChat={toggleChat} />}
-              </div>
+             <div className="d-flex gap-2 flex-wrap">
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/paymen.png" alt="UPI" className="payment-icon" />
+  </div>
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/payments/visa.png" alt="Visa" className="payment-icon" />
+  </div>
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/payments/mastercard.png" alt="MasterCard" className="payment-icon" />
+  </div>
+  <div className="payment-box bg-secondary p-2 rounded">
+    <img src="/images/payments/rupay.png" alt="RuPay" className="payment-icon" />
+  </div>
+  
+  {/* Chatbot Icon */}
+  {/* <div
+    className="chatbot-icon d-flex justify-content-center align-items-center"
+    onClick={toggleChat}
+  >
+    <i className="bi bi-globe-americas"></i>
+  </div> */}
+
+  {/* Chat Popup */}
+  {showChat && <BotModal toggleChat={toggleChat} />}
+</div>
             </div>
           </div>
 

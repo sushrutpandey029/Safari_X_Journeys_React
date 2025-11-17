@@ -35,6 +35,8 @@ import FlightDetail from "../flights/Flghitdetail";
 import Flightcheckout from "../flights/Flightcheckout";
 import Guidedetail from '../guides/Guidedetail';
 import BookingView from "../home/user-dashboard-pages/BookingView";
+import BusList from "../bus/Buslist";
+import BusCheckout from "../bus/Buscheckout";
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -84,7 +86,10 @@ function RootNavigation() {
         <Route path="/view-booking" element={<BookingView/>} />
 
          <Route path="/guide/:guideId" element={<Guidedetail />} />
+         <Route path="/Bus-list" element={<BusList />} />
+          <Route path="/Bus-checkout" element={<BusCheckout />} />
 
+        
         <Route
           path="/user-dashboard"
           element={

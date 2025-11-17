@@ -638,3 +638,16 @@ background-color: #4958c9ff;
     position: static;
   }
 }
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+
+

@@ -6,6 +6,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { BASE_URL } from "../services/apiEndpoints";
 import { getBannerData } from "../services/commonService";
 import SearchBox from "../flights/Searchbox";
+import FlightPreview from "../flights/Flightpreview";
 
 function HomeBanner() {
   const [bannerData, setBannerData] = useState([]);
@@ -22,24 +23,27 @@ function HomeBanner() {
   }, []);
   return (
    <div className="banner">
-  {bannerData &&
-    bannerData.map((item) => (
-      <div key={item.id} className="banner-slide">
-        <video
-          src={`${BASE_URL}/banner/images/${item.image}`}
-          className="banner-video"
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-        <div className="banner-overlay"></div>
-      </div>
-    ))}
+  {/* ✅ Render banner slides only once */}
+  {bannerData && bannerData.length > 0 && (
+    <div className="banner-slides">
+      {bannerData.slice(0, 1).map((item) => ( // show only first banner
+        <div key={item.id} className="banner-slide">
+          <video
+            src={`${BASE_URL}/banner/images/${item.image}`}
+            className="banner-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        </div>
+      ))}
+    </div>
+  )}
 
   {/* 🔹 SearchBox floating over banner */}
   <div className="banner-searchbox container">
-    <SearchBox placeholder="Search..." />
+    {/* your searchbox content */}
   </div>
 </div>
 
