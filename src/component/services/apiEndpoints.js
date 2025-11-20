@@ -1,10 +1,12 @@
 // export const BASE_URL = "https://fdc7b4f21736.ngrok-free.app";
 
+import { Bus } from "lucide-react";
+
 // export const BASE_URL = "https://32978cdd37a2.ngrok-free.app";
 // export const BASE_URL = "http://node.millclient.com:3001";
 // http://192.168.0.10:2625/
 // export const BASE_URL = "http://192.168.1.10:2625";
-export const BASE_URL = "http://192.168.1.5:2625";
+export const BASE_URL = "http://192.168.1.23:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -70,4 +72,6 @@ export const API = {
 Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
 Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
 Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
+Bus_busLayout: `${BASE_URL}/Bus/bus-layout`,
+Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
 };

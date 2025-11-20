@@ -678,9 +678,7 @@ label {
 }
 
 /* Checkbox Styles */
-input[type="checkbox"] {
-  display: none;
-}
+
 
 .checkmark {
   width: 18px;
@@ -1094,4 +1092,465 @@ input[type="checkbox"]:checked + .checkmark::after {
 
 .max-h-200::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+
+
+
+
+
+
+
+.html-seat-layout {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  margin-bottom: 20px;
+}
+.layout-wrapper {
+  position: relative;
+  width: max-content;
+  margin-bottom: 20px;
+}
+
+.html-seat-layout {
+  position: relative;
+  z-index: 1;
+}
+
+.react-seat-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none; /* Seats below still visible */
+}
+
+.react-seat-overlay .seat-api {
+  pointer-events: auto; /* Click works */
+}
+
+
+.seat-layout-container {
+  position: relative;
+  width: 100%;
+  height: 500px; 
+}
+
+/* MakeMyTrip Style Modal */
+.make-mytrip-style .modal-content {
+  max-width: 900px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.make-mytrip-modal {
+  background: #fff;
+}
+
+.make-mytrip-header {
+  background: linear-gradient(135deg, #235376, #235376);
+  color: white;
+  padding: 20px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.make-mytrip-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.bus-info {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.bus-info span {
+  display: block;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+
+.make-mytrip-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.make-mytrip-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Seat Legend */
+.make-mytrip-legend {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.seat-sample {
+  width: 20px;
+  height: 20px;
+  border: 2px solid;
+  border-radius: 4px;
+}
+
+.seat-sample.available {
+  border-color: #8c8c8c;
+  background: #f5f5f5;
+}
+
+.seat-sample.selected {
+  border-color: #e23738;
+  background: #ffe6e6;
+}
+
+.seat-sample.booked {
+  border-color: #ccc;
+  background: #ccc;
+}
+
+.seat-sample.ladies {
+  border-color: #ff69b4;
+  background: #ffe6f2;
+}
+
+/* Bus Layout */
+.bus-layout-container {
+  padding: 20px;
+  background: #fff;
+}
+
+.bus-driver-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.driver-cabin {
+  display: inline-block;
+  background: #333;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.seats-layout-wrapper {
+  position: relative;
+  min-height: 400px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.bus-layout-api {
+  position: relative;
+  height: 100%;
+}
+
+.seat-api {
+  transition: all 0.3s ease;
+}
+
+.seat-api:hover {
+  transform: scale(1.1);
+}
+
+.seat-api.selected .seat-icon {
+  background: #ffe6e6 !important;
+  border-color: #e23738 !important;
+  color: #e23738 !important;
+}
+
+/* Selection Summary */
+.make-mytrip-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.selected-seats-section h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.selected-seats-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-seat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.seat-number {
+  font-weight: 500;
+  color: #333;
+}
+
+.seat-price {
+  color: #e23738;
+  font-weight: 600;
+}
+
+.no-seats-text {
+  color: #666;
+  font-style: italic;
+}
+
+.price-summary {
+  text-align: right;
+}
+
+.total-price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.amount {
+  color: #e23738;
+  font-size: 24px;
+}
+
+/* Action Buttons */
+.make-mytrip-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding: 20px;
+  background: white;
+  border-radius: 0 0 12px 12px;
+}
+
+.cancel-btn {
+  padding: 12px 30px;
+  border: 2px solid #6c757d;
+  background: white;
+  color: #6c757d;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+  background: #6c757d;
+  color: white;
+}
+
+.make-mytrip-confirm {
+  padding: 12px 30px;
+  background: #e23738;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.make-mytrip-confirm:hover:not(:disabled) {
+  background: #c12b2b;
+}
+
+.make-mytrip-confirm:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Loading States */
+.loading-seats {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+.no-seats {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-style: italic;
+}
+
+
+
+
+/* Loading and Error States */
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error-message {
+  text-align: center;
+  padding: 40px;
+  color: #d32f2f;
+}
+
+.error-message h2 {
+  margin-bottom: 15px;
+}
+
+.back-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+/* Points Selection */
+.points-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.point-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.point-item:hover {
+  border-color: #007bff;
+  background: #f8f9fa;
+}
+
+.point-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.point-details {
+  flex: 1;
+}
+
+.point-time {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.point-location {
+  color: #666;
+  line-height: 1.4;
+}
+
+.point-location strong {
+  color: #333;
+  font-size: 16px;
+}
+
+/* Journey Summary */
+.journey-summary {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.journey-section {
+  flex: 1;
+}
+
+.journey-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.duration {
+  background: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.connector-line {
+  width: 2px;
+  height: 40px;
+  background: #007bff;
+  border-radius: 1px;
+}
+
+/* Radio buttons */
+.radiomark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.point-radio input {
+  display: none;
+}
+
+.point-radio input:checked + .radiomark {
+  border-color: #007bff;
+}
+
+.point-radio input:checked + .radiomark::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: #007bff;
+  border-radius: 50%;
 }

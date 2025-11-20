@@ -38,7 +38,6 @@ export const Bus_getCityList = async (tokenId) => {
 };
 
 // 🚌 SEARCH BUSES
-
 export const Bus_busSearch = async (searchData) => {
   try {
     const body = {
@@ -55,5 +54,48 @@ export const Bus_busSearch = async (searchData) => {
   } catch (err) {
     console.error("❌ Error in Bus_busSearch:", err);
     return { status: false };
+  }
+};
+
+export const Bus_busLayout = async (layoutData) => {
+  try {
+    if (!layoutData?.TokenId || !layoutData?.TraceId || layoutData?.ResultIndex === undefined) {
+      console.log("❌ INVALID LAYOUT REQUEST DATA:", layoutData);
+      return { status: false };
+    }
+
+    const body = {
+      TokenId: layoutData.TokenId,
+      TraceId: layoutData.TraceId,
+      ResultIndex: layoutData.ResultIndex,
+    };
+
+    console.log("🔍 Hitting URL:", API.Bus_busLayout);
+    console.log("📦 Sending Body:", body);
+
+    const response = await axios.post(API.Bus_busLayout, body);
+    console.log("✅ Bus_busLayout Response:", response.data);
+    return response.data;
+
+  } catch (err) {
+    console.error("❌ Error in Bus_busLayout:", err);
+    return { status: false };
+  }
+};
+
+
+export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
+  const bodyData = {
+    TokenId,
+    TraceId,
+    ResultIndex,
+  };
+
+  try {
+    const response = await axios.post(API.Bus_boardingPoints, bodyData);
+    return response.data;
+  } catch (error) {
+    console.error("Boarding Points API Error:", error);
+    throw error;
   }
 };

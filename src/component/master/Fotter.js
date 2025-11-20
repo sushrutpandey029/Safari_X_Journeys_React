@@ -17,14 +17,14 @@ const bots = [
   {
     icon: "/images/whats.png",
     label: "Whatsapp Chatbot",
-    phone: "919821351444",
+    phone: "9821351111",
     message: "Hello, I want to know more about your services.",
     type: "whatsapp",
   },
   {
     icon: "/images/call.png",
     label: "Call Chatbot",
-    phone: "919821351444",
+    phone: "9821351111",
     type: "call",
   },
   {
@@ -206,7 +206,6 @@ function Footer() {
 </div>
             </div>
           </div>
-
           {/* Footer Bottom */}
 
           <div className="footer-bottom mt-4 border-top pt-3">
