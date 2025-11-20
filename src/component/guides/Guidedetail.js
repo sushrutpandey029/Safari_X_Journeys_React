@@ -17,12 +17,51 @@ const Guidedetail = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [activeTab, setActiveTab] = useState("about");
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    contactNumber: "",
+  const [userForm, setUserForm] = useState({
+    name: "",
+    phone: "",
     address: "",
     location: `${guide?.city}, ${guide?.state}, ${guide?.country}` || ""
   });
+
+  // Get dates from previous page
+  const { fromDate, toDate } = location.state || {};
+  const start = fromDate ? new Date(fromDate) : null;
+  const end = toDate ? new Date(toDate) : null;
+
+  // Helper functions for date handling
+  const isSameDate = (d1, d2) =>
+    d1 &&
+    d2 &&
+    d1.getDate() === d2.getDate() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getFullYear() === d2.getFullYear();
+
+  const isInRange = (date) => {
+    if (!start || !end) return false;
+    return date >= start && date <= end;
+  };
+
+  const isStartDate = (date) => isSameDate(date, start);
+  const isEndDate = (date) => isSameDate(date, end);
+
+  const handleUserFormChange = (e) => {
+    const { name, value } = e.target;
+    setUserForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUserFormSubmit = () => {
+    // Form validation
+    if (!userForm.name.trim() || !userForm.phone.trim() || !userForm.address.trim()) {
+      alert("Please fill all required fields in the form below");
+      return false;
+    }
+
+    console.log("User Form Data:", userForm);
+    console.log(`User ${userForm.name} details submitted successfully.`);
+    
+    return true;
+  };
 
   if (!guide) {
     return (
@@ -41,22 +80,25 @@ const Guidedetail = () => {
   }
 
   const handleDateSelect = (date) => {
-    setSelectedDate(date);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    // Only allow selection if date is in the selected range
+    if (isInRange(date)) {
+      setSelectedDate(date);
+    }
   };
 
   const handleBookNow = async () => {
     if (!selectedDate) {
-      alert("Please select a date first");
+      alert("Please select a date from your chosen range first");
       return;
     }
+
+    // First validate and submit user form
+    const isFormValid = handleUserFormSubmit();
+    if (!isFormValid) {
+      return;
+    }
+
+    // If form is valid, show booking confirmation
     setShowBookingForm(true);
   };
 
@@ -74,25 +116,38 @@ const Guidedetail = () => {
           guideId: guide.guideId,
           guideName: guide.fullName,
           guideEmail: guide.emailAddress,
-          location: formData.location,
+          location: userForm.location,
           chargesPerDay: guide.chargesPerDay,
           availableDays: guide.availability?.days || [],
           selectedDate: selectedDate.toISOString().split("T")[0],
-          customerDetails: formData
+          customerDetails: userForm
         },
         customerDetails: {
-          fullName: formData.fullName,
+          fullName: userForm.name,
           email: userdetails?.emailid,
-          phone: formData.contactNumber,
-          address: formData.address
+          phone: userForm.phone,
+          address: userForm.address
         },
         totalAmount: guide.chargesPerDay,
         bookingDate: new Date().toISOString(),
         startDate: selectedDate
       };
 
+      console.log("Booking Data with User Form:", bookingData);
       const result = await startPayment(bookingData);
       console.log("payment res", result);
+      
+      // Show success message
+      alert(`Booking confirmed! Thank you ${userForm.name}. Payment processing started.`);
+      
+      // Reset form after successful booking
+      setUserForm({
+        name: "",
+        phone: "",
+        address: "",
+        location: `${guide?.city}, ${guide?.state}, ${guide?.country}` || ""
+      });
+      setShowBookingForm(false);
       
     } catch (err) {
       console.error(err);
@@ -101,11 +156,16 @@ const Guidedetail = () => {
   };
 
   const handleSendMessage = () => {
-    alert(
-      `Message feature would open here. ${guide.fullName} will be notified.`
-    );
+    // First validate user form
+    const isFormValid = handleUserFormSubmit();
+    if (!isFormValid) {
+      return;
+    }
+
+    alert(`Message sent to ${guide.fullName}! We'll contact you at ${userForm.phone} soon.`);
   };
 
+  // Generate calendar with highlighted range
   const generateOctober2025Calendar = () => {
     const calendar = [];
     for (let i = 28; i <= 30; i++) calendar.push(new Date(2025, 8, i));
@@ -126,11 +186,24 @@ const Guidedetail = () => {
         </div>
 
         <div className="guide-main-info">
+          {/* Guide Profile Image */}
+          <div className="guide-profile-image">
+            <img 
+              src={`${BASE_URL}/uploads/guides/${guide.profileImage}`}
+              alt={guide.fullName}
+              className="profile-img"
+              onError={(e) => {
+                e.target.src = '/default-avatar.png'; // Fallback image
+                e.target.onerror = null;
+              }}
+            />
+          </div>
+
           <div className="guide-basic-info">
             <h1 className="guide-name">{guide.fullName}</h1>
             <div className="location-experience">
               <span className="location">
-               {guide.city}, {guide.state}
+               📍 {guide.city}, {guide.state}
               </span>
               <span className="experience">
                 ⭐ {guide.workExperience?.[0]?.years}+ years Experience
@@ -140,7 +213,7 @@ const Guidedetail = () => {
 
           <div className="language-rating-section">
             <div className="primary-language">
-              <h3> {guide.languageProficiency?.[0]?.language || "English"}</h3>
+              <h3>🗣️ {guide.languageProficiency?.[0]?.language || "English"}</h3>
               <div className="rating">
                 <strong>4.8</strong> ⭐ (120 reviews)
               </div>
@@ -166,13 +239,23 @@ const Guidedetail = () => {
             </div>
           ))}
         </div>
+
+        {/* Show selected date range */}
+        {start && end && (
+          <div className="selected-date-range">
+            <div className="range-badge">
+              <span className="range-icon">📅</span>
+              Selected Dates: {start.toDateString()} to {end.toDateString()}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="divider-gradient"></div>
 
       {/* Tabs */}
       <div className="tabs-navigation">
-        {["about", "tours","reviews"].map((tab) => (
+        {["about", "tours", "reviews"].map((tab) => (
           <button
             key={tab}
             className={`tab ${activeTab === tab ? "active" : ""}`}
@@ -203,61 +286,6 @@ const Guidedetail = () => {
             </div>
             
             <form onSubmit={handleFormSubmit} className="booking-form">
-              <div className="form-group">
-                <label htmlFor="fullName">Full Name *</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your full name"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="contactNumber">Contact Number *</label>
-                <input
-                  type="tel"
-                  id="contactNumber"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your phone number"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="address">Address *</label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your complete address"
-                  rows="3"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="location">Tour Location</label>
-                <textarea
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Selected tour location"
-                  rows="2"
-                  readOnly
-                />
-                <small className="location-note">
-                  This location is pre-selected based on your guide's area
-                </small>
-              </div>
-
               <div className="booking-summary">
                 <h4>Booking Summary</h4>
                 <div className="summary-item">
@@ -267,6 +295,18 @@ const Guidedetail = () => {
                 <div className="summary-item">
                   <span>Date:</span>
                   <span>{selectedDate?.toDateString()}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Location:</span>
+                  <span>{userForm.location}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Customer:</span>
+                  <span>{userForm.name}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Contact:</span>
+                  <span>{userForm.phone}</span>
                 </div>
                 <div className="summary-item total">
                   <span>Total Amount:</span>
@@ -283,6 +323,7 @@ const Guidedetail = () => {
                   Cancel
                 </button>
                 <button type="submit" className="submit-button">
+                  <span className="button-icon">💳</span>
                   Proceed to Payment
                 </button>
               </div>
@@ -344,7 +385,14 @@ const Guidedetail = () => {
         {/* Right Sidebar */}
         <div className="booking-sidebar">
           <div className="calendar-widget">
-            <h3 className="widget-title">Select Date</h3>
+            <h3 className="widget-title">
+              Select Date 
+              {start && end && (
+                <span className="date-range-info">
+                  ({start.toLocaleDateString()} - {end.toLocaleDateString()})
+                </span>
+              )}
+            </h3>
             <div className="month-header">October 2025</div>
             <div className="calendar">
               <div className="week-days">
@@ -353,23 +401,62 @@ const Guidedetail = () => {
                 ))}
               </div>
               <div className="calendar-days">
-                {calendar.map((date, index) => (
-                  <div
-                    key={index}
-                    className={`calendar-day ${
-                      date.getMonth() !== 9 ? "other-month" : ""
-                    } ${
-                      selectedDate && date.getTime() === selectedDate.getTime()
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() => handleDateSelect(date)}
-                  >
-                    {date.getDate()}
-                  </div>
-                ))}
+                {calendar.map((date, index) => {
+                  const inRange = isInRange(date);
+                  const isStart = isStartDate(date);
+                  const isEnd = isEndDate(date);
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`calendar-day ${
+                        date.getMonth() !== 9 ? "other-month" : ""
+                      } ${
+                        inRange ? "in-range" : ""
+                      } ${
+                        isStart ? "range-start" : ""
+                      } ${
+                        isEnd ? "range-end" : ""
+                      } ${
+                        selectedDate && date.getTime() === selectedDate.getTime()
+                          ? "selected"
+                          : ""
+                      } ${
+                        !inRange ? "disabled" : ""
+                      }`}
+                      onClick={() => handleDateSelect(date)}
+                      title={inRange ? `Available: ${date.toDateString()}` : "Not in selected range"}
+                    >
+                      {date.getDate()}
+                      {isStart && <div className="range-indicator start">Start</div>}
+                      {isEnd && <div className="range-indicator end">End</div>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Calendar Legend */}
+            {start && end && (
+              <div className="calendar-legend">
+                <div className="legend-item">
+                  <div className="legend-color range-start"></div>
+                  <span>Start Date</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color in-range"></div>
+                  <span>Available Dates</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color range-end"></div>
+                  <span>End Date</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color selected"></div>
+                  <span>Selected Date</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="quick-info-widget">
@@ -393,6 +480,12 @@ const Guidedetail = () => {
                 <span className="info-icon">💰</span>
                 Charges per day: <b>Rs. {guide.chargesPerDay}</b>
               </li>
+              {start && end && (
+                <li>
+                  <span className="info-icon">⏱️</span>
+                  Your Dates: {start.toLocaleDateString()} - {end.toLocaleDateString()}
+                </li>
+              )}
             </ul>
           </div>
 
@@ -412,6 +505,95 @@ const Guidedetail = () => {
             <div className="contact-info">
               <p>📧 {guide.emailAddress}</p>
               <p>📞 {guide.phoneNumber}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Permanent User Form at Bottom */}
+      <div className="user-form-section">
+        <div className="user-form-container">
+          <div className="user-form-header">
+            <h2 className="user-form-title">Your Contact Details</h2>
+            <p className="user-form-subtitle">
+              Fill your details below. Both "Book Now" and "Send Message" will use this information.
+            </p>
+          </div>
+          
+          <div className="user-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="userName" className="form-label">
+                  <span className="required">*</span> Full Name
+                </label>
+                <input
+                  type="text"
+                  id="userName"
+                  name="name"
+                  value={userForm.name}
+                  onChange={handleUserFormChange}
+                  required
+                  placeholder="Enter your full name"
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="userPhone" className="form-label">
+                  <span className="required">*</span> Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="userPhone"
+                  name="phone"
+                  value={userForm.phone}
+                  onChange={handleUserFormChange}
+                  required
+                  placeholder="Enter your phone number"
+                  className="form-input"
+                  maxLength="10"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="userAddress" className="form-label">
+                <span className="required">*</span> Address
+              </label>
+              <textarea
+                id="userAddress"
+                name="address"
+                value={userForm.address}
+                onChange={handleUserFormChange}
+                required
+                placeholder="Enter your complete address"
+                rows="3"
+                className="form-textarea"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="userLocation" className="form-label">
+                Preferred Tour Location
+              </label>
+              <input
+                type="text"
+                id="userLocation"
+                name="location"
+                value={userForm.location}
+                onChange={handleUserFormChange}
+                className="form-input location-field"
+                readOnly
+              />
+              <small className="location-note">
+                Based on guide's location: {guide.city}, {guide.state}
+              </small>
+            </div>
+
+            <div className="form-status">
+              <p className="status-message">
+                ✅ Your details will be used for booking and messaging
+              </p>
             </div>
           </div>
         </div>
