@@ -10,6 +10,8 @@ import { getAllGuides } from "../services/guideService";
 import { BASE_URL } from "../services/apiEndpoints";
 import "./GuideCareers.css";
 import { Link, useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const GuideList = () => {
   const [guides, setGuides] = useState([]);
@@ -18,6 +20,16 @@ const GuideList = () => {
   const [error, setError] = useState(null);
   const [visibleGuides, setVisibleGuides] = useState(6);
   const [guidesPerLoad, setGuidesPerLoad] = useState(6);
+
+
+  const [selectedCity, setSelectedCity] = useState("");
+const [selectedCityName, setSelectedCityName] = useState("");
+
+const [checkIn, setCheckIn] = useState("");
+const [checkOut, setCheckOut] = useState("");
+const [selectedCountry, setSelectedCountry] = useState("");
+const [cityList, setCityList] = useState([]);
+
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -66,6 +78,15 @@ const GuideList = () => {
         : [...prev.specializations, specialization]
     }));
   };
+
+  const handleSearch = () => {
+  console.log("City:", selectedCityName);
+  console.log("CheckIn:", checkIn);
+  console.log("CheckOut:", checkOut);
+
+  // Yaha API call ya page redirect kar sakte ho
+};
+
 
   // Updated rating handler for checkboxes
   const handleRatingChange = (rating) => {
@@ -145,12 +166,91 @@ const GuideList = () => {
   if (error) return <div className="text-center py-5 text-danger">Error: {error}</div>;
 
   return (
+
+    
     <div
       className="guide-page py-5"
-      style={{ backgroundColor: "#fff", marginTop: "150px" }}
+      style={{ backgroundColor: "#fff", marginTop: "34px" }}
     >
+      <div className="search-section">
+  <div className="container">
+    <div className="row g-3 align-items-end">
+
+      {/* City */}
+      <div className="col-md-3">
+        <label className="form-label fw-semibold text-white">City</label>
+        <select
+          className="form-control"
+          value={selectedCity}
+          onChange={(e) => {
+            const cityCode = e.target.value;
+            setSelectedCity(cityCode);
+
+            const cityObj = cityList.find(
+              (c) =>
+                (c.CityCode?.toString() || c.Code?.toString()) ===
+                cityCode.toString()
+            );
+
+            const cityName =
+              cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
+
+            setSelectedCityName(cityName);
+            localStorage.setItem("selectedCity", cityCode);
+            localStorage.setItem("selectedCityName", cityName);
+          }}
+          disabled={!selectedCountry || loading}
+        >
+          <option value="">-- Select City --</option>
+          {cityList.map((city, index) => (
+            <option key={index} value={city.CityCode || city.Code}>
+              {city.CityName || city.Name || city.City}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Check-In */}
+      <div className="col-md-3">
+        <label className="form-label fw-semibold text-white">Start Day</label>
+        <DatePicker
+          selected={checkIn ? new Date(checkIn) : null}
+          onChange={(date) => setCheckIn(date.toISOString().split("T")[0])}
+          className="form-control"
+          dateFormat="yyyy-MM-dd"
+          minDate={new Date()}
+          placeholderText="Select Start Day"
+        />
+      </div>
+
+      {/* Check-Out */}
+      <div className="col-md-3">
+        <label className="form-label fw-semibold text-white">End Day</label>
+        <DatePicker
+          selected={checkOut ? new Date(checkOut) : null}
+          onChange={(date) => setCheckOut(date.toISOString().split("T")[0])}
+          className="form-control"
+          dateFormat="yyyy-MM-dd"
+          minDate={checkIn ? new Date(checkIn) : new Date()}
+          placeholderText="Select End Day"
+        />
+      </div>
+
+      {/* Search Button */}
+      <div className="col-md-3">
+        <button className="form-control explore-btn w-100">
+          Search Guide
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
       <div className="container">
         <div className="row">
+         
+
+
           {/* Filters Section */}
           <div className="col-md-3">
             <div className="filter-box p-3 border rounded shadow-sm">
