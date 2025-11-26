@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Bus.css';
+import { fetchBoardingPoints } from '../services/busservice';
 
 const BusCheckout = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const BusCheckout = () => {
   const [selectedOffers, setSelectedOffers] = useState([]);
   const [showGST, setShowGST] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [apiLoading, setApiLoading] = useState(false);
 
   // Format time function
   const formatTime = (dateTimeString) => {
@@ -42,7 +44,8 @@ const BusCheckout = () => {
     const date = new Date(dateTimeString);
     return date.toLocaleDateString('en-IN', {
       day: 'numeric',
-      month: 'short'
+      month: 'short',
+      year: 'numeric'
     });
   };
 
@@ -72,41 +75,116 @@ const BusCheckout = () => {
     return `${hours}h ${minutes}m`;
   };
 
+  // Fetch boarding points from API
+  const fetchBoardingPointsData = async (busData) => {
+    try {
+      setApiLoading(true);
+      console.log("🚀 Fetching boarding points for bus:", busData);
+
+      const TokenId = busData?.TokenId;
+      const TraceId = busData?.TraceId;
+      const ResultIndex = busData?.ResultIndex;
+
+      // 🛑 STOP API if details missing
+      if (!TokenId || !TraceId || ResultIndex === undefined) {
+        console.error("❌ Missing required params", { TokenId, TraceId, ResultIndex });
+        return;
+      }
+
+      // 🔥 Correct API Call
+      const response = await fetchBoardingPoints({
+        TokenId,
+        TraceId,
+        ResultIndex
+      });
+
+      console.log("📥 Boarding API Response:", response);
+
+      if (response && response.data) {
+        const boardingData = response.data.BoardingPointsDetails || [];
+        const droppingData = response.data.DroppingPointsDetails || [];
+        
+        console.log("📍 Boarding Points:", boardingData);
+        console.log("📍 Dropping Points:", droppingData);
+
+        setBoardingPoints(boardingData);
+        setDroppingPoints(droppingData);
+
+        // Set default selections
+        if (boardingData.length > 0) {
+          setSelectedBoarding(boardingData[0]);
+        }
+        if (droppingData.length > 0) {
+          setSelectedDropping(droppingData[0]);
+        }
+      } else {
+        console.error("❌ Invalid API response structure");
+      }
+
+    } catch (error) {
+      console.error("❌ Error fetching boarding points:", error);
+      // Fallback to mock data if API fails
+      const mockBoardingPoints = [
+        {
+          CityPointAddress: "Domlur Main Road",
+          CityPointContactNumber: "0099988899",
+          CityPointIndex: 1,
+          CityPointLandmark: "Near Domlur Flyover",
+          CityPointLocation: "Domlur I Stage",
+          CityPointName: "Domlur I Stage (Pickup Bus)",
+          CityPointTime: new Date().toISOString()
+        }
+      ];
+      
+      const mockDroppingPoints = [
+        {
+          CityPointIndex: 1,
+          CityPointLocation: "Anand Bagh",
+          CityPointName: "Anand Bagh",
+          CityPointTime: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+
+      setBoardingPoints(mockBoardingPoints);
+      setDroppingPoints(mockDroppingPoints);
+      setSelectedBoarding(mockBoardingPoints[0]);
+      setSelectedDropping(mockDroppingPoints[0]);
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
   // Initialize data from location state or localStorage
   useEffect(() => {
-    const initializeData = () => {
+    const initializeData = async () => {
       try {
         setLoading(true);
 
         // Data location state se lo (direct navigation)
         const locationState = location.state;
-        
+        let busData = null;
+        let seatsData = [];
+
         if (locationState) {
           console.log("📍 Location State Data:", locationState);
-          setBusDetails(locationState.bus);
-          setSelectedSeats(locationState.seats || []);
-          setBoardingPoints(locationState.boardingPoints || []);
-          setDroppingPoints(locationState.droppingPoints || []);
+          busData = locationState.bus;
+          seatsData = locationState.seats || [];
         } else {
           // Fallback: localStorage se data lo
           console.log("📦 Loading from localStorage");
-          const savedBus = JSON.parse(localStorage.getItem('selectedBus') || 'null');
-          const savedSeats = JSON.parse(localStorage.getItem('selectedSeats') || '[]');
-          const savedBoarding = JSON.parse(localStorage.getItem('boardingPoints') || '[]');
-          const savedDropping = JSON.parse(localStorage.getItem('droppingPoints') || '[]');
-          
-          setBusDetails(savedBus);
-          setSelectedSeats(savedSeats);
-          setBoardingPoints(savedBoarding);
-          setDroppingPoints(savedDropping);
+          busData = JSON.parse(localStorage.getItem('selectedBus') || 'null');
+          seatsData = JSON.parse(localStorage.getItem('selectedSeats') || '[]');
         }
 
-        // Set default selections
-        if (boardingPoints.length > 0) {
-          setSelectedBoarding(boardingPoints[0]);
-        }
-        if (droppingPoints.length > 0) {
-          setSelectedDropping(droppingPoints[0]);
+        console.log("🚌 Bus Data:", busData);
+        console.log("💺 Selected Seats:", seatsData);
+
+        setBusDetails(busData);
+        setSelectedSeats(seatsData);
+
+        // Fetch boarding points from API
+        if (busData) {
+          await fetchBoardingPointsData(busData);
         }
 
       } catch (error) {
@@ -121,13 +199,14 @@ const BusCheckout = () => {
 
   // Update passengers when seats change
   useEffect(() => {
-    if (selectedSeats.length > 0) {
+    if (selectedSeats.length > 0 && busDetails) {
       const updatedPassengers = selectedSeats.map((seat, index) => ({
-        seatNumber: seat.number || `Seat ${index + 1}`,
+        id: index + 1,
+        seatNumber: seat.number || seat.seatNumber || `Seat ${index + 1}`,
         name: '',
         age: '',
-        gender: '',
-        price: seat.price || busDetails?.price || 500
+        gender: 'Male',
+        price: seat.price || busDetails.price || 500
       }));
       setPassengers(updatedPassengers);
     }
@@ -146,11 +225,11 @@ const BusCheckout = () => {
     }));
   };
 
-  const handleOfferToggle = (offerCode) => {
+  const handleOfferToggle = (offer) => {
     setSelectedOffers(prev =>
-      prev.includes(offerCode)
-        ? prev.filter(code => code !== offerCode)
-        : [...prev, offerCode]
+      prev.includes(offer.code)
+        ? prev.filter(code => code !== offer.code)
+        : [...prev, offer.code]
     );
   };
 
@@ -164,7 +243,9 @@ const BusCheckout = () => {
 
   // Calculate total price
   const calculateTotalPrice = () => {
-    return passengers.reduce((total, passenger) => total + (passenger.price || 0), 0);
+    const basePrice = passengers.reduce((total, passenger) => total + (passenger.price || 0), 0);
+    const insurancePrice = insurance ? 15 : 0;
+    return basePrice + insurancePrice;
   };
 
   const handleContinue = () => {
@@ -178,6 +259,11 @@ const BusCheckout = () => {
       return;
     }
 
+    if (!selectedBoarding || !selectedDropping) {
+      alert('Please select boarding and dropping points');
+      return;
+    }
+
     const bookingData = {
       busDetails,
       passengers,
@@ -186,7 +272,7 @@ const BusCheckout = () => {
       droppingPoint: selectedDropping,
       insurance,
       selectedOffers,
-      totalAmount: calculateTotalPrice() + (insurance ? 15 : 0),
+      totalAmount: calculateTotalPrice(),
       selectedSeats
     };
 
@@ -200,20 +286,20 @@ const BusCheckout = () => {
   };
 
   const offers = [
-    { code: 'MEGABUS', description: 'Get discount up to 10% on your bus booking!' },
-    { code: 'MMTEXTRA', description: 'Get Rs 15 instant discount on your bus booking. Additionally, get up to 25% off on your hotel booking.' },
-    { code: 'MMTBOBVISA', description: 'Flat 8% off for Bank of Baroda Debit Cards only.' },
-    { code: 'IDBICC', description: 'Exclusive Offer - Get Flat 10% off (upto INR 500) on IDBI CC Users' },
-    { code: 'IDBIDC', description: 'Exclusive Offer - Get Flat 10% off (upto INR 500) on IDBI DC Users' },
-    { code: 'MMTHSBCFEST', description: 'Exclusive HSBC Debit & Credit Cards Offer -Get up to 10% off' },
-    { code: 'BUSTRAINPASS', description: 'Travel Pass - Buy for Rs. 99 and get Instant Rs. 50 off and 4 vouchers each worth Rs. 50 off on bus, Rs. 25 off on train bookings of Min. ATV Rs. 500.' }
+    { code: 'MEGABUS', description: 'Get discount up to 10% on your bus booking!', discount: '10%' },
+    { code: 'MMTEXTRA', description: 'Get Rs 15 instant discount on your bus booking.', discount: '₹15' },
+    { code: 'MMTBOBVISA', description: 'Flat 8% off for Bank of Baroda Debit Cards only.', discount: '8%' },
+    { code: 'IDBICC', description: 'Exclusive Offer - Get Flat 10% off (upto INR 500) on IDBI CC Users', discount: '10%' },
   ];
 
   if (loading) {
     return (
       <div className="bus-checkout" style={{marginTop:'100px'}}>
         <div className="checkout-container">
-          <div className="loading-spinner">Loading booking details...</div>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Loading booking details...</p>
+          </div>
         </div>
       </div>
     );
@@ -240,129 +326,265 @@ const BusCheckout = () => {
       <div className="checkout-container">
         {/* Header */}
         <div className="checkout-header">
-          <h1># {busDetails.busName}</h1>
-          <div className="bus-type">{busDetails.busType}</div>
-          <div className="route-info">
-            {busDetails.from} → {busDetails.to}
-          </div>
-          <div className="journey-date">
-            {selectedBoarding ? formatFullDate(selectedBoarding.CityPointTime) : '--'} • {calculateDuration(selectedBoarding?.CityPointTime, selectedDropping?.CityPointTime)}
+          <div className="header-content">
+            <h1>{busDetails.busName}</h1>
+            <div className="bus-meta">
+              <span className="bus-type">{busDetails.busType}</span>
+              <span className="route-info">
+                {busDetails.from} → {busDetails.to}
+              </span>
+            </div>
+            <div className="journey-date">
+              {selectedBoarding ? formatFullDate(selectedBoarding.CityPointTime) : '--'} 
+              <span className="duration">• {calculateDuration(selectedBoarding?.CityPointTime, selectedDropping?.CityPointTime)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Boarding Point Selection */}
-        <div className="section">
-          <h2 className="section-title">Select Boarding Point</h2>
-          <div className="points-list">
-            {boardingPoints.map((point, index) => (
-              <div key={index} className="point-item">
-                <label className="point-radio">
-                  <input
-                    type="radio"
-                    name="boarding"
-                    checked={selectedBoarding?.CityPointIndex === point.CityPointIndex}
-                    onChange={() => handleBoardingChange(point)}
-                  />
-                  <span className="radiomark"></span>
-                  <div className="point-details">
-                    <div className="point-time">{formatTime(point.CityPointTime)}</div>
-                    <div className="point-location">
-                      <strong>{point.CityPointName}</strong>
-                      <div>{point.CityPointLocation}</div>
-                      {point.CityPointAddress && <div>{point.CityPointAddress}</div>}
-                      {point.CityPointLandmark && <div>Landmark: {point.CityPointLandmark}</div>}
-                      {point.CityPointContactNumber && <div>Contact: {point.CityPointContactNumber}</div>}
+        {/* Main Content Grid */}
+        <div className="checkout-content">
+          {/* Left Column - Forms */}
+          <div className="left-column">
+            {/* Boarding Point Selection */}
+            <div className="section-card">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <i className="icon-pickup"></i>
+                  Select Boarding Point
+                </h2>
+                {apiLoading && <div className="loading-badge">Loading points...</div>}
+              </div>
+              <div className="points-list">
+                {boardingPoints.length > 0 ? (
+                  boardingPoints.map((point, index) => (
+                    <div key={point.CityPointIndex || index} className={`point-item ${selectedBoarding?.CityPointIndex === point.CityPointIndex ? 'selected' : ''}`}>
+                      <label className="point-radio">
+                        <input
+                          type="radio"
+                          name="boarding"
+                          checked={selectedBoarding?.CityPointIndex === point.CityPointIndex}
+                          onChange={() => handleBoardingChange(point)}
+                        />
+                        <span className="radiomark"></span>
+                        <div className="point-content">
+                          <div className="point-time-badge">
+                            {formatTime(point.CityPointTime)}
+                          </div>
+                          <div className="point-details">
+                            <h4 className="point-name">{point.CityPointName}</h4>
+                            <p className="point-location">{point.CityPointLocation}</p>
+                            {point.CityPointAddress && (
+                              <p className="point-address">{point.CityPointAddress}</p>
+                            )}
+                            {point.CityPointLandmark && (
+                              <p className="point-landmark">
+                                <span className="landmark-icon">📍</span>
+                                {point.CityPointLandmark}
+                              </p>
+                            )}
+                            {point.CityPointContactNumber && (
+                              <p className="point-contact">
+                                <span className="contact-icon">📞</span>
+                                {point.CityPointContactNumber}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-points">
+                    <p>No boarding points available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Dropping Point Selection */}
+            <div className="section-card">
+              <div className="section-header">
+                <h2 className="section-title">
+                  <i className="icon-drop"></i>
+                  Select Dropping Point
+                </h2>
+                {apiLoading && <div className="loading-badge">Loading points...</div>}
+              </div>
+              <div className="points-list">
+                {droppingPoints.length > 0 ? (
+                  droppingPoints.map((point, index) => (
+                    <div key={point.CityPointIndex || index} className={`point-item ${selectedDropping?.CityPointIndex === point.CityPointIndex ? 'selected' : ''}`}>
+                      <label className="point-radio">
+                        <input
+                          type="radio"
+                          name="dropping"
+                          checked={selectedDropping?.CityPointIndex === point.CityPointIndex}
+                          onChange={() => handleDroppingChange(point)}
+                        />
+                        <span className="radiomark"></span>
+                        <div className="point-content">
+                          <div className="point-time-badge">
+                            {formatTime(point.CityPointTime)}
+                          </div>
+                          <div className="point-details">
+                            <h4 className="point-name">{point.CityPointName}</h4>
+                            <p className="point-location">{point.CityPointLocation}</p>
+                            {point.CityPointAddress && (
+                              <p className="point-address">{point.CityPointAddress}</p>
+                            )}
+                            {point.CityPointLandmark && (
+                              <p className="point-landmark">
+                                <span className="landmark-icon">📍</span>
+                                {point.CityPointLandmark}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-points">
+                    <p>No dropping points available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Passenger Details */}
+            <div className="section-card">
+              <h2 className="section-title">Passenger Details</h2>
+              <div className="passengers-list">
+                {passengers.map((passenger, index) => (
+                  <div key={index} className="passenger-card">
+                    <h4>Passenger {index + 1} - {passenger.seatNumber}</h4>
+                    <div className="passenger-form">
+                      <div className="form-group">
+                        <label>Full Name *</label>
+                        <input
+                          type="text"
+                          placeholder="Enter full name"
+                          value={passenger.name}
+                          onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Age *</label>
+                          <input
+                            type="number"
+                            placeholder="Age"
+                            value={passenger.age}
+                            onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Gender *</label>
+                          <select
+                            value={passenger.gender}
+                            onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </label>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        <div className="section-divider"></div>
-
-        {/* Dropping Point Selection */}
-        <div className="section">
-          <h2 className="section-title">Select Dropping Point</h2>
-          <div className="points-list">
-            {droppingPoints.map((point, index) => (
-              <div key={index} className="point-item">
-                <label className="point-radio">
+            {/* Contact Details */}
+            <div className="section-card">
+              <h2 className="section-title">Contact Details</h2>
+              <div className="contact-form">
+                <div className="form-group">
+                  <label>Email Address *</label>
                   <input
-                    type="radio"
-                    name="dropping"
-                    checked={selectedDropping?.CityPointIndex === point.CityPointIndex}
-                    onChange={() => handleDroppingChange(point)}
+                    type="email"
+                    placeholder="Enter your email"
+                    value={contactDetails.email}
+                    onChange={(e) => handleContactChange('email', e.target.value)}
                   />
-                  <span className="radiomark"></span>
-                  <div className="point-details">
-                    <div className="point-time">{formatTime(point.CityPointTime)}</div>
-                    <div className="point-location">
-                      <strong>{point.CityPointName}</strong>
-                      <div>{point.CityPointLocation}</div>
-                    </div>
-                  </div>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="section-divider"></div>
-
-        {/* Journey Summary */}
-        <div className="journey-summary">
-          <div className="journey-section">
-            <div className="journey-info">
-              {/* Boarding Time */}
-              <div className="time-info">
-                <div className="time">{formatTime(selectedBoarding?.CityPointTime)}</div>
-                <div className="date">{formatDate(selectedBoarding?.CityPointTime)}</div>
-              </div>
-
-              {/* Boarding Location */}
-              <div className="location-info">
-                <div className="city">{busDetails.from}</div>
-                <div className="location-details">
-                  <div><strong>{selectedBoarding?.CityPointName}</strong> - boarding zone</div>
-                  <div>{selectedBoarding?.CityPointLocation}</div>
-                  {selectedBoarding?.CityPointAddress && <div>{selectedBoarding?.CityPointAddress}</div>}
+                </div>
+                <div className="form-group">
+                  <label>Mobile Number *</label>
+                  <input
+                    type="tel"
+                    placeholder="Enter your mobile number"
+                    value={contactDetails.mobile}
+                    onChange={(e) => handleContactChange('mobile', e.target.value)}
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="journey-connector">
-            <div className="duration">
-              {calculateDuration(selectedBoarding?.CityPointTime, selectedDropping?.CityPointTime)}
-            </div>
-            <div className="connector-line"></div>
-          </div>
-
-          <div className="journey-section">
-            <div className="journey-info">
-              {/* Dropping Time */}
-              <div className="time-info">
-                <div className="time">{formatTime(selectedDropping?.CityPointTime)}</div>
-                <div className="date">{formatDate(selectedDropping?.CityPointTime)}</div>
-              </div>
-
-              {/* Dropping Location */}
-              <div className="location-info">
-                <div className="city">{busDetails.to}</div>
-                <div className="location-details">
-                  <div><strong>{selectedDropping?.CityPointName}</strong></div>
-                  <div>{selectedDropping?.CityPointLocation}</div>
+          {/* Right Column - Summary */}
+          <div className="right-column">
+            {/* Journey Summary */}
+            <div className="summary-card">
+              <h3>Journey Summary</h3>
+              <div className="journey-timeline">
+                <div className="timeline-point start">
+                  <div className="time">{formatTime(selectedBoarding?.CityPointTime)}</div>
+                  <div className="location">
+                    <strong>{selectedBoarding?.CityPointName}</strong>
+                    <span>{selectedBoarding?.CityPointLocation}</span>
+                  </div>
+                </div>
+                <div className="timeline-connector">
+                  <div className="duration">
+                    {calculateDuration(selectedBoarding?.CityPointTime, selectedDropping?.CityPointTime)}
+                  </div>
+                  <div className="connector-line"></div>
+                </div>
+                <div className="timeline-point end">
+                  <div className="time">{formatTime(selectedDropping?.CityPointTime)}</div>
+                  <div className="location">
+                    <strong>{selectedDropping?.CityPointName}</strong>
+                    <span>{selectedDropping?.CityPointLocation}</span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Fare Summary */}
+            <div className="summary-card">
+              <h3>Fare Summary</h3>
+              <div className="fare-breakdown">
+                <div className="fare-item">
+                  <span>Base Fare ({passengers.length} passengers)</span>
+                  <span>₹{passengers.reduce((total, p) => total + (p.price || 0), 0)}</span>
+                </div>
+                <div className="fare-item">
+                  <span>
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={insurance}
+                        onChange={(e) => setInsurance(e.target.checked)}
+                      />
+                      Travel Insurance (₹15)
+                    </label>
+                  </span>
+                  <span>{insurance ? '₹15' : '₹0'}</span>
+                </div>
+                <div className="fare-total">
+                  <span>Total Amount</span>
+                  <span className="total-price">₹{calculateTotalPrice()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Continue Button */}
+            <button className="continue-btn" onClick={handleContinue}>
+              Continue to Payment
+            </button>
           </div>
         </div>
-
-        {/* Rest of your existing code for forms, offers, price etc. */}
-        {/* ... (same as before for forms section) ... */}
-
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { Bus } from "lucide-react";
 // export const BASE_URL = "http://node.millclient.com:3001";
 // http://192.168.0.10:2625/
 // export const BASE_URL = "http://192.168.1.10:2625";
-export const BASE_URL = "http://192.168.1.23:2625";
+export const BASE_URL = "http://192.168.1.14:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,

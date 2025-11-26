@@ -108,7 +108,7 @@ function Header() {
   }
 >
   <nav className="navbar navbar-expand-lg">
-    <div className="container">
+    <div className="container-fluid">
       <a className="navbar-brand" href="/">
         <img
           src="/images/Safarix-Blue-Logo.png"

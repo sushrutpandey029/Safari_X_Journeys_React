@@ -10,7 +10,9 @@ import {
   Bus_getCityList,
   Bus_busSearch,
   Bus_busLayout,
+  fetchBoardingPoints,
 } from "../services/busservice";
+import {  getBoardingDroppingAPI } from "../services/busservice";
 
 function BusList() {
   const [busData, setBusData] = useState([]);
@@ -411,31 +413,55 @@ function BusList() {
     });
   };
 
-  const handleConfirmSeats = () => {
-    if (selectedSeats.length > 0) {
-      console.log(
-        "Confirmed seats:",
-        selectedSeats,
-        "for bus:",
-        selectedBus.busName
+ const handleConfirmSeats = async () => {
+  if (selectedSeats.length > 0) {
+
+    // 🔥 Step 1: Boarding/Dropping API Call
+    try {
+      const response = await fetchBoardingPoints(
+        selectedBus.TokenId,
+        selectedBus.TraceId,
+        selectedBus.ResultIndex
       );
 
-      localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
-      localStorage.setItem("selectedBus", JSON.stringify(selectedBus));
+      const boarding = response?.data?.BoardingPointsDetails || [];
+      const dropping = response?.data?.DroppingPointsDetails || [];
 
-      navigate("/Bus-checkout", {
-        state: { bus: selectedBus, seats: selectedSeats },
-      });
+      // 🔥 Step 2: Save API data into localStorage
+      localStorage.setItem("boardingPoints", JSON.stringify(boarding));
+      localStorage.setItem("droppingPoints", JSON.stringify(dropping));
+
+    } catch (error) {
+      console.error("Boarding/Dropping API error:", error);
     }
-    handleCloseModal();
-  };
+
+    // 🔥 Step 3: Your Original Code (UNCHANGED)
+    console.log(
+      "Confirmed seats:",
+      selectedSeats,
+      "for bus:",
+      selectedBus.busName
+    );
+
+    localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
+    localStorage.setItem("selectedBus", JSON.stringify(selectedBus));
+
+    navigate("/Bus-checkout", {
+      state: { bus: selectedBus, seats: selectedSeats },
+    });
+  }
+
+  handleCloseModal();
+};
+
+
 
   // Calculate total price
   const calculateTotalPrice = () => {
     return selectedSeats.reduce((total, seat) => total + (seat.price || selectedBus?.price || 0), 0);
   };
 
-  // 🆕 IMPROVED: Render seats from API data - MakeMyTrip Style
+
  // 🆕 IMPROVED: Render seats from API data - Full Container Adjust
 const renderSeatsFromAPI = () => {
   if (!seatLayoutData) return <div className="loading-seats">Loading seat layout...</div>;
@@ -686,10 +712,12 @@ const renderSeatsFromAPI = () => {
         style={{ height: "100vh", marginTop: "100px" }}
       >
         <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">Initializing bus services...</p>
+         <div className="logo-loader">
+  <img src="/images/Safarix-Blue-Logo.png" alt="logo" className="loader-logo" />
+
+</div>
+
+          <p className="mt-2">Loading bus services...</p>
         </div>
       </div>
     );

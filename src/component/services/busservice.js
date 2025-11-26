@@ -84,18 +84,20 @@ export const Bus_busLayout = async (layoutData) => {
 };
 
 
-export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
+export const fetchBoardingPoints = async ({ TokenId, TraceId, ResultIndex }) => {
   const bodyData = {
     TokenId,
     TraceId,
     ResultIndex,
   };
 
+  console.log("📤 Boarding API Payload:", bodyData);
+
   try {
     const response = await axios.post(API.Bus_boardingPoints, bodyData);
     return response.data;
   } catch (error) {
-    console.error("Boarding Points API Error:", error);
+    console.error("❌ Boarding Points API Error:", error?.response || error);
     throw error;
   }
 };

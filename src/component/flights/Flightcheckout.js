@@ -18,31 +18,34 @@ const Flightcheckout = () => {
 
   // Get data from flight detail page
   useEffect(() => {
-    if (location.state) {
-      const { selectedFlight, selectedFare, searchData } = location.state;
-      console.log('Checkout received data:', { selectedFlight, selectedFare, searchData });
-      
-      setSelectedFlight(selectedFlight);
-      setSelectedFare(selectedFare);
-      setSearchData(searchData);
+  const state = location?.state;
 
-      // Save to localStorage as backup
-      localStorage.setItem('checkoutFlight', JSON.stringify(selectedFlight));
-      localStorage.setItem('checkoutFare', JSON.stringify(selectedFare));
-      localStorage.setItem('checkoutSearch', JSON.stringify(searchData));
-    } else {
-      // Fallback to localStorage
-      const savedFlight = localStorage.getItem('checkoutFlight');
-      const savedFare = localStorage.getItem('checkoutFare');
-      const savedSearch = localStorage.getItem('checkoutSearch');
-      
-      if (savedFlight && savedFare) {
-        setSelectedFlight(JSON.parse(savedFlight));
-        setSelectedFare(JSON.parse(savedFare));
-        setSearchData(JSON.parse(savedSearch));
-      }
+  if (state) {
+    console.log("🔥 Checkout received:", state);
+
+    const { selectedFlight, selectedFare, searchData } = state;
+
+    setSelectedFlight(selectedFlight);
+    setSelectedFare(selectedFare);
+    setSearchData(searchData);
+
+    localStorage.setItem("checkoutFlight", JSON.stringify(selectedFlight));
+    localStorage.setItem("checkoutFare", JSON.stringify(selectedFare));
+    localStorage.setItem("checkoutSearch", JSON.stringify(searchData));
+  } else {
+    // LocalStorage fallback
+    const savedFlight = localStorage.getItem("checkoutFlight");
+    const savedFare = localStorage.getItem("checkoutFare");
+    const savedSearch = localStorage.getItem("checkoutSearch");
+
+    if (savedFlight && savedFare) {
+      setSelectedFlight(JSON.parse(savedFlight));
+      setSelectedFare(JSON.parse(savedFare));
+      setSearchData(JSON.parse(savedSearch));
     }
-  }, [location.state]);
+  }
+}, []);   // <- IMPORTANT: empty dependency
+
 
   // Fetch fare quote from API
   useEffect(() => {
@@ -215,7 +218,7 @@ const Flightcheckout = () => {
 
   const getPassengerCount = () => {
     return {
-      adults: searchData?.passengers?.adults || 1,
+      adults: searchData?.passengers?.adults || 0,
       children: searchData?.passengers?.children || 0,
       infants: searchData?.passengers?.infants || 0
     };
