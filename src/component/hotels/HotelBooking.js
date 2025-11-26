@@ -28,7 +28,7 @@ function HotelBooking() {
 
   const [rooms, setRooms] = useState(1);
   const [paxRooms, setPaxRooms] = useState([
-    { Adults: 2, Children: 0, ChildrenAges: [] },
+    { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
   const [open, setOpen] = useState(false);
   // Guest nationality
@@ -56,6 +56,7 @@ function HotelBooking() {
   const [selectedUserRatings, setSelectedUserRatings] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 50000]);
+  
   const [showProperties, setShowProperties] = useState({
     bookWithZero: false,
     freeCancellation: false,
@@ -373,7 +374,6 @@ function HotelBooking() {
       if (rooms) setRooms(rooms);
       if (paxRooms) setPaxRooms(paxRooms);
     }
-    
   }, [location.state]);
   // sirf jab navigation se data aaye
 
@@ -433,31 +433,34 @@ function HotelBooking() {
               </select>
             </div>
 
+            <div className="col-md-2">
+              <label className="form-label">Check-In</label>
+              <DatePicker
+                selected={checkIn ? new Date(checkIn) : null}
+                onChange={(date) =>
+                  setCheckIn(date.toISOString().split("T")[0])
+                }
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                minDate={new Date()} // optional: disable past dates
+                placeholderText="Select Check-In"
+              />
+            </div>
 
-          <div className="col-md-2">
-  <label className="form-label">Check-In</label>
-  <DatePicker
-    selected={checkIn ? new Date(checkIn) : null}
-    onChange={(date) => setCheckIn(date.toISOString().split("T")[0])}
-    className="form-control"
-    dateFormat="yyyy-MM-dd"
-    minDate={new Date()} // optional: disable past dates
-    placeholderText="Select Check-In"
-  />
-</div>
-
-{/* Check-Out */}
-<div className="col-md-2">
-  <label className="form-label">Check-Out</label>
-  <DatePicker
-    selected={checkOut ? new Date(checkOut) : null}
-    onChange={(date) => setCheckOut(date.toISOString().split("T")[0])}
-    className="form-control"
-    dateFormat="yyyy-MM-dd"
-    minDate={checkIn ? new Date(checkIn) : new Date()} // optional: checkout after check-in
-    placeholderText="Select Check-Out"
-  />
-</div>
+            {/* Check-Out */}
+            <div className="col-md-2">
+              <label className="form-label">Check-Out</label>
+              <DatePicker
+                selected={checkOut ? new Date(checkOut) : null}
+                onChange={(date) =>
+                  setCheckOut(date.toISOString().split("T")[0])
+                }
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                minDate={checkIn ? new Date(checkIn) : new Date()} // optional: checkout after check-in
+                placeholderText="Select Check-Out"
+              />
+            </div>
 
             {/* Rooms Dropdown */}
             <div className="col-md-4 position-relative">
@@ -611,7 +614,7 @@ function HotelBooking() {
                           setRooms(rooms + 1);
                           setPaxRooms([
                             ...paxRooms,
-                            { Adults: 2, Children: 0, ChildrenAges: [] },
+                            { Adults: 1, Children: 0, ChildrenAges: [] },
                           ]);
                         }
                       }}

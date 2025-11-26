@@ -1,25 +1,17 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  getUserHotelBookingDetails,
+  cancelHotelBooking,
+  getHotelCancelStatus,
+} from "../../services/hotelService";
 
 function BookingView() {
   const location = useLocation();
   const navigate = useNavigate();
   const booking = location.state?.bookingData;
-
-  if (!booking) {
-    return (
-      <div className="container mt-5 text-center">
-        <h5>No booking data found</h5>
-        <button className="btn btn-primary mt-3" onClick={() => navigate(-1)}>
-          Go Back
-        </button>
-      </div>
-    );
-  }
-
   const {
     bookingId,
     serviceType,
@@ -31,6 +23,58 @@ function BookingView() {
     vendorResponse,
     HotelRoomsDetails,
   } = booking;
+
+  console.log("booking in bookingview", booking);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const getBookingDetails = async () => {
+    const bookingId = vendorResponse?.BookResult?.BookingId;
+    const confirmationNo = vendorResponse?.BookResult?.ConfirmationNo;
+    const traceId = vendorResponse?.BookResult?.TraceId;
+    const guestName = vendorResponse?.BookResult?.GuestName; // if available
+
+    let payload = {
+      EndUserIp: "192.168.1.11", // or client's IP
+    };
+
+    if (bookingId) {
+      payload.BookingId = bookingId;
+    } else if (confirmationNo && guestName) {
+      const splitName = guestName.split(" ");
+      payload.ConfirmationNo = confirmationNo;
+      payload.FirstName = splitName[0];
+      payload.LastName = splitName.slice(1).join(" ");
+    } else if (traceId) {
+      payload.TraceId = traceId;
+    } else {
+      console.error(
+        "❌ No valid identifier available to fetch booking details."
+      );
+      return; // Stop API call because nothing valid to send
+    }
+
+    try {
+      const resp = await getUserHotelBookingDetails(payload);
+      console.log("Booking details response:", resp);
+    } catch (err) {
+      console.log("❌ Error fetching booking details:", err);
+    }
+  };
+
+  useEffect(() => {
+    getBookingDetails();
+  }, []);
+
+  if (!booking) {
+    return (
+      <div className="container mt-5 text-center">
+        <h5>No booking data found</h5>
+        <button className="btn btn-primary mt-3" onClick={() => navigate(-1)}>
+          Go Back
+        </button>
+      </div>
+    );
+  }
 
   // ---------------- PDF Generator ----------------
   const handleDownloadInvoice = () => {
@@ -160,9 +204,71 @@ function BookingView() {
 
   // ---------------- Cancel Booking ----------------
 
-  const handleCancelBooking = () => {
+  const handleCancelBooking = async () => {
+    // 🛑 Ask confirmation first
+    const confirmCancel = window.confirm(
+      "⚠️ Are you sure you want to cancel this booking?\n\nThis action cannot be undone."
+    );
 
-  }
+    if (!confirmCancel) return; // ❌ User cancelled the action
+
+    setCancelLoading(true);
+
+    if (!vendorResponse?.BookResult?.BookingId) {
+      setCancelLoading(false);
+      return alert("❌ Booking ID is missing — cannot cancel.");
+    }
+
+    const payload = {
+      BookingId: vendorResponse.BookResult.BookingId,
+      Remarks: "Customer requested cancellation", // 🔥 static reason
+    };
+
+    try {
+      // 1️⃣ Call Cancel API
+      const cancelResp = await cancelHotelBooking(payload);
+      console.log("Cancel response:", cancelResp.data);
+
+      if (!cancelResp.data?.data?.ChangeRequestId) {
+        return alert("❌ Cancellation failed — No Change Request ID returned");
+      }
+
+      const changeRequestId = cancelResp.data.data.ChangeRequestId;
+
+      alert(`⏳ Cancellation request sent. Checking status...`);
+
+      // 2️⃣ Polling Cancel Status Every 5 Seconds
+      const checkStatus = async () => {
+        const statusResp = await getHotelCancelStatus({
+          EndUserIp: "192.168.1.11",
+          ChangeRequestId: changeRequestId,
+        });
+
+        console.log("Status response:", statusResp.data);
+
+        const status = statusResp.data?.data?.ChangeRequestStatus;
+
+        if (!status) return;
+
+        if (status === 1) {
+          alert("✔ Booking cancellation confirmed.");
+          window.location.reload();
+        } else if (status === 2) {
+          alert("❌ Cancellation failed or rejected.");
+        } else {
+          // pending → retry
+          setTimeout(checkStatus, 5000);
+        }
+      };
+
+      checkStatus();
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to process cancellation.");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   // ---------------- UI Renderer ----------------
   const renderBookingDetails = () => {
@@ -304,7 +410,7 @@ function BookingView() {
             className="btn btn-danger mt-3 ms-3"
             onClick={handleCancelBooking}
           >
-           Cancel Booking
+            Cancel Booking
           </button>
         </>
       ) : (

@@ -17,7 +17,7 @@ function Hotel() {
   const [checkOut, setCheckOut] = useState("");
   const [rooms, setRooms] = useState(1);
   const [paxRooms, setPaxRooms] = useState([
-    { Adults: 2, Children: 0, ChildrenAges: [] },
+    { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -291,7 +291,7 @@ function Hotel() {
                           setRooms(rooms + 1);
                           setPaxRooms([
                             ...paxRooms,
-                            { Adults: 2, Children: 0, ChildrenAges: [] },
+                            { Adults: 1, Children: 0, ChildrenAges: [] },
                           ]);
                         }
                       }}

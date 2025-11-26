@@ -1,6 +1,6 @@
 // ✅ busservice.js
 import axios from "axios";
-import { API } from "./apiEndpoints"; 
+import { API } from "./apiEndpoints";
 
 // 🧠 AUTHENTICATE BUS API
 export const Bus_authenticate = async () => {

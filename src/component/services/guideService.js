@@ -2,10 +2,9 @@ import { getUserData, getUserToken } from "../utils/storage";
 import { API } from "./apiEndpoints";
 import axios from "axios";
 
-export const getAllGuides = async () => {
+export const getAllGuides = async (filters = {}) => {
   try {
-    const response = await axios.get(API.GUIDE_LIST);
-    console.log("response of guide",response.data)
+    const response = await axios.get(API.GUIDE_LIST, { params: filters });
     return response.data;
   } catch (err) {
     throw err;

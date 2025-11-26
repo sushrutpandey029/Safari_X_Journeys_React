@@ -64,11 +64,11 @@ export const chatbotSubmit = async (payload) => {
   }
 };
 
-
-
-
-
-
-
-
-
+export const getAllCities = async () => {
+  try {
+    const resp = await axios.post(API.GET_ALL_CITIES);
+    return resp.data;
+  } catch (err) {
+    throw err;
+  }
+};
