@@ -19,10 +19,13 @@ function BookingView() {
     totalAmount,
     currency,
     serviceDetails,
-    payments,
+    bookingPayments,
     vendorResponse,
     HotelRoomsDetails,
   } = booking;
+
+  const [bookingDetailData, setBookingDetailData] = useState(null);
+  const localBookingId = booking.bookingId;
 
   console.log("booking in bookingview", booking);
   const [cancelLoading, setCancelLoading] = useState(false);
@@ -31,33 +34,31 @@ function BookingView() {
     const bookingId = vendorResponse?.BookResult?.BookingId;
     const confirmationNo = vendorResponse?.BookResult?.ConfirmationNo;
     const traceId = vendorResponse?.BookResult?.TraceId;
-    const guestName = vendorResponse?.BookResult?.GuestName; // if available
+    const guestName = vendorResponse?.BookResult?.GuestName;
 
     let payload = {
-      EndUserIp: "192.168.1.11", // or client's IP
+      EndUserIp: "192.168.1.11",
     };
 
-    if (bookingId) {
-      payload.BookingId = bookingId;
-    } else if (confirmationNo && guestName) {
-      const splitName = guestName.split(" ");
+    if (bookingId) payload.BookingId = bookingId;
+    else if (confirmationNo && guestName) {
+      const [firstName, ...last] = guestName.split(" ");
       payload.ConfirmationNo = confirmationNo;
-      payload.FirstName = splitName[0];
-      payload.LastName = splitName.slice(1).join(" ");
-    } else if (traceId) {
-      payload.TraceId = traceId;
-    } else {
-      console.error(
-        "❌ No valid identifier available to fetch booking details."
-      );
-      return; // Stop API call because nothing valid to send
-    }
+      payload.FirstName = firstName;
+      payload.LastName = last.join(" ");
+    } else if (traceId) payload.TraceId = traceId;
+    else return console.error("❌ Missing identifier!");
 
     try {
       const resp = await getUserHotelBookingDetails(payload);
-      console.log("Booking details response:", resp);
+      console.log(
+        "Booking details response:",
+        resp?.data?.GetBookingDetailResult
+      );
+
+      setBookingDetailData(resp?.data?.GetBookingDetailResult);
     } catch (err) {
-      console.log("❌ Error fetching booking details:", err);
+      console.error("❌ Error fetching booking details:", err);
     }
   };
 
@@ -93,13 +94,23 @@ function BookingView() {
         startY: 45,
         head: [["Field", "Value"]],
         body: [
-          ["Hotel Name", serviceDetails?.hotelName || "N/A"],
-          ["Hotel Address", serviceDetails?.hotelAddress || "N/A"],
-          ["Check-In", serviceDetails?.checkIn || "N/A"],
-          ["Check-Out", serviceDetails?.checkOut || "N/A"],
-          ["Total Amount", `${currency} ${totalAmount}`],
-          ["Payment Method", payments?.[0]?.paymentMethod || "N/A"],
-          ["Payment Status", payments?.[0]?.paymentStatus || "N/A"],
+          ["Hotel Name", bookingDetailData?.HotelName],
+          ["Hotel Address", bookingDetailData?.AddressLine1],
+          ["City", bookingDetailData?.City],
+          ["Booking Status", bookingDetailData?.HotelBookingStatus],
+          [
+            "Booking Date",
+            new Date(bookingDetailData?.BookingDate).toLocaleString(),
+          ],
+          [
+            "Check-in",
+            new Date(bookingDetailData?.CheckInDate).toLocaleString(),
+          ],
+          [
+            "Check-out",
+            new Date(bookingDetailData?.CheckOutDate).toLocaleString(),
+          ],
+          ["Net Amount", bookingDetailData?.NetAmount],
         ],
       });
 
@@ -172,8 +183,8 @@ function BookingView() {
             "Charges Per Day",
             `${currency} ${serviceDetails?.chargesPerDay || 0}`,
           ],
-          ["Payment Method", payments?.[0]?.paymentMethod || "N/A"],
-          ["Payment Status", payments?.[0]?.paymentStatus || "N/A"],
+          ["Payment Method", bookingPayments?.[0]?.paymentMethod || "N/A"],
+          ["Payment Status", bookingPayments?.[0]?.paymentStatus || "N/A"],
         ],
       });
 
@@ -220,7 +231,8 @@ function BookingView() {
     }
 
     const payload = {
-      BookingId: vendorResponse.BookResult.BookingId,
+      // bookingId: vendorResponse.BookResult.BookingId,
+      bookingId: localBookingId,
       Remarks: "Customer requested cancellation", // 🔥 static reason
     };
 
@@ -229,28 +241,31 @@ function BookingView() {
       const cancelResp = await cancelHotelBooking(payload);
       console.log("Cancel response:", cancelResp.data);
 
-      if (!cancelResp.data?.data?.ChangeRequestId) {
+      if (!cancelResp.data?.data?.HotelChangeRequestResult?.ChangeRequestId) {
         return alert("❌ Cancellation failed — No Change Request ID returned");
       }
 
-      const changeRequestId = cancelResp.data.data.ChangeRequestId;
+      const changeRequestId =
+        cancelResp.data.data.HotelChangeRequestResult.ChangeRequestId;
 
       alert(`⏳ Cancellation request sent. Checking status...`);
 
       // 2️⃣ Polling Cancel Status Every 5 Seconds
       const checkStatus = async () => {
         const statusResp = await getHotelCancelStatus({
-          EndUserIp: "192.168.1.11",
+          // EndUserIp: "192.168.1.11",
           ChangeRequestId: changeRequestId,
         });
 
         console.log("Status response:", statusResp.data);
 
-        const status = statusResp.data?.data?.ChangeRequestStatus;
+        const status =
+          statusResp.data?.data?.HotelChangeRequestStatusResult
+            .ChangeRequestStatus;
 
         if (!status) return;
 
-        if (status === 1) {
+        if (status === 1 || status === 3) {
           alert("✔ Booking cancellation confirmed.");
           window.location.reload();
         } else if (status === 2) {
@@ -263,8 +278,8 @@ function BookingView() {
 
       checkStatus();
     } catch (error) {
-      console.error(error);
-      alert("❌ Failed to process cancellation.");
+      console.error(error.response);
+      alert(`Failed to process cancellation. ${error?.response?.data.message}`);
     } finally {
       setCancelLoading(false);
     }
@@ -277,6 +292,39 @@ function BookingView() {
         return (
           <>
             <tr>
+              <th>Hotel Booking Status</th>
+              <td>{bookingDetailData?.HotelBookingStatus || status}</td>
+            </tr>
+            <tr>
+              <th>Booking Date</th>
+              <td>
+                {bookingDetailData?.BookingDate
+                  ? new Date(bookingDetailData.BookingDate).toLocaleString()
+                  : "N/A"}
+              </td>
+            </tr>
+            <tr>
+              <th>Hotel Name</th>
+              <td>
+                {bookingDetailData?.HotelName || serviceDetails?.hotelName}
+              </td>
+            </tr>
+            <tr>
+              <th>Address</th>
+              <td>{bookingDetailData?.AddressLine1}</td>
+            </tr>
+            <tr>
+              <th>Cancellation Deadline</th>
+              <td>
+                {bookingDetailData?.LastCancellationDate
+                  ? new Date(
+                      bookingDetailData?.LastCancellationDate
+                    ).toLocaleString()
+                  : "N/A"}
+              </td>
+            </tr>
+
+            {/* <tr>
               <th>Hotel Name</th>
               <td>{serviceDetails?.hotelName || "N/A"}</td>
             </tr>
@@ -292,8 +340,6 @@ function BookingView() {
               <th>Check-Out</th>
               <td>{serviceDetails?.checkOut || "N/A"}</td>
             </tr>
-
-            {/* 🔹 Guest Details */}
             <tr className="table-primary">
               <th colSpan={2}>Guest Details</th>
             </tr>
@@ -307,7 +353,7 @@ function BookingView() {
                   </td>
                 </tr>
               ))
-            )}
+            )} */}
           </>
         );
 
@@ -385,11 +431,11 @@ function BookingView() {
 
           <tr>
             <th>Payment Method</th>
-            <td>{payments?.[0]?.paymentMethod || "N/A"}</td>
+            <td>{bookingPayments?.[0]?.paymentMethod || "N/A"}</td>
           </tr>
           <tr>
             <th>Payment Status</th>
-            <td>{payments?.[0]?.paymentStatus || "N/A"}</td>
+            <td>{bookingPayments?.[0]?.paymentStatus || "N/A"}</td>
           </tr>
         </tbody>
       </table>

@@ -352,6 +352,7 @@
 // };
 
 // export default HotelCheckout;
+
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import useCashfreePayment from "../hooks/useCashfreePayment";
@@ -471,6 +472,8 @@ const HotelCheckout = () => {
     const bookingDetails = {
       userId: userdetails?.id,
       serviceType: "hotel",
+      vendorType: "hotel",
+      vendorId: hotel?.hotelCode,
       city,
       startDate,
       endDate,
@@ -484,7 +487,7 @@ const HotelCheckout = () => {
       HotelRoomsDetails: hotelRoomsDetails,
     };
 
-    console.log("✅ Final Booking Payload:", bookingDetails);
+    console.log("Final Booking Payload:", bookingDetails);
 
     // Call payment API
     const result = await startPayment(bookingDetails);

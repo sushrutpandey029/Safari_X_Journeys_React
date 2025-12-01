@@ -62,6 +62,8 @@ const HotelDetail = () => {
     const payload = {
       userId: userdetails?.id,
       serviceType: "hotel",
+      vendorType:"hotel",
+      vendorId: hotelDetails.HotelCode,
       serviceDetails: {
         hotelCode: hotelDetails.HotelCode,
         hotelName: hotelDetails.HotelName, // ✅ Hotel name
