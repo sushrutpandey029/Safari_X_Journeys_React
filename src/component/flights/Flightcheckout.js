@@ -44,8 +44,7 @@ const Flightcheckout = () => {
       setSearchData(JSON.parse(savedSearch));
     }
   }
-}, []);   // <- IMPORTANT: empty dependency
-
+}, []);  
 
   // Fetch fare quote from API
   useEffect(() => {
@@ -383,135 +382,377 @@ const Flightcheckout = () => {
           </Card>
 
           {/* Passenger Details Form */}
-          <Card className="mb-4 shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Passenger Details</h5>
-              <small className="text-muted">
-                {passengerCount.adults} Adult(s), {passengerCount.children} Child(s), {passengerCount.infants} Infant(s)
-              </small>
-            </Card.Header>
-            <Card.Body>
-              <Form>
-                {/* Adult Passengers */}
-                {Array.from({ length: passengerCount.adults }).map((_, index) => (
-                  <div key={`adult-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
-                    <h6 className="mb-3">Adult {index + 1}</h6>
-                    <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Title *</Form.Label>
-                          <Form.Select required>
-                            <option value="">Select</option>
-                            <option value="mr">Mr</option>
-                            <option value="ms">Ms</option>
-                            <option value="mrs">Mrs</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>First Name *</Form.Label>
-                          <Form.Control 
-                            type="text" 
-                            placeholder="Enter first name" 
-                            required 
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Last Name *</Form.Label>
-                          <Form.Control 
-                            type="text" 
-                            placeholder="Enter last name" 
-                            required 
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+         <Card className="mb-4 shadow-sm">
+  <Card.Header>
+    <h5 className="mb-0">Passenger Details</h5>
+    <small className="text-muted">
+      {passengerCount.adults} Adult(s), {passengerCount.children} Child(s), {passengerCount.infants} Infant(s)
+    </small>
+  </Card.Header>
+  <Card.Body>
+    <Form>
+      {/* Adult Passengers */}
+      {Array.from({ length: passengerCount.adults }).map((_, index) => (
+        <div key={`adult-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
+          <h6 className="mb-3">Adult {index + 1}</h6>
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Title *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="mr">Mr</option>
+                  <option value="ms">Ms</option>
+                  <option value="mrs">Mrs</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter first name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter last name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gender *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="1">Male</option>
+                  <option value="2">Female</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Number *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter passport number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Expiry Date *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nationality *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Contact Number *</Form.Label>
+                <Form.Control 
+                  type="tel" 
+                  placeholder="Enter contact number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Address Line 1 *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter address" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>City *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter city" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Country *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Email Address *</Form.Label>
+                <Form.Control 
+                  type="email" 
+                  placeholder="Enter email address" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          {index === 0 && (
+            <Row>
+              <Col md={12}>
+                <Form.Check 
+                  type="checkbox"
+                  label="This passenger is the lead passenger"
+                  defaultChecked
+                />
+              </Col>
+            </Row>
+          )}
+        </div>
+      ))}
 
-                {/* Child Passengers */}
-                {Array.from({ length: passengerCount.children }).map((_, index) => (
-                  <div key={`child-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
-                    <h6 className="mb-3">Child {index + 1}</h6>
-                    <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Title *</Form.Label>
-                          <Form.Select required>
-                            <option value="">Select</option>
-                            <option value="master">Master</option>
-                            <option value="miss">Miss</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>First Name *</Form.Label>
-                          <Form.Control 
-                            type="text" 
-                            placeholder="Enter first name" 
-                            required 
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Last Name *</Form.Label>
-                          <Form.Control 
-                            type="text" 
-                            placeholder="Enter last name" 
-                            required 
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+      {/* Child Passengers */}
+      {Array.from({ length: passengerCount.children }).map((_, index) => (
+        <div key={`child-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
+          <h6 className="mb-3">Child {index + 1}</h6>
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Title *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="master">Master</option>
+                  <option value="miss">Miss</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter first name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter last name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gender *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="1">Male</option>
+                  <option value="2">Female</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Number *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter passport number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Expiry Date *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nationality *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+        </div>
+      ))}
 
-                {/* Infant Passengers */}
-                {Array.from({ length: passengerCount.infants }).map((_, index) => (
-                  <div key={`infant-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
-                    <h6 className="mb-3">Infant {index + 1}</h6>
-                    <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Title *</Form.Label>
-                          <Form.Select required>
-                            <option value="">Select</option>
-                            <option value="master">Master</option>
-                            <option value="miss">Miss</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>First Name *</Form.Label>
-                          <Form.Control 
-                            type="text" 
-                            placeholder="Enter first name" 
-                            required 
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Last Name *</Form.Label>
-                          <Form.Control 
-                            type="text" 
-                            placeholder="Enter last name" 
-                            required 
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
-              </Form>
-            </Card.Body>
-          </Card>
+      {/* Infant Passengers */}
+      {Array.from({ length: passengerCount.infants }).map((_, index) => (
+        <div key={`infant-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
+          <h6 className="mb-3">Infant {index + 1}</h6>
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Title *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="master">Master</option>
+                  <option value="miss">Miss</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter first name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter last name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gender *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="1">Male</option>
+                  <option value="2">Female</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Number *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter passport number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Expiry Date *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nationality *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+        </div>
+      ))}
+    </Form>
+  </Card.Body>
+</Card>
 
           {/* Contact Details */}
           <Card className="shadow-sm">

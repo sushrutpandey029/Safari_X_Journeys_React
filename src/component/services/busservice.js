@@ -84,20 +84,46 @@ export const Bus_busLayout = async (layoutData) => {
 };
 
 
-export const fetchBoardingPoints = async ({ TokenId, TraceId, ResultIndex }) => {
+// services/busservice.js
+export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
   const bodyData = {
-    TokenId,
-    TraceId,
-    ResultIndex,
+    TokenId: TokenId?.trim(),
+    TraceId: TraceId?.trim(),
+    ResultIndex: parseInt(ResultIndex)
   };
 
   console.log("📤 Boarding API Payload:", bodyData);
+  console.log("🔗 API URL:", API.Bus_boardingPoints);
 
   try {
-    const response = await axios.post(API.Bus_boardingPoints, bodyData);
+    const response = await axios.post(API.Bus_boardingPoints, bodyData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 15000
+    });
+    
+    console.log("✅ Boarding API Response Status:", response.status);
+    console.log("✅ Boarding API Response Data:", response.data);
+    
     return response.data;
   } catch (error) {
-    console.error("❌ Boarding Points API Error:", error?.response || error);
-    throw error;
+    console.error("❌ Boarding Points API Error Details:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    // Specific error messages based on status code
+    if (error.response?.status === 400) {
+      throw new Error("Invalid parameters sent to server");
+    } else if (error.response?.status === 404) {
+      throw new Error("Boarding points not found for this bus");
+    } else if (error.response?.status === 500) {
+      throw new Error("Server error, please try again");
+    } else {
+      throw new Error(`API Error: ${error.message}`);
+    }
   }
 };

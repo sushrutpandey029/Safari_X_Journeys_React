@@ -34,46 +34,33 @@ const formatPrice = (price) => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const FlightDetail = ({ flightData, travelClass, showModal, onHide }) => {
+const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }) => {
   const [fareDetail, setFareDetail] = useState("");
   const [loadingFare, setLoadingFare] = useState(false);
   const [selectedFare, setSelectedFare] = useState(null);
   const [fareRulesData, setFareRulesData] = useState(null);
 
-  const [adults, setAdults] = useState(0);
-const [children, setChildren] = useState(0);
-const [infants, setInfants] = useState(0);
-const [tripType, setTripType] = useState("one-way");
-const [passengerDetails, setPassengerDetails] = useState({
-    adults: [],
-    children: [],
-    infants: []
-  });
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [tripType, setTripType] = useState("oneway");
 
-const [origin, setOrigin] = useState(null);  
-const [destination, setDestination] = useState(null);
-
-const [departureDate, setDepartureDate] = useState(null);
-const [returnDate, setReturnDate] = useState(null);
-
-const [searchData, setSearchData] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-
-
-     if (showModal && flightData && window.history.state?.usr?.searchData) {
-    setSearchData(window.history.state.usr.searchData);
-    setAdults(window.history.state.usr.searchData.passengers.adults);
-    setChildren(window.history.state.usr.searchData.passengers.children);
-    setInfants(window.history.state.usr.searchData.passengers.infants);
-  }
+    // Search data se passenger count set karo
+    if (searchData && searchData.passengers) {
+      setAdults(searchData.passengers.adults || 1);
+      setChildren(searchData.passengers.children || 0);
+      setInfants(searchData.passengers.infants || 0);
+      setTripType(searchData.tripType || "oneway");
+    }
 
     if (showModal && flightData) {
       fetchFareRules();
       setSelectedFare(null); // Reset selection when modal opens
     }
-  }, [showModal, flightData]);
+  }, [showModal, flightData, searchData]);
 
   const fetchFareRules = async () => {
     setLoadingFare(true);
@@ -273,51 +260,76 @@ const [searchData, setSearchData] = useState(null);
     setSelectedFare(fare);
   };
 
-const handleBookNow = () => {
-  if (!selectedFare || !flightData) {
-    alert("Please select a fare to continue");
-    return;
-  }
-
-  const flightInfo = extractFlightInfo();
-
-  const finalSearchData = {
-    ...(searchData || {}),
-
+  // Calculate total price based on passenger count
+  const calculateTotalPrice = (selectedFare) => {
+    if (!selectedFare) return 0;
     
-    passengers: {
-      adults: adults,
-      children: children,
-      infants: infants
-    },
-
-    tripType: tripType,
-    origin: flightInfo.origin.city,
-    destination: flightInfo.destination.city,
-    departureDate: flightInfo.origin.time
+    const basePrice = selectedFare.originalPrice;
+    const totalAdults = adults * basePrice;
+    const totalChildren = children * basePrice * 0.75; // 25% discount for children
+    const totalInfants = infants * basePrice * 0.1; // 90% discount for infants
+    
+    return totalAdults + totalChildren + totalInfants;
   };
 
-  const checkoutData = {
-    selectedFlight: {
-      ...flightInfo,
-      ResultIndex: flightData.ResultIndex,
-      FlightId: flightData.FlightId,
-      FareType: selectedFare.FareType,
-      originalFlightData: flightData
-    },
+  const handleBookNow = () => {
+    if (!selectedFare || !flightData) {
+      alert("Please select a fare to continue");
+      return;
+    }
 
-    selectedFare: {
-      ...selectedFare,
-      FareType: selectedFare.FareType,
-      price: selectedFare.originalPrice
-    },
+    const flightInfo = extractFlightInfo();
 
-    searchData: finalSearchData
+    // Create final search data with passenger information
+    const finalSearchData = {
+      passengers: {
+        adults: adults,
+        children: children,
+        infants: infants
+      },
+      tripType: tripType,
+      travelClass: travelClass,
+      origin: flightInfo.origin.city,
+      destination: flightInfo.destination.city,
+      departureDate: flightInfo.origin.time,
+      returnDate: searchData?.returnDate || null
+    };
+
+    // Calculate total price for all passengers
+    const totalPrice = calculateTotalPrice(selectedFare);
+
+    const checkoutData = {
+      selectedFlight: {
+        ...flightInfo,
+        ResultIndex: flightData.ResultIndex,
+        FlightId: flightData.FlightId,
+        FareType: selectedFare.FareType,
+        originalFlightData: flightData
+      },
+
+      selectedFare: {
+        ...selectedFare,
+        price: selectedFare.originalPrice
+      },
+
+      searchData: finalSearchData,
+      
+      // Passenger information for checkout forms
+      passengerCount: {
+        adults: adults,
+        children: children,
+        infants: infants
+      },
+      
+      totalPrice: totalPrice
+    };
+
+    console.log("Checkout Data:", checkoutData);
+    
+    // Navigate to checkout page with all data
+    navigate("/flight-checkout", { state: checkoutData });
+    onHide();
   };
-
-  navigate("/flight-checkout", { state: checkoutData });
-  onHide();
-};
 
   const renderFareOptionCard = (fare, index) => (
     <div 
@@ -435,8 +447,8 @@ const handleBookNow = () => {
     return dep && arr && dep.getDate() !== arr.getDate();
   };
 
-  // Calculate total price
-  const totalPrice = selectedFare ? selectedFare.originalPrice : 0;
+  // Calculate total price for all passengers
+  const totalPrice = selectedFare ? calculateTotalPrice(selectedFare) : 0;
 
   return (
     <Modal
@@ -462,6 +474,12 @@ const handleBookNow = () => {
             Arrival: {formatTime(flightInfo.destination.time)}
             {isNextDayArrival() && " (+1 day)"}
           </div>
+          
+          {/* Passenger Count Display */}
+          <div className="passenger-count-display">
+            <strong>Passengers:</strong> {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
+          </div>
+
           {fareRulesData && (
             <div className="fare-basis-info">
               Fare Basis: {extractFareRulesInfo()?.fareBasisCode} · Airline: {extractFareRulesInfo()?.airline}
@@ -485,8 +503,20 @@ const handleBookNow = () => {
               <div className="total-price">
                 <span className="total-amount">₹ {formatPrice(totalPrice)}</span>
                 <span className="total-label">
-                  {selectedFare ? `${selectedFare.type} FOR 1 ADULT` : 'SELECT A FARE TO SEE TOTAL'}
+                  {selectedFare ? 
+                    `${selectedFare.type} FOR ${adults} ADULT(S), ${children} CHILD(REN), ${infants} INFANT(S)` : 
+                    'SELECT A FARE TO SEE TOTAL'
+                  }
                 </span>
+              </div>
+              <div className="passenger-breakdown">
+                {selectedFare && (
+                  <div className="breakdown-details">
+                    <div>Adults ({adults} x ₹{formatPrice(selectedFare.originalPrice)})</div>
+                    {children > 0 && <div>Children ({children} x ₹{formatPrice(selectedFare.originalPrice * 0.75)})</div>}
+                    {infants > 0 && <div>Infants ({infants} x ₹{formatPrice(selectedFare.originalPrice * 0.1)})</div>}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -518,7 +548,8 @@ const handleBookNow = () => {
           <div className="selected-fare-info">
             {selectedFare ? (
               <div className="selected-info">
-                <strong>Selected: {selectedFare.type}</strong> - ₹{selectedFare.price}
+                <strong>Selected: {selectedFare.type}</strong> - 
+                Total: ₹{formatPrice(totalPrice)} for {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
                 {!selectedFare.isRefundable && (
                   <span className="refundable-badge non-refundable">Non-Refundable</span>
                 )}
@@ -542,7 +573,7 @@ const handleBookNow = () => {
                 color: "white",
               }}
             >
-              BOOK NOW - ₹{selectedFare ? selectedFare.price : "0"}
+              BOOK NOW - ₹{formatPrice(totalPrice)}
             </Button>
           </div>
         </div>

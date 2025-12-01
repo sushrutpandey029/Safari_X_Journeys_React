@@ -1,4 +1,3 @@
-// src/components/Flight.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   Form,
@@ -254,7 +253,6 @@ const Flight = () => {
     round: 2,
     multi: 3,
   };
-
   // Fetch user IP, authenticate and get airports
   useEffect(() => {
     const initializeApp = async () => {
@@ -294,7 +292,7 @@ const Flight = () => {
     initializeApp();
   }, []);
 
-  // Custom Airport Dropdown Component
+  // Custom Airport Dropdown Component - FIXED VERSION
   const AirportDropdown = ({
     value,
     onChange,
@@ -306,25 +304,49 @@ const Flight = () => {
     const [filteredAirports, setFilteredAirports] = useState([]);
     const dropdownRef = useRef(null);
 
-    // Filter airports based on search term
+    // Get all selected airports from all flights (excluding current value)
+    const getAllSelectedAirports = () => {
+      const selected = new Set();
+      
+      // Add all "from" and "to" airports from all flights
+      flights.forEach(flight => {
+        if (flight.from && flight.from !== value) selected.add(flight.from);
+        if (flight.to && flight.to !== value) selected.add(flight.to);
+      });
+      
+      return selected;
+    };
+
+    // Filter airports based on search term and exclude already selected ones
     useEffect(() => {
       if (searchTerm) {
+        const selectedAirports = getAllSelectedAirports();
         const filtered = airports.filter((airport) => {
           const city = airport.city_name || "";
           const name = airport.airport_name || "";
           const code = airport.airport_code || "";
 
-          return (
+          // Check if matches search
+          const matchesSearch = 
             city.toLowerCase().includes(searchTerm.toLowerCase()) ||
             name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            code.toLowerCase().includes(searchTerm.toLowerCase())
-          );
+            code.toLowerCase().includes(searchTerm.toLowerCase());
+
+          // Check if not already selected (except current value)
+          const notSelected = !selectedAirports.has(airport.airport_code);
+
+          return matchesSearch && notSelected;
         });
         setFilteredAirports(filtered.slice(0, 10));
       } else {
-        setFilteredAirports(airports.slice(0, 10));
+        // When no search term, show airports not already selected
+        const selectedAirports = getAllSelectedAirports();
+        const availableAirports = airports.filter(airport => 
+          !selectedAirports.has(airport.airport_code)
+        );
+        setFilteredAirports(availableAirports.slice(0, 10));
       }
-    }, [searchTerm, airports]);
+    }, [searchTerm, airports, flights, value]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -344,18 +366,16 @@ const Flight = () => {
       };
     }, []);
 
-
     useEffect(() => {
-  if (showModal && window.history.state?.usr?.searchData) {
-    const data = window.history.state.usr.searchData;
+      if (showModal && window.history.state?.usr?.searchData) {
+        const data = window.history.state.usr.searchData;
 
-    setSearchData(data);
-    setAdults(data.passengers.adults);
-    setChildren(data.passengers.children);
-    setInfants(data.passengers.infants);
-  }
-}, [showModal]);
-
+        setSearchData(data);
+        setAdults(data.passengers.adults);
+        setChildren(data.passengers.children);
+        setInfants(data.passengers.infants);
+      }
+    }, [showModal]);
 
     const handleSelect = (airport) => {
       onChange(airport.airport_code);
@@ -385,7 +405,12 @@ const Flight = () => {
           }}
           onFocus={() => {
             setIsOpen(true);
-            setFilteredAirports(airports.slice(0, 10));
+            // On focus, show available airports (not already selected)
+            const selectedAirports = getAllSelectedAirports();
+            const availableAirports = airports.filter(airport => 
+              !selectedAirports.has(airport.airport_code)
+            );
+            setFilteredAirports(availableAirports.slice(0, 10));
           }}
           className="custom-dropdown-input"
         />
@@ -420,7 +445,17 @@ const Flight = () => {
               ))
             ) : (
               <div className="dropdown-item text-muted">
-                {loading ? "Loading airports..." : "No airports found"}
+                {loading ? "Loading airports..." : "No airports available"}
+              </div>
+            )}
+            
+            {/* Show warning if user has selected same airport elsewhere */}
+            {getAllSelectedAirports().size > 0 && (
+              <div className="dropdown-footer text-muted small px-3 py-2 border-top">
+                <small>
+                  <i className="fas fa-info-circle me-1"></i>
+                  Already selected airports are hidden
+                </small>
               </div>
             )}
           </div>
@@ -476,27 +511,27 @@ const Flight = () => {
     setFlights(newFlights);
   };
 
- const onViewPrices = (flight) => {
-  setSelectedFlight(flight);
+  const onViewPrices = (flight) => {
+    setSelectedFlight(flight);
 
-  // Create proper search data with passenger information
-  const passengerData = {
-    passengers: {
-      adults: adults,
-      children: children,
-      infants: infants
-    },
-    tripType: tripType,
-    origin: flights[0]?.from || '',
-    destination: flights[0]?.to || '',
-    departureDate: flights[0]?.date || '',
-    returnDate: flights[0]?.returnDate || '',
-    travelClass: travelClass
+    // Create proper search data with passenger information
+    const passengerData = {
+      passengers: {
+        adults,
+        children,
+        infants
+      },
+      tripType,
+      origin: flights?.[0]?.from,
+      destination: flights?.[0]?.to,
+      departureDate: flights?.[0]?.date,
+      returnDate: flights?.[0]?.returnDate,
+      travelClass
+    };
+    setSearchData(passengerData);
+    setShowModal(true);
   };
 
-  setSearchData(passengerData);
-  setShowModal(true);
-};
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedFlight(null);
@@ -989,7 +1024,7 @@ const Flight = () => {
                         backgroundColor: "transparent",
                       }}
                     >
-                      {adults} Adult{adults > 1 ? "s" : ""},{" "}
+                      {adults} Adult{adults > 1? "s" : ""},{" "}
                       {travelClass || "Economy"}
                     </Dropdown.Toggle>
 
@@ -1062,83 +1097,80 @@ const Flight = () => {
                 </Button>
               </Col>
             </Row>
+{tripType === "multi" &&
+  flights.map((flight, index) => (
+    <Row
+      key={index}
+      className="align-items-end g-2 mb-3 travellers"
+    >
+      <Col md={2}>
+        <Form.Group>
+          <Form.Label className="fw-semibold small">From</Form.Label>
+          <AirportDropdown
+            value={flight.from}
+            onChange={(value) => handleFromChange(index, value)}
+            placeholder="From City"
+            type="from"
+          />
+        </Form.Group>
+      </Col>
 
-            {tripType === "multi" &&
-              flights.map((flight, index) => (
-                <Row
-                  key={index}
-                  className="align-items-end g-2 mb-3 travellers"
-                >
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold small">
-                        From
-                      </Form.Label>
-                      <AirportDropdown
-                        value={flight.from}
-                        onChange={(value) => handleFromChange(index, value)}
-                        placeholder="From City"
-                        type="from"
-                      />
-                    </Form.Group>
-                  </Col>
+      <Col md={2}>
+        <Form.Group>
+          <Form.Label className="fw-semibold small">To</Form.Label>
+          <AirportDropdown
+            value={flight.to}
+            onChange={(value) => handleToChange(index, value)}
+            placeholder="To City"
+            type="to"
+          />
+        </Form.Group>
+      </Col>
 
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold small">To</Form.Label>
-                      <AirportDropdown
-                        value={flight.to}
-                        onChange={(value) => handleToChange(index, value)}
-                        placeholder="To City"
-                        type="to"
-                      />
-                    </Form.Group>
-                  </Col>
+      <Col md={2}>
+        <Form.Group>
+          <Form.Label className="fw-semibold small">Depart</Form.Label>
 
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold small">
-                        Depart
-                      </Form.Label>
-                      <DatePicker
-                        selected={
-                          flight.date ? new Date(flight.date) : new Date()
-                        }
-                        onChange={(date) => {
-                          const newFlights = [...flights];
-                          newFlights[index].date = date
-                            .toISOString()
-                            .split("T")[0];
-                          setFlights(newFlights);
-                        }}
-                        minDate={new Date()}
-                        dateFormat="EEE, MMM d, yyyy"
-                        className="form-control"
-                      />
-                    </Form.Group>
-                  </Col>
+          {/* 🔥 FINAL FIX - this keeps dates separate for each row */}
+          <DatePicker
+            selected={flight.date ? new Date(flight.date) : null}
+            onChange={(date) => {
+              const updatedFlights = flights.map((f, i) =>
+                i === index
+                  ? { ...f, date: date ? date.toISOString().split("T")[0] : null }
+                  : f
+              );
+              setFlights(updatedFlights);
+            }}
+            minDate={new Date()}
+            dateFormat="EEE, MMM d, yyyy"
+            className="form-control"
+          />
+        </Form.Group>
+      </Col>
 
-                  <Col md={2} className="d-flex gap-2">
-                    {index === flights.length - 1 ? (
-                      <Button
-                        variant="outline-primary"
-                        className="rounded-pill"
-                        onClick={addCity}
-                      >
-                        + Add City
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline-danger"
-                        className="rounded-pill"
-                        onClick={() => removeCity(index)}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </Col>
-                </Row>
-              ))}
+      <Col md={2} className="d-flex gap-2">
+        {index === flights.length - 1 ? (
+          <Button
+            variant="outline-primary"
+            className="rounded-pill"
+            onClick={addCity}
+          >
+            + Add City
+          </Button>
+        ) : (
+          <Button
+            variant="outline-danger"
+            className="rounded-pill"
+            onClick={() => removeCity(index)}
+          >
+            Remove
+          </Button>
+        )}
+      </Col>
+    </Row>
+  ))
+}
           </div>
         </div>
       </div>
@@ -1399,7 +1431,7 @@ const Flight = () => {
         travelClass={travelClass}
         showModal={showModal}
         onHide={handleCloseModal}
-       searchData={searchData}
+        searchData={searchData}
       />
     </div>
   );

@@ -12,7 +12,6 @@ import {
   Bus_busLayout,
   fetchBoardingPoints,
 } from "../services/busservice";
-import {  getBoardingDroppingAPI } from "../services/busservice";
 
 function BusList() {
   const [busData, setBusData] = useState([]);
@@ -30,6 +29,7 @@ function BusList() {
   const [seatLayoutData, setSeatLayoutData] = useState(null);
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [seatPrices, setSeatPrices] = useState({});
+  const [traceId, setTraceId] = useState(null);
 
   const [toggle, setToggle] = useState({
     busType: true,
@@ -80,7 +80,10 @@ function BusList() {
         console.log("✅ Step 3 - City Response:", cityResponse);
 
         // Extract cities from response
-        const cityData = cityResponse?.resposnse?.BusCities;
+        const cityData =
+          cityResponse?.resposnse?.BusCities ||
+          cityResponse?.BusCities ||
+          cityResponse;
 
         if (Array.isArray(cityData) && cityData.length > 0) {
           setCities(cityData);
@@ -134,21 +137,34 @@ function BusList() {
     }
   };
 
-  // 🚌 GET BUS LAYOUT - IMPROVED VERSION
-  const fetchBusLayout = async ({ TokenId, TraceId, ResultIndex }) => {
+  // 🚌 GET BUS LAYOUT - CORRECTED VERSION
+  const fetchBusLayout = async (bus) => {
     try {
       setLoadingSeats(true);
       setError(null);
       setSeatPrices({});
 
-      console.log("🔄 Fetching Seat Layout:", { TokenId, TraceId, ResultIndex });
+      console.log("🔄 Fetching Seat Layout for bus:", bus);
+
+      const TokenId = tokenId || bus?.TokenId;
+      const TraceId = bus?.traceId || bus?.TraceId;
+      const ResultIndex = bus?.resultIndex ?? bus?.ResultIndex;
+
+      if (!TokenId || !TraceId || ResultIndex == null) {
+        throw new Error("Missing required parameters for seat layout");
+      }
+
+      console.log("📤 Layout API Payload:", {
+        TokenId: TokenId.substring(0, 10) + "...",
+        TraceId,
+        ResultIndex,
+      });
 
       const payload = { TokenId, TraceId, ResultIndex };
-
       const response = await Bus_busLayout(payload);
       console.log("📥 API Layout Response:", response);
 
-      if (!response) throw new Error("Empty response");
+      if (!response) throw new Error("Empty response from layout API");
 
       const layout =
         response?.data?.SeatLayoutDetails ||
@@ -156,36 +172,42 @@ function BusList() {
         response?.SeatLayout ||
         response;
 
-      if (!layout) throw new Error("No seat layout found");
+      if (!layout) throw new Error("No seat layout found in response");
 
       console.log("🎉 Final Layout Extracted:", layout);
-
       setSeatLayoutData(layout);
-      
+
       // Extract seat prices from layout
       extractSeatPrices(layout);
-      
+
       return layout;
     } catch (err) {
       console.error("❌ Layout Fetch Failed:", err);
-      setError("Failed to load layout");
+      setError("Failed to load seat layout");
 
-      const mock = {
+      // Fallback mock layout
+      const mockLayout = {
         HTMLLayout: `<div class='outerseat'>
           <div class='busSeatlft'><div class='lower'></div></div>
           <div class='busSeatrgt'>
             <div class='busSeat'><div class='seatcontainer clearfix'>
-              ${Array.from({ length: 20 }, (_, i) =>
-                `<div class="nseat" style="top:${i * 35}px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${selectedBus?.price || 500}')">S${i + 1}</div>`
+              ${Array.from(
+                { length: 20 },
+                (_, i) =>
+                  `<div class="nseat" style="top:${
+                    i * 35
+                  }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${
+                    selectedBus?.price || 500
+                  }')">S${i + 1}</div>`
               ).join("")}
             </div></div>
           </div>
-        </div>`
+        </div>`,
       };
 
-      setSeatLayoutData(mock);
-      extractSeatPrices(mock);
-      return mock;
+      setSeatLayoutData(mockLayout);
+      extractSeatPrices(mockLayout);
+      return mockLayout;
     } finally {
       setLoadingSeats(false);
     }
@@ -194,38 +216,39 @@ function BusList() {
   // Extract seat prices from layout data
   const extractSeatPrices = (layout) => {
     const prices = {};
-    
+
     if (layout.HTMLLayout) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(layout.HTMLLayout, "text/html");
       const seatDivs = doc.querySelectorAll(".nseat");
-      
+
       seatDivs.forEach((seatDiv) => {
         const onclickAttr = seatDiv.getAttribute("onclick");
         if (onclickAttr) {
           // Extract seat number and price from onclick attribute
-          const seatMatch = onclickAttr.match(/AddRemoveSeat\([^,]*,['"]([^'"]*)['"]/);
-          const priceMatch = onclickAttr.match(/'([\d.]+)'\)$/);
-          
-          if (seatMatch && priceMatch) {
+          const seatMatch = onclickAttr.match(
+            /AddRemoveSeat\(['"]([^'"]*)['"],\s*['"]([^'"]*)['"]\)/
+          );
+
+          if (seatMatch) {
             const seatNumber = seatMatch[1];
-            const price = parseFloat(priceMatch[1]);
+            const price = parseFloat(seatMatch[2]);
             prices[seatNumber] = price;
           }
         }
       });
     }
-    
+
     // If no prices found in HTML, use bus base price
     if (Object.keys(prices).length === 0 && selectedBus) {
       prices["default"] = selectedBus.price;
     }
-    
+
     setSeatPrices(prices);
     console.log("💰 Extracted Seat Prices:", prices);
   };
 
-  // 🚌 DYNAMIC BUS SEARCH
+  // 🚌 DYNAMIC BUS SEARCH - CORRECTED VERSION
   const searchBuses = async () => {
     if (
       !searchParams.fromCityId ||
@@ -266,10 +289,11 @@ function BusList() {
       const searchResponse = await Bus_busSearch(searchData);
       console.log("📨 Bus Search API Response:", searchResponse);
 
-      // 🔥 Fix: works for both response formats
+      // 🔥 Fix: works for multiple response formats
       const searchResult =
         searchResponse?.data?.BusSearchResult ||
-        searchResponse?.BusSearchResult;
+        searchResponse?.BusSearchResult ||
+        searchResponse;
 
       if (
         searchResult?.ResponseStatus === 1 &&
@@ -283,13 +307,17 @@ function BusList() {
           TokenId: SearchToken,
         } = searchResult;
 
-        // 🟢 SAVE SearchToken GLOBAL + LOCAL
+        // 🟢 SAVE SearchToken and TraceId GLOBALLY
         if (SearchToken) {
           setTokenId(SearchToken);
           localStorage.setItem("Bus_Search_Token", SearchToken);
           console.log("🔑 Token saved:", SearchToken);
-        } else {
-          console.warn("⚠️ TokenId not coming from API");
+        }
+
+        if (TraceId) {
+          setTraceId(TraceId);
+          localStorage.setItem("Bus_Trace_Id", TraceId);
+          console.log("🔍 TraceId saved:", TraceId);
         }
 
         // 🚍 Transform API BUS data
@@ -328,6 +356,8 @@ function BusList() {
           imagePath: `bus${(index % 3) + 1}.jpg`,
           totalSeats: 40,
           apiData: bus,
+          // Ensure TokenId is available for layout API
+          TokenId: SearchToken || token,
         }));
 
         setBusData(transformedBuses);
@@ -337,6 +367,7 @@ function BusList() {
           origin: Origin,
           destination: Destination,
           totalBuses: transformedBuses.length,
+          traceId: TraceId,
         });
       } else {
         console.warn("⚠️ No buses found in API response");
@@ -349,7 +380,6 @@ function BusList() {
     } catch (error) {
       console.error("💥 Bus Search Error:", error);
       setError(error.message || "Failed to search buses");
-
       setBusData([]);
       setFilteredBusData([]);
     } finally {
@@ -357,26 +387,22 @@ function BusList() {
     }
   };
 
-  // Modal functions - UPDATED WITH BUS LAYOUT
-  const handleOpenSeats = (bus) => {
-    console.log("🚌 Selected Bus:", bus);
+  // 🪑 MODAL FUNCTIONS - CORRECTED VERSION
+  const handleOpenSeats = async (bus) => {
+    console.log("🚌 Opening seat selection for bus:", bus);
 
-    // ✅ Get TokenId from state, bus object, or localStorage fallback
-    const TokenId =
-      tokenId ||
-      bus?.TokenId ||
-      localStorage.getItem("Bus_Search_Token");
-
-    const TraceId = bus?.traceId || bus?.TraceId;
+    // ✅ Validate required parameters
+    const TokenId = bus?.TokenId || tokenId;
+    const TraceId = bus?.traceId || traceId;
     const ResultIndex = bus?.resultIndex ?? bus?.ResultIndex;
 
-    // ❌ Validate required parameters
     if (!TokenId || !TraceId || ResultIndex == null) {
       console.error("❌ Missing required layout parameters:", {
         TokenId,
         TraceId,
         ResultIndex,
       });
+      setError("Cannot load seat layout. Missing required parameters.");
       return;
     }
 
@@ -386,10 +412,8 @@ function BusList() {
     setSeatLayoutData(null);
     setShowModal(true);
 
-    // ✅ Fetch seat layout after modal opens
-    setTimeout(() => {
-      fetchBusLayout({ TokenId, TraceId, ResultIndex });
-    }, 100);
+    // ✅ Fetch seat layout
+    await fetchBusLayout(bus);
   };
 
   const handleCloseModal = () => {
@@ -400,199 +424,262 @@ function BusList() {
   };
 
   const handleSeatSelect = (seatNumber, seatPrice) => {
-    console.log('🎯 Seat selected:', seatNumber, 'Price:', seatPrice);
-    
-    setSelectedSeats(prev => {
-      const isAlreadySelected = prev.some(seat => seat.number === seatNumber);
-      
+    console.log("🎯 Seat selected:", seatNumber, "Price:", seatPrice);
+
+    setSelectedSeats((prev) => {
+      const isAlreadySelected = prev.some((seat) => seat.number === seatNumber);
+
       if (isAlreadySelected) {
-        return prev.filter(seat => seat.number !== seatNumber);
+        return prev.filter((seat) => seat.number !== seatNumber);
       } else {
         return [...prev, { number: seatNumber, price: seatPrice }];
       }
     });
   };
 
- const handleConfirmSeats = async () => {
-  if (selectedSeats.length > 0) {
+  // BusList.js - Sirf handleConfirmSeats function correct karo
+  const handleConfirmSeats = async () => {
+    if (selectedSeats.length === 0) return;
 
-    // 🔥 Step 1: Boarding/Dropping API Call
     try {
-      const response = await fetchBoardingPoints(
-        selectedBus.TokenId,
-        selectedBus.TraceId,
-        selectedBus.ResultIndex
+      console.log("🚀 Starting seat confirmation process...");
+
+      // ✅ CRITICAL: Extract ALL parameters from selectedBus
+      const TokenId = selectedBus?.TokenId || tokenId;
+      const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
+      const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
+
+      console.log("🔍 Extracted Parameters:", {
+        TokenId: TokenId ? TokenId.substring(0, 10) + "..." : "MISSING",
+        TraceId: TraceId ? TraceId.substring(0, 10) + "..." : "MISSING",
+        ResultIndex: ResultIndex ?? "MISSING",
+      });
+
+      // ✅ Validate we have ALL required parameters
+      if (!TokenId || !TraceId || ResultIndex == null) {
+        console.error("❌ CRITICAL: Missing API parameters in BusList");
+        throw new Error("Required parameters missing for boarding points");
+      }
+
+      // ✅ STEP 1: Call Boarding Points API in BusList itself
+      console.log("📤 Calling Boarding Points API from BusList...");
+      const boardingResponse = await fetchBoardingPoints(
+        TokenId,
+        TraceId,
+        ResultIndex
+      );
+      console.log("📥 Boarding API Response:", boardingResponse);
+
+      // Extract boarding points data
+      const boardingData = boardingResponse?.data?.BoardingPointsDetails || [];
+      const droppingData = boardingResponse?.data?.DroppingPointsDetails || [];
+
+      console.log(
+        `✅ Boarding Points: ${boardingData.length}, Dropping Points: ${droppingData.length}`
       );
 
-      const boarding = response?.data?.BoardingPointsDetails || [];
-      const dropping = response?.data?.DroppingPointsDetails || [];
+      // ✅ STEP 2: Prepare COMPLETE bus data with ALL parameters
+      const completeBusData = {
+        ...selectedBus,
+        // ✅ FORCE include all critical parameters
+        TokenId: TokenId,
+        TraceId: TraceId,
+        ResultIndex: ResultIndex,
+        // ✅ Include boarding points data directly
+        boardingPoints: boardingData,
+        droppingPoints: droppingData,
+      };
 
-      // 🔥 Step 2: Save API data into localStorage
-      localStorage.setItem("boardingPoints", JSON.stringify(boarding));
-      localStorage.setItem("droppingPoints", JSON.stringify(dropping));
+      // ✅ STEP 3: Save EVERYTHING to localStorage
+      localStorage.setItem("selectedBus", JSON.stringify(completeBusData));
+      localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
+      localStorage.setItem("boardingPoints", JSON.stringify(boardingData));
+      localStorage.setItem("droppingPoints", JSON.stringify(droppingData));
+      localStorage.setItem("Bus_Search_Token", TokenId);
+      localStorage.setItem("Bus_Trace_Id", TraceId);
+      localStorage.setItem("Bus_Result_Index", ResultIndex.toString());
 
+      console.log("💾 ALL data saved to localStorage successfully");
+
+      // ✅ STEP 4: Navigate to Checkout with COMPLETE data
+      const navigationState = {
+        bus: completeBusData,
+        seats: selectedSeats,
+        // ✅ Include raw parameters separately too
+        tokenId: TokenId,
+        traceId: TraceId,
+        resultIndex: ResultIndex,
+      };
+
+      console.log("🚀 Navigating to checkout with complete data...");
+
+      navigate("/Bus-checkout", { state: navigationState });
     } catch (error) {
-      console.error("Boarding/Dropping API error:", error);
+      console.error("❌ Error in seat confirmation:", error);
+
+      // ✅ FALLBACK: Still save basic data and navigate
+      const fallbackBusData = {
+        ...selectedBus,
+        TokenId: selectedBus?.TokenId || tokenId,
+        TraceId: selectedBus?.traceId || selectedBus?.TraceId,
+        ResultIndex: selectedBus?.resultIndex ?? selectedBus?.ResultIndex,
+      };
+
+      localStorage.setItem("selectedBus", JSON.stringify(fallbackBusData));
+      localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
+
+      navigate("/Bus-checkout", {
+        state: {
+          bus: fallbackBusData,
+          seats: selectedSeats,
+        },
+      });
     }
 
-    // 🔥 Step 3: Your Original Code (UNCHANGED)
-    console.log(
-      "Confirmed seats:",
-      selectedSeats,
-      "for bus:",
-      selectedBus.busName
-    );
-
-    localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
-    localStorage.setItem("selectedBus", JSON.stringify(selectedBus));
-
-    navigate("/Bus-checkout", {
-      state: { bus: selectedBus, seats: selectedSeats },
-    });
-  }
-
-  handleCloseModal();
-};
-
-
+    // Close modal
+    handleCloseModal();
+  };
 
   // Calculate total price
   const calculateTotalPrice = () => {
-    return selectedSeats.reduce((total, seat) => total + (seat.price || selectedBus?.price || 0), 0);
+    return selectedSeats.reduce(
+      (total, seat) => total + (seat.price || selectedBus?.price || 0),
+      0
+    );
   };
 
+  // 🪑 RENDER SEATS FROM API - CORRECTED VERSION
+  const renderSeatsFromAPI = () => {
+    if (!seatLayoutData)
+      return <div className="loading-seats">Loading seat layout...</div>;
 
- // 🆕 IMPROVED: Render seats from API data - Full Container Adjust
-const renderSeatsFromAPI = () => {
-  if (!seatLayoutData) return <div className="loading-seats">Loading seat layout...</div>;
+    if (seatLayoutData.HTMLLayout) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(
+        seatLayoutData.HTMLLayout,
+        "text/html"
+      );
+      const seatDivs = doc.querySelectorAll(".nseat");
 
-  // If API returns HTMLLayout
-  if (seatLayoutData.HTMLLayout) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(seatLayoutData.HTMLLayout, "text/html");
-    const seatDivs = doc.querySelectorAll(".nseat");
+      const totalSeats = seatDivs.length;
+      const seatsPerRow = Math.ceil(Math.sqrt(totalSeats * 1.5));
+      const containerWidth = 800;
+      const containerHeight = 400;
+      const seatWidth = 70;
+      const seatHeight = 80;
+      const horizontalSpacing =
+        (containerWidth - seatsPerRow * seatWidth) / (seatsPerRow + 1);
+      const verticalSpacing = 20;
 
-    // Calculate dynamic spacing based on container size and number of seats
-    const totalSeats = seatDivs.length;
-    const seatsPerRow = Math.ceil(Math.sqrt(totalSeats * 1.5)); // Adjust aspect ratio
-    const containerWidth = 800; // Approximate container width
-    const containerHeight = 400; // Approximate container height
-    
-    const seatWidth = 70;
-    const seatHeight = 80;
-    const horizontalSpacing = (containerWidth - (seatsPerRow * seatWidth)) / (seatsPerRow + 1);
-    const verticalSpacing = 20;
+      return (
+        <div
+          className="bus-layout-api"
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "500px",
+            overflow: "auto",
+            border: "1px solid #e0e0e0",
+            borderRadius: "8px",
+            padding: "20px",
+            background: "#f8f9fa",
+          }}
+        >
+          {Array.from(seatDivs).map((seatDiv, index) => {
+            const seatNumber = seatDiv.textContent?.trim() || `S${index + 1}`;
+            let price = selectedBus?.price || 500;
 
-    return (
-      <div className="bus-layout-api" style={{ 
-        position: 'relative', 
-        width: '100%', 
-        height: '500px',
-        overflow: 'auto',
-        border: '1px solid #e0e0e0',
-        borderRadius: '8px',
-        padding: '20px',
-        background: '#f8f9fa'
-      }}>
-        {Array.from(seatDivs).map((seatDiv, index) => {
-          // Extract seat number
-          const seatNumber = seatDiv.textContent?.trim() || `S${index + 1}`;
-          
-          // Extract price from onclick or use default
-          const onclickAttr = seatDiv.getAttribute("onclick");
-          let price = selectedBus?.price || 500;
-          
-          if (onclickAttr) {
-            const priceMatch = onclickAttr.match(/'([\d.]+)'\)$/);
-            if (priceMatch) {
-              price = parseFloat(priceMatch[1]);
+            const onclickAttr = seatDiv.getAttribute("onclick");
+            if (onclickAttr) {
+              const priceMatch = onclickAttr.match(
+                /AddRemoveSeat\(['"][^'"]*['"],\s*['"]([^'"]*)['"]\)/
+              );
+              if (priceMatch) {
+                price = parseFloat(priceMatch[1]);
+              }
             }
-          }
 
-          // Check if seat is selected
-          const isSelected = selectedSeats.some(seat => seat.number === seatNumber);
+            const isSelected = selectedSeats.some(
+              (seat) => seat.number === seatNumber
+            );
+            const row = Math.floor(index / seatsPerRow);
+            const col = index % seatsPerRow;
+            const left =
+              horizontalSpacing + col * (seatWidth + horizontalSpacing);
+            const top = 20 + row * (seatHeight + verticalSpacing);
 
-          // Calculate position for grid layout
-          const row = Math.floor(index / seatsPerRow);
-          const col = index % seatsPerRow;
-          
-          const left = horizontalSpacing + (col * (seatWidth + horizontalSpacing));
-          const top = 20 + (row * (seatHeight + verticalSpacing));
-
-          return (
-            <div
-              key={index}
-              className={`seat-api ${isSelected ? 'selected' : ''}`}
-              style={{
-                position: "absolute",
-                top: `${top}px`,
-                left: `${left}px`,
-                width: `${seatWidth}px`,
-                height: `${seatHeight}px`,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-              onClick={() => handleSeatSelect(seatNumber, price)}
-            >
-              {/* MakeMyTrip Style Seat */}
+            return (
               <div
-                className="seat-icon"
+                key={index}
+                className={`seat-api ${isSelected ? "selected" : ""}`}
                 style={{
-                  width: "48px",
-                  height: "48px",
-                  border: isSelected ? "3px solid #e23738" : "3px solid #8c8c8c",
-                  borderRadius: "8px",
-                  position: "relative",
-                  background: isSelected ? "#ffe6e6" : "#f5f5f5",
+                  position: "absolute",
+                  top: `${top}px`,
+                  left: `${left}px`,
+                  width: `${seatWidth}px`,
+                  height: `${seatHeight}px`,
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: isSelected ? "#e23738" : "#333",
-                  transition: "all 0.2s ease",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
                 }}
+                onClick={() => handleSeatSelect(seatNumber, price)}
               >
-                {seatNumber}
-                {/* Bottom line like MakeMyTrip */}
                 <div
+                  className="seat-icon"
                   style={{
-                    position: "absolute",
-                    bottom: "6px",
-                    left: "8px",
-                    right: "8px",
-                    height: "2px",
-                    background: isSelected ? "#e23738" : "#8c8c8c",
+                    width: "48px",
+                    height: "48px",
+                    border: isSelected
+                      ? "3px solid #e23738"
+                      : "3px solid #8c8c8c",
+                    borderRadius: "8px",
+                    position: "relative",
+                    background: isSelected ? "#ffe6e6" : "#f5f5f5",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    color: isSelected ? "#e23738" : "#333",
+                    transition: "all 0.2s ease",
                   }}
-                />
+                >
+                  {seatNumber}
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "6px",
+                      left: "8px",
+                      right: "8px",
+                      height: "2px",
+                      background: isSelected ? "#e23738" : "#8c8c8c",
+                    }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: isSelected ? "#e23738" : "#666",
+                    marginTop: "4px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ₹{price}
+                </span>
               </div>
+            );
+          })}
+        </div>
+      );
+    }
 
-              {/* Price below seat - MakeMyTrip style */}
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: isSelected ? "#e23738" : "#666",
-                  marginTop: "4px",
-                  fontWeight: "bold",
-                }}
-              >
-                ₹{price}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+    return <div className="no-seats">No seat layout available</div>;
+  };
 
-  return <div className="no-seats">No seat layout available</div>;
-};
-
-  // Rest of your existing functions remain the same...
+  // Rest of the component remains the same...
   const handleToggle = (section) => {
     setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
   };
@@ -712,11 +799,13 @@ const renderSeatsFromAPI = () => {
         style={{ height: "100vh", marginTop: "100px" }}
       >
         <div className="text-center">
-         <div className="logo-loader">
-  <img src="/images/Safarix-Blue-Logo.png" alt="logo" className="loader-logo" />
-
-</div>
-
+          <div className="logo-loader">
+            <img
+              src="/images/Safarix-Blue-Logo.png"
+              alt="logo"
+              className="loader-logo"
+            />
+          </div>
           <p className="mt-2">Loading bus services...</p>
         </div>
       </div>
@@ -725,7 +814,7 @@ const renderSeatsFromAPI = () => {
 
   return (
     <div>
-      {/* Search Section - Same as before */}
+      {/* Search Section */}
       <div className="col-sm-12" style={{ marginTop: "100px" }}>
         <div className="col-sm-12">
           <div className="bus-section text-center">
@@ -990,7 +1079,7 @@ const renderSeatsFromAPI = () => {
         </nav>
 
         <div className="row">
-          {/* FILTER COLUMN - Same as before */}
+          {/* FILTER COLUMN */}
           <div className="col-sm-3 mb-4">
             <div className="bus-card rounded-4 border shadow-sm p-3">
               <h5 className="mb-3 fw-bold">FILTER</h5>
@@ -1115,7 +1204,7 @@ const renderSeatsFromAPI = () => {
             </div>
           </div>
 
-          {/* BUS LIST COLUMN - Same as before */}
+          {/* BUS LIST COLUMN */}
           <div className="col-sm-9">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h5 className="fw-bold mb-0">
@@ -1249,22 +1338,33 @@ const renderSeatsFromAPI = () => {
         </div>
       </div>
 
-      {/* 🆕 IMPROVED Seat Selection Modal - MakeMyTrip Style */}
+      {/* Seat Selection Modal */}
       {showModal && (
-        <div className="modal-overlay make-mytrip-style" style={{ marginTop: "100px" }}>
+        <div
+          className="modal-overlay make-mytrip-style"
+          style={{ marginTop: "100px" }}
+        >
           <div className="modal-content make-mytrip-modal">
-            
             {/* Modal Header */}
             <div className="modal-header make-mytrip-header">
               <div className="header-content">
                 <h2>Select Seats</h2>
                 <div className="bus-info">
                   <strong>{selectedBus?.busName}</strong>
-                  <span>{selectedBus?.from} → {selectedBus?.to}</span>
-                  <span>{selectedBus?.departureTime} • {selectedBus?.travelDate}</span>
+                  <span>
+                    {selectedBus?.from} → {selectedBus?.to}
+                  </span>
+                  <span>
+                    {selectedBus?.departureTime} • {selectedBus?.travelDate}
+                  </span>
                 </div>
               </div>
-              <button className="close-btn make-mytrip-close" onClick={handleCloseModal}>×</button>
+              <button
+                className="close-btn make-mytrip-close"
+                onClick={handleCloseModal}
+              >
+                ×
+              </button>
             </div>
 
             {/* Seat Type Legend */}
@@ -1292,7 +1392,7 @@ const renderSeatsFromAPI = () => {
               <div className="bus-driver-section">
                 <div className="driver-cabin">Driver Cabin</div>
               </div>
-              
+
               <div className="seats-section">
                 {loadingSeats ? (
                   <div className="loading-seats">Loading seat layout...</div>
@@ -1321,7 +1421,7 @@ const renderSeatsFromAPI = () => {
                   <p className="no-seats-text">No seats selected</p>
                 )}
               </div>
-              
+
               <div className="price-summary">
                 <div className="total-price">
                   <span>Total Amount:</span>
@@ -1336,14 +1436,14 @@ const renderSeatsFromAPI = () => {
                 Cancel
               </button>
               <button
-                className="confirm-btn make-mytrip-confirm"
+                className="explore-btn"
                 onClick={handleConfirmSeats}
                 disabled={selectedSeats.length === 0}
               >
-                Proceed to Book ({selectedSeats.length} {selectedSeats.length === 1 ? 'Seat' : 'Seats'})
+                Proceed to Book ({selectedSeats.length}{" "}
+                {selectedSeats.length === 1 ? "Seat" : "Seats"})
               </button>
             </div>
-
           </div>
         </div>
       )}

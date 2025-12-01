@@ -1139,7 +1139,7 @@ input[type="checkbox"]:checked + .checkmark::after {
 
 /* MakeMyTrip Style Modal */
 .make-mytrip-style .modal-content {
-  max-width: 900px;
+  max-width: 844px;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
@@ -1376,16 +1376,6 @@ input[type="checkbox"]:checked + .checkmark::after {
   color: white;
 }
 
-.make-mytrip-confirm {
-  padding: 12px 30px;
-  background: #e23738;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s;
-}
 
 .make-mytrip-confirm:hover:not(:disabled) {
   background: #c12b2b;
