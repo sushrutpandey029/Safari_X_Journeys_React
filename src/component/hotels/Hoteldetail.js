@@ -62,6 +62,8 @@ const HotelDetail = () => {
     const payload = {
       userId: userdetails?.id,
       serviceType: "hotel",
+      vendorType:"hotel",
+      vendorId: hotelDetails.HotelCode,
       serviceDetails: {
         hotelCode: hotelDetails.HotelCode,
         hotelName: hotelDetails.HotelName, // ✅ Hotel name
@@ -91,10 +93,14 @@ const HotelDetail = () => {
     };
 
     // ✅ Navigate to checkout page with payload
-    navigate("/hotel-checkout", { state: { payload } });
-
-    // const result = await startPayment(payload);
-    // console.log("payment res", result);
+    navigate("/hotel-checkout", {
+      state: {
+        payload,
+        selectedRoom: room,
+        hotelInfo: hotelDetails,
+        searchFilters: bookingData, // <-- keeps your entire previous search data
+      },
+    });
   }
 
   // Fetch hotel details + search results

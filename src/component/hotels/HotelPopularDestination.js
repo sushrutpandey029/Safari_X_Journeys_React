@@ -31,12 +31,13 @@ function HotelPopularDestination() {
     const loadCities = async () => {
       try {
         // ✅ API call
-        const resp = await fetchCityList("IN"); // 👈 CountryCode pass karo
+        const resp = await fetchCityList("IN");
+        console.log("resp in citylist", resp);
         if (resp.success && Array.isArray(resp.data)) {
           setCities(resp.data); // sirf data set karenge
         }
       } catch (err) {
-        console.error("❌ Error fetching cities:", err);
+        console.error("Error fetching cities:", err);
       }
     };
 
@@ -44,39 +45,41 @@ function HotelPopularDestination() {
   }, []);
   return (
     <div className="book-hotel">
-  <div className="container">
-    <div className="row">
-      <div className="col-sm-12 d-flex">
-        <div className="col-sm-6">
-          <h2>
-            Top Trending <span> Destinations</span>
-          </h2>
-        </div>
-        <div className="col-sm-6 text-end my-5">
-          <Link to={"/hotel"}>
-            <button className="explore-btn">View More</button>
-          </Link>
+      <div className="container">
+        <div className="row">
+          <div className="col-sm-12 d-flex">
+            <div className="col-sm-6">
+              <h2>
+                Top Trending <span> Destinations</span>
+              </h2>
+            </div>
+            <div className="col-sm-6 text-end my-5">
+              <Link to={"/hotel"}>
+                <button className="explore-btn">View More</button>
+              </Link>
+            </div>
+          </div>
+
+          {City &&
+            City.map((dest, index) => (
+              <Col key={index} md={6} lg={3}>
+                <div
+                  className="place destination-card"
+                  onClick={() => handleCityClick(cities[index])}
+                >
+                  <img
+                    src={dest.image}
+                    alt={cities[index]?.Name || "Destination"}
+                  />
+                  <div className="card-destination">
+                    {cities.length > 0 ? cities[index]?.Name : "Loading..."}
+                  </div>
+                </div>
+              </Col>
+            ))}
         </div>
       </div>
-
-      {City &&
-        City.map((dest, index) => (
-          <Col key={index} md={6} lg={3}>
-            <div
-              className="place destination-card"
-              onClick={() => handleCityClick(cities[index])}
-            >
-              <img src={dest.image} alt={cities[index]?.Name || "Destination"} />
-              <div className="card-destination">
-                {cities.length > 0 ? cities[index]?.Name : "Loading..."}
-              </div>
-            </div>
-          </Col>
-        ))}
     </div>
-  </div>
-</div>
-
   );
 }
 

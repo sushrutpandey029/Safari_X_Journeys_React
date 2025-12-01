@@ -13,7 +13,7 @@ function Booking() {
     const userdetails = await getUserData("safarix_user");
     try {
       const resp = await userBookingDetails(userdetails.id);
-     
+      console.log("resp of userdetails", resp);
       setBookings(resp.data || []); // store API data
     } catch (err) {
       console.log("err in user booking details", err);

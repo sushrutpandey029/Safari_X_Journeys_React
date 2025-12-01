@@ -11,8 +11,6 @@ const Guidedetail = () => {
   const guide = location.state?.guideData;
   const { startPayment } = useCashfreePayment();
 
-  console.log("GUIDEDETAIL", JSON.stringify(guide, null, 2));
-  console.log("Guide ID from URL:", guideId);
 
   const [activeTab, setActiveTab] = useState("about");
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -148,24 +146,24 @@ const Guidedetail = () => {
         endDate: endDate,
       };
 
-      console.log("Booking Data with User Form:", bookingData);
+      console.log("Booking Data with User Form", bookingData);
       const result = await startPayment(bookingData);
-      console.log("payment res", result);
+      // console.log("payment res", result);
 
       // Show success message
-      alert(
-        `Booking confirmed! Thank you ${userForm.name}. Payment processing started.`
-      );
+      // alert(
+      //   `Booking confirmed! Thank you ${userForm.name}. Payment processing started.`
+      // );
 
       // Reset form after successful booking
-      setUserForm({
-        name: "",
-        phone: "",
-        address: "",
-        location: `${guide?.city}, ${guide?.state}, ${guide?.country}` || "",
-      });
-      setStartDate("");
-      setEndDate("");
+      // setUserForm({
+      //   name: "",
+      //   phone: "",
+      //   address: "",
+      //   location: `${guide?.city}, ${guide?.state}, ${guide?.country}` || "",
+      // });
+      // setStartDate("");
+      // setEndDate("");
       setShowBookingForm(false);
     } catch (err) {
       console.error(err);
@@ -209,9 +207,9 @@ const Guidedetail = () => {
               <span className="location">
                 📍 {guide.city}, {guide.state}
               </span>
-              <span className="experience">
+              {/* <span className="experience">
                 ⭐ {guide.workExperience?.[0]?.years}+ years Experience
-              </span>
+              </span> */}
             </div>
           </div>
 

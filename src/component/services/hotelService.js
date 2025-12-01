@@ -90,9 +90,17 @@ export const fetchHotelByCategory = async () => {
   }
 };
 
-export const hotelCancel = async () => {
+export const cancelHotelBooking = async (payload) => {
+  return await axios.post(API.HOTEL_CANCEL, payload);
+};
+
+export const getHotelCancelStatus = async (payload) => {
+  return await axios.post(API.HOTEL_CANCEL_STATUS, payload);
+};
+
+export const getUserHotelBookingDetails = async (payload) => {
   try {
-    const resp = await axios.post(API.HOTEL_CANCEL);
+    const resp = await axios.post(API.USER_HOTEL_BOOKING_DETAILS, payload);
     return resp.data;
   } catch (err) {
     throw err;

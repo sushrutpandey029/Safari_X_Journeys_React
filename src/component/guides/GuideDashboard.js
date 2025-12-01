@@ -50,7 +50,6 @@ function GuideDashboard() {
               role="tablist"
               aria-orientation="vertical"
             >
-             
               <li class="nav-item">
                 <button
                   class="nav-link active"
@@ -98,12 +97,7 @@ function GuideDashboard() {
           </div>
 
           <div class="col-md-9 tab-content p-4" id="v-pills-tabContent">
-           
-            <div
-              class="tab-pane fade show active"
-              id="profile"
-              role="tabpanel"
-            >
+            <div class="tab-pane fade show active" id="profile" role="tabpanel">
               <h4>Change Profile</h4>
               <Profile />
             </div>
@@ -111,7 +105,6 @@ function GuideDashboard() {
               <h4>Change Password</h4>
               <ChangePassword />
             </div>
-           
           </div>
         </div>
       </div>

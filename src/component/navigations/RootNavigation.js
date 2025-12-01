@@ -33,7 +33,7 @@ import About from "../common/policy/About";
 import HotelCheckout from "../hotels/Hotelcheckout";
 import FlightDetail from "../flights/Flghitdetail";
 import Flightcheckout from "../flights/Flightcheckout";
-import Guidedetail from '../guides/Guidedetail';
+import Guidedetail from "../guides/Guidedetail";
 import BookingView from "../home/user-dashboard-pages/BookingView";
 import BusList from "../bus/Buslist";
 import BusCheckout from "../bus/Buscheckout";
