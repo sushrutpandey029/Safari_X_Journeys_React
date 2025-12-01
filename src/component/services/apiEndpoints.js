@@ -1,11 +1,11 @@
 // export const BASE_URL = "https://fdc7b4f21736.ngrok-free.app";
 
 import { Bus } from "lucide-react";
+export const BASE_URL = "https://7183d0378457.ngrok-free.app";
 
-// export const BASE_URL = "https://32978cdd37a2.ngrok-free.app";
 // export const BASE_URL = "http://node.millclient.com:3001";
 // http://192.168.0.10:2625/
-export const BASE_URL = "http://192.168.1.10:2625";
+// export const BASE_URL = "https://7183d0378457.ngrok-free.app";
 // export const BASE_URL = "http://localhost:2625";
 
 export const API = {

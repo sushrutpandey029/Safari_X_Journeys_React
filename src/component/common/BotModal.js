@@ -368,7 +368,7 @@ function BotModal() {
                           3
                         </div>
                       </div>
-                      <div className="ms-3">
+                      <div className="explore-btn">
                         <h6>Plan your journey</h6>
                         <p className="small mb-0">
                           Review and customize your trip details
