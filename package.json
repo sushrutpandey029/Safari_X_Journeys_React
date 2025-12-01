@@ -16,7 +16,7 @@
     "axios": "^1.10.0",
     "bootstrap": "^5.3.6",
     "bootstrap-icons": "^1.13.1",
-    "date-fns": "^4.1.0",
+    "date-fns": "^2.29.3",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "jwt-decode": "^4.0.0",

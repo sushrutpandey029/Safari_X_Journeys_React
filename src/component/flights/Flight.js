@@ -1,4 +1,3 @@
-// src/components/Flight.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   Form,
@@ -41,6 +40,7 @@ const Flight = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+
   // Authentication and search states
   const [token, setToken] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
@@ -49,29 +49,196 @@ const Flight = () => {
 
   // User details
   const [userIP, setUserIP] = useState("");
-  const [isRefundable, setIsRefundable] = useState(false);
-  const [tripType, setTripType] = useState("one way");
+  const [tripType, setTripType] = useState("oneway");
+  const [searchData, setSearchData] = useState(null);
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
 
-  // fare rule detaile
-
+  // fare rule detail
   const [showModal, setShowModal] = useState(false);
-  const [selectedFlight, setSelectedFlight] = useState(null); // Add this state
+  const [selectedFlight, setSelectedFlight] = useState(null);
 
-  // Update the onViewPrices function
-  const onViewPrices = (flight) => {
-    console.log("flight in view price", flight);
-    setSelectedFlight(flight);
-    setShowModal(true);
+  // ============ FILTER STATES ============
+  const [filters, setFilters] = useState({
+    refundableOnly: false,
+    airlines: [],
+    stops: [],
+    priceRange: { min: 0, max: 50000 },
+    departureTimes: [],
+    durations: []
+  });
+
+  const [toggle, setToggle] = useState({
+    airlines: true,
+    stops: true,
+    price: true,
+    departure: true,
+    duration: true
+  });
+
+  // ============ FILTER FUNCTIONS ============
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedFlight(null);
+  const handleAirlineFilter = (airlineCode, isChecked) => {
+    setFilters(prev => ({
+      ...prev,
+      airlines: isChecked 
+        ? [...prev.airlines, airlineCode]
+        : prev.airlines.filter(code => code !== airlineCode)
+    }));
   };
+
+  const handleStopFilter = (stopCount, isChecked) => {
+    setFilters(prev => ({
+      ...prev,
+      stops: isChecked 
+        ? [...prev.stops, stopCount]
+        : prev.stops.filter(stop => stop !== stopCount)
+    }));
+  };
+
+  const handlePriceRangeChange = (type, value) => {
+    setFilters(prev => ({
+      ...prev,
+      priceRange: {
+        ...prev.priceRange,
+        [type]: value
+      }
+    }));
+  };
+
+  const handleDepartureTimeFilter = (timeRange, isChecked) => {
+    setFilters(prev => ({
+      ...prev,
+      departureTimes: isChecked 
+        ? [...prev.departureTimes, timeRange]
+        : prev.departureTimes.filter(range => 
+            !(range[0] === timeRange[0] && range[1] === timeRange[1])
+          )
+    }));
+  };
+
+  const handleDurationFilter = (duration, isChecked) => {
+    setFilters(prev => ({
+      ...prev,
+      durations: isChecked 
+        ? [...prev.durations, duration.label]
+        : prev.durations.filter(d => d !== duration.label)
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      refundableOnly: false,
+      airlines: [],
+      stops: [],
+      priceRange: { min: 0, max: 50000 },
+      departureTimes: [],
+      durations: []
+    });
+  };
+
+  // Filter application function - API data ke according
+  const applyFilters = (flights) => {
+    if (!flights || flights.length === 0) return [];
+
+    return flights.filter(flight => {
+      // Refundable filter
+      if (filters.refundableOnly && !flight.IsRefundable) {
+        return false;
+      }
+
+      // Airline filter - API data structure ke hisab se
+      if (filters.airlines.length > 0) {
+        let airlineCode = "";
+        
+        // Multiple ways to get airline code from API response
+        if (flight.Airline && flight.Airline.AirlineCode) {
+          airlineCode = flight.Airline.AirlineCode;
+        } else if (flight.Segments && flight.Segments[0] && flight.Segments[0][0] && flight.Segments[0][0].Airline) {
+          airlineCode = flight.Segments[0][0].Airline.AirlineCode;
+        } else if (flight.Segments && flight.Segments[0] && flight.Segments[0].Airline) {
+          airlineCode = flight.Segments[0].Airline.AirlineCode;
+        }
+        
+        if (!airlineCode || !filters.airlines.includes(airlineCode)) {
+          return false;
+        }
+      }
+
+      // Stops filter - API data ke hisab se
+      if (filters.stops.length > 0) {
+        let stopCount = 0;
+        
+        // Calculate stops from segments
+        if (flight.Segments && flight.Segments[0]) {
+          const firstSegment = Array.isArray(flight.Segments[0]) ? flight.Segments[0][0] : flight.Segments[0];
+          stopCount = firstSegment && firstSegment.StopOver ? 1 : 0;
+        }
+        
+        if (!filters.stops.includes(stopCount) && 
+            !(stopCount >= 2 && filters.stops.includes(2))) {
+          return false;
+        }
+      }
+
+      // Price filter
+      const fare = flight.Fare?.OfferedFare || flight.Fare?.PublishedFare || 0;
+      if (fare < filters.priceRange.min || fare > filters.priceRange.max) {
+        return false;
+      }
+
+      // Departure time filter
+      if (filters.departureTimes.length > 0) {
+        let departureTime = "";
+        
+        // Get departure time from API data
+        if (flight.Segments && flight.Segments[0]) {
+          const firstSegment = Array.isArray(flight.Segments[0]) ? flight.Segments[0][0] : flight.Segments[0];
+          departureTime = firstSegment?.Origin?.DepTime;
+        }
+        
+        if (departureTime) {
+          const hour = new Date(departureTime).getHours();
+          const matchesTime = filters.departureTimes.some(([start, end]) => 
+            hour >= start && hour < end
+          );
+          if (!matchesTime) return false;
+        }
+      }
+
+      // Duration filter
+      if (filters.durations.length > 0) {
+        let duration = 0;
+        
+        // Get duration from API data
+        if (flight.Segments && flight.Segments[0]) {
+          const firstSegment = Array.isArray(flight.Segments[0]) ? flight.Segments[0][0] : flight.Segments[0];
+          duration = firstSegment?.Duration || 0;
+        }
+        
+        let matchesDuration = false;
+        
+        filters.durations.forEach(durLabel => {
+          if (durLabel === "Short (< 2 hours)" && duration < 120) matchesDuration = true;
+          if (durLabel === "Medium (2-4 hours)" && duration >= 120 && duration <= 240) matchesDuration = true;
+          if (durLabel === "Long (> 4 hours)" && duration > 240) matchesDuration = true;
+        });
+        
+        if (!matchesDuration) return false;
+      }
+
+      return true;
+    });
+  };
+
   // Cabin class mapping
   const cabinClassMap = {
     Economy: 1,
@@ -86,8 +253,7 @@ const Flight = () => {
     round: 2,
     multi: 3,
   };
-
-  // Fetch user IP, authenticate and get airports - ALL IN ONE FLOW
+  // Fetch user IP, authenticate and get airports
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -98,22 +264,16 @@ const Flight = () => {
         const ipResponse = await axios.get("https://api.ipify.org?format=json");
         const userIp = ipResponse.data.ip;
         setUserIP(userIp);
-        console.log("✅ Step 1 - User IP:", userIp);
 
         // Step 2: Authenticate
         const authResponse = await Flight_authenticate(userIp);
-        console.log("✅ Step 2 - Auth Response:", authResponse);
-
         const tokenId = authResponse?.TokenId || authResponse?.data?.TokenId;
         if (!tokenId) throw new Error("No TokenId found in auth response");
 
         setToken(tokenId);
-        console.log("✅ Step 3 - Token saved:", tokenId);
 
-        // Step 4: Fetch airports
+        // Step 3: Fetch airports
         const airportsResponse = await getIndianAirports();
-        console.log("✅ Step 4 - Airports Response:", airportsResponse);
-
         if (airportsResponse?.data) {
           setAirports(airportsResponse.data);
         } else if (Array.isArray(airportsResponse)) {
@@ -132,7 +292,7 @@ const Flight = () => {
     initializeApp();
   }, []);
 
-  // Custom Airport Dropdown Component
+  // Custom Airport Dropdown Component - FIXED VERSION
   const AirportDropdown = ({
     value,
     onChange,
@@ -144,25 +304,49 @@ const Flight = () => {
     const [filteredAirports, setFilteredAirports] = useState([]);
     const dropdownRef = useRef(null);
 
-    // Filter airports based on search term
+    // Get all selected airports from all flights (excluding current value)
+    const getAllSelectedAirports = () => {
+      const selected = new Set();
+      
+      // Add all "from" and "to" airports from all flights
+      flights.forEach(flight => {
+        if (flight.from && flight.from !== value) selected.add(flight.from);
+        if (flight.to && flight.to !== value) selected.add(flight.to);
+      });
+      
+      return selected;
+    };
+
+    // Filter airports based on search term and exclude already selected ones
     useEffect(() => {
       if (searchTerm) {
+        const selectedAirports = getAllSelectedAirports();
         const filtered = airports.filter((airport) => {
           const city = airport.city_name || "";
           const name = airport.airport_name || "";
           const code = airport.airport_code || "";
 
-          return (
+          // Check if matches search
+          const matchesSearch = 
             city.toLowerCase().includes(searchTerm.toLowerCase()) ||
             name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            code.toLowerCase().includes(searchTerm.toLowerCase())
-          );
+            code.toLowerCase().includes(searchTerm.toLowerCase());
+
+          // Check if not already selected (except current value)
+          const notSelected = !selectedAirports.has(airport.airport_code);
+
+          return matchesSearch && notSelected;
         });
-        setFilteredAirports(filtered);
+        setFilteredAirports(filtered.slice(0, 10));
       } else {
-        setFilteredAirports(airports.slice(0, 10));
+        // When no search term, show airports not already selected
+        const selectedAirports = getAllSelectedAirports();
+        const availableAirports = airports.filter(airport => 
+          !selectedAirports.has(airport.airport_code)
+        );
+        setFilteredAirports(availableAirports.slice(0, 10));
       }
-    }, [searchTerm, airports]);
+    }, [searchTerm, airports, flights, value]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -182,6 +366,17 @@ const Flight = () => {
       };
     }, []);
 
+    useEffect(() => {
+      if (showModal && window.history.state?.usr?.searchData) {
+        const data = window.history.state.usr.searchData;
+
+        setSearchData(data);
+        setAdults(data.passengers.adults);
+        setChildren(data.passengers.children);
+        setInfants(data.passengers.infants);
+      }
+    }, [showModal]);
+
     const handleSelect = (airport) => {
       onChange(airport.airport_code);
       setIsOpen(false);
@@ -192,25 +387,30 @@ const Flight = () => {
       (airport) => airport.airport_code === value
     );
 
+    const displayValue = isOpen
+      ? searchTerm
+      : selectedAirport
+      ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
+      : "";
+
     return (
       <div className="position-relative" ref={dropdownRef}>
         <Form.Control
           type="text"
           placeholder={placeholder}
-          value={
-            isOpen
-              ? searchTerm
-              : selectedAirport
-              ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
-              : ""
-          }
+          value={displayValue}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
           onFocus={() => {
             setIsOpen(true);
-            setFilteredAirports(airports.slice(0, 10));
+            // On focus, show available airports (not already selected)
+            const selectedAirports = getAllSelectedAirports();
+            const availableAirports = airports.filter(airport => 
+              !selectedAirports.has(airport.airport_code)
+            );
+            setFilteredAirports(availableAirports.slice(0, 10));
           }}
           className="custom-dropdown-input"
         />
@@ -245,7 +445,17 @@ const Flight = () => {
               ))
             ) : (
               <div className="dropdown-item text-muted">
-                {loading ? "Loading airports..." : "No airports found"}
+                {loading ? "Loading airports..." : "No airports available"}
+              </div>
+            )}
+            
+            {/* Show warning if user has selected same airport elsewhere */}
+            {getAllSelectedAirports().size > 0 && (
+              <div className="dropdown-footer text-muted small px-3 py-2 border-top">
+                <small>
+                  <i className="fas fa-info-circle me-1"></i>
+                  Already selected airports are hidden
+                </small>
               </div>
             )}
           </div>
@@ -270,16 +480,6 @@ const Flight = () => {
       </div>
     );
   };
-
-  // Toggle states for filters
-  const [toggle, setToggle] = useState({
-    showProperties: true,
-    airlines: false,
-    aircraft: false,
-    price: false,
-    departure: false,
-    popular: false,
-  });
 
   const handleToggle = (section) => {
     setToggle((prev) => ({
@@ -311,7 +511,53 @@ const Flight = () => {
     setFlights(newFlights);
   };
 
-  // SIMPLIFIED SEARCH FUNCTION - Direct API response use karo
+  const onViewPrices = (flight) => {
+    setSelectedFlight(flight);
+
+    // Create proper search data with passenger information
+    const passengerData = {
+      passengers: {
+        adults,
+        children,
+        infants
+      },
+      tripType,
+      origin: flights?.[0]?.from,
+      destination: flights?.[0]?.to,
+      departureDate: flights?.[0]?.date,
+      returnDate: flights?.[0]?.returnDate,
+      travelClass
+    };
+    setSearchData(passengerData);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedFlight(null);
+  };
+
+  // Handle trip type change
+  const handleTripTypeChange = (newTripType) => {
+    setTripType(newTripType);
+    setSearchResults([]);
+    setSearchError(null);
+    
+    if (newTripType === "multi") {
+      if (flights.length === 1) {
+        setFlights([...flights, { from: "", to: "", date: "" }]);
+      }
+    } else {
+      const firstFlight = flights[0] || { from: "", to: "", date: "" };
+      if (newTripType === "round") {
+        setFlights([{ ...firstFlight, returnDate: "" }]);
+      } else {
+        setFlights([firstFlight]);
+      }
+    }
+  };
+
+  // Search flights function
   const searchFlights = async () => {
     if (!token) {
       setSearchError("Please wait while we authenticate...");
@@ -326,19 +572,52 @@ const Flight = () => {
       }
     }
 
+    if (tripType === "round" && !flights[0].returnDate) {
+      setSearchError("Please select return date for round trip");
+      return;
+    }
+
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults([]);
 
     try {
-      // Prepare segments for API
-      const segments = flights.map((flight) => ({
-        Origin: flight.from,
-        Destination: flight.to,
-        FlightCabinClass: cabinClassMap[travelClass],
-        PreferredDepartureTime: `${flight.date}T00:00:00`,
-        PreferredArrivalTime: `${flight.date}T00:00:00`,
-      }));
+      let segments = [];
+
+      if (tripType === "oneway") {
+        segments = flights.map((flight) => ({
+          Origin: flight.from,
+          Destination: flight.to,
+          FlightCabinClass: cabinClassMap[travelClass],
+          PreferredDepartureTime: `${flight.date}T00:00:00`,
+          PreferredArrivalTime: `${flight.date}T00:00:00`,
+        }));
+      } else if (tripType === "round") {
+        segments = [
+          {
+            Origin: flights[0].from,
+            Destination: flights[0].to,
+            FlightCabinClass: cabinClassMap[travelClass],
+            PreferredDepartureTime: `${flights[0].date}T00:00:00`,
+            PreferredArrivalTime: `${flights[0].date}T00:00:00`,
+          },
+          {
+            Origin: flights[0].to,
+            Destination: flights[0].from,
+            FlightCabinClass: cabinClassMap[travelClass],
+            PreferredDepartureTime: `${flights[0].returnDate}T00:00:00`,
+            PreferredArrivalTime: `${flights[0].returnDate}T00:00:00`,
+          },
+        ];
+      } else if (tripType === "multi") {
+        segments = flights.map((flight) => ({
+          Origin: flight.from,
+          Destination: flight.to,
+          FlightCabinClass: cabinClassMap[travelClass],
+          PreferredDepartureTime: `${flight.date}T00:00:00`,
+          PreferredArrivalTime: `${flight.date}T00:00:00`,
+        }));
+      }
 
       const searchPayload = {
         EndUserIp: userIP,
@@ -354,62 +633,57 @@ const Flight = () => {
         Sources: ["GDS"],
       };
 
-      console.log("🔍 SEARCH PAYLOAD:", JSON.stringify(searchPayload, null, 2));
-
-      // API call
       const searchResponse = await Flight_search(searchPayload);
-      console.log("📨 FULL API RESPONSE:", searchResponse);
-
-      // DIRECT APPROACH: API jo bhi response de raha hai, use directly set karo
       let foundFlights = [];
 
-      // Multiple possible response formats handle karo
-      if (searchResponse && searchResponse.data) {
-        // Format 1: searchResponse.data.Response.Results
+      if (searchResponse) {
         if (
+          searchResponse.data &&
           searchResponse.data.Response &&
           searchResponse.data.Response.Results
         ) {
           foundFlights = searchResponse.data.Response.Results.flat();
         }
-        // Format 2: searchResponse.data.Results
-        else if (searchResponse.data.Results) {
+        else if (searchResponse.data && searchResponse.data.Results) {
           foundFlights = searchResponse.data.Results.flat();
         }
-        // Format 3: Direct array
-        else if (Array.isArray(searchResponse.data)) {
+        else if (searchResponse.data && Array.isArray(searchResponse.data)) {
           foundFlights = searchResponse.data;
         }
-        // Format 4: Nested data
         else if (
+          searchResponse.data &&
           searchResponse.data.data &&
           Array.isArray(searchResponse.data.data)
         ) {
           foundFlights = searchResponse.data.data;
         }
+        else if (Array.isArray(searchResponse)) {
+          foundFlights = searchResponse;
+        }
+        else if (searchResponse.Results) {
+          foundFlights = searchResponse.Results.flat();
+        }
+        else if (searchResponse.data) {
+          foundFlights = [searchResponse.data].flat();
+        }
       }
-      // Direct response check
-      else if (Array.isArray(searchResponse)) {
-        foundFlights = searchResponse;
-      }
-      // Response object check
-      else if (searchResponse && searchResponse.Results) {
-        foundFlights = searchResponse.Results.flat();
-      }
-
-      console.log(`🎯 Extracted ${foundFlights.length} flights`);
 
       if (foundFlights.length > 0) {
         setSearchResults(foundFlights);
         setSearchError(null);
       } else {
         setSearchError(
-          "No flights found. Please try different search criteria."
+          searchResponse?.data?.Response?.Error?.ErrorMessage ||
+            "No flights found. Please try different search criteria."
         );
       }
     } catch (error) {
-      console.error("💥 SEARCH ERROR:", error);
-      setSearchError(error.message || "Failed to search flights");
+      console.error("Search error:", error);
+      setSearchError(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to search flights"
+      );
     } finally {
       setSearchLoading(false);
     }
@@ -417,8 +691,9 @@ const Flight = () => {
 
   // Format price with commas
   const formatPrice = (price) => {
-    if (!price) return "0";
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (price === null || price === undefined) return "0.00";
+    const fixed = Number(price).toFixed(2);
+    return fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   // Format time from ISO string
@@ -444,15 +719,8 @@ const Flight = () => {
     return `${hours}h ${mins}m`;
   };
 
-  // SIMPLIFIED RENDER FUNCTION - Direct API data use karo
+  // Render flight results with filters applied
   const renderFlightResults = () => {
-    console.log("🔍 renderFlightResults called with:", {
-      searchLoading,
-      searchError,
-      resultsCount: searchResults.length,
-      searchResults,
-    });
-
     if (searchLoading) {
       return (
         <div className="text-center py-5">
@@ -472,7 +740,25 @@ const Flight = () => {
       );
     }
 
-    if (searchResults.length === 0) {
+    const filteredResults = applyFilters(searchResults);
+
+    if (filteredResults.length === 0 && searchResults.length > 0) {
+      return (
+        <div className="text-center py-5 text-muted">
+          <h5>No flights found matching your filters</h5>
+          <p>Try adjusting your filter criteria</p>
+          <Button 
+            variant="outline-primary" 
+            size="sm"
+            onClick={clearAllFilters}
+          >
+            Clear All Filters
+          </Button>
+        </div>
+      );
+    }
+
+    if (filteredResults.length === 0) {
       return (
         <div className="text-center py-5 text-muted">
           <h5>No flights found</h5>
@@ -481,14 +767,11 @@ const Flight = () => {
       );
     }
 
-    return searchResults.map((flight, index) => {
-      console.log(`✈️ Flight ${index}:`, flight);
-
-      // DIRECT DATA EXTRACTION - API ke structure ke hisab se
+    return filteredResults.map((flight, index) => {
       const segments = flight.Segments || [];
       const fareInfo = flight.Fare || {};
+      const airlineInfo = flight.Airline || {};
 
-      // First segment data
       let segmentData = {};
       if (segments.length > 0) {
         const firstSegment = segments[0];
@@ -497,15 +780,13 @@ const Flight = () => {
           : firstSegment || {};
       }
 
-      const airlineInfo = segmentData.Airline || {};
+      const segmentAirline = segmentData.Airline || airlineInfo;
       const originInfo = segmentData.Origin || {};
       const destinationInfo = segmentData.Destination || {};
 
-      // Airport details
       const originAirport = originInfo.Airport || {};
       const destinationAirport = destinationInfo.Airport || {};
 
-      // Fare calculation
       const publishedFare = fareInfo.PublishedFare || 0;
       const offeredFare = fareInfo.OfferedFare || publishedFare;
       const savings = publishedFare - offeredFare;
@@ -513,23 +794,22 @@ const Flight = () => {
       return (
         <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
           <Row className="align-items-center">
-            {/* Airline Info */}
             <Col md={3} className="d-flex align-items-center">
               <div
                 className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center"
                 style={{ width: "50px", height: "50px" }}
               >
                 <strong className="text-primary">
-                  {airlineInfo.AirlineCode || "AI"}
+                  {segmentAirline.AirlineCode || "AI"}
                 </strong>
               </div>
               <div>
                 <h6 className="mb-0">
-                  {airlineInfo.AirlineName || "Air India"}
+                  {segmentAirline.AirlineName || "Air India"}
                 </h6>
                 <small className="text-muted">
-                  {airlineInfo.FlightNumber
-                    ? `Flight ${airlineInfo.FlightNumber}`
+                  {segmentAirline.FlightNumber
+                    ? `Flight ${segmentAirline.FlightNumber}`
                     : "Flight 2993"}
                 </small>
                 <br />
@@ -543,7 +823,6 @@ const Flight = () => {
               </div>
             </Col>
 
-            {/* Departure */}
             <Col md={2} className="text-center">
               <h5 className="mb-0">{formatTime(originInfo.DepTime)}</h5>
               <small className="text-muted">
@@ -555,7 +834,6 @@ const Flight = () => {
               </small>
             </Col>
 
-            {/* Duration */}
             <Col md={2} className="text-center">
               <p className="mb-1 text-success fw-bold">
                 {formatDuration(segmentData.Duration)}
@@ -569,7 +847,6 @@ const Flight = () => {
               </small>
             </Col>
 
-            {/* Arrival */}
             <Col md={2} className="text-center">
               <h5 className="mb-0">{formatTime(destinationInfo.ArrTime)}</h5>
               <small className="text-muted">
@@ -581,7 +858,6 @@ const Flight = () => {
               </small>
             </Col>
 
-            {/* Price + Button */}
             <Col md={3} className="text-end">
               <h5 className="fw-bold text-primary">
                 ₹ {formatPrice(offeredFare)}
@@ -600,14 +876,13 @@ const Flight = () => {
                 variant="primary"
                 size="sm"
                 className="mt-2 rounded-pill px-4"
-                onClick={() => onViewPrices(flight)} // ✅ Parent function call
+                onClick={() => onViewPrices(flight)}
               >
                 VIEW PRICES
               </Button>
             </Col>
           </Row>
 
-          {/* Flight Details */}
           <Row className="mt-3">
             <Col>
               <div className="bg-light p-2 rounded-2">
@@ -617,34 +892,6 @@ const Flight = () => {
                   •<strong> Class:</strong> {travelClass}
                 </small>
               </div>
-            </Col>
-          </Row>
-
-          {/* Deal */}
-          <Row className="mt-2">
-            <Col>
-              <div className="bg-warning bg-opacity-25 p-2 rounded-2">
-                <small className="text-dark">
-                  🔴 EXCLUSIVE DEAL: Get FLAT ₹266 OFF using <b>TRYMMT</b> code
-                  for you
-                </small>
-              </div>
-            </Col>
-          </Row>
-
-          {/* Additional Info */}
-          <Row className="mt-2">
-            <Col className="text-end">
-              <a
-                href="#"
-                className="text-primary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log("Flight details:", flight);
-                }}
-              >
-                View Flight Details
-              </a>
             </Col>
           </Row>
         </Card>
@@ -660,16 +907,14 @@ const Flight = () => {
           <div className="container">
             {error && <Alert variant="warning">{error}</Alert>}
 
-            {/* Loading State */}
             {loading && (
               <div className="text-center py-3">
                 <Spinner animation="border" size="sm" className="me-2" />
                 <span>Initializing application...</span>
               </div>
             )}
-            {/* One Row Flight Search Bar */}
+            
             <Row className="align-items-end g-2 mb-3 travellers">
-              {/* Trip Type */}
               <Col md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">
@@ -677,7 +922,7 @@ const Flight = () => {
                   </Form.Label>
                   <Form.Select
                     value={tripType}
-                    onChange={(e) => setTripType(e.target.value)}
+                    onChange={(e) => handleTripTypeChange(e.target.value)}
                     className="form-control"
                   >
                     <option value="oneway">One Way</option>
@@ -687,7 +932,6 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              {/* From */}
               <Col md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">From</Form.Label>
@@ -700,7 +944,6 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              {/* To */}
               <Col md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">To</Form.Label>
@@ -713,27 +956,25 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              {/* Departure Date */}
               <Col md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">Depart</Form.Label>
                   <DatePicker
                     selected={
-                      flights[0]?.date ? new Date(flights[0].date) : new Date() // default: current date
+                      flights[0]?.date ? new Date(flights[0].date) : new Date()
                     }
                     onChange={(date) => {
                       const newFlights = [...flights];
                       newFlights[0].date = date.toISOString().split("T")[0];
                       setFlights(newFlights);
                     }}
-                    minDate={new Date()} // can't pick past dates
+                    minDate={new Date()}
                     dateFormat="EEE, MMM d, yyyy"
                     className="form-control"
                   />
                 </Form.Group>
               </Col>
 
-              {/* Return Date (Only for Round Trip) */}
               {tripType === "round" && (
                 <Col md={2}>
                   <Form.Group>
@@ -766,8 +1007,7 @@ const Flight = () => {
                 </Col>
               )}
 
-              {/* Travellers */}
-              <Col md={2}>
+              <Col md={tripType === "round" ? 2 : 2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">
                     Passengers & Class
@@ -784,7 +1024,7 @@ const Flight = () => {
                         backgroundColor: "transparent",
                       }}
                     >
-                      {adults} Adult{adults > 1 ? "s" : ""},{" "}
+                      {adults} Adult{adults > 1? "s" : ""},{" "}
                       {travelClass || "Economy"}
                     </Dropdown.Toggle>
 
@@ -806,11 +1046,10 @@ const Flight = () => {
                           {renderButtons(infants, setInfants, 6)}
                         </Col>
 
-                        {/* ✨ Added Flight Class Selection */}
                         <Col xs={12} className="mt-3">
                           <Form.Label>Travel Class</Form.Label>
                           <div className="d-flex flex-wrap gap-2">
-                            {["Economy", "Premium", "Business"].map((cls) => (
+                            {["Economy", "Premium Economy", "Business", "First Class"].map((cls) => (
                               <Button
                                 key={cls}
                                 variant={
@@ -833,7 +1072,6 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              {/* Search Button */}
               <Col md={2}>
                 <Button
                   className="explore-btn w-100"
@@ -859,102 +1097,80 @@ const Flight = () => {
                 </Button>
               </Col>
             </Row>
+{tripType === "multi" &&
+  flights.map((flight, index) => (
+    <Row
+      key={index}
+      className="align-items-end g-2 mb-3 travellers"
+    >
+      <Col md={2}>
+        <Form.Group>
+          <Form.Label className="fw-semibold small">From</Form.Label>
+          <AirportDropdown
+            value={flight.from}
+            onChange={(value) => handleFromChange(index, value)}
+            placeholder="From City"
+            type="from"
+          />
+        </Form.Group>
+      </Col>
 
-            {/* Multi City Repeater Section */}
-            {tripType === "multi" &&
-              flights.map((flight, index) => (
-                <Row
-                  key={index}
-                  className="align-items-end g-2 mb-3 travellers"
-                >
-                  {/* From */}
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold small">
-                        From
-                      </Form.Label>
-                      <AirportDropdown
-                        value={flight.from}
-                        onChange={(value) => handleFromChange(index, value)}
-                        placeholder="From City"
-                        type="from"
-                      />
-                    </Form.Group>
-                  </Col>
+      <Col md={2}>
+        <Form.Group>
+          <Form.Label className="fw-semibold small">To</Form.Label>
+          <AirportDropdown
+            value={flight.to}
+            onChange={(value) => handleToChange(index, value)}
+            placeholder="To City"
+            type="to"
+          />
+        </Form.Group>
+      </Col>
 
-                  {/* To */}
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold small">To</Form.Label>
-                      <AirportDropdown
-                        value={flight.to}
-                        onChange={(value) => handleToChange(index, value)}
-                        placeholder="To City"
-                        type="to"
-                      />
-                    </Form.Group>
-                  </Col>
+      <Col md={2}>
+        <Form.Group>
+          <Form.Label className="fw-semibold small">Depart</Form.Label>
 
-                  {/* Departure Date */}
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold small">
-                        Depart
-                      </Form.Label>
-                      <DatePicker
-                        selected={
-                          flight.date ? new Date(flight.date) : new Date()
-                        }
-                        onChange={(date) => {
-                          const newFlights = [...flights];
-                          newFlights[index].date = date
-                            .toISOString()
-                            .split("T")[0];
-                          setFlights(newFlights);
-                        }}
-                        minDate={new Date()}
-                        dateFormat="EEE, MMM d, yyyy"
-                        className="form-control"
-                      />
-                    </Form.Group>
-                  </Col>
+          {/* 🔥 FINAL FIX - this keeps dates separate for each row */}
+          <DatePicker
+            selected={flight.date ? new Date(flight.date) : null}
+            onChange={(date) => {
+              const updatedFlights = flights.map((f, i) =>
+                i === index
+                  ? { ...f, date: date ? date.toISOString().split("T")[0] : null }
+                  : f
+              );
+              setFlights(updatedFlights);
+            }}
+            minDate={new Date()}
+            dateFormat="EEE, MMM d, yyyy"
+            className="form-control"
+          />
+        </Form.Group>
+      </Col>
 
-                  {/* Add / Remove City Buttons */}
-                  <Col md={2} className="d-flex gap-2">
-                    {index === flights.length - 1 ? (
-                      <Button
-                        variant="outline-primary"
-                        className="rounded-pill"
-                        onClick={() =>
-                          setFlights([
-                            ...flights,
-                            {
-                              from: "",
-                              to: "",
-                              date: new Date().toISOString().split("T")[0],
-                            },
-                          ])
-                        }
-                      >
-                        + Add City
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline-danger"
-                        className="rounded-pill,"
-                        onClick={() => {
-                          const newFlights = flights.filter(
-                            (_, i) => i !== index
-                          );
-                          setFlights(newFlights);
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </Col>
-                </Row>
-              ))}
+      <Col md={2} className="d-flex gap-2">
+        {index === flights.length - 1 ? (
+          <Button
+            variant="outline-primary"
+            className="rounded-pill"
+            onClick={addCity}
+          >
+            + Add City
+          </Button>
+        ) : (
+          <Button
+            variant="outline-danger"
+            className="rounded-pill"
+            onClick={() => removeCity(index)}
+          >
+            Remove
+          </Button>
+        )}
+      </Col>
+    </Row>
+  ))
+}
           </div>
         </div>
       </div>
@@ -966,61 +1182,30 @@ const Flight = () => {
             <div className="filter-box p-3 border rounded shadow-sm">
               <h5 className="mb-3 fw-bold">FILTER</h5>
 
-              {/* Show Properties With */}
+              {/* Refundable Filter */}
               <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("showProperties")}
-                >
-                  <span>Show Properties With</span>
-                  <FontAwesomeIcon
-                    icon={toggle.showProperties ? faChevronUp : faChevronDown}
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="refundable"
+                    checked={filters.refundableOnly}
+                    onChange={(e) => handleFilterChange('refundableOnly', e.target.checked)}
                   />
+                  <label className="form-check-label fw-semibold" htmlFor="refundable">
+                    Refundable Only
+                  </label>
                 </div>
-                {toggle.showProperties && (
-                  <div className="filter-options mt-2">
-                    {[
-                      "Book With ₹0",
-                      "Free Cancellation",
-                      "Free Breakfast",
-                      "Pay at Hotel",
-                    ].map((label, i) => (
-                      <div className="form-check" key={i}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`spw${i}`}
-                        />
-                        <label className="form-check-label" htmlFor={`spw${i}`}>
-                          {label}
-                        </label>
-                      </div>
-                    ))}
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="refundable"
-                        checked={isRefundable}
-                        onChange={() => setIsRefundable(!isRefundable)}
-                      />
-                      <label className="form-check-label" htmlFor="refundable">
-                        Refundable Only
-                      </label>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* Airlines */}
+              {/* Airlines Filter */}
               <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleToggle("airlines")}
                 >
-                  <span>Airlines</span>
+                  <span className="fw-semibold">Airlines</span>
                   <FontAwesomeIcon
                     icon={toggle.airlines ? faChevronUp : faChevronDown}
                   />
@@ -1028,22 +1213,26 @@ const Flight = () => {
                 {toggle.airlines && (
                   <div className="filter-options mt-2">
                     {[
-                      "IndiGo [120]",
-                      "Air India [80]",
-                      "SpiceJet [70]",
-                      "Vistara [60]",
-                    ].map((label, i) => (
-                      <div className="form-check" key={i}>
+                      { name: "IndiGo", code: "6E" },
+                      { name: "Air India", code: "AI" },
+                      { name: "SpiceJet", code: "SG" },
+                      { name: "Vistara", code: "UK" },
+                      { name: "Go First", code: "G8" },
+                      { name: "AirAsia", code: "I5" },
+                    ].map((airline, i) => (
+                      <div className="form-check" key={airline.code}>
                         <input
                           className="form-check-input"
                           type="checkbox"
-                          id={`airline${i}`}
+                          id={`airline-${airline.code}`}
+                          checked={filters.airlines.includes(airline.code)}
+                          onChange={(e) => handleAirlineFilter(airline.code, e.target.checked)}
                         />
                         <label
                           className="form-check-label"
-                          htmlFor={`airline${i}`}
+                          htmlFor={`airline-${airline.code}`}
                         >
-                          {label}
+                          {airline.name}
                         </label>
                       </div>
                     ))}
@@ -1051,87 +1240,99 @@ const Flight = () => {
                 )}
               </div>
 
-              {/* Aircraft Size */}
+              {/* Stops Filter */}
               <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("aircraft")}
+                  onClick={() => handleToggle("stops")}
                 >
-                  <span>Aircraft Size</span>
+                  <span className="fw-semibold">Stops</span>
                   <FontAwesomeIcon
-                    icon={toggle.aircraft ? faChevronUp : faChevronDown}
+                    icon={toggle.stops ? faChevronUp : faChevronDown}
                   />
                 </div>
-                {toggle.aircraft && (
+                {toggle.stops && (
                   <div className="filter-options mt-2">
-                    {["Small", "Medium", "Large", "Wide-body"].map(
-                      (label, i) => (
-                        <div className="form-check" key={i}>
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`aircraft${i}`}
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor={`aircraft${i}`}
-                          >
-                            {label}
-                          </label>
-                        </div>
-                      )
-                    )}
+                    {[
+                      { label: "Non-stop", value: 0 },
+                      { label: "1 Stop", value: 1 },
+                      { label: "2+ Stops", value: 2 },
+                    ].map((stop, i) => (
+                      <div className="form-check" key={stop.value}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`stop-${stop.value}`}
+                          checked={filters.stops.includes(stop.value)}
+                          onChange={(e) => handleStopFilter(stop.value, e.target.checked)}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`stop-${stop.value}`}
+                        >
+                          {stop.label}
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* One-way Price */}
+              {/* Price Range Filter */}
               <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleToggle("price")}
                 >
-                  <span>One-way Price</span>
+                  <span className="fw-semibold">Price Range</span>
                   <FontAwesomeIcon
                     icon={toggle.price ? faChevronUp : faChevronDown}
                   />
                 </div>
                 {toggle.price && (
                   <div className="filter-options mt-2">
-                    {[
-                      "< ₹2000",
-                      "₹2000 - ₹5000",
-                      "₹5000 - ₹10000",
-                      "> ₹10000",
-                    ].map((label, i) => (
-                      <div className="form-check" key={i}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`price${i}`}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`price${i}`}
-                        >
-                          {label}
-                        </label>
-                      </div>
-                    ))}
+                    <div className="mb-2">
+                      <label className="form-label small">Min: ₹{filters.priceRange.min}</label>
+                      <input
+                        type="range"
+                        className="form-range"
+                        min="0"
+                        max="50000"
+                        step="1000"
+                        value={filters.priceRange.min}
+                        onChange={(e) => handlePriceRangeChange('min', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <label className="form-label small">Max: ₹{filters.priceRange.max}</label>
+                      <input
+                        type="range"
+                        className="form-range"
+                        min="0"
+                        max="50000"
+                        step="1000"
+                        value={filters.priceRange.max}
+                        onChange={(e) => handlePriceRangeChange('max', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="d-flex justify-content-between small text-muted">
+                      <span>₹0</span>
+                      <span>₹50,000</span>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Departure Time */}
+              {/* Departure Time Filter */}
               <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleToggle("departure")}
                 >
-                  <span>Departure Time</span>
+                  <span className="fw-semibold">Departure Time</span>
                   <FontAwesomeIcon
                     icon={toggle.departure ? faChevronUp : faChevronDown}
                   />
@@ -1139,22 +1340,26 @@ const Flight = () => {
                 {toggle.departure && (
                   <div className="filter-options mt-2">
                     {[
-                      "Early Morning (00:00-06:00)",
-                      "Morning (06:00-12:00)",
-                      "Afternoon (12:00-18:00)",
-                      "Evening (18:00-24:00)",
-                    ].map((label, i) => (
+                      { label: "Early Morning (00:00-06:00)", range: [0, 6] },
+                      { label: "Morning (06:00-12:00)", range: [6, 12] },
+                      { label: "Afternoon (12:00-18:00)", range: [12, 18] },
+                      { label: "Evening (18:00-24:00)", range: [18, 24] },
+                    ].map((time, i) => (
                       <div className="form-check" key={i}>
                         <input
                           className="form-check-input"
                           type="checkbox"
-                          id={`departure${i}`}
+                          id={`departure-${i}`}
+                          checked={filters.departureTimes.some(t => 
+                            t[0] === time.range[0] && t[1] === time.range[1]
+                          )}
+                          onChange={(e) => handleDepartureTimeFilter(time.range, e.target.checked)}
                         />
                         <label
                           className="form-check-label"
-                          htmlFor={`departure${i}`}
+                          htmlFor={`departure-${i}`}
                         >
-                          {label}
+                          {time.label}
                         </label>
                       </div>
                     ))}
@@ -1162,42 +1367,55 @@ const Flight = () => {
                 )}
               </div>
 
-              {/* Popular Filters */}
+              {/* Duration Filter */}
               <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("popular")}
+                  onClick={() => handleToggle("duration")}
                 >
-                  <span>Popular Filters</span>
+                  <span className="fw-semibold">Flight Duration</span>
                   <FontAwesomeIcon
-                    icon={toggle.popular ? faChevronUp : faChevronDown}
+                    icon={toggle.duration ? faChevronUp : faChevronDown}
                   />
                 </div>
-                {toggle.popular && (
+                {toggle.duration && (
                   <div className="filter-options mt-2">
                     {[
-                      "Non-stop Flights",
-                      "Refundable Only",
-                      "Premium Airlines",
-                      "Short Duration",
-                    ].map((label, i) => (
+                      { label: "Short (< 2 hours)", max: 120 },
+                      { label: "Medium (2-4 hours)", min: 120, max: 240 },
+                      { label: "Long (> 4 hours)", min: 240 },
+                    ].map((duration, i) => (
                       <div className="form-check" key={i}>
                         <input
                           className="form-check-input"
                           type="checkbox"
-                          id={`popular${i}`}
+                          id={`duration-${i}`}
+                          checked={filters.durations.includes(duration.label)}
+                          onChange={(e) => handleDurationFilter(duration, e.target.checked)}
                         />
                         <label
                           className="form-check-label"
-                          htmlFor={`popular${i}`}
+                          htmlFor={`duration-${i}`}
                         >
-                          {label}
+                          {duration.label}
                         </label>
                       </div>
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Clear Filters Button */}
+              <div className="filter-group mb-3">
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="w-100"
+                  onClick={clearAllFilters}
+                >
+                  Clear All Filters
+                </Button>
               </div>
             </div>
           </Col>
@@ -1206,12 +1424,14 @@ const Flight = () => {
           <Col sm={9}>{renderFlightResults()}</Col>
         </Row>
       </div>
+      
       {/* Flight Detail Modal */}
       <FlightDetail
         flightData={selectedFlight}
         travelClass={travelClass}
         showModal={showModal}
         onHide={handleCloseModal}
+        searchData={searchData}
       />
     </div>
   );

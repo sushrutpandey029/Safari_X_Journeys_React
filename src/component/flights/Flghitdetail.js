@@ -39,20 +39,34 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
   const [loadingFare, setLoadingFare] = useState(false);
   const [selectedFare, setSelectedFare] = useState(null);
   const [fareRulesData, setFareRulesData] = useState(null);
+
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [tripType, setTripType] = useState("oneway");
+
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Search data se passenger count set karo
+    if (searchData && searchData.passengers) {
+      setAdults(searchData.passengers.adults || 1);
+      setChildren(searchData.passengers.children || 0);
+      setInfants(searchData.passengers.infants || 0);
+      setTripType(searchData.tripType || "oneway");
+    }
+
     if (showModal && flightData) {
       fetchFareRules();
       setSelectedFare(null); // Reset selection when modal opens
     }
-  }, [showModal, flightData]);
+  }, [showModal, flightData, searchData]);
 
   const fetchFareRules = async () => {
     setLoadingFare(true);
     try {
       const fareData = {
-        Airline: flightData.AirlineCode || "AI",
+        Airline: flightData.Airline?.AirlineCode || flightData.AirlineCode || "AI",
         FareBasisCode: flightData.Fare?.FareBasisCode || "VU1YXSII",
       };
       const res = await Flight_FareRule(fareData);
@@ -108,11 +122,13 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
 
   const extractFlightInfo = () => {
     if (!flightData) return null;
+    
+    // API data structure ke according data extract karo
     const segments = flightData.Segments?.[0] || [];
-    const firstSegment = segments[0] || {};
-    const airline = firstSegment.Airline || {};
-    const origin = firstSegment.Origin || {};
-    const destination = firstSegment.Destination || {};
+    const firstSegment = Array.isArray(segments) ? segments[0] : segments;
+    const airline = firstSegment?.Airline || flightData.Airline || {};
+    const origin = firstSegment?.Origin || {};
+    const destination = firstSegment?.Destination || {};
     const fare = flightData.Fare || {};
 
     return {
@@ -137,11 +153,11 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         Airport: destination.Airport || {}
       },
       flight: {
-        baggage: firstSegment.Baggage || "15 KG",
-        cabinBaggage: firstSegment.CabinBaggage || "7 KG",
+        baggage: firstSegment?.Baggage || "15 KG",
+        cabinBaggage: firstSegment?.CabinBaggage || "7 KG",
         duration: flightData.TotalJourneyTime || "2h 15m",
-        aircraft: firstSegment.AircraftType || "A320",
-        stops: segments.length > 1 ? segments.length - 1 : 0
+        aircraft: firstSegment?.AircraftType || "A320",
+        stops: Array.isArray(segments) ? segments.length - 1 : 0
       },
       fare: {
         total: fare.OfferedFare || fare.PublishedFare || 0,
@@ -244,6 +260,18 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
     setSelectedFare(fare);
   };
 
+  // Calculate total price based on passenger count
+  const calculateTotalPrice = (selectedFare) => {
+    if (!selectedFare) return 0;
+    
+    const basePrice = selectedFare.originalPrice;
+    const totalAdults = adults * basePrice;
+    const totalChildren = children * basePrice * 0.75; // 25% discount for children
+    const totalInfants = infants * basePrice * 0.1; // 90% discount for infants
+    
+    return totalAdults + totalChildren + totalInfants;
+  };
+
   const handleBookNow = () => {
     if (!selectedFare || !flightData) {
       alert("Please select a fare to continue");
@@ -251,62 +279,55 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
     }
 
     const flightInfo = extractFlightInfo();
-    
-    // Prepare complete data for checkout page
-    const checkoutData = {
-      // Selected Flight Data (Checkout page ke liye)
-      selectedFlight: {
-        // Basic display info
-        ...flightInfo,
-        
-        // API ke liye required fields
-        ResultIndex: flightData.ResultIndex,
-        FlightId: flightData.FlightId,
-        FareType: selectedFare.FareType,
-        
-        // Complete original data for fare quote API
-        originalFlightData: flightData
+
+    // Create final search data with passenger information
+    const finalSearchData = {
+      passengers: {
+        adults: adults,
+        children: children,
+        infants: infants
       },
-      
-      // Selected Fare Data
-      selectedFare: {
-        ...selectedFare,
-        // API parameters
-        FareType: selectedFare.FareType,
-        price: selectedFare.originalPrice
-      },
-      
-      // Search Data (passengers, dates, etc.)
-      searchData: searchData || {
-        passengers: { 
-          adults: 1, 
-          children: 0, 
-          infants: 0 
-        },
-        tripType: "one-way",
-        origin: flightInfo.origin.city,
-        destination: flightInfo.destination.city,
-        departureDate: flightInfo.origin.time
-      },
-      
-      // Additional API required data
-      apiData: {
-        ResultIndex: flightData.ResultIndex,
-        FlightId: flightData.FlightId,
-        FareType: selectedFare.FareType,
-        SessionId: flightData.SessionId, // If available
-        TraceId: flightData.TraceId // If available
-      }
+      tripType: tripType,
+      travelClass: travelClass,
+      origin: flightInfo.origin.city,
+      destination: flightInfo.destination.city,
+      departureDate: flightInfo.origin.time,
+      returnDate: searchData?.returnDate || null
     };
 
-    console.log("Navigating to checkout with complete data:", checkoutData);
+    // Calculate total price for all passengers
+    const totalPrice = calculateTotalPrice(selectedFare);
+
+    const checkoutData = {
+      selectedFlight: {
+        ...flightInfo,
+        ResultIndex: flightData.ResultIndex,
+        FlightId: flightData.FlightId,
+        FareType: selectedFare.FareType,
+        originalFlightData: flightData
+      },
+
+      selectedFare: {
+        ...selectedFare,
+        price: selectedFare.originalPrice
+      },
+
+      searchData: finalSearchData,
+      
+      // Passenger information for checkout forms
+      passengerCount: {
+        adults: adults,
+        children: children,
+        infants: infants
+      },
+      
+      totalPrice: totalPrice
+    };
+
+    console.log("Checkout Data:", checkoutData);
     
     // Navigate to checkout page with all data
-    navigate("/flight-checkout", { 
-      state: checkoutData 
-    });
-    
-    // Close the modal
+    navigate("/flight-checkout", { state: checkoutData });
     onHide();
   };
 
@@ -339,11 +360,11 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         <div className="section-title">Baggage</div>
         <div className="section-content">
           <div className="feature-item">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">💼</span>
             <span>{fare.baggage.cabin} Cabin Baggage</span>
           </div>
           <div className="feature-item">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">🧳</span>
             <span>{fare.baggage.checkin} Check-in Baggage</span>
           </div>
         </div>
@@ -353,11 +374,11 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         <div className="section-title">Flexibility</div>
         <div className="section-content">
           <div className="feature-item">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">❌</span>
             <span>{fare.flexibility.cancellation}</span>
           </div>
           <div className="feature-item">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">📅</span>
             <span>{fare.flexibility.dateChange}</span>
           </div>
         </div>
@@ -367,16 +388,16 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         <div className="section-title">Seats, Meals & More</div>
         <div className="section-content">
           <div className="feature-item">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">💺</span>
             <span>{fare.amenities.seats}</span>
           </div>
           <div className="feature-item">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">🍽️</span>
             <span>{fare.amenities.meals}</span>
           </div>
           {fare.amenities.priority && (
             <div className="feature-item">
-              <span className="feature-emoji">💬</span>
+              <span className="feature-emoji">⚡</span>
               <span>{fare.amenities.priority}</span>
             </div>
           )}
@@ -387,7 +408,7 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         <div className="fare-benefits">
           <div className="benefits-title">BENEFITS WORTH ₹299 INCLUDED</div>
           <div className="benefits-content">
-            <span className="feature-emoji">💬</span>
+            <span className="feature-emoji">🛡️</span>
             <span>Travel Insurance for 2 days 😊</span>
           </div>
         </div>
@@ -426,8 +447,8 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
     return dep && arr && dep.getDate() !== arr.getDate();
   };
 
-  // Calculate total price
-  const totalPrice = selectedFare ? selectedFare.originalPrice : 0;
+  // Calculate total price for all passengers
+  const totalPrice = selectedFare ? calculateTotalPrice(selectedFare) : 0;
 
   return (
     <Modal
@@ -437,6 +458,7 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       centered
       scrollable
       className="flight-detail-modal"
+      style={{ zIndex: 1060 }} // Ensure modal appears above everything
     >
       <Modal.Header closeButton className="modal-header-custom">
         <Modal.Title className="w-100">
@@ -452,6 +474,12 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
             Arrival: {formatTime(flightInfo.destination.time)}
             {isNextDayArrival() && " (+1 day)"}
           </div>
+          
+          {/* Passenger Count Display */}
+          <div className="passenger-count-display">
+            <strong>Passengers:</strong> {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
+          </div>
+
           {fareRulesData && (
             <div className="fare-basis-info">
               Fare Basis: {extractFareRulesInfo()?.fareBasisCode} · Airline: {extractFareRulesInfo()?.airline}
@@ -461,19 +489,35 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       </Modal.Header>
 
       <Modal.Body className="modal-body-custom">
-        <div className="fare-options-columns">
-          {fareOptions.map((fare, index) => (
-            <div key={fare.id} className="fare-column">
-              {renderFareOptionCard(fare, index)}
-            </div>
-          ))}
+        <div className="fare-options-container">
+          <div className="fare-options-grid">
+            {fareOptions.map((fare, index) => (
+              <div key={fare.id} className="fare-option-column">
+                {renderFareOptionCard(fare, index)}
+              </div>
+            ))}
+          </div>
           
-          <div className="roundtrip-total">
-            <div className="total-price">
-              <span className="total-amount">₹ {formatPrice(totalPrice)}</span>
-              <span className="total-label">
-                {selectedFare ? `${selectedFare.type} FOR 1 ADULT` : 'SELECT A FARE TO SEE TOTAL'}
-              </span>
+          <div className="total-price-section">
+            <div className="total-price-card">
+              <div className="total-price">
+                <span className="total-amount">₹ {formatPrice(totalPrice)}</span>
+                <span className="total-label">
+                  {selectedFare ? 
+                    `${selectedFare.type} FOR ${adults} ADULT(S), ${children} CHILD(REN), ${infants} INFANT(S)` : 
+                    'SELECT A FARE TO SEE TOTAL'
+                  }
+                </span>
+              </div>
+              <div className="passenger-breakdown">
+                {selectedFare && (
+                  <div className="breakdown-details">
+                    <div>Adults ({adults} x ₹{formatPrice(selectedFare.originalPrice)})</div>
+                    {children > 0 && <div>Children ({children} x ₹{formatPrice(selectedFare.originalPrice * 0.75)})</div>}
+                    {infants > 0 && <div>Infants ({infants} x ₹{formatPrice(selectedFare.originalPrice * 0.1)})</div>}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -500,24 +544,38 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       </Modal.Body>
 
       <Modal.Footer className="modal-footer-custom">
-        <div className="footer-actions">
+        <div className="footer-content">
           <div className="selected-fare-info">
             {selectedFare ? (
               <div className="selected-info">
-                <strong>Selected: {selectedFare.type}</strong> - ₹{selectedFare.price}
-                {!selectedFare.isRefundable && <span className="refundable-badge">Non-Refundable</span>}
+                <strong>Selected: {selectedFare.type}</strong> - 
+                Total: ₹{formatPrice(totalPrice)} for {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
+                {!selectedFare.isRefundable && (
+                  <span className="refundable-badge non-refundable">Non-Refundable</span>
+                )}
               </div>
             ) : (
-              <div className="no-selection">No fare selected</div>
+              <div className="no-selection">Please select a fare option</div>
             )}
           </div>
-          <Button
-            className="book-now-main-btn"
-            onClick={handleBookNow}
-            disabled={!selectedFare}
-          >
-            BOOK NOW - ₹{selectedFare ? selectedFare.price : "0"}
-          </Button>
+          <div className="footer-actions">
+            <Button
+              className="explore-btn book-now-main-btn"
+              onClick={handleBookNow}
+              disabled={!selectedFare}
+              style={{
+                padding: "12px 30px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                background: "linear-gradient(90deg, #2b87da, #1e63b5)",
+                border: "none",
+                borderRadius: "30px",
+                color: "white",
+              }}
+            >
+              BOOK NOW - ₹{formatPrice(totalPrice)}
+            </Button>
+          </div>
         </div>
         <div className="footer-note">
           All prices include taxes and fees. Additional charges may apply.

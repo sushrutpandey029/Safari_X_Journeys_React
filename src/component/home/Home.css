@@ -83,9 +83,6 @@ header .user-icon a {
   color: #ffffff;
 }
 
-
-
-
 .sticky-header {
   position: fixed;
   top: 0;
@@ -97,7 +94,9 @@ header .user-icon a {
   background-color: #fff !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
-.sticky-header .nav-link{color: #000;}
+.sticky-header .nav-link {
+  color: #000;
+}
 .sticky-header .user-icon a {
   color: #000000;
 }
@@ -121,19 +120,14 @@ header {
 }
 /************ header*************/
 
-
-
-
-
 /************ banner*************/
-
 
 .banner-searchbox {
   position: absolute;
   top: 50%; /* banner ke beech me */
   left: 50%;
   transform: translate(-50%, -50%);
- 
+
   z-index: 999;
 }
 
@@ -143,7 +137,6 @@ header {
   height: 100%;
   overflow: hidden;
 }
-
 
 .banner-slide {
   position: relative;
@@ -165,12 +158,10 @@ header {
   left: 0;
   width: 100%;
   height: 100%;
-  background:rgb(0 0 0 / 16%);
+  background: rgb(0 0 0 / 16%);
   z-index: 1;
   max-height: 600px;
 }
-
-
 
 .trip-form-container {
   position: relative;
@@ -188,10 +179,10 @@ header {
   transform: scale(1.1);
 }
 
-
-
 /************ place-guide*************/
-.top-destination{    padding: 70px 0px;}
+.top-destination {
+  padding: 70px 0px;
+}
 .place {
   position: relative;
   overflow: hidden;
@@ -235,7 +226,11 @@ header {
   text-align: center;
   z-index: 2;
   margin: 0;
-  background: linear-gradient(to top, rgb(0 0 0 / 63%), /* darker at bottom */ rgb(0 0 0 / 0%) /* lighter at top */);
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 63%),
+    /* darker at bottom */ rgb(0 0 0 / 0%) /* lighter at top */
+  );
   width: 100%;
   left: 50%;
   height: 36px;
@@ -247,9 +242,12 @@ header {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
-
 .trending-destination {
-  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  background: linear-gradient(
+    135deg,
+    rgb(241 229 229),
+    rgb(212 232 245)
+  ) !important;
   padding: 70px 0px;
   h2 span {
     color: #498ab5;
@@ -383,7 +381,11 @@ header {
 
 /************ best-cab*************/
 .best-cab {
-  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  background: linear-gradient(
+    135deg,
+    rgb(241 229 229),
+    rgb(212 232 245)
+  ) !important;
   padding: 70px 0px;
 
   h2 span {
@@ -443,8 +445,12 @@ header {
 /************book-hotel*************/
 
 .book-hotel {
-  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
-    padding: 70px 0px;
+  background: linear-gradient(
+    135deg,
+    rgb(241 229 229),
+    rgb(212 232 245)
+  ) !important;
+  padding: 70px 0px;
 
   h2 {
     margin-bottom: 60px;
@@ -476,7 +482,11 @@ header {
 
 /************why-choose b*************/
 .why-choose {
-  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  background: linear-gradient(
+    135deg,
+    rgb(241 229 229),
+    rgb(212 232 245)
+  ) !important;
   padding: 70px 0px;
 
   h2 span {
@@ -503,8 +513,10 @@ header {
     height: 100%;
     background-color: #fff;
   }
-  .why{        font-size: 21px;
-    padding: 16px 0px 8px;}
+  .why {
+    font-size: 21px;
+    padding: 16px 0px 8px;
+  }
 }
 
 /************why-choose b*************/
@@ -553,7 +565,11 @@ header {
 
 /************testimonial-faq-newslettetr-footer*************/
 .Faq {
-  background: linear-gradient(135deg, rgb(241 229 229), rgb(212 232 245)) !important;
+  background: linear-gradient(
+    135deg,
+    rgb(241 229 229),
+    rgb(212 232 245)
+  ) !important;
   padding: 70px 0px;
 }
 
@@ -568,9 +584,12 @@ header {
 .destination-card {
   background-color: #ffffff;
 
-
-h5{     color: #000000;   }
-.guide-time{color: #c7681f;}
+  h5 {
+    color: #000000;
+  }
+  .guide-time {
+    color: #c7681f;
+  }
   .card-title {
     font-size: 16px;
   }
@@ -652,8 +671,6 @@ h5{     color: #000000;   }
 .main .accordion-button:focus {
   box-shadow: none;
 }
-
-
 
 .main h2 {
   text-align: center;
@@ -773,7 +790,7 @@ footer {
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 10px;
-  width: 250px;
+  width: 400px;
   height: auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -865,6 +882,3 @@ footer {
   border: none;
   border-radius: 10px;
 }
-
-
-

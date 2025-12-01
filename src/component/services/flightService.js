@@ -12,7 +12,6 @@ export const getIndianAirports = async () => {
     return { status: false, data: [] };
   }
 };
-
 export const Flight_authenticate = async (endUserIp) => {
   try {
     const body = {
@@ -46,17 +45,16 @@ export const Flight_search = async (searchData) => {
     return { status: false, data: [] };
   }
 }
-
   export const Flight_FareRule = async (fareRuleData) => {
   try {
     const resp = await axios.post(API.Flight_farerule, fareRuleData, {
       headers: { "Content-Type": "application/json" },
     });
 
-    console.log("Fare Rule API Response:", resp.data);
+    console.log("✅ Fare Rule API Response:", resp.data);
     return resp.data || { status: false, data: [] };
   } catch (err) {
-    console.error("Error in Flight_FareRule:", err);
+    console.error("❌ Error in Flight_FareRule:", err);
     return { status: false, message: "Error fetching fare rule" };
   }
 };

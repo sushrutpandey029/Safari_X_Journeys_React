@@ -44,6 +44,7 @@ export const API = {
     `${BASE_URL}/api/payment-status?order_id=${orderId}`,
 
   // hotels
+  // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
   CITY_LIST: `${BASE_URL}/api/citylist`,
   HOTEL_CODE_LIST: `${BASE_URL}/api/hotel-code-list`,
   HOTEL_CODE_LIST_NEW: `${BASE_URL}/api/search-list-new`,
@@ -62,8 +63,12 @@ export const API = {
   Flight_farerule: `${BASE_URL}/flight/fare-rules`,
   Flight_farequote: `${BASE_URL}/flight/fare-quote`,
 
+
+
   // BUS
-  Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
-  Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
-  Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
+Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
+Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
+Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
+Bus_busLayout: `${BASE_URL}/Bus/bus-layout`,
+Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
 };

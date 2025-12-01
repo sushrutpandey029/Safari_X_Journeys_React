@@ -75,7 +75,6 @@ export const fetchCityList = async (countryCode) => {
     const resp = await axios.post(API.CITY_LIST_FILTER, {
       CountryCode: countryCode,
     });
-
     return resp.data;
   } catch (err) {
     throw err;

@@ -1,66 +1,50 @@
-import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  Button,
-  Table,
-  Badge,
-  Alert,
-  Spinner,
-} from "react-bootstrap";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Form, Button, Table, Badge, Alert, Spinner } from 'react-bootstrap';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { fare_quote } from "../services/flightService";
-import { getUserData } from "../utils/storage";
-import useCashfreePayment from "../hooks/useCashfreePayment";
 
 const Flightcheckout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { startPayment } = useCashfreePayment();
-
+  
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [selectedFare, setSelectedFare] = useState(null);
   const [searchData, setSearchData] = useState(null);
   const [fareDetails, setFareDetails] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
+  const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [error, setError] = useState(null);
 
   // Get data from flight detail page
   useEffect(() => {
-    if (location.state) {
-      const { selectedFlight, selectedFare, searchData } = location.state;
-      console.log("Checkout received data:", {
-        selectedFlight,
-        selectedFare,
-        searchData,
-      });
+  const state = location?.state;
 
-      setSelectedFlight(selectedFlight);
-      setSelectedFare(selectedFare);
-      setSearchData(searchData);
+  if (state) {
+    console.log("🔥 Checkout received:", state);
 
-      // Save to localStorage as backup
-      localStorage.setItem("checkoutFlight", JSON.stringify(selectedFlight));
-      localStorage.setItem("checkoutFare", JSON.stringify(selectedFare));
-      localStorage.setItem("checkoutSearch", JSON.stringify(searchData));
-    } else {
-      // Fallback to localStorage
-      const savedFlight = localStorage.getItem("checkoutFlight");
-      const savedFare = localStorage.getItem("checkoutFare");
-      const savedSearch = localStorage.getItem("checkoutSearch");
+    const { selectedFlight, selectedFare, searchData } = state;
 
-      if (savedFlight && savedFare) {
-        setSelectedFlight(JSON.parse(savedFlight));
-        setSelectedFare(JSON.parse(savedFare));
-        setSearchData(JSON.parse(savedSearch));
-      }
+    setSelectedFlight(selectedFlight);
+    setSelectedFare(selectedFare);
+    setSearchData(searchData);
+
+    localStorage.setItem("checkoutFlight", JSON.stringify(selectedFlight));
+    localStorage.setItem("checkoutFare", JSON.stringify(selectedFare));
+    localStorage.setItem("checkoutSearch", JSON.stringify(searchData));
+  } else {
+    // LocalStorage fallback
+    const savedFlight = localStorage.getItem("checkoutFlight");
+    const savedFare = localStorage.getItem("checkoutFare");
+    const savedSearch = localStorage.getItem("checkoutSearch");
+
+    if (savedFlight && savedFare) {
+      setSelectedFlight(JSON.parse(savedFlight));
+      setSelectedFare(JSON.parse(savedFare));
+      setSearchData(JSON.parse(savedSearch));
     }
-  }, [location.state]);
+  }
+}, []);  
 
   // Fetch fare quote from API
   useEffect(() => {
@@ -74,78 +58,73 @@ const Flightcheckout = () => {
     setError(null);
     try {
       // Debug what data we have
-      console.log("Available data for API:", {
+      console.log('Available data for API:', {
         selectedFlight,
         selectedFare,
-        searchData,
+        searchData
       });
 
       // Try different possible data locations
-      const resultIndex =
-        selectedFlight?.ResultIndex ||
-        selectedFlight?.originalFlightData?.ResultIndex ||
-        selectedFlight?.resultIndex;
-
-      const flightId =
-        selectedFlight?.FlightId ||
-        selectedFlight?.originalFlightData?.FlightId ||
-        selectedFlight?.flightId;
-
-      const fareType =
-        selectedFare?.FareType || selectedFare?.type || "STANDARD";
+      const resultIndex = selectedFlight?.ResultIndex || 
+                         selectedFlight?.originalFlightData?.ResultIndex ||
+                         selectedFlight?.resultIndex;
+      
+      const flightId = selectedFlight?.FlightId || 
+                      selectedFlight?.originalFlightData?.FlightId ||
+                      selectedFlight?.flightId;
+      
+      const fareType = selectedFare?.FareType || 
+                      selectedFare?.type || 
+                      'STANDARD';
 
       if (!resultIndex || !flightId) {
-        throw new Error("Missing required parameters: ResultIndex or FlightId");
+        throw new Error('Missing required parameters: ResultIndex or FlightId');
       }
 
       const requestData = {
         ResultIndex: resultIndex,
         FareType: fareType,
         FlightId: flightId,
-        SessionId:
-          selectedFlight?.SessionId ||
-          selectedFlight?.originalFlightData?.SessionId,
-        TraceId:
-          selectedFlight?.TraceId ||
-          selectedFlight?.originalFlightData?.TraceId,
+        SessionId: selectedFlight?.SessionId || selectedFlight?.originalFlightData?.SessionId,
+        TraceId: selectedFlight?.TraceId || selectedFlight?.originalFlightData?.TraceId,
         passengers: {
           Adult: searchData?.passengers?.adults || 1,
           Child: searchData?.passengers?.children || 0,
-          Infant: searchData?.passengers?.infants || 0,
-        },
+          Infant: searchData?.passengers?.infants || 0
+        }
       };
 
-      console.log("Fare Quote API Request:", requestData);
-
+      console.log('Fare Quote API Request:', requestData);
+      
       const response = await fare_quote(requestData);
-
+      
       if (response && response.Status === 1) {
         setFareDetails(response.Data);
-        console.log("Fare Quote API Success:", response.Data);
+        console.log('Fare Quote API Success:', response.Data);
       } else {
         // If API fails, use mock data but don't throw error
-        console.log("API returned non-success status, using fallback data");
+        console.log('API returned non-success status, using fallback data');
         setFareDetails({
           BaseFare: selectedFare?.originalPrice || 4500,
           Tax: 913,
           TotalAmount: (selectedFare?.originalPrice || 4500) + 913,
           BaggageInformation: {
-            cabin: selectedFlight?.flight?.cabinBaggage || "7 Kgs / Adult",
-            checkin: selectedFlight?.flight?.baggage || "15 Kgs / Adult",
-          },
+            cabin: selectedFlight?.flight?.cabinBaggage || '7 Kgs / Adult',
+            checkin: selectedFlight?.flight?.baggage || '15 Kgs / Adult'
+          }
         });
       }
     } catch (error) {
-      console.error("Fare Quote API Error:", error);
+      console.error('Fare Quote API Error:', error);
       // Don't show error to user, use fallback data
       setFareDetails({
         BaseFare: selectedFare?.originalPrice || 4500,
         Tax: 913,
         TotalAmount: (selectedFare?.originalPrice || 4500) + 913,
         BaggageInformation: {
-          cabin: selectedFlight?.flight?.cabinBaggage || "7 Kgs / Adult",
-          checkin: selectedFlight?.flight?.baggage || "15 Kgs / Adult",
-        },
+          cabin: selectedFlight?.flight?.cabinBaggage || '7 Kgs / Adult',
+          checkin: selectedFlight?.flight?.baggage || '15 Kgs / Adult'
+        }
       });
     } finally {
       setLoading(false);
@@ -158,11 +137,11 @@ const Flightcheckout = () => {
       setAppliedCoupon({
         code: couponCode.toUpperCase(),
         discount: Math.floor(discount),
-        description: "Discount applied successfully",
+        description: 'Discount applied successfully'
       });
-      setCouponCode("");
+      setCouponCode('');
     } else {
-      alert("Please enter a valid coupon code (minimum 4 characters)");
+      alert('Please enter a valid coupon code (minimum 4 characters)');
     }
   };
 
@@ -171,29 +150,29 @@ const Flightcheckout = () => {
   };
 
   const formatTime = (timeString) => {
-    if (!timeString) return "--:--";
+    if (!timeString) return '--:--';
     try {
-      return new Date(timeString).toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
+      return new Date(timeString).toLocaleTimeString('en-IN', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
       });
     } catch (error) {
-      return "--:--";
+      return '--:--';
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Date not available";
+    if (!dateString) return 'Date not available';
     try {
-      return new Date(dateString).toLocaleDateString("en-IN", {
-        weekday: "long",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
+      return new Date(dateString).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
       });
     } catch (error) {
-      return "Date not available";
+      return 'Date not available';
     }
   };
 
@@ -202,15 +181,13 @@ const Flightcheckout = () => {
       return {
         baseFare: selectedFare?.originalPrice || selectedFare?.price || 0,
         tax: selectedFare?.tax || 913,
-        total:
-          (selectedFare?.originalPrice || selectedFare?.price || 0) +
-          (selectedFare?.tax || 913),
+        total: (selectedFare?.originalPrice || selectedFare?.price || 0) + (selectedFare?.tax || 913)
       };
     }
 
     const baseFare = fareDetails.BaseFare || 0;
     const tax = fareDetails.Tax || 0;
-    const total = fareDetails.TotalAmount || baseFare + tax;
+    const total = fareDetails.TotalAmount || (baseFare + tax);
 
     return { baseFare, tax, total };
   };
@@ -224,25 +201,25 @@ const Flightcheckout = () => {
     if (fareDetails?.BaggageInformation) {
       return fareDetails.BaggageInformation;
     }
-
+    
     if (selectedFlight?.flight) {
       return {
-        cabin: selectedFlight.flight.cabinBaggage || "7 Kgs / Adult",
-        checkin: selectedFlight.flight.baggage || "15 Kgs / Adult",
+        cabin: selectedFlight.flight.cabinBaggage || '7 Kgs / Adult',
+        checkin: selectedFlight.flight.baggage || '15 Kgs / Adult'
       };
     }
-
+    
     return {
-      cabin: "7 Kgs / Adult",
-      checkin: "15 Kgs / Adult",
+      cabin: '7 Kgs / Adult',
+      checkin: '15 Kgs / Adult'
     };
   };
 
   const getPassengerCount = () => {
     return {
-      adults: searchData?.passengers?.adults || 1,
+      adults: searchData?.passengers?.adults || 0,
       children: searchData?.passengers?.children || 0,
-      infants: searchData?.passengers?.infants || 0,
+      infants: searchData?.passengers?.infants || 0
     };
   };
 
@@ -250,82 +227,9 @@ const Flightcheckout = () => {
     navigate(-1);
   };
 
-  const handleBooking = async (e) => {
-    e.preventDefault();
-
-    const userDetails = await getUserData("safarix_user");
-    if (!userDetails) {
-      alert("User not logged in");
-      return;
-    }
-
-    // Collect passenger details from the form
-    // Assuming all form inputs have "name" attributes like: title-adult-0, firstName-adult-0, lastName-adult-0, etc.
-    const passengers = [];
-
-    const passengerTypes = ["adults", "children", "infants"];
-    passengerTypes.forEach((type) => {
-      const count = passengerCount[type];
-      for (let i = 0; i < count; i++) {
-        const title =
-          document.querySelector(`select[name="title-${type}-${i}"]`)?.value ||
-          "";
-        const firstName =
-          document.querySelector(`input[name="firstName-${type}-${i}"]`)
-            ?.value || "";
-        const lastName =
-          document.querySelector(`input[name="lastName-${type}-${i}"]`)
-            ?.value || "";
-
-        passengers.push({
-          Title: title,
-          FirstName: firstName,
-          LastName: lastName,
-          PaxType: type === "adults" ? 1 : type === "children" ? 2 : 3, // 1=Adult, 2=Child, 3=Infant
-          LeadPassenger: i === 0 && type === "adults", // first adult is lead
-        });
-      }
-    });
-
-    const bookingPayload = {
-      userId: userDetails.id,
-      serviceType: "flight",
-      serviceDetails: selectedFlight,
-      startDate: formatDate(originInfo.time || originInfo.DepartureTime),
-      endDate: formatDate(destinationInfo.time || destinationInfo.ArrivalTime),
-      BookingCode: selectedFare.BookingCode || selectedFare.FareCode || null,
-      IsVoucherBooking: false,
-      EndUserIp: selectedFlight?.EndUserIp || "127.0.0.1",
-      totalAmount: totalAmount,
-      FlightPassengers: passengers,
-      IsPackageFare: false,
-      IsPackageDetailsMandatory: false,
-      Coupon: appliedCoupon?.code || null,
-    };
-
-    console.log("✅ Flight Booking Payload:", bookingPayload);
-
-    try {
-      // Call your payment or booking API
-      const result = await startPayment(bookingPayload);
-      console.log("Payment API Result:", result);
-      if (result.success) {
-        navigate("/booking-success", {
-          state: { bookingData: bookingPayload },
-        });
-      }
-    } catch (err) {
-      console.error("Booking API Error:", err);
-      alert("Failed to complete booking. Please try again.");
-    }
-  };
-
   if (loading) {
     return (
-      <Container
-        className="d-flex justify-content-center align-items-center"
-        style={{ minHeight: "400px", marginTop: "100px" }}
-      >
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px', marginTop: '100px' }}>
         <div className="text-center">
           <Spinner animation="border" variant="primary" />
           <p className="mt-2">Fetching accurate fare details from airline...</p>
@@ -337,7 +241,7 @@ const Flightcheckout = () => {
   if (!selectedFlight || !selectedFare) {
     return (
       <Container>
-        <div className="text-center py-5" style={{ marginTop: "100px" }}>
+        <div className="text-center py-5" style={{ marginTop: '100px' }}>
           <Alert variant="warning">
             <h4>Flight Selection Required</h4>
             <p>Please select a flight and fare to proceed with booking</p>
@@ -359,8 +263,7 @@ const Flightcheckout = () => {
   const flightInfo = selectedFlight;
   const airlineInfo = flightInfo?.airline || flightInfo?.Airline || {};
   const originInfo = flightInfo?.origin || flightInfo?.Origin || {};
-  const destinationInfo =
-    flightInfo?.destination || flightInfo?.Destination || {};
+  const destinationInfo = flightInfo?.destination || flightInfo?.Destination || {};
   const flightDetails = flightInfo?.flight || {};
 
   return (
@@ -373,23 +276,16 @@ const Flightcheckout = () => {
               <div className="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <h4 className="mb-1">
-                    {originInfo.city || originInfo.City || "N/A"} →
-                    {destinationInfo.city || destinationInfo.City || "N/A"}
+                    {originInfo.city || originInfo.City || 'N/A'} → 
+                    {destinationInfo.city || destinationInfo.City || 'N/A'}
                   </h4>
                   <p className="text-muted mb-2">
-                    <strong>
-                      {formatDate(originInfo.time || originInfo.DepartureTime)}
-                    </strong>{" "}
-                    ·
-                    {flightDetails.stops === 0
-                      ? "Non Stop"
-                      : `${flightDetails.stops} Stop(s)`}{" "}
-                    -{flightDetails.duration || "N/A"}
+                    <strong>{formatDate(originInfo.time || originInfo.DepartureTime)}</strong> · 
+                    {flightDetails.stops === 0 ? 'Non Stop' : `${flightDetails.stops} Stop(s)`} - 
+                    {flightDetails.duration || 'N/A'}
                   </p>
                 </div>
-                <Badge bg="primary">
-                  {selectedFare.type || selectedFare.FareType || "Standard"}
-                </Badge>
+                <Badge bg="primary">{selectedFare.type || selectedFare.FareType || 'Standard'}</Badge>
               </div>
 
               {/* Airline Info */}
@@ -397,11 +293,11 @@ const Flightcheckout = () => {
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 className="mb-1">
-                      {airlineInfo.name || airlineInfo.AirlineName || "Airline"}
+                      {airlineInfo.name || airlineInfo.AirlineName || 'Airline'}
                     </h6>
                     <small className="text-muted">
-                      {airlineInfo.flightNumber || "N/A"} · (
-                      {flightDetails.aircraft || "A320"})
+                      {airlineInfo.flightNumber || 'N/A'} · 
+                      ({flightDetails.aircraft || 'A320'})
                     </small>
                   </div>
                   <div className="text-end">
@@ -409,9 +305,7 @@ const Flightcheckout = () => {
                       {selectedFare.type || selectedFare.FareType}
                     </div>
                     {!selectedFare.isRefundable && (
-                      <Badge bg="danger" className="ms-2">
-                        Non-Refundable
-                      </Badge>
+                      <Badge bg="danger" className="ms-2">Non-Refundable</Badge>
                     )}
                   </div>
                 </div>
@@ -425,44 +319,34 @@ const Flightcheckout = () => {
                       {formatTime(originInfo.time || originInfo.DepartureTime)}
                     </div>
                     <div className="airport-info">
-                      <div>{originInfo.city || originInfo.City || "N/A"}</div>
+                      <div>{originInfo.city || originInfo.City || 'N/A'}</div>
                       <small className="text-muted">
-                        {originInfo.airport ||
-                          originInfo.Airport?.AirportName ||
-                          "N/A"}
+                        {originInfo.airport || originInfo.Airport?.AirportName || 'N/A'}
                       </small>
                     </div>
                   </div>
-
+                  
                   <div className="flight-duration text-center mx-3">
                     <div className="duration-text text-muted">
-                      {flightDetails.duration || "N/A"}
+                      {flightDetails.duration || 'N/A'}
                     </div>
                     <div className="flight-path">
                       <div className="line"></div>
                       <div className="plane">✈</div>
                     </div>
                     <div className="stops-text">
-                      {flightDetails.stops === 0
-                        ? "Non Stop"
-                        : `${flightDetails.stops} Stop(s)`}
+                      {flightDetails.stops === 0 ? 'Non Stop' : `${flightDetails.stops} Stop(s)`}
                     </div>
                   </div>
 
                   <div className="text-center">
                     <div className="time-display fs-4 fw-bold text-primary">
-                      {formatTime(
-                        destinationInfo.time || destinationInfo.ArrivalTime
-                      )}
+                      {formatTime(destinationInfo.time || destinationInfo.ArrivalTime)}
                     </div>
                     <div className="airport-info">
-                      <div>
-                        {destinationInfo.city || destinationInfo.City || "N/A"}
-                      </div>
+                      <div>{destinationInfo.city || destinationInfo.City || 'N/A'}</div>
                       <small className="text-muted">
-                        {destinationInfo.airport ||
-                          destinationInfo.Airport?.AirportName ||
-                          "N/A"}
+                        {destinationInfo.airport || destinationInfo.Airport?.AirportName || 'N/A'}
                       </small>
                     </div>
                   </div>
@@ -498,151 +382,377 @@ const Flightcheckout = () => {
           </Card>
 
           {/* Passenger Details Form */}
-          <Card className="mb-4 shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Passenger Details</h5>
-              <small className="text-muted">
-                {passengerCount.adults} Adult(s), {passengerCount.children}{" "}
-                Child(s), {passengerCount.infants} Infant(s)
-              </small>
-            </Card.Header>
-            <Card.Body>
-              <Form>
-                {/* Adult Passengers */}
-                {Array.from({ length: passengerCount.adults }).map(
-                  (_, index) => (
-                    <div
-                      key={`adult-${index}`}
-                      className="passenger-form-section mb-4 p-3 border rounded"
-                    >
-                      <h6 className="mb-3">Adult {index + 1}</h6>
-                      <Row>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Title *</Form.Label>
-                            <Form.Select required>
-                              <option value="">Select</option>
-                              <option value="mr">Mr</option>
-                              <option value="ms">Ms</option>
-                              <option value="mrs">Mrs</option>
-                            </Form.Select>
-                          </Form.Group>
-                        </Col>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>First Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              placeholder="Enter first name"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Last Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              placeholder="Enter last name"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    </div>
-                  )
-                )}
+         <Card className="mb-4 shadow-sm">
+  <Card.Header>
+    <h5 className="mb-0">Passenger Details</h5>
+    <small className="text-muted">
+      {passengerCount.adults} Adult(s), {passengerCount.children} Child(s), {passengerCount.infants} Infant(s)
+    </small>
+  </Card.Header>
+  <Card.Body>
+    <Form>
+      {/* Adult Passengers */}
+      {Array.from({ length: passengerCount.adults }).map((_, index) => (
+        <div key={`adult-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
+          <h6 className="mb-3">Adult {index + 1}</h6>
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Title *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="mr">Mr</option>
+                  <option value="ms">Ms</option>
+                  <option value="mrs">Mrs</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter first name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter last name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gender *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="1">Male</option>
+                  <option value="2">Female</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Number *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter passport number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Expiry Date *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nationality *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Contact Number *</Form.Label>
+                <Form.Control 
+                  type="tel" 
+                  placeholder="Enter contact number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Address Line 1 *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter address" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>City *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter city" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Country *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Email Address *</Form.Label>
+                <Form.Control 
+                  type="email" 
+                  placeholder="Enter email address" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          {index === 0 && (
+            <Row>
+              <Col md={12}>
+                <Form.Check 
+                  type="checkbox"
+                  label="This passenger is the lead passenger"
+                  defaultChecked
+                />
+              </Col>
+            </Row>
+          )}
+        </div>
+      ))}
 
-                {/* Child Passengers */}
-                {Array.from({ length: passengerCount.children }).map(
-                  (_, index) => (
-                    <div
-                      key={`child-${index}`}
-                      className="passenger-form-section mb-4 p-3 border rounded"
-                    >
-                      <h6 className="mb-3">Child {index + 1}</h6>
-                      <Row>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Title *</Form.Label>
-                            <Form.Select required>
-                              <option value="">Select</option>
-                              <option value="master">Master</option>
-                              <option value="miss">Miss</option>
-                            </Form.Select>
-                          </Form.Group>
-                        </Col>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>First Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              placeholder="Enter first name"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Last Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              placeholder="Enter last name"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    </div>
-                  )
-                )}
+      {/* Child Passengers */}
+      {Array.from({ length: passengerCount.children }).map((_, index) => (
+        <div key={`child-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
+          <h6 className="mb-3">Child {index + 1}</h6>
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Title *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="master">Master</option>
+                  <option value="miss">Miss</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter first name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter last name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gender *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="1">Male</option>
+                  <option value="2">Female</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Number *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter passport number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Expiry Date *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nationality *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+        </div>
+      ))}
 
-                {/* Infant Passengers */}
-                {Array.from({ length: passengerCount.infants }).map(
-                  (_, index) => (
-                    <div
-                      key={`infant-${index}`}
-                      className="passenger-form-section mb-4 p-3 border rounded"
-                    >
-                      <h6 className="mb-3">Infant {index + 1}</h6>
-                      <Row>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Title *</Form.Label>
-                            <Form.Select required>
-                              <option value="">Select</option>
-                              <option value="master">Master</option>
-                              <option value="miss">Miss</option>
-                            </Form.Select>
-                          </Form.Group>
-                        </Col>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>First Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              placeholder="Enter first name"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={4}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Last Name *</Form.Label>
-                            <Form.Control
-                              type="text"
-                              placeholder="Enter last name"
-                              required
-                            />
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                    </div>
-                  )
-                )}
-              </Form>
-            </Card.Body>
-          </Card>
+      {/* Infant Passengers */}
+      {Array.from({ length: passengerCount.infants }).map((_, index) => (
+        <div key={`infant-${index}`} className="passenger-form-section mb-4 p-3 border rounded">
+          <h6 className="mb-3">Infant {index + 1}</h6>
+          <Row>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Title *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="master">Master</option>
+                  <option value="miss">Miss</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>First Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter first name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Last Name *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter last name" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Date of Birth *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Gender *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select</option>
+                  <option value="1">Male</option>
+                  <option value="2">Female</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Number *</Form.Label>
+                <Form.Control 
+                  type="text" 
+                  placeholder="Enter passport number" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Passport Expiry Date *</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  required 
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          
+          <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Nationality *</Form.Label>
+                <Form.Select required>
+                  <option value="">Select Country</option>
+                  <option value="IN">India</option>
+                  {/* Add more country options as needed */}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+        </div>
+      ))}
+    </Form>
+  </Card.Body>
+</Card>
 
           {/* Contact Details */}
           <Card className="shadow-sm">
@@ -654,20 +764,20 @@ const Flightcheckout = () => {
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>Email Address *</Form.Label>
-                    <Form.Control
-                      type="email"
-                      placeholder="Enter email"
-                      required
+                    <Form.Control 
+                      type="email" 
+                      placeholder="Enter email" 
+                      required 
                     />
                   </Form.Group>
                 </Col>
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>Mobile Number *</Form.Label>
-                    <Form.Control
-                      type="tel"
-                      placeholder="Enter mobile number"
-                      required
+                    <Form.Control 
+                      type="tel" 
+                      placeholder="Enter mobile number" 
+                      required 
                     />
                   </Form.Group>
                 </Col>
@@ -678,18 +788,18 @@ const Flightcheckout = () => {
 
         <Col lg={4}>
           {/* Fare Summary */}
-          <Card className="sticky-top shadow-sm" style={{ top: "20px" }}>
+          <Card className="sticky-top shadow-sm" style={{ top: '20px' }}>
             <Card.Header className="bg-primary text-white">
               <h5 className="mb-0">Fare Summary</h5>
-              {fareDetails && <small>Live prices from airline</small>}
+              {fareDetails && (
+                <small>Live prices from airline</small>
+              )}
             </Card.Header>
             <Card.Body>
               {/* Passenger Count */}
               <div className="passenger-count mb-3 p-2 bg-light rounded">
                 <small className="text-muted">
-                  <strong>Passengers:</strong> {passengerCount.adults} Adult(s),{" "}
-                  {passengerCount.children} Child(s), {passengerCount.infants}{" "}
-                  Infant(s)
+                  <strong>Passengers:</strong> {passengerCount.adults} Adult(s), {passengerCount.children} Child(s), {passengerCount.infants} Infant(s)
                 </small>
               </div>
 
@@ -703,14 +813,14 @@ const Flightcheckout = () => {
                   <span>Taxes and Surcharges</span>
                   <span>₹ {tax.toLocaleString()}</span>
                 </div>
-
+                
                 {appliedCoupon && (
                   <div className="d-flex justify-content-between mb-2 text-success">
                     <span>
                       Coupon Discount ({appliedCoupon.code})
-                      <Button
-                        variant="link"
-                        size="sm"
+                      <Button 
+                        variant="link" 
+                        size="sm" 
                         className="p-0 ms-1 text-danger"
                         onClick={removeCoupon}
                       >
@@ -720,13 +830,11 @@ const Flightcheckout = () => {
                     <span>- ₹ {appliedCoupon.discount.toLocaleString()}</span>
                   </div>
                 )}
-
+                
                 <hr />
                 <div className="d-flex justify-content-between fw-bold fs-5">
                   <span>Total Amount</span>
-                  <span className="text-primary">
-                    ₹ {totalAmount.toLocaleString()}
-                  </span>
+                  <span className="text-primary">₹ {totalAmount.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -742,12 +850,12 @@ const Flightcheckout = () => {
                       onChange={(e) => setCouponCode(e.target.value)}
                       disabled={!!appliedCoupon}
                     />
-                    <Button
+                    <Button 
                       variant={appliedCoupon ? "success" : "outline-primary"}
                       onClick={applyCoupon}
                       disabled={!!appliedCoupon}
                     >
-                      {appliedCoupon ? "Applied" : "Apply"}
+                      {appliedCoupon ? 'Applied' : 'Apply'}
                     </Button>
                   </div>
                 </Form.Group>
@@ -773,26 +881,15 @@ const Flightcheckout = () => {
                     <tr>
                       <td>Cancellation Penalty:</td>
                       <td>₹ 4,650</td>
-                      <td>
-                        ₹{" "}
-                        {totalAmount - 4650 > 0
-                          ? (totalAmount - 4650).toLocaleString()
-                          : 0}
-                      </td>
+                      <td>₹ {totalAmount - 4650 > 0 ? (totalAmount - 4650).toLocaleString() : 0}</td>
                     </tr>
                     <tr>
                       <td>Cancel Between (ST):</td>
-                      <td colSpan="2">
-                        Now -{" "}
-                        {formatDate(
-                          originInfo.time || originInfo.DepartureTime
-                        )}{" "}
-                        06:30
-                      </td>
+                      <td colSpan="2">Now - {formatDate(originInfo.time || originInfo.DepartureTime)} 06:30</td>
                     </tr>
                   </tbody>
                 </Table>
-
+                
                 <div className="text-center">
                   <small className="text-muted">
                     Get more benefits by upgrading your fare
@@ -801,12 +898,7 @@ const Flightcheckout = () => {
               </div>
 
               {/* Proceed to Pay Button */}
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-100 mt-3"
-                onClick={handleBooking}
-              >
+              <Button variant="primary" size="lg" className="w-100 mt-3">
                 PROCEED TO PAY ₹ {totalAmount.toLocaleString()}
               </Button>
 

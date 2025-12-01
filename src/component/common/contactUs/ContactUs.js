@@ -52,51 +52,46 @@ const ContactUs = () => {
 
   return (
     <div className="contact">
-        
-      <HomeBanner />
-
-      <div className="container py-5" style={{marginTop: "100px"}}>
+      <div className="container py-5" style={{ marginTop: "100px" }}>
         <div className="row">
           {/* Left Contact Info */}
           <div className="col-md-6 mb-4">
-  <h2>
-    Contact Us <span className="text-primary">Easily</span>
-  </h2>
+            <h2>
+              Contact Us <span className="text-primary">Easily</span>
+            </h2>
 
-  <p className="text-muted">
-    We are here to help you. Reach out with any questions or concerns.
-  </p>
+            <p className="text-muted">
+              We are here to help you. Reach out with any questions or concerns.
+            </p>
 
-  {/* Phone */}
-  <div className="mb-3">
-    <i className="bi bi-telephone text-primary"></i>{" "}
-    <strong>9821373111</strong>
-    <p className="text-muted mb-0">Monday To Friday 09:00 - 20:00</p>
-    <p className="text-muted">Sunday 09:00 - 17:00</p>
-  </div>
+            {/* Phone */}
+            <div className="mb-3">
+              <i className="bi bi-telephone text-primary"></i>{" "}
+              <strong>9821373111</strong>
+              <p className="text-muted mb-0">Monday To Friday 09:00 - 20:00</p>
+              <p className="text-muted">Sunday 09:00 - 17:00</p>
+            </div>
 
-  {/* Emails */}
-  <div className="mb-3">
-    <i className="bi bi-envelope text-primary"></i>{" "}
-    <strong>info@safariX.com</strong>
-  </div>
+            {/* Emails */}
+            <div className="mb-3">
+              <i className="bi bi-envelope text-primary"></i>{" "}
+              <strong>info@safariX.com</strong>
+            </div>
 
-  <div className="mb-3">
-    <i className="bi bi-envelope text-primary"></i>{" "}
-    <strong>no-reply@safarixjourneys.com</strong>
-  </div>
-
-  {/* Address */}
- <div>
-  <h5>Safari X</h5>
-  <p className="text-muted">
-    <i className="bi bi-geo-alt text-primary"></i>{" "}
-  F-347, Ground Floor, Gali No. 23, Sadh Nagar II, 
-Near Palam Village, South West Delhi – 110045
-  </p>
-</div>
-</div>
-
+            <div className="mb-3">
+              <i className="bi bi-envelope text-primary"></i>{" "}
+              <strong>no-reply@safarixjourneys.com</strong>
+            </div>
+            {/* Address */}
+            <div>
+              <h5>Safari X</h5>
+              <p className="text-muted">
+                <i className="bi bi-geo-alt text-primary"></i> F-347, Ground
+                Floor, Gali No. 23, Sadh Nagar II, Near Palam Village, South
+                West Delhi – 110045
+              </p>
+            </div>
+          </div>
           {/* Right Contact Form */}
           <div className="col-md-6">
             <div className="p-4 border rounded shadow-sm">
