@@ -1,14 +1,17 @@
 h2 {
   font-weight: 400;
-  font-size: 42px;
-  letter-spacing: 1.1px;
-  text-transform: capitalize;
+    font-size: 32px;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    font-weight: bold !important;
 }
 
 p {
   font-weight: 400;
-  font-size: 15px;
-  letter-spacing: 1.1px;
+    font-size: 15px !important;
+    letter-spacing: 1.1px;
+    text-transform: capitalize !important;
+    width: 70%;
 }
 
 /************ header*************/
@@ -66,21 +69,22 @@ header .navbar-brand {
 }
 .navbar-nav .nav-link.active,
 .navbar-nav .nav-link.show {
-  color: var(--bs-navbar-active-color);
-  background: #d5ebff;
+  color: #fff;
+  background: #000000;
   border: none;
 }
 
 header .nav-link {
-  border: 1px solid #dedede;
+  border: 1px solid #000000ff;
   border-radius: 10px;
   padding: 6px 20px !important;
   margin-right: 10px;
-  font-size: 14px;
-  color: #fff;
+  font-size: 13px;
+  color: #000000ff;
 }
 header .user-icon a {
-  color: #ffffff;
+  color: #000000ff;
+  cursor: pointer;
 }
 
 .sticky-header {
@@ -189,6 +193,7 @@ header {
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+   cursor: pointer;
 }
 
 .place img {
@@ -197,6 +202,7 @@ header {
   object-fit: cover;
   border-radius: 15px;
   transition: transform 0.5s ease;
+ 
 }
 
 .place:hover img {
@@ -310,7 +316,7 @@ header {
 }
 
 .best-guide .perra {
-  width: 50%;
+  width: 70%;
   padding: 10px 0px 40px;
 }
 
@@ -505,6 +511,9 @@ header {
     text-align: start;
     line-height: 1.5;
     margin-top: 12px;
+    width: 70%;
+    {
+    }
   }
 
   .choose-box {
@@ -512,6 +521,10 @@ header {
     border-radius: 12px;
     height: 100%;
     background-color: #fff;
+    p{
+        font-size: 13.5px !important;
+      }
+
   }
   .why {
     font-size: 21px;
@@ -522,6 +535,8 @@ header {
 /************why-choose b*************/
 
 /************blog*************/
+
+
 .blog {
   padding: 60px 0px;
 
@@ -539,27 +554,36 @@ header {
       border-radius: 20px;
       margin-bottom: 20px;
       width: 100%;
-      height: 300px;
+      height: 190px;
       object-fit: cover;
+    }
+    p{
+      width: 100%;
+      font-size: 14px !important;
     }
 
     h4 {
-      font-size: 20px;
+      font-size: 15px;
     }
 
-    h5 {
-      font-size: 15px;
-      margin-bottom: 20px;
-      color: #0056b3;
-    }
+          h5 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #0056b3;
+            text-transform: uppercase;
+        }
 
     h6 {
       font-size: 15px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       color: #989696;
     }
+
+    
   }
 }
+
+
 
 /************blog*************/
 
@@ -583,6 +607,7 @@ header {
 
 .destination-card {
   background-color: #ffffff;
+  cursor: pointer;
 
   h5 {
     color: #000000;
@@ -599,51 +624,334 @@ header {
   }
 }
 
+/* Main wrapper */
 .Testionials {
-  padding: 60px 0px;
-
-  h2 span {
-    color: #498ab5;
-  }
+  padding: 60px 0;
 }
 
-.Testionials .card-container {
+/* Heading left text */
+.Testionials h2 {
+  font-size: 34px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* Card container row */
+.card-container {
+  display: flex;
   gap: 20px;
-  margin-top: 40px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  margin-top: 30px;
+  overflow-x: auto;        /* slider effect */
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
 }
 
-.Testionials .card {
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  padding: 15px;
-  transition: transform 0.3s ease;
-  background-color: #fff;
+.card-container::-webkit-scrollbar {
+  height: 0px; /* hide scrollbar */
 }
 
-.Testionials .card h3 {
-  color: #555;
+/* Single card */
+.card-container .card {
+  flex: 0 0 350px;
+  background: #fff;
+  padding: 25px;
+  border-radius: 18px;
+  border: none;
+  box-shadow: 0px 6px 25px rgba(0, 0, 0, 0.05);
+}
+
+/* Star rating style */
+.card .text-warning {
+  font-size: 18px;
+  color: #ff9800 !important;
+}
+
+/* Testimonial text */
+.card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* User section */
+.card .col-sm-12 {
+  margin-top: 20px;
+}
+
+/* Image round */
+/* .card img {
+  width: 55px !important;
+  height: 55px !important;
+  border-radius: 50%;
+  object-fit: cover;
+} */
+
+/* User name */
+.card h5 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Job Title */
+.card .small {
+  margin-top: -5px;
   font-size: 13px;
-  padding-left: 14px;
+  color: #888;
 }
 
-.Testionials .card img {
-  width: 100%;
-  border-radius: 8px;
+/* Arrow buttons (left/right) */
+.testimonial-arrows {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.Testionials .card a {
-  display: block;
-  color: #007bff;
-  text-decoration: none;
+.testimonial-arrows button {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  box-shadow: 0px 5px 20px rgba(0,0,0,0.1);
+  cursor: pointer;
+  color: #1c1c1c;
 }
 
-.Testionials .card p {
+.testimonial-arrows button:hover {
+  background: #f0f4ff;
+}
+/* TESTIMONIAL WRAPPER */
+.Testionials {
+  padding: 60px 0;
+}
+
+/* Heading */
+.Testionials h2 {
+  font-size: 20px !important;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #498ab5;
+}
+
+/* SLIDER container */
+.card-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto !important;
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
+  white-space: nowrap;
+}
+
+.card-container::-webkit-scrollbar {
+  display: none;
+}
+
+.card-container .card {
+  flex: 0 0 350px;
+  background: #faf5f5;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0px 6px 25px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+/* Left side text */
+.feedback-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.feedback-heading {
+  font-size: 28px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.feedback-sub {
+  font-size: 13px !important;
   color: #555;
-  font-size: 0.95rem;
-  padding-left: 16px;
+  margin-top: 10px;
+  width: 100%;
 }
+
+/* Slider Wrapper */
+.testimonial-slider {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
+}
+
+.testimonial-slider::-webkit-scrollbar {
+  height: 0;
+}
+
+/* Prevent bootstrap row from wrapping cards */
+.flex-nowrap {
+  flex-wrap: nowrap !important;
+}
+
+/* Card styling */
+.testimonial-card {
+  background: #fff;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0px 6px 25px rgba(0,0,0,0.05);
+  margin-right: 20px;
+}
+
+.stars {
+  color: #ff9800;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.review-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-user img {
+width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+
+/* Arrows */
+.testimonial-arrows button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  font-size: 20px;
+  background: #fff;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.testimonial-arrows button:hover {
+  background: #eaeffe;
+}
+
+/* Slider Container */
+.testimonial-slider {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 15px;
+}
+
+.testimonial-slider::-webkit-scrollbar {
+  height: 0;
+}
+
+/* Card */
+.testimonial-card {
+  flex: 0 0 45%;
+  background: #faeeee;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.stars {
+  color: #ff9800;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.review-text {
+  font-size: 13px!important;
+  color: #333;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.review-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-user img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+.review-user h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.review-user small {
+  color: #666;
+  font-size: 13px;
+}
+
+
+/* Stars */
+.card .text-warning {
+  font-size: 18px;
+  color: #ff9800 !important;
+}
+
+/* User image */
+/* .card img {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+} */
+
+/* User Name */
+.card h5 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Testimonial text */
+.card p {
+  font-size: 15px;
+  color: #444;
+  line-height: 1.5;
+}
+
+/* SLIDER ARROWS */
+.testimonial-arrows {
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+}
+
+.testimonial-arrows button {
+ width: 33px;
+    height: 33px;
+    background: #000000;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    color: #ffffff;
+    line-height: 33px;
+    padding: 0px;
+    text-align: center;
+}
+
+.testimonial-arrows button:hover {
+    background: #274a62;
+    color: #fff;
+}
+
 
 .newslater form {
   position: relative;
@@ -701,6 +1009,14 @@ header {
   }
 }
 
+.blog-box{
+      cursor: pointer;
+    border: 1px solid #bbbbbb;
+    padding: 15px;
+    border-radius: 20px;
+    height: 100%;
+}
+
 footer {
   background-color: #235376;
   padding: 100px 0px 40px;
@@ -755,6 +1071,15 @@ footer {
   font-size: 20px;
   color: #000;
 }
+
+.user-icon-image {
+  height: 35px;
+  width: 35px;          /* keeps it square */
+  object-fit: cover;    /* keeps image looking clean */
+  border-radius: 50%;   /* optional: makes it a circle */
+  cursor: pointer;
+}
+
 
 /* Profile dropdown */
 

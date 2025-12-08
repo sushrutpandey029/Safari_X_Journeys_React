@@ -166,7 +166,6 @@ function Hotel() {
 
 
 
-
             {/* Rooms/Guests */}
             <div className="col-md-4 position-relative">
               <label className="form-label">Rooms/Guests</label>

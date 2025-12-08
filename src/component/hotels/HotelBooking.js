@@ -433,34 +433,43 @@ function HotelBooking() {
               </select>
             </div>
 
-            <div className="col-md-2">
-              <label className="form-label">Check-In</label>
-              <DatePicker
-                selected={checkIn ? new Date(checkIn) : null}
-                onChange={(date) =>
-                  setCheckIn(date.toISOString().split("T")[0])
-                }
-                className="form-control"
-                dateFormat="yyyy-MM-dd"
-                minDate={new Date()} // optional: disable past dates
-                placeholderText="Select Check-In"
-              />
-            </div>
+           <div className="col-md-2">
+  <label className="form-label">Check-In</label>
+  <DatePicker
+    selected={checkIn ? new Date(checkIn) : null}
+    onChange={(date) => {
+      if (!date) return;
 
-            {/* Check-Out */}
-            <div className="col-md-2">
-              <label className="form-label">Check-Out</label>
-              <DatePicker
-                selected={checkOut ? new Date(checkOut) : null}
-                onChange={(date) =>
-                  setCheckOut(date.toISOString().split("T")[0])
-                }
-                className="form-control"
-                dateFormat="yyyy-MM-dd"
-                minDate={checkIn ? new Date(checkIn) : new Date()} // optional: checkout after check-in
-                placeholderText="Select Check-Out"
-              />
-            </div>
+      const checkInDate = date.toISOString().split("T")[0];
+      setCheckIn(checkInDate);
+
+      // ⭐ Automatically set Check-Out = tomorrow date
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setCheckOut(nextDay.toISOString().split("T")[0]);
+    }}
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={new Date()}
+    placeholderText="Select Check-In"
+  />
+</div>
+
+{/* Check-Out */}
+<div className="col-md-2">
+  <label className="form-label">Check-Out</label>
+  <DatePicker
+    selected={checkOut ? new Date(checkOut) : null}
+    onChange={(date) =>
+      setCheckOut(date ? date.toISOString().split("T")[0] : "")
+    }
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={checkIn ? new Date(checkIn) : new Date()}
+    excludeDates={checkIn ? [new Date(checkIn)] : []}   // ⭐ Hide check-in date
+    placeholderText="Select Check-Out"
+  />
+</div>
 
             {/* Rooms Dropdown */}
             <div className="col-md-4 position-relative">

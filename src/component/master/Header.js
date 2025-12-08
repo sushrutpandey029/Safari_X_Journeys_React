@@ -113,7 +113,7 @@ function Header() {
         <img
           src="/images/Safarix-Blue-Logo.png"
           alt="Safarix Logo"
-          height="70"
+          height="50"
         />
       </a>
 
@@ -169,7 +169,7 @@ function Header() {
           </li>
 
           {/* Cab */}
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <NavLink
               to="/cabs"
               className={({ isActive }) =>
@@ -178,7 +178,7 @@ function Header() {
             >
               <i className="bi bi-taxi-front"></i> Cab
             </NavLink>
-          </li>
+          </li> */}
           {/* Bus */}
           <li className="nav-item">
             <NavLink
@@ -209,7 +209,11 @@ function Header() {
             className="profile-icon-link"
             onClick={() => setShowProfileMenu(!showProfileMenu)}
           >
-            <i className="bi bi-person"></i>
+           <img
+              src="images/userprofile.png"
+              alt="User Icon"
+              className="user-icon-image"
+            />
           </a>
 
           {showProfileMenu && (
