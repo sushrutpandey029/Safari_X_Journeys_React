@@ -72,3 +72,11 @@ export const getAllCities = async () => {
     throw err;
   }
 };
+
+//cancel booking
+export const confirmBookingCancellation = async (payload) => {
+  return await axios.post(API.CANCEL_BOOKING, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+

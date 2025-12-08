@@ -35,6 +35,7 @@ const formatPrice = (price) => {
 };
 
 const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }) => {
+  console.log("searchdata in fligtdetail",searchData)
   const [fareDetail, setFareDetail] = useState("");
   const [loadingFare, setLoadingFare] = useState(false);
   const [selectedFare, setSelectedFare] = useState(null);
@@ -292,7 +293,8 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       origin: flightInfo.origin.city,
       destination: flightInfo.destination.city,
       departureDate: flightInfo.origin.time,
-      returnDate: searchData?.returnDate || null
+      returnDate: searchData?.returnDate || null,
+      TraceId:searchData?.TraceId
     };
 
     // Calculate total price for all passengers

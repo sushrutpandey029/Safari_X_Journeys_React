@@ -56,7 +56,7 @@ function HotelBooking() {
   const [selectedUserRatings, setSelectedUserRatings] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 50000]);
-  
+
   const [showProperties, setShowProperties] = useState({
     bookWithZero: false,
     freeCancellation: false,

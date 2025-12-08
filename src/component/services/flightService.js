@@ -30,22 +30,20 @@ export const Flight_authenticate = async (endUserIp) => {
   }
 };
 
-
 export const Flight_search = async (searchData) => {
   try {
     const resp = await axios.post(API.flight_search, searchData, {
-      headers: { "Content-Type": "application/json" } // ensure JSON headers
+      headers: { "Content-Type": "application/json" }, // ensure JSON headers
     });
 
     console.log("✅ API Response in Flight_search:", resp.data);
     return resp.data || { status: false, data: [] };
-
   } catch (err) {
     console.error("❌ Error in Flight_search:", err);
     return { status: false, data: [] };
   }
-}
-  export const Flight_FareRule = async (fareRuleData) => {
+};
+export const Flight_FareRule = async (fareRuleData) => {
   try {
     const resp = await axios.post(API.Flight_farerule, fareRuleData, {
       headers: { "Content-Type": "application/json" },
@@ -58,7 +56,6 @@ export const Flight_search = async (searchData) => {
     return { status: false, message: "Error fetching fare rule" };
   }
 };
-
 
 export const fare_quote = async (fareQuoteData) => {
   try {
@@ -73,3 +70,20 @@ export const fare_quote = async (fareQuoteData) => {
     return { status: false, message: "Error fetching fare quote" };
   }
 };
+
+export const flight_getBookingDetails = async (payload) => {
+  return await axios.post(API.flight_getBookingDetails, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const flight_sendChangeRequest= async (payload) => {
+  return await axios.post(API.flight_sendChangeRequest, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const flight_getChangeRequestStatus= async (payload) => {
+  return await axios.post(API.flight_getChangeRequestStatus, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
