@@ -46,6 +46,7 @@ export default function useCashfreePayment() {
       return null;
     } catch (error) {
       console.error("Error in getSessionId", error);
+      alert(error?.response?.data?.message || "Unabe to create booking draft.")
       return null;
     }
   };

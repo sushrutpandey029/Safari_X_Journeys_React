@@ -40,7 +40,6 @@ const Flight = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-
   // Authentication and search states
   const [token, setToken] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
@@ -56,6 +55,8 @@ const Flight = () => {
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
 
+  const [TraceId, setTraceId] = useState("");
+
   // fare rule detail
   const [showModal, setShowModal] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
@@ -67,7 +68,7 @@ const Flight = () => {
     stops: [],
     priceRange: { min: 0, max: 50000 },
     departureTimes: [],
-    durations: []
+    durations: [],
   });
 
   const [toggle, setToggle] = useState({
@@ -75,62 +76,62 @@ const Flight = () => {
     stops: true,
     price: true,
     departure: true,
-    duration: true
+    duration: true,
   });
 
   // ============ FILTER FUNCTIONS ============
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      [filterType]: value
+      [filterType]: value,
     }));
   };
 
   const handleAirlineFilter = (airlineCode, isChecked) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      airlines: isChecked 
+      airlines: isChecked
         ? [...prev.airlines, airlineCode]
-        : prev.airlines.filter(code => code !== airlineCode)
+        : prev.airlines.filter((code) => code !== airlineCode),
     }));
   };
 
   const handleStopFilter = (stopCount, isChecked) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      stops: isChecked 
+      stops: isChecked
         ? [...prev.stops, stopCount]
-        : prev.stops.filter(stop => stop !== stopCount)
+        : prev.stops.filter((stop) => stop !== stopCount),
     }));
   };
 
   const handlePriceRangeChange = (type, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       priceRange: {
         ...prev.priceRange,
-        [type]: value
-      }
+        [type]: value,
+      },
     }));
   };
 
   const handleDepartureTimeFilter = (timeRange, isChecked) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      departureTimes: isChecked 
+      departureTimes: isChecked
         ? [...prev.departureTimes, timeRange]
-        : prev.departureTimes.filter(range => 
-            !(range[0] === timeRange[0] && range[1] === timeRange[1])
-          )
+        : prev.departureTimes.filter(
+            (range) => !(range[0] === timeRange[0] && range[1] === timeRange[1])
+          ),
     }));
   };
 
   const handleDurationFilter = (duration, isChecked) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      durations: isChecked 
+      durations: isChecked
         ? [...prev.durations, duration.label]
-        : prev.durations.filter(d => d !== duration.label)
+        : prev.durations.filter((d) => d !== duration.label),
     }));
   };
 
@@ -141,7 +142,7 @@ const Flight = () => {
       stops: [],
       priceRange: { min: 0, max: 50000 },
       departureTimes: [],
-      durations: []
+      durations: [],
     });
   };
 
@@ -149,7 +150,7 @@ const Flight = () => {
   const applyFilters = (flights) => {
     if (!flights || flights.length === 0) return [];
 
-    return flights.filter(flight => {
+    return flights.filter((flight) => {
       // Refundable filter
       if (filters.refundableOnly && !flight.IsRefundable) {
         return false;
@@ -158,16 +159,25 @@ const Flight = () => {
       // Airline filter - API data structure ke hisab se
       if (filters.airlines.length > 0) {
         let airlineCode = "";
-        
+
         // Multiple ways to get airline code from API response
         if (flight.Airline && flight.Airline.AirlineCode) {
           airlineCode = flight.Airline.AirlineCode;
-        } else if (flight.Segments && flight.Segments[0] && flight.Segments[0][0] && flight.Segments[0][0].Airline) {
+        } else if (
+          flight.Segments &&
+          flight.Segments[0] &&
+          flight.Segments[0][0] &&
+          flight.Segments[0][0].Airline
+        ) {
           airlineCode = flight.Segments[0][0].Airline.AirlineCode;
-        } else if (flight.Segments && flight.Segments[0] && flight.Segments[0].Airline) {
+        } else if (
+          flight.Segments &&
+          flight.Segments[0] &&
+          flight.Segments[0].Airline
+        ) {
           airlineCode = flight.Segments[0].Airline.AirlineCode;
         }
-        
+
         if (!airlineCode || !filters.airlines.includes(airlineCode)) {
           return false;
         }
@@ -176,15 +186,19 @@ const Flight = () => {
       // Stops filter - API data ke hisab se
       if (filters.stops.length > 0) {
         let stopCount = 0;
-        
+
         // Calculate stops from segments
         if (flight.Segments && flight.Segments[0]) {
-          const firstSegment = Array.isArray(flight.Segments[0]) ? flight.Segments[0][0] : flight.Segments[0];
+          const firstSegment = Array.isArray(flight.Segments[0])
+            ? flight.Segments[0][0]
+            : flight.Segments[0];
           stopCount = firstSegment && firstSegment.StopOver ? 1 : 0;
         }
-        
-        if (!filters.stops.includes(stopCount) && 
-            !(stopCount >= 2 && filters.stops.includes(2))) {
+
+        if (
+          !filters.stops.includes(stopCount) &&
+          !(stopCount >= 2 && filters.stops.includes(2))
+        ) {
           return false;
         }
       }
@@ -198,17 +212,19 @@ const Flight = () => {
       // Departure time filter
       if (filters.departureTimes.length > 0) {
         let departureTime = "";
-        
+
         // Get departure time from API data
         if (flight.Segments && flight.Segments[0]) {
-          const firstSegment = Array.isArray(flight.Segments[0]) ? flight.Segments[0][0] : flight.Segments[0];
+          const firstSegment = Array.isArray(flight.Segments[0])
+            ? flight.Segments[0][0]
+            : flight.Segments[0];
           departureTime = firstSegment?.Origin?.DepTime;
         }
-        
+
         if (departureTime) {
           const hour = new Date(departureTime).getHours();
-          const matchesTime = filters.departureTimes.some(([start, end]) => 
-            hour >= start && hour < end
+          const matchesTime = filters.departureTimes.some(
+            ([start, end]) => hour >= start && hour < end
           );
           if (!matchesTime) return false;
         }
@@ -217,21 +233,30 @@ const Flight = () => {
       // Duration filter
       if (filters.durations.length > 0) {
         let duration = 0;
-        
+
         // Get duration from API data
         if (flight.Segments && flight.Segments[0]) {
-          const firstSegment = Array.isArray(flight.Segments[0]) ? flight.Segments[0][0] : flight.Segments[0];
+          const firstSegment = Array.isArray(flight.Segments[0])
+            ? flight.Segments[0][0]
+            : flight.Segments[0];
           duration = firstSegment?.Duration || 0;
         }
-        
+
         let matchesDuration = false;
-        
-        filters.durations.forEach(durLabel => {
-          if (durLabel === "Short (< 2 hours)" && duration < 120) matchesDuration = true;
-          if (durLabel === "Medium (2-4 hours)" && duration >= 120 && duration <= 240) matchesDuration = true;
-          if (durLabel === "Long (> 4 hours)" && duration > 240) matchesDuration = true;
+
+        filters.durations.forEach((durLabel) => {
+          if (durLabel === "Short (< 2 hours)" && duration < 120)
+            matchesDuration = true;
+          if (
+            durLabel === "Medium (2-4 hours)" &&
+            duration >= 120 &&
+            duration <= 240
+          )
+            matchesDuration = true;
+          if (durLabel === "Long (> 4 hours)" && duration > 240)
+            matchesDuration = true;
         });
-        
+
         if (!matchesDuration) return false;
       }
 
@@ -307,13 +332,13 @@ const Flight = () => {
     // Get all selected airports from all flights (excluding current value)
     const getAllSelectedAirports = () => {
       const selected = new Set();
-      
+
       // Add all "from" and "to" airports from all flights
-      flights.forEach(flight => {
+      flights.forEach((flight) => {
         if (flight.from && flight.from !== value) selected.add(flight.from);
         if (flight.to && flight.to !== value) selected.add(flight.to);
       });
-      
+
       return selected;
     };
 
@@ -327,7 +352,7 @@ const Flight = () => {
           const code = airport.airport_code || "";
 
           // Check if matches search
-          const matchesSearch = 
+          const matchesSearch =
             city.toLowerCase().includes(searchTerm.toLowerCase()) ||
             name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             code.toLowerCase().includes(searchTerm.toLowerCase());
@@ -341,8 +366,8 @@ const Flight = () => {
       } else {
         // When no search term, show airports not already selected
         const selectedAirports = getAllSelectedAirports();
-        const availableAirports = airports.filter(airport => 
-          !selectedAirports.has(airport.airport_code)
+        const availableAirports = airports.filter(
+          (airport) => !selectedAirports.has(airport.airport_code)
         );
         setFilteredAirports(availableAirports.slice(0, 10));
       }
@@ -407,8 +432,8 @@ const Flight = () => {
             setIsOpen(true);
             // On focus, show available airports (not already selected)
             const selectedAirports = getAllSelectedAirports();
-            const availableAirports = airports.filter(airport => 
-              !selectedAirports.has(airport.airport_code)
+            const availableAirports = airports.filter(
+              (airport) => !selectedAirports.has(airport.airport_code)
             );
             setFilteredAirports(availableAirports.slice(0, 10));
           }}
@@ -448,7 +473,7 @@ const Flight = () => {
                 {loading ? "Loading airports..." : "No airports available"}
               </div>
             )}
-            
+
             {/* Show warning if user has selected same airport elsewhere */}
             {getAllSelectedAirports().size > 0 && (
               <div className="dropdown-footer text-muted small px-3 py-2 border-top">
@@ -519,14 +544,15 @@ const Flight = () => {
       passengers: {
         adults,
         children,
-        infants
+        infants,
       },
       tripType,
       origin: flights?.[0]?.from,
       destination: flights?.[0]?.to,
       departureDate: flights?.[0]?.date,
       returnDate: flights?.[0]?.returnDate,
-      travelClass
+      travelClass,
+      TraceId,
     };
     setSearchData(passengerData);
     setShowModal(true);
@@ -542,7 +568,7 @@ const Flight = () => {
     setTripType(newTripType);
     setSearchResults([]);
     setSearchError(null);
-    
+
     if (newTripType === "multi") {
       if (flights.length === 1) {
         setFlights([...flights, { from: "", to: "", date: "" }]);
@@ -634,6 +660,7 @@ const Flight = () => {
       };
 
       const searchResponse = await Flight_search(searchPayload);
+      console.log("✅ API Response in Flight_search:", searchResponse);
       let foundFlights = [];
 
       if (searchResponse) {
@@ -643,33 +670,28 @@ const Flight = () => {
           searchResponse.data.Response.Results
         ) {
           foundFlights = searchResponse.data.Response.Results.flat();
-        }
-        else if (searchResponse.data && searchResponse.data.Results) {
+        } else if (searchResponse.data && searchResponse.data.Results) {
           foundFlights = searchResponse.data.Results.flat();
-        }
-        else if (searchResponse.data && Array.isArray(searchResponse.data)) {
+        } else if (searchResponse.data && Array.isArray(searchResponse.data)) {
           foundFlights = searchResponse.data;
-        }
-        else if (
+        } else if (
           searchResponse.data &&
           searchResponse.data.data &&
           Array.isArray(searchResponse.data.data)
         ) {
           foundFlights = searchResponse.data.data;
-        }
-        else if (Array.isArray(searchResponse)) {
+        } else if (Array.isArray(searchResponse)) {
           foundFlights = searchResponse;
-        }
-        else if (searchResponse.Results) {
+        } else if (searchResponse.Results) {
           foundFlights = searchResponse.Results.flat();
-        }
-        else if (searchResponse.data) {
+        } else if (searchResponse.data) {
           foundFlights = [searchResponse.data].flat();
         }
       }
 
       if (foundFlights.length > 0) {
         setSearchResults(foundFlights);
+        setTraceId(searchResponse?.data?.Response.TraceId);
         setSearchError(null);
       } else {
         setSearchError(
@@ -747,11 +769,7 @@ const Flight = () => {
         <div className="text-center py-5 text-muted">
           <h5>No flights found matching your filters</h5>
           <p>Try adjusting your filter criteria</p>
-          <Button 
-            variant="outline-primary" 
-            size="sm"
-            onClick={clearAllFilters}
-          >
+          <Button variant="outline-primary" size="sm" onClick={clearAllFilters}>
             Clear All Filters
           </Button>
         </div>
@@ -913,7 +931,7 @@ const Flight = () => {
                 <span>Initializing application...</span>
               </div>
             )}
-            
+
             <Row className="align-items-end g-2 mb-3 travellers">
               <Col md={2}>
                 <Form.Group>
@@ -1024,7 +1042,7 @@ const Flight = () => {
                         backgroundColor: "transparent",
                       }}
                     >
-                      {adults} Adult{adults > 1? "s" : ""},{" "}
+                      {adults} Adult{adults > 1 ? "s" : ""},{" "}
                       {travelClass || "Economy"}
                     </Dropdown.Toggle>
 
@@ -1049,7 +1067,12 @@ const Flight = () => {
                         <Col xs={12} className="mt-3">
                           <Form.Label>Travel Class</Form.Label>
                           <div className="d-flex flex-wrap gap-2">
-                            {["Economy", "Premium Economy", "Business", "First Class"].map((cls) => (
+                            {[
+                              "Economy",
+                              "Premium Economy",
+                              "Business",
+                              "First Class",
+                            ].map((cls) => (
                               <Button
                                 key={cls}
                                 variant={
@@ -1097,80 +1120,88 @@ const Flight = () => {
                 </Button>
               </Col>
             </Row>
-{tripType === "multi" &&
-  flights.map((flight, index) => (
-    <Row
-      key={index}
-      className="align-items-end g-2 mb-3 travellers"
-    >
-      <Col md={2}>
-        <Form.Group>
-          <Form.Label className="fw-semibold small">From</Form.Label>
-          <AirportDropdown
-            value={flight.from}
-            onChange={(value) => handleFromChange(index, value)}
-            placeholder="From City"
-            type="from"
-          />
-        </Form.Group>
-      </Col>
+            {tripType === "multi" &&
+              flights.map((flight, index) => (
+                <Row
+                  key={index}
+                  className="align-items-end g-2 mb-3 travellers"
+                >
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">
+                        From
+                      </Form.Label>
+                      <AirportDropdown
+                        value={flight.from}
+                        onChange={(value) => handleFromChange(index, value)}
+                        placeholder="From City"
+                        type="from"
+                      />
+                    </Form.Group>
+                  </Col>
 
-      <Col md={2}>
-        <Form.Group>
-          <Form.Label className="fw-semibold small">To</Form.Label>
-          <AirportDropdown
-            value={flight.to}
-            onChange={(value) => handleToChange(index, value)}
-            placeholder="To City"
-            type="to"
-          />
-        </Form.Group>
-      </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">To</Form.Label>
+                      <AirportDropdown
+                        value={flight.to}
+                        onChange={(value) => handleToChange(index, value)}
+                        placeholder="To City"
+                        type="to"
+                      />
+                    </Form.Group>
+                  </Col>
 
-      <Col md={2}>
-        <Form.Group>
-          <Form.Label className="fw-semibold small">Depart</Form.Label>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">
+                        Depart
+                      </Form.Label>
 
-          {/* 🔥 FINAL FIX - this keeps dates separate for each row */}
-          <DatePicker
-            selected={flight.date ? new Date(flight.date) : null}
-            onChange={(date) => {
-              const updatedFlights = flights.map((f, i) =>
-                i === index
-                  ? { ...f, date: date ? date.toISOString().split("T")[0] : null }
-                  : f
-              );
-              setFlights(updatedFlights);
-            }}
-            minDate={new Date()}
-            dateFormat="EEE, MMM d, yyyy"
-            className="form-control"
-          />
-        </Form.Group>
-      </Col>
+                      {/* 🔥 FINAL FIX - this keeps dates separate for each row */}
+                      <DatePicker
+                        selected={flight.date ? new Date(flight.date) : null}
+                        onChange={(date) => {
+                          const updatedFlights = flights.map((f, i) =>
+                            i === index
+                              ? {
+                                  ...f,
+                                  date: date
+                                    ? date.toISOString().split("T")[0]
+                                    : null,
+                                }
+                              : f
+                          );
+                          setFlights(updatedFlights);
+                        }}
+                        minDate={new Date()}
+                        dateFormat="EEE, MMM d, yyyy"
+                        className="form-control"
+                      />
+                    </Form.Group>
+                  </Col>
 
-      <Col md={2} className="d-flex gap-2">
-        {index === flights.length - 1 ? (
-          <Button
-            variant="outline-primary"
-            className="rounded-pill"
-            onClick={addCity}
-          >
-            + Add City
-          </Button>
-        ) : (
-          <Button
-            variant="outline-danger"
-            className="rounded-pill"
-            onClick={() => removeCity(index)}
-          >
-            Remove
-          </Button>
-        )}
-      </Col>
-    </Row>
-  ))
-}
+                  <Col md={2} className="d-flex gap-2">
+                    {index === flights.length - 1 ? (
+                      <Button
+                        variant="outline-primary"
+                        className="rounded-pill"
+                        onClick={addCity}
+                      >
+                        + Add City
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline-danger"
+                        className="rounded-pill"
+                        onClick={() => removeCity(index)}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </Col>
+                </Row>
+              ))}
           </div>
         </div>
       </div>
@@ -1190,9 +1221,14 @@ const Flight = () => {
                     type="checkbox"
                     id="refundable"
                     checked={filters.refundableOnly}
-                    onChange={(e) => handleFilterChange('refundableOnly', e.target.checked)}
+                    onChange={(e) =>
+                      handleFilterChange("refundableOnly", e.target.checked)
+                    }
                   />
-                  <label className="form-check-label fw-semibold" htmlFor="refundable">
+                  <label
+                    className="form-check-label fw-semibold"
+                    htmlFor="refundable"
+                  >
                     Refundable Only
                   </label>
                 </div>
@@ -1226,7 +1262,9 @@ const Flight = () => {
                           type="checkbox"
                           id={`airline-${airline.code}`}
                           checked={filters.airlines.includes(airline.code)}
-                          onChange={(e) => handleAirlineFilter(airline.code, e.target.checked)}
+                          onChange={(e) =>
+                            handleAirlineFilter(airline.code, e.target.checked)
+                          }
                         />
                         <label
                           className="form-check-label"
@@ -1265,7 +1303,9 @@ const Flight = () => {
                           type="checkbox"
                           id={`stop-${stop.value}`}
                           checked={filters.stops.includes(stop.value)}
-                          onChange={(e) => handleStopFilter(stop.value, e.target.checked)}
+                          onChange={(e) =>
+                            handleStopFilter(stop.value, e.target.checked)
+                          }
                         />
                         <label
                           className="form-check-label"
@@ -1294,7 +1334,9 @@ const Flight = () => {
                 {toggle.price && (
                   <div className="filter-options mt-2">
                     <div className="mb-2">
-                      <label className="form-label small">Min: ₹{filters.priceRange.min}</label>
+                      <label className="form-label small">
+                        Min: ₹{filters.priceRange.min}
+                      </label>
                       <input
                         type="range"
                         className="form-range"
@@ -1302,11 +1344,18 @@ const Flight = () => {
                         max="50000"
                         step="1000"
                         value={filters.priceRange.min}
-                        onChange={(e) => handlePriceRangeChange('min', parseInt(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceRangeChange(
+                            "min",
+                            parseInt(e.target.value)
+                          )
+                        }
                       />
                     </div>
                     <div className="mb-2">
-                      <label className="form-label small">Max: ₹{filters.priceRange.max}</label>
+                      <label className="form-label small">
+                        Max: ₹{filters.priceRange.max}
+                      </label>
                       <input
                         type="range"
                         className="form-range"
@@ -1314,7 +1363,12 @@ const Flight = () => {
                         max="50000"
                         step="1000"
                         value={filters.priceRange.max}
-                        onChange={(e) => handlePriceRangeChange('max', parseInt(e.target.value))}
+                        onChange={(e) =>
+                          handlePriceRangeChange(
+                            "max",
+                            parseInt(e.target.value)
+                          )
+                        }
                       />
                     </div>
                     <div className="d-flex justify-content-between small text-muted">
@@ -1350,10 +1404,16 @@ const Flight = () => {
                           className="form-check-input"
                           type="checkbox"
                           id={`departure-${i}`}
-                          checked={filters.departureTimes.some(t => 
-                            t[0] === time.range[0] && t[1] === time.range[1]
+                          checked={filters.departureTimes.some(
+                            (t) =>
+                              t[0] === time.range[0] && t[1] === time.range[1]
                           )}
-                          onChange={(e) => handleDepartureTimeFilter(time.range, e.target.checked)}
+                          onChange={(e) =>
+                            handleDepartureTimeFilter(
+                              time.range,
+                              e.target.checked
+                            )
+                          }
                         />
                         <label
                           className="form-check-label"
@@ -1392,7 +1452,9 @@ const Flight = () => {
                           type="checkbox"
                           id={`duration-${i}`}
                           checked={filters.durations.includes(duration.label)}
-                          onChange={(e) => handleDurationFilter(duration, e.target.checked)}
+                          onChange={(e) =>
+                            handleDurationFilter(duration, e.target.checked)
+                          }
                         />
                         <label
                           className="form-check-label"
@@ -1424,7 +1486,7 @@ const Flight = () => {
           <Col sm={9}>{renderFlightResults()}</Col>
         </Row>
       </div>
-      
+
       {/* Flight Detail Modal */}
       <FlightDetail
         flightData={selectedFlight}

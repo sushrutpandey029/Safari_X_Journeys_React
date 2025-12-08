@@ -61,13 +61,19 @@ export const API = {
   flight_search: `${BASE_URL}/flight/search-flights`,
   Flight_farerule: `${BASE_URL}/flight/fare-rules`, 
   Flight_farequote: `${BASE_URL}/flight/fare-quote`,
-
-
+  flight_getBookingDetails: `${BASE_URL}/flight/get-booking-details`,
+  flight_sendChangeRequest: `${BASE_URL}/flight/send-change-request`,
+  flight_getChangeRequestStatus: `${BASE_URL}/flight/get-change-request-status`,
 
   // BUS
-Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
-Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
-Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
-Bus_busLayout: `${BASE_URL}/Bus/bus-layout`,
-Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
+  Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
+  Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
+  Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
+  Bus_busLayout: `${BASE_URL}/Bus/bus-layout`,
+  Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
+
+
+
+  //cancel boooking
+  CANCEL_BOOKING : `${BASE_URL}/api/booking/cancel/confirm`
 };

@@ -117,56 +117,56 @@ function Header() {
         />
       </a>
 
-      <button
-        className="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarSupportedContent"
-      >
-        <span className="navbar-toggler-icon"></span>
-      </button>
-
-      <div
-        className="collapse navbar-collapse"
-        id="navbarSupportedContent"
-      >
-        <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
-          {/* Flight (default active if /) */}
-          <li className="nav-item">
-            <NavLink
-              to="/flight"
-              className={({ isActive }) =>
-                "nav-link" +
-                (isActive || location.pathname === "/" ? " active" : "")
-              }
+            <button
+              className="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarSupportedContent"
             >
-              <i className="bi bi-airplane"></i> Flight
-            </NavLink>
-          </li>
+              <span className="navbar-toggler-icon"></span>
+            </button>
 
-          {/* Hotel */}
-          <li className="nav-item">
-            <NavLink
-              to="/hotel"
-              className={({ isActive }) =>
-                "nav-link" + (isActive ? " active" : "")
-              }
+            <div
+              className="collapse navbar-collapse"
+              id="navbarSupportedContent"
             >
-              <i className="bi bi-building"></i> Hotel
-            </NavLink>
-          </li>
+              <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
+                {/* Flight (default active if /) */}
+                <li className="nav-item">
+                  <NavLink
+                    to="/flight"
+                    className={({ isActive }) =>
+                      "nav-link" +
+                      (isActive || location.pathname === "/" ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-airplane"></i> Flight
+                  </NavLink>
+                </li>
 
-          {/* Guide */}
-          <li className="nav-item">
-            <NavLink
-              to="/guides"
-              className={({ isActive }) =>
-                "nav-link" + (isActive ? " active" : "")
-              }
-            >
-              <i className="bi bi-person-badge"></i> Guides
-            </NavLink>
-          </li>
+                {/* Hotel */}
+                <li className="nav-item">
+                  <NavLink
+                    to="/hotel"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-building"></i> Hotel
+                  </NavLink>
+                </li>
+
+                {/* Guide */}
+                <li className="nav-item">
+                  <NavLink
+                    to="/guides"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <i className="bi bi-person-badge"></i> Guides
+                  </NavLink>
+                </li>
 
           {/* Cab */}
           {/* <li className="nav-item">
@@ -193,14 +193,14 @@ function Header() {
         </ul>
       </div>
 
-      <div className="plan my-3" style={{ marginRight: "14px" }}>
-        <button
-          className="holiday"
-          onClick={() => navigate("/bot-modal")}
-        >
-          Plan My Holiday 24 x 7
-        </button>
-      </div>
+            <div className="plan my-3" style={{ marginRight: "14px" }}>
+              <button
+                className="holiday"
+                onClick={() => navigate("/bot-modal")}
+              >
+                Plan My Holiday 24 x 7
+              </button>
+            </div>
 
       {/* User Icon & Profile Menu */}
       <div className="user-icon position-relative">
@@ -216,111 +216,109 @@ function Header() {
             />
           </a>
 
-          {showProfileMenu && (
-            <div className="profile-menu">
-              <div className="profile-heading">Profile</div>
-              <ul>
-                {!user && !guide && !driver && (
-                  <>
-                    <li
-                      onClick={() => {
-                        setShowUserLogin(true);
-                        setShowProfileMenu(false);
-                      }}
-                    >
-                      Login or Signup as User
-                    </li>
-                    <li
-                      onClick={() => {
-                        setShowDriverGuideLogin(true);
-                        setShowProfileMenu(false);
-                      }}
-                    >
-                      Login as Guide
-                    </li>
-                  </>
-                )}
-                {user && !guide && !driver && (
-                  <li
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      navigate("/user-dashboard");
-                    }}
-                  >
-                    My Profile
-                  </li>
-                )}
-                {guide && !user && !driver && (
-                  <li
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      navigate("/guide-dashboard");
-                    }}
-                  >
-                    My Profile
-                  </li>
-                )}
-                {driver && !guide && !user && (
-                  <li
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      navigate("/driver-dashboard");
-                    }}
-                  >
-                    My Profile
-                  </li>
-                )}
+                {showProfileMenu && (
+                  <div className="profile-menu">
+                    <div className="profile-heading">Profile</div>
+                    <ul>
+                      {!user && !guide && !driver && (
+                        <>
+                          <li
+                            onClick={() => {
+                              setShowUserLogin(true);
+                              setShowProfileMenu(false);
+                            }}
+                          >
+                            Login or Signup as User
+                          </li>
+                          <li
+                            onClick={() => {
+                              setShowDriverGuideLogin(true);
+                              setShowProfileMenu(false);
+                            }}
+                          >
+                            Login as Guide
+                          </li>
+                        </>
+                      )}
+                      {user && !guide && !driver && (
+                        <li
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            navigate("/user-dashboard");
+                          }}
+                        >
+                          My Profile
+                        </li>
+                      )}
+                      {guide && !user && !driver && (
+                        <li
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            navigate("/guide-dashboard");
+                          }}
+                        >
+                          My Profile
+                        </li>
+                      )}
+                      {driver && !guide && !user && (
+                        <li
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            navigate("/driver-dashboard");
+                          }}
+                        >
+                          My Profile
+                        </li>
+                      )}
 
-                <li>Updates</li>
-                <li>Appearance</li>
-                <li>Support</li>
-                {!user && !guide && !driver && ""}
-                {user && (
-                  <li
-                    role="button"
-                    className="text-danger"
-                    onClick={handleLogout}
-                  >
-                    <i className="bi bi-box-arrow-right me-2">Logout</i>
-                  </li>
+                    
+                      {!user && !guide && !driver && ""}
+                      {user && (
+                        <li
+                          role="button"
+                          className="text-danger"
+                          onClick={handleLogout}
+                        >
+                          <i className="bi bi-box-arrow-right me-2">Logout</i>
+                        </li>
+                      )}
+                      {guide && (
+                        <li
+                          role="button"
+                          className="text-danger"
+                          onClick={handleGuideLogout}
+                        >
+                          <i className="bi bi-box-arrow-right me-2">Logout</i>
+                        </li>
+                      )}
+                      {driver && (
+                        <li
+                          role="button"
+                          className="text-danger"
+                          onClick={handleDriverLogout}
+                        >
+                          <i className="bi bi-box-arrow-right me-2">Logout</i>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
                 )}
-                {guide && (
-                  <li
-                    role="button"
-                    className="text-danger"
-                    onClick={handleGuideLogout}
-                  >
-                    <i className="bi bi-box-arrow-right me-2">Logout</i>
-                  </li>
-                )}
-                {driver && (
-                  <li
-                    role="button"
-                    className="text-danger"
-                    onClick={handleDriverLogout}
-                  >
-                    <i className="bi bi-box-arrow-right me-2">Logout</i>
-                  </li>
-                )}
-              </ul>
+              </div>
+              <AuthModal
+                show={showUserLogin}
+                onClose={() => setShowUserLogin(false)}
+                setShowUserLogin={setShowUserLogin}
+              />
+
+              <DriverGuideAuth
+                show={showDriverGuideLogin}
+                onClose={() => setShowDriverGuideLogin(false)}
+                setShowDriverGuideLogin={setShowDriverGuideLogin}
+              />
             </div>
-          )}
-        </div>
-        <AuthModal
-          show={showUserLogin}
-          onClose={() => setShowUserLogin(false)}
-          setShowUserLogin={setShowUserLogin}
-        />
-
-        <DriverGuideAuth
-          show={showDriverGuideLogin}
-          onClose={() => setShowDriverGuideLogin(false)}
-          setShowDriverGuideLogin={setShowDriverGuideLogin}
-        />
-      </div>
-    </div>
-  </nav>
-</header>
+          </div>
+        </nav>
+      </header>
     </div>
   );
 }

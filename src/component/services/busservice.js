@@ -92,8 +92,6 @@ export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
     ResultIndex: parseInt(ResultIndex)
   };
 
-  console.log("📤 Boarding API Payload:", bodyData);
-  console.log("🔗 API URL:", API.Bus_boardingPoints);
 
   try {
     const response = await axios.post(API.Bus_boardingPoints, bodyData, {
@@ -103,8 +101,7 @@ export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
       timeout: 15000
     });
     
-    console.log("✅ Boarding API Response Status:", response.status);
-    console.log("✅ Boarding API Response Data:", response.data);
+    
     
     return response.data;
   } catch (error) {
