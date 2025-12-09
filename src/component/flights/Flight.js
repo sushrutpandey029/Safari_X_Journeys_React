@@ -61,6 +61,23 @@ const Flight = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
 
+  const [visibleCount, setVisibleCount] = useState(6); // first 6 cards
+
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+      ) {
+        setVisibleCount((prev) => prev + 6); // load next 6
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   // ============ FILTER STATES ============
   const [filters, setFilters] = useState({
     refundableOnly: false,
@@ -606,6 +623,7 @@ const Flight = () => {
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults([]);
+    setVisibleCount(6); // Reset visible count when new search
 
     try {
       let segments = [];
@@ -741,7 +759,7 @@ const Flight = () => {
     return `${hours}h ${mins}m`;
   };
 
-  // Render flight results with filters applied
+  // Render flight results with filters applied AND infinite scroll
   const renderFlightResults = () => {
     if (searchLoading) {
       return (
@@ -785,136 +803,172 @@ const Flight = () => {
       );
     }
 
-    return filteredResults.map((flight, index) => {
-      const segments = flight.Segments || [];
-      const fareInfo = flight.Fare || {};
-      const airlineInfo = flight.Airline || {};
+    // Only show the first `visibleCount` flights
+    const visibleFlights = filteredResults.slice(0, visibleCount);
 
-      let segmentData = {};
-      if (segments.length > 0) {
-        const firstSegment = segments[0];
-        segmentData = Array.isArray(firstSegment)
-          ? firstSegment[0] || {}
-          : firstSegment || {};
-      }
+    return (
+      <>
+        {visibleFlights.map((flight, index) => {
+          const segments = flight.Segments || [];
+          const fareInfo = flight.Fare || {};
+          const airlineInfo = flight.Airline || {};
 
-      const segmentAirline = segmentData.Airline || airlineInfo;
-      const originInfo = segmentData.Origin || {};
-      const destinationInfo = segmentData.Destination || {};
+          let segmentData = {};
+          if (segments.length > 0) {
+            const firstSegment = segments[0];
+            segmentData = Array.isArray(firstSegment)
+              ? firstSegment[0] || {}
+              : firstSegment || {};
+          }
 
-      const originAirport = originInfo.Airport || {};
-      const destinationAirport = destinationInfo.Airport || {};
+          const segmentAirline = segmentData.Airline || airlineInfo;
+          const originInfo = segmentData.Origin || {};
+          const destinationInfo = segmentData.Destination || {};
 
-      const publishedFare = fareInfo.PublishedFare || 0;
-      const offeredFare = fareInfo.OfferedFare || publishedFare;
-      const savings = publishedFare - offeredFare;
+          const originAirport = originInfo.Airport || {};
+          const destinationAirport = destinationInfo.Airport || {};
 
-      return (
-        <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
-          <Row className="align-items-center">
-            <Col md={3} className="d-flex align-items-center">
-              <div
-                className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center"
-                style={{ width: "50px", height: "50px" }}
-              >
-                <strong className="text-primary">
-                  {segmentAirline.AirlineCode || "AI"}
-                </strong>
-              </div>
-              <div>
-                <h6 className="mb-0">
-                  {segmentAirline.AirlineName || "Air India"}
-                </h6>
-                <small className="text-muted">
-                  {segmentAirline.FlightNumber
-                    ? `Flight ${segmentAirline.FlightNumber}`
-                    : "Flight 2993"}
-                </small>
-                <br />
-                <small
-                  className={
-                    flight.IsRefundable ? "text-success" : "text-danger"
-                  }
-                >
-                  {flight.IsRefundable ? "🔄 Refundable" : "❌ Non-Refundable"}
-                </small>
-              </div>
-            </Col>
+          const publishedFare = fareInfo.PublishedFare || 0;
+          const offeredFare = fareInfo.OfferedFare || publishedFare;
+          const savings = publishedFare - offeredFare;
 
-            <Col md={2} className="text-center">
-              <h5 className="mb-0">{formatTime(originInfo.DepTime)}</h5>
-              <small className="text-muted">
-                {originAirport.AirportCode || "DEL"}
-              </small>
-              <br />
-              <small className="text-muted small">
-                {originAirport.CityName || "Delhi"}
-              </small>
-            </Col>
+          return (
+            <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
+              <Row className="align-items-center">
+                {/* Airline Info */}
+                <Col md={3} className="d-flex align-items-center">
+                  <div
+                    className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center"
+                    style={{ width: "50px", height: "50px" }}
+                  >
+                    <strong className="text-primary">
+                      {segmentAirline.AirlineCode || "AI"}
+                    </strong>
+                  </div>
 
-            <Col md={2} className="text-center">
-              <p className="mb-1 text-success fw-bold">
-                {formatDuration(segmentData.Duration)}
-              </p>
-              <small className="text-muted">
-                {segmentData.StopOver ? "With Stop" : "Non stop"}
-              </small>
-              <br />
-              <small className="text-muted small">
-                {segmentData.Craft || "32N"}
-              </small>
-            </Col>
+                  <div>
+                    <h6 className="mb-0">
+                      {segmentAirline.AirlineName || "Air India"}
+                    </h6>
+                    <small className="text-muted">
+                      {segmentAirline.FlightNumber
+                        ? `Flight ${segmentAirline.FlightNumber}`
+                        : "Flight 2993"}
+                    </small>
+                    <br />
+                    <small
+                      className={
+                        flight.IsRefundable ? "text-success" : "text-danger"
+                      }
+                    >
+                      {flight.IsRefundable
+                        ? "🔄 Refundable"
+                        : "❌ Non-Refundable"}
+                    </small>
+                  </div>
+                </Col>
 
-            <Col md={2} className="text-center">
-              <h5 className="mb-0">{formatTime(destinationInfo.ArrTime)}</h5>
-              <small className="text-muted">
-                {destinationAirport.AirportCode || "BOM"}
-              </small>
-              <br />
-              <small className="text-muted small">
-                {destinationAirport.CityName || "Mumbai"}
-              </small>
-            </Col>
-
-            <Col md={3} className="text-end">
-              <h5 className="fw-bold text-primary">
-                ₹ {formatPrice(offeredFare)}
-              </h5>
-              <small className="text-muted">per adult</small>
-              {savings > 0 && (
-                <>
-                  <br />
-                  <small className="text-success small">
-                    Save ₹{formatPrice(savings)}
+                {/* Departure */}
+                <Col md={2} className="text-center">
+                  <h5 className="mb-0">{formatTime(originInfo.DepTime)}</h5>
+                  <small className="text-muted">
+                    {originAirport.AirportCode || "DEL"}
                   </small>
-                </>
-              )}
-              <br />
-              <Button
-                variant="primary"
-                size="sm"
-                className="mt-2 rounded-pill px-4"
-                onClick={() => onViewPrices(flight)}
-              >
-                VIEW PRICES
-              </Button>
-            </Col>
-          </Row>
+                  <br />
+                  <small className="text-muted small">
+                    {originAirport.CityName || "Delhi"}
+                  </small>
+                </Col>
 
-          <Row className="mt-3">
-            <Col>
-              <div className="bg-light p-2 rounded-2">
-                <small className="text-muted">
-                  <strong>Baggage:</strong> {segmentData.Baggage || "15 KG"} •
-                  <strong> Cabin:</strong> {segmentData.CabinBaggage || "7 KG"}{" "}
-                  •<strong> Class:</strong> {travelClass}
-                </small>
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      );
-    });
+                {/* Duration */}
+                <Col md={2} className="text-center">
+                  <p className="mb-1 text-success fw-bold">
+                    {formatDuration(segmentData.Duration)}
+                  </p>
+                  <small className="text-muted">
+                    {segmentData.StopOver ? "With Stop" : "Non stop"}
+                  </small>
+                  <br />
+                  <small className="text-muted small">
+                    {segmentData.Craft || "32N"}
+                  </small>
+                </Col>
+
+                {/* Arrival */}
+                <Col md={2} className="text-center">
+                  <h5 className="mb-0">{formatTime(destinationInfo.ArrTime)}</h5>
+                  <small className="text-muted">
+                    {destinationAirport.AirportCode || "BOM"}
+                  </small>
+                  <br />
+                  <small className="text-muted small">
+                    {destinationAirport.CityName || "Mumbai"}
+                  </small>
+                </Col>
+
+                {/* Price */}
+                <Col md={3} className="text-end">
+                  <h5 className="fw-bold text-primary">
+                    ₹ {formatPrice(offeredFare)}
+                  </h5>
+                  <small className="text-muted">per adult</small>
+
+                  {savings > 0 && (
+                    <>
+                      <br />
+                      <small className="text-success small">
+                        Save ₹{formatPrice(savings)}
+                      </small>
+                    </>
+                  )}
+
+                  <br />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="mt-2 rounded-pill px-4"
+                    onClick={() => onViewPrices(flight)}
+                  >
+                    VIEW PRICES
+                  </Button>
+                </Col>
+              </Row>
+
+              {/* Baggage Row */}
+              <Row className="mt-3">
+                <Col>
+                  <div className="bg-light p-2 rounded-2">
+                    <small className="text-muted">
+                      <strong>Baggage:</strong> {segmentData.Baggage || "15 KG"}{" "}
+                      •<strong> Cabin:</strong> {segmentData.CabinBaggage || "7 KG"} •
+                      <strong> Class:</strong> {travelClass}
+                    </small>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+          );
+        })}
+
+        {/* Show loading indicator if more flights are loading */}
+        {visibleCount < filteredResults.length && (
+          <div className="text-center my-4">
+            <Spinner animation="border" size="sm" className="me-2" />
+            <span>Loading more flights...</span>
+            <div className="small text-muted mt-2">
+              Showing {visibleCount} of {filteredResults.length} flights
+            </div>
+          </div>
+        )}
+
+        {/* Show message if all flights are loaded */}
+        {visibleCount >= filteredResults.length && filteredResults.length > 0 && (
+          <div className="text-center my-4 text-muted">
+            <small>All {filteredResults.length} flights loaded</small>
+          </div>
+        )}
+      </>
+    );
   };
 
   return (

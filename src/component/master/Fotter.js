@@ -16,20 +16,20 @@ import {
 const bots = [
   {
     icon: "/images/whats.png",
-    label: "Whatsapp Chatbot",
+    label: "Whatsapp",
     phone: "9821351111",
     message: "Hello, I want to know more about your services.",
     type: "whatsapp",
   },
   {
     icon: "/images/call.png",
-    label: "Call Chatbot",
+    label: "Call ",
     phone: "9821351111",
     type: "call",
   },
   {
     icon: "/images/mail.png",
-    label: "Mail Chatbot",
+    label: "Mail ",
     email: "tomharry192999@gmail.com",
     subject: "Service Inquiry",
     body: "Hi, I'm interested in your services. Please provide more info.",
@@ -178,21 +178,29 @@ function Footer() {
                 <FaLinkedinIn />
               </div>
 
-              <h5 className="mt-5">Payment Methods</h5>
-             <div className="d-flex gap-2 flex-wrap">
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/paymen.png" alt="UPI" className="payment-icon" />
+           <h5 className="mt-5">Payment Methods</h5>
+
+<div className="d-flex gap-2 flex-wrap">
+  <div className="payment-box p-2 rounded">
+    <img src="/images/upi (1).png" alt="UPI" className="payment-icon" />
   </div>
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/payments/visa.png" alt="Visa" className="payment-icon" />
+
+  <div className="payment-box p-2 rounded">
+    <img src="/images/visa (1).png" alt="Visa" className="payment-icon" />
   </div>
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/payments/mastercard.png" alt="MasterCard" className="payment-icon" />
+
+  <div className="payment-box p-2 rounded">
+    <img
+      src="/images/mastercard.png"
+      alt="MasterCard"
+      className="payment-icon"
+    />
   </div>
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/payments/rupay.png" alt="RuPay" className="payment-icon" />
+
+  <div className="payment-box p-2 rounded">
+    <img src="/images/rupay.png" alt="RuPay" className="payment-icon" />
   </div>
-  
+
   {/* Chatbot Icon */}
   {/* <div
     className="chatbot-icon d-flex justify-content-center align-items-center"
@@ -204,6 +212,15 @@ function Footer() {
   {/* Chat Popup */}
   {showChat && <BotModal toggleChat={toggleChat} />}
 </div>
+
+{/* 🔐 256-bit encryption text – yeh 4 icons ke bilkul neeche hai */}
+<div className="mt-2 d-flex align-items-center">
+  <i className="bi bi-shield-lock-fill me-2 text-success"></i>
+  <small className="text-white">
+    Your payment is protected with <strong>256-bit SSL encryption</strong>.
+  </small>
+</div>
+
             </div>
           </div>
           {/* Footer Bottom */}

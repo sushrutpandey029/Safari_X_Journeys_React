@@ -2,6 +2,7 @@ import { getAllGuides } from "../services/guideService";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import GuideCard from "./GuideCard";
+import "./GuideCareers.css";
 
 const GuidePreview = () => {
   const [guides, setGuides] = useState([]);
@@ -35,12 +36,15 @@ const GuidePreview = () => {
               memorable.
             </p>
           </div>
+
           <div className="col-sm-3 text-end">
             <Link to={"/guides"}>
               <button className="explore-btn">Explore More</button>
             </Link>
           </div>
-          {guides && guides.map((guide) => <GuideCard guide={guide} />)}
+
+          {guides &&
+            guides.map((guide) => <GuideCard guide={guide} key={guide.id} />)}
         </div>
       </div>
     </div>

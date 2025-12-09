@@ -52,6 +52,40 @@ function BusList() {
     toCityId: "",
   });
 
+
+ const [visibleCount, setVisibleCount] = useState(6);
+const loadAmount = 6; // हर बार 6 load होंगे
+const maxLoad = filteredBusData.length;
+
+// throttle flag
+const [isLoading, setIsLoading] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => {
+    if (isLoading) return; // already loading? don't load again
+
+    if (
+      window.innerHeight + window.scrollY >=
+      document.body.offsetHeight - 200
+    ) {
+      // LOAD MORE
+      setIsLoading(true);
+      setTimeout(() => {
+        setVisibleCount((prev) =>
+          prev + loadAmount > maxLoad ? maxLoad : prev + loadAmount
+        );
+        setIsLoading(false);
+      }, 600); // delay to prevent multiple triggers
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [isLoading, filteredBusData]);
+
+ 
+
+
   const navigate = useNavigate();
 
   // 🚀 INITIALIZATION - Sequential flow: Auth → Cities → Defaults
@@ -1225,115 +1259,122 @@ function BusList() {
               </div>
             </div>
 
-            <div className="row">
-              {filteredBusData.length > 0 ? (
-                filteredBusData.map((bus) => (
-                  <div className="col-sm-12 mb-4" key={bus.busId}>
-                    <div className="bus-card rounded-4 border shadow-sm overflow-hidden h-100">
-                      <div className="bus-body p-3">
-                        <div className="row align-items-center">
-                          <div className="col-sm-2">
-                            <img
-                              src={`https://via.placeholder.com/150x120/667eea/ffffff?text=Bus+${bus.busId}`}
-                              alt={bus.busName}
-                              className="bus-img img-fluid rounded"
-                              style={{
-                                height: "120px",
-                                objectFit: "cover",
-                                width: "100%",
-                              }}
-                            />
-                          </div>
+         <div className="row">
+  {filteredBusData.length > 0 ? (
+    filteredBusData.slice(0, visibleCount).map((bus) => (
+      <div className="col-sm-12 mb-4" key={bus.busId}>
+        <div className="bus-card rounded-4 border shadow-sm overflow-hidden h-100">
+          <div className="bus-body p-3">
+            <div className="row align-items-center">
+              
+              {/* ==== Left Image ==== */}
+              <div className="col-sm-2">
+                <img
+                  src={`https://via.placeholder.com/150x120/667eea/ffffff?text=Bus+${bus.busId}`}
+                  alt={bus.busName}
+                  className="bus-img img-fluid rounded"
+                  style={{
+                    height: "120px",
+                    objectFit: "cover",
+                    width: "100%",
+                  }}
+                />
+              </div>
 
-                          <div className="col-sm-7">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                              <h6 className="fw-bold mb-0">{bus.busName}</h6>
-                              <div className="d-flex align-items-center">
-                                <small className="text-warning me-1">★</small>
-                                <small className="text-muted">
-                                  {bus.rating?.toFixed(1)}
-                                </small>
-                              </div>
-                            </div>
-                            <p className="mb-2 text-muted small">
-                              {bus.busType} • {bus.operator}
-                            </p>
-                            <p className="mb-2 text-muted small">
-                              {bus.amenities?.join(" • ")}
-                            </p>
+              {/* ==== Middle Info ==== */}
+              <div className="col-sm-7">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h6 className="fw-bold mb-0">{bus.busName}</h6>
+                  <div className="d-flex align-items-center">
+                    <small className="text-warning me-1">★</small>
+                    <small className="text-muted">
+                      {bus.rating?.toFixed(1)}
+                    </small>
+                  </div>
+                </div>
 
-                            <div className="row text-muted small bus-features">
-                              <div className="col-6">
-                                <ul className="ps-0 mb-0">
-                                  <li>
-                                    <strong>Departure:</strong>{" "}
-                                    {bus.departureTime}
-                                  </li>
-                                  <li>
-                                    <strong>Arrival:</strong> {bus.arrivalTime}
-                                  </li>
-                                </ul>
-                              </div>
-                              <div className="col-6">
-                                <ul className="ps-0 mb-0">
-                                  <li>
-                                    <strong>Duration:</strong> {bus.duration}
-                                  </li>
-                                  <li>
-                                    <strong>Route:</strong> {bus.from} →{" "}
-                                    {bus.to}
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
+                <p className="mb-2 text-muted small">
+                  {bus.busType} • {bus.operator}
+                </p>
+                <p className="mb-2 text-muted small">
+                  {bus.amenities?.join(" • ")}
+                </p>
 
-                          <div className="col-sm-3">
-                            <div className="d-flex flex-column justify-content-between h-100">
-                              <div>
-                                <div className="mb-2">
-                                  <small className="text-decoration-line-through text-muted">
-                                    ₹{bus.price + 200}
-                                  </small>
-                                  <small className="text-danger fw-semibold ms-2">
-                                    10% Off
-                                  </small>
-                                </div>
-                                <h5 className="fw-bold mb-1">₹{bus.price}</h5>
-                                <small className="text-muted">per seat</small>
-                                <div className="mt-1">
-                                  <small
-                                    className={
-                                      bus.availableSeats > 10
-                                        ? "text-success"
-                                        : "text-warning"
-                                    }
-                                  >
-                                    {bus.availableSeats} seats left
-                                  </small>
-                                </div>
-                              </div>
+                <div className="row text-muted small bus-features">
+                  <div className="col-6">
+                    <ul className="ps-0 mb-0">
+                      <li><strong>Departure:</strong> {bus.departureTime}</li>
+                      <li><strong>Arrival:</strong> {bus.arrivalTime}</li>
+                    </ul>
+                  </div>
+                  <div className="col-6">
+                    <ul className="ps-0 mb-0">
+                      <li><strong>Duration:</strong> {bus.duration}</li>
+                      <li><strong>Route:</strong> {bus.from} → {bus.to}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
 
-                              <button
-                                className="explore-btn mt-3 w-100"
-                                onClick={() => handleOpenSeats(bus)}
-                              >
-                                View Seats
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+              {/* ==== Right Price Box ==== */}
+              <div className="col-sm-3">
+                <div className="d-flex flex-column justify-content-between h-100">
+                  <div>
+                    <div className="mb-2">
+                      <small className="text-decoration-line-through text-muted">
+                        ₹{bus.price + 200}
+                      </small>
+                      <small className="text-danger fw-semibold ms-2">
+                        10% Off
+                      </small>
+                    </div>
+
+                    <h5 className="fw-bold mb-1">₹{bus.price}</h5>
+                    <small className="text-muted">per seat</small>
+
+                    <div className="mt-1">
+                      <small
+                        className={
+                          bus.availableSeats > 10
+                            ? "text-success"
+                            : "text-warning"
+                        }
+                      >
+                        {bus.availableSeats} seats left
+                      </small>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="col-12 text-center py-5">
-                  <h5>No buses found</h5>
-                  <p>Try searching for buses between different cities</p>
+
+                  <button
+                    className="explore-btn mt-3 w-100"
+                    onClick={() => handleOpenSeats(bus)}
+                  >
+                    View Seats
+                  </button>
                 </div>
-              )}
+              </div>
+
             </div>
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="col-12 text-center py-5">
+      <h5>No buses found</h5>
+      <p>Try searching for buses between different cities</p>
+    </div>
+  )}
+</div>
+
+{/* ⭐ SPINNER OUTSIDE THE MAP (Correct Spot) */}
+{isLoading && visibleCount < filteredBusData.length && (
+  <div className="text-center my-3">
+    <div className="spinner-border text-primary"></div>
+  </div>
+)}
+
+
           </div>
         </div>
       </div>

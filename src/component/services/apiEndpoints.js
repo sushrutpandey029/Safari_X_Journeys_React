@@ -2,8 +2,8 @@
 
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625";
-export const BASE_URL = "http://localhost:2625";
-// export const BASE_URL = "http://10.64.189.182:2625"
+// export const BASE_URL = "http://localhost:2625";
+export const BASE_URL = "http://192.168.1.9:2625"
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -71,8 +71,6 @@ export const API = {
   Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
   Bus_busLayout: `${BASE_URL}/Bus/bus-layout`,
   Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
-
-
 
   //cancel boooking
   CANCEL_BOOKING : `${BASE_URL}/api/booking/cancel/confirm`

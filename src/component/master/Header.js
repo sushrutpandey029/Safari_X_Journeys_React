@@ -195,7 +195,7 @@ function Header() {
 
             <div className="plan my-3" style={{ marginRight: "14px" }}>
               <button
-                className="holiday"
+                className="explore-btn"
                 onClick={() => navigate("/bot-modal")}
               >
                 Plan My Holiday 24 x 7

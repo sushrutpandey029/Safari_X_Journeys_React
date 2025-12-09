@@ -33,9 +33,9 @@ const Blogs = () => {
         <div className="border-bottom my-5">
           <div className="main20 d-flex justify-content-between align-items-center">
             <div className="box">
-              <h5 className="fw-bold">Popular Blogs:</h5>
+              <h3 className="fw-bold" style={{marginTop:"80px"}}> Top Popular Blogs:</h3>
             </div>
-            <div className="box">
+            {/* <div className="box">
               <div className="dropdown border-buttom">
                 <button
                   className="btn btn-white border rounded-pill d-flex justify-content-between align-items-center"
@@ -72,7 +72,7 @@ const Blogs = () => {
                   </li>
                 </ul>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 

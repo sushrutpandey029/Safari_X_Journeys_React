@@ -986,25 +986,31 @@ width: 45px;
 
 .foot {
   position: relative;
+  top : -17px;
 
   .chatbot-box img {
-    width: 40px;
+    width: 43px;
+    
   }
 
   .chatbot-box {
     background: #ffffff;
-    border-radius: 80px;
-    text-align: center;
-    padding: 19px 30px;
-    border: 1px solid #e4e4e4;
-    display: flex;
-    z-index: 1;
-    position: relative;
+        border-radius: 25px;
+        text-align: center;
+        padding: 6px;
+        border: 1px solid #e4e4e4;
+        display: flex;
+        z-index: 1;
+        position: relative;
+        color: #000000;
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        width: 170px;
 
     p {
       margin-bottom: 0;
-      line-height: 45px;
-      padding-left: 9px;
+      line-height: 39px;
+      padding-left: 1px;
+      text-align: start
     }
   }
 }
@@ -1048,9 +1054,22 @@ footer {
 }
 
 .payment-box {
-  width: 40px;
-  height: 25px;
+  width: 50px;       /* perfect square box */
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f1; /* keep what you want */
+  border-radius: 8px; 
+  overflow: hidden;   /* prevent image overflow */
 }
+
+.payment-icon {
+  max-width: 100%;    /* resize to fit nicely */
+  max-height: 100%;
+  object-fit: contain;
+}
+
 
 .newsletter-box {
   background-color: #f5f6ff;
