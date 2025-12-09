@@ -472,26 +472,67 @@
 
 // BookingView.jsx
 
+// import React from "react";
+// import { useLocation, useNavigate } from "react-router-dom";
+
+// import HotelView from "./hotel/HotelView";
+// import FlightView from "./flight/FlightView";
+// import GuideView from "./guide/GuideView";
+// import BusView from "./bus/BusView";
+
+// export default function BookingView() {
+//   const location = useLocation();
+//   const navigate = useNavigate();
+//   const booking = location.state?.bookingData;
+
+//   if (!booking)
+//     return (
+//       <div className="container mt-5 text-center">
+//         <h5>No booking data found</h5>
+//         <button className="btn btn-primary mt-3" onClick={() => navigate(-1)}>
+//           Go Back
+//         </button>
+//       </div>
+//     );
+
+//   const { serviceType } = booking;
+
+//   const renderComponent = () => {
+//     switch (serviceType) {
+//       case "hotel":
+//         return <HotelView booking={booking} />;
+//       case "flight":
+//         return <FlightView booking={booking} />;
+//       case "guide":
+//         return <GuideView booking={booking} />;
+//       case "bus":
+//         return <BusView booking={booking} />;
+//       default:
+//         return <h3>Service type not supported yet!</h3>;
+//     }
+//   };
+
+//   return (
+//     <div className="container" style={{ marginTop: "130px" }}>
+//       <h4 className="mb-4 text-capitalize">{serviceType} Booking Details</h4>
+
+//       {renderComponent()}
+//     </div>
+//   );
+// }
+
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
 import HotelView from "./hotel/HotelView";
 import FlightView from "./flight/FlightView";
 import GuideView from "./guide/GuideView";
 import BusView from "./bus/BusView";
 
-export default function BookingView() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const booking = location.state?.bookingData;
-
+export default function BookingView({ booking }) {
   if (!booking)
     return (
       <div className="container mt-5 text-center">
         <h5>No booking data found</h5>
-        <button className="btn btn-primary mt-3" onClick={() => navigate(-1)}>
-          Go Back
-        </button>
       </div>
     );
 
@@ -513,9 +554,10 @@ export default function BookingView() {
   };
 
   return (
-    <div className="container" style={{ marginTop: "130px" }}>
-      <h4 className="mb-4 text-capitalize">{serviceType} Booking Details</h4>
-
+    <div className="container-fluid">
+      <h5 className="mb-3 text-capitalize fw-bold">
+        {serviceType} Booking Details
+      </h5>
       {renderComponent()}
     </div>
   );
