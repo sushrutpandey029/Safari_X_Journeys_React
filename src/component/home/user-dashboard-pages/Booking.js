@@ -208,6 +208,7 @@ import { userBookingDetails } from "../../services/userService";
 import { getUserData } from "../../utils/storage";
 import BookingView from "./BookingView"; // <-- Import BookingView
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./Booking.css";
 
 function Booking() {
   const [bookings, setBookings] = useState([]);
@@ -323,41 +324,41 @@ function Booking() {
 
       {/* 🔥 Booking View Modal */}
       {showModal && (
-        <>
-          <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-            <div
-              className="modal-dialog modal-dialog-centered modal-fullscreen-md-down modal-xl"
-              role="document"
-              style={{ margin: "auto" }}
-            >
-              <div className="modal-content">
-                <div className="modal-header bg-primary text-white">
-                  {/* <h5 className="modal-title">
-                    {selectedBooking?.serviceType} Booking Details
-                  </h5> */}
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={closeModal}
-                  ></button>
-                </div>
+       <>
+  <div
+    className="modal fade show d-flex align-items-center justify-content-center"
+    tabIndex="-1"
+    role="dialog"
+    style={{
+      background: "rgba(0, 0, 1, 0.6)", // Dark blue transparent
+      pointerEvents: "none", // Disable background click
+    }}
+  >
+    <div
+      className="modal-dialog modal-dialog-centered fixed-size-modal"
+      role="document"
+      style={{ pointerEvents: "auto" }} // Enable clicks only inside modal
+    >
+      <div className="modal-content" style={{ height: "100%" }}>
+        <div className="modal-header bg-primary text-white">
+          <button
+            type="button"
+            className="btn-close"
+            onClick={closeModal}
+          ></button>
+        </div>
 
-                <div
-                  className="modal-body"
-                  style={{ maxHeight: "80vh", overflowY: "auto" }}
-                >
-                  <BookingView
-                    booking={selectedBooking}
-                    closeModal={closeModal}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+        <div
+          className="modal-body"
+          style={{ overflowY: "auto" }}
+        >
+          <BookingView booking={selectedBooking} closeModal={closeModal} />
+        </div>
+      </div>
+    </div>
+  </div>
+</>
 
-          {/* Dark Background */}
-          <div className="modal-backdrop fade show" onClick={closeModal}></div>
-        </>
       )}
     </div>
   );

@@ -18,40 +18,16 @@ import ScrollToTop from "../common/ScrollToTop";
 import FAQ from "../common/faq/FAQ";
 import HotelPopularDestination from "../hotels/HotelPopularDestination";
 import FlightPreview from "../flights/Flightpreview";
+import { getHotelCityByCategory } from "../services/hotelService";
 
 import SearchBox from "../flights/Searchbox";
-
-const imageList = [
-  {
-    id: 1,
-    src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
-    title: "Mountains",
-    path: "/mountains",
-  },
-  {
-    id: 2,
-    src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-    title: "Beaches",
-    path: "/beaches",
-  },
-  {
-    id: 3,
-    src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
-    title: "Desert Safari",
-    path: "/desert",
-  },
-  {
-    id: 4,
-    src: "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
-    title: "Honeymoon",
-    path: "/honeymoon",
-  },
-  {
-    id: 5,
-    src: "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
-    title: "Hill Stations",
-    path: "/hills",
-  },
+  
+const staticImages = [
+  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
+  "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
+  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg"
 ];
 
 const destinations = [
@@ -89,7 +65,27 @@ function Home() {
   const [faqData, setFaqData] = useState([]);
   const [blogData, setBlogData] = useState([]);
   const [testimonialData, setTestimonialData] = useState([]);
+  const [hotelData, setHotelData] = useState([]);
   const navigate = useNavigate();
+
+  const [categories, setCategories] = useState([]);
+
+ useEffect(() => {
+  const fetchHotelCategories = async () => {
+    try {
+      const res = await getHotelCityByCategory();
+      console.log("Hotel categories raw:", res);
+      if (res.success) {
+        setCategories(res.data); // store API data
+      }
+    } catch (err) {
+      console.error("Fetch error:", err.response?.data || err.message);
+    }
+  };
+
+  fetchHotelCategories();
+}, []);// empty dependency array → sirf mount hone pe chalega
+
 
   const getFaqList = async () => {
     try {
@@ -135,25 +131,33 @@ function Home() {
       <ScrollToTop />
       <HomeBanner />
 
-      <div className="top-destination">
-        <div className="container">
-          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
-            {imageList &&
-              imageList.map((img) => (
-                <div className="col" key={img.id}>
-                  <div className="place">
-                    <Link to={img.path} className="custom-link">
-                      <img src={img.src} alt={img.title} />
-                      <div className="overlay">
-                        <p className="card-destination">{img.title}</p>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-          </div>
+    <div className="top-destination">
+  <div className="container">
+    <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
+      {categories.map((item, index) => (
+        <div className="col" key={index}>
+          {/* Category Card */}
+          <div
+            className="place-card-link place"
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/places", { state: { category: item } })}
+          >
+            <div className="place">
+              <img
+                src={staticImages[index % staticImages.length]}
+                alt={item.category}
+              />
+              <div className="overlay">
+                <p className="card-destination">{item.category}</p>
+              </div>
+            </div>
+          </div>     
         </div>
-      </div>
+      ))}
+    </div>
+  </div>
+</div>
+
 
       <HotelPopularDestination />
 
@@ -208,59 +212,100 @@ function Home() {
 
       <WhyChooseUs />
 
+   <div className="Testionials">
+  <div className="container">
+    <div className="row align-items-start">
+
+      {/* LEFT STATIC BOX */}
       <div className="Testionials">
-        <div className="container">
-          <div className="row">
-            <div className="col-sm-9">
-              <h2>
-                Client <span>Testimonials</span>
-              </h2>
-            </div>
-            <div className="col-sm-3 text-end ">
-              <Link to={"/testimonials"}>
-                <button className="explore-btn">Read All Review</button>
-              </Link>
-            </div>
+  <div className="container">
+    <div className="row align-items-start">
 
-            <div className="card-container">
-              {Array.isArray(testimonialData) &&
-                testimonialData?.slice(0, 3).map((item) => (
-                  <div key={item.id} className="card">
-                    <div className="Time row">
-                      <div className="col-sm-6">
-                        <h5 className="mb-1">{item.name}</h5>
-                      </div>
-                      <div className="col-sm-6 text-end">
-                        <div className="text-warning">
-                          {"★".repeat(item.rating)}
-                          {"☆".repeat(5 - item.rating)}
-                        </div>
-                        <div className="text-muted small">{item.time}</div>
-                      </div>
-                    </div>
+      {/* LEFT SECTION (col-sm-4) */}
+      <div className="col-sm-3">
+        <h2 className="feedback-title">Client Feedback</h2>
+        <p className="feedback-heading">What They Say After Using Our Product</p>
+        <p className="feedback-sub">
+          Many of our members have started their early careers with us
+             Many of our members have started their early careers with us
+        </p>
 
-                    <div className="col-sm-12 d-flex">
-                      <div className="col-sm-5">
-                        <img
-                          src={`${BASE_URL}/testimonial/images/${item.image}`}
-                          alt={item.name}
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            borderRadius: "10px",
-                          }}
-                        />
-                      </div>
-                      <div className="col-sm-7">
-                        <p className="mb-0">{item.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
+        {/* Slider Arrows */}
+        <div className="testimonial-arrows">
+          <button
+            onClick={() => {
+              const slider = document.getElementById("testimonialSlider");
+              slider.scrollLeft -= 370;
+            }}
+          >
+            ←
+          </button>
+          <button
+            onClick={() => {
+              const slider = document.getElementById("testimonialSlider");
+              slider.scrollLeft += 370;
+            }}
+          >
+            →
+          </button>
         </div>
       </div>
+
+      {/* RIGHT SECTION (col-sm-8) */}
+     <div className="col-sm-9">
+
+  {/* SLIDER START */}
+  <div id="testimonialSlider" className="testimonial-slider">
+    <div className="row flex-nowrap">
+
+      {testimonialData?.map((item) => (
+        <div key={item.id} className="col-sm-3">  {/* ← show 3 cards */}
+
+          <div className="testimonial-card">
+
+            <div className="stars">
+              {"★".repeat(item.rating)}
+            </div>
+
+            <p className="review-text">
+              {item.description?.substring(0, 110)}...
+            </p>
+
+            <div className="review-user">
+              <img
+                src={`${BASE_URL}/testimonial/images/${item.image}`}
+                alt={item.name}
+              />
+              <div>
+                <h4>{item.name}</h4>
+                <small>{item.designation}</small>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      ))}
+
+    </div>
+
+  </div>
+  {/* SLIDER END */}
+
+</div>
+
+
+    </div>
+  </div>
+</div>
+
+
+    </div>
+  </div>
+</div>
+
+
+
 
       {/* FAQ section */}
       <FAQ />
@@ -306,22 +351,26 @@ function Home() {
                           ? blog.description.substring(0, 100) + "..."
                           : blog.description}
                       </p>
-                      <h6>
-                        {new Date(blog.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          day: "numeric",
-                          month: "long",
-                        })}
-                      </h6>
+               <div className="d-flex justify-content-between align-items-end  bottom-row mb-0">
+  <h6 className="mb-0">
+    {new Date(blog.createdAt).toLocaleDateString("en-US", {
+      year: "numeric",
+      day: "numeric",
+      month: "long",
+    })}
+  </h6>
 
-                      <button
-                        className="explore-btn"
-                        onClick={() =>
-                          navigate("/blog-detail", { state: { blog } })
-                        }
-                      >
-                        Read More
-                      </button>
+  <button
+    className="explore-btn"
+    onClick={() =>
+      navigate("/blog-detail", { state: { blog } })
+    }
+  >
+    Read More
+  </button>
+</div>
+
+
                     </div>
                   </div>
                 );

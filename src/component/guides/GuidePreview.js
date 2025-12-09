@@ -40,12 +40,10 @@ const GuidePreview = () => {
               <button className="explore-btn">Explore More</button>
             </Link>
           </div>
-
           {guides && guides.map((guide) => <GuideCard guide={guide} />)}
         </div>
       </div>
     </div>
   );
 };
-
 export default GuidePreview;

@@ -22,9 +22,16 @@ const GuideList = () => {
 
   const [cityList, setCityList] = useState([]);
 
+
+  
+
+
   const [selectedCity, setSelectedCity] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+ const [startDate, setStartDate] = useState(new Date());            // today
+const [endDate, setEndDate] = useState(
+  new Date(Date.now() + 24 * 60 * 60 * 1000)                       // tomorrow
+);
+
 
   const [filters, setFilters] = useState({
     languages: [],
@@ -190,36 +197,36 @@ const GuideList = () => {
             </div>
 
             {/* START DATE */}
-            <div className="col-md-3">
-              <label className="form-label fw-semibold text-white">
-                Start Day
-              </label>
-              <DatePicker
-                selected={startDate ? new Date(startDate) : null}
-                onChange={(date) =>
-                  setStartDate(date ? date.toISOString().split("T")[0] : "")
-                }
-                className="form-control"
-                minDate={new Date()}
-                dateFormat="yyyy-MM-dd"
-              />
-            </div>
+           <div className="col-md-3">
+  <label className="form-label fw-semibold text-white">Start Day</label>
+  <DatePicker
+    selected={startDate}
+    onChange={(date) => {
+      setStartDate(date);
 
-            {/* END DATE */}
-            <div className="col-md-3">
-              <label className="form-label fw-semibold text-white">
-                End Day
-              </label>
-              <DatePicker
-                selected={endDate ? new Date(endDate) : null}
-                onChange={(date) =>
-                  setEndDate(date ? date.toISOString().split("T")[0] : "")
-                }
-                className="form-control"
-                minDate={startDate ? new Date(startDate) : new Date()}
-                dateFormat="yyyy-MM-dd"
-              />
-            </div>
+      // 👉 Auto fill END DATE = next day
+      if (date) {
+        const nextDay = new Date(date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        setEndDate(nextDay);
+      }
+    }}
+    className="form-control"
+    minDate={new Date()}
+    dateFormat="yyyy-MM-dd"
+  />
+</div>
+
+<div className="col-md-3">
+  <label className="form-label fw-semibold text-white">End Day</label>
+  <DatePicker
+    selected={endDate}
+    onChange={(date) => setEndDate(date)}
+    className="form-control"
+    minDate={startDate || new Date()}
+    dateFormat="yyyy-MM-dd"
+  />
+</div>
 
             {/* BUTTON */}
             <div className="col-md-3">

@@ -16,20 +16,20 @@ import {
 const bots = [
   {
     icon: "/images/whats.png",
-    label: "Whatsapp Chatbot",
+    label: "Whatsapp",
     phone: "9821351111",
     message: "Hello, I want to know more about your services.",
     type: "whatsapp",
   },
   {
     icon: "/images/call.png",
-    label: "Call Chatbot",
+    label: "Call",
     phone: "9821351111",
     type: "call",
   },
   {
     icon: "/images/mail.png",
-    label: "Mail Chatbot",
+    label: "Mail",
     email: "tomharry192999@gmail.com",
     subject: "Service Inquiry",
     body: "Hi, I'm interested in your services. Please provide more info.",

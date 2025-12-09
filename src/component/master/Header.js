@@ -210,7 +210,7 @@ function Header() {
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img
-                    src="images/userprofile.jpg"
+                    src="/images/userprofile.jpg"
                     alt="User Icon"
                     className="user-icon-image"
                   />

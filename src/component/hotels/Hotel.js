@@ -126,26 +126,45 @@ function Hotel() {
             </div>
 
             {/* Check-in */}
-            <div className="col-md-2">
-              <label className="form-label">Check-In</label>
-              <input
-                type="date"
-                className="form-control"
-                value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
-              />
-            </div>
+        <div className="col-md-2">
+  <label className="form-label">Check-In</label>
+  <DatePicker
+    selected={checkIn ? new Date(checkIn) : null}
+    onChange={(date) => {
+      if (!date) return;
 
-            {/* Check-out */}
-            <div className="col-md-2">
-              <label className="form-label">Check-Out</label>
-              <input
-                type="date"
-                className="form-control"
-                value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
-              />
-            </div>
+      const checkInDate = date.toISOString().split("T")[0];
+      setCheckIn(checkInDate);
+
+      // ⭐ Automatically set Check-Out = tomorrow date
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setCheckOut(nextDay.toISOString().split("T")[0]);
+    }}
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={new Date()}
+    placeholderText="Select Check-In"
+  />
+</div>
+
+{/* Check-Out */}
+<div className="col-md-2">
+  <label className="form-label">Check-Out</label>
+  <DatePicker
+    selected={checkOut ? new Date(checkOut) : null}
+    onChange={(date) =>
+      setCheckOut(date ? date.toISOString().split("T")[0] : "")
+    }
+    className="form-control"
+    dateFormat="yyyy-MM-dd"
+    minDate={checkIn ? new Date(checkIn) : new Date()}
+    excludeDates={checkIn ? [new Date(checkIn)] : []}   // ⭐ Hide check-in date
+    placeholderText="Select Check-Out"
+  />
+</div>
+
+
 
             {/* Rooms/Guests */}
             <div className="col-md-4 position-relative">

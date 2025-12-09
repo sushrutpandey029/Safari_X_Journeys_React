@@ -65,10 +65,11 @@ const WhyChooseUs = () => {
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-sm-12 mb-5 text-center">
-            <h2 className="text-start">
+            <h2 className="text-start mb-4">
               why <span>Choose </span>us
-              <p className="whychosep">At Safarix Journeys Private Limited, we don’t just plan trips — we craft meaningful travel experiences. Whether you're chasing Himalayan peaks, relaxing on tranquil beaches, or immersing yourself in rich cultural heritage, we are your trusted companion for discovering Incredible India — your way.</p>
             </h2>
+                          <p className="whychose text-start">At Safarix Journeys Private Limited, we don’t just plan trips — we craft meaningful travel experiences. Whether you're chasing Himalayan peaks, relaxing on tranquil beaches, or immersing yourself in rich cultural heritage, we are your trusted companion for discovering Incredible India — your way.</p>
+
           </div>
 
           {choose.map((choos, index) => (

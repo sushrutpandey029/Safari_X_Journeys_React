@@ -81,12 +81,14 @@ export const fetchCityList = async (countryCode) => {
   }
 };
 
-export const fetchHotelByCategory = async () => {
+
+export const getHotelCityByCategory = async () => {
   try {
-    const resp = await axios.post(API.HOTEL_BY_CATEGORY);
-    return resp.data;
-  } catch (err) {
-    throw err;
+    const response = await axios.get(API.HOTEL_BY_CATEGORY);
+    return response.data;
+  } catch (error) {
+    console.error("Axios error:", error);
+    throw error;
   }
 };
 
@@ -106,3 +108,7 @@ export const getUserHotelBookingDetails = async (payload) => {
     throw err;
   }
 };
+
+
+
+

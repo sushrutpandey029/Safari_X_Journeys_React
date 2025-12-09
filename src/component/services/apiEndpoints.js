@@ -1,6 +1,5 @@
-// export const BASE_URL = "https://a0becd73a76f.ngrok-free.app";
+// export const BASE_URL = "https://7183d0378457.ngrok-free.app";
 
-// export const BASE_URL = "https://32978cdd37a2.ngrok-free.app";
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.68.118.26:2625";
@@ -60,7 +59,7 @@ export const API = {
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
   Flight_authenticate: `${BASE_URL}/flight/authenticate`,
   flight_search: `${BASE_URL}/flight/search-flights`,
-  Flight_farerule: `${BASE_URL}/flight/fare-rules`,
+  Flight_farerule: `${BASE_URL}/flight/fare-rules`, 
   Flight_farequote: `${BASE_URL}/flight/fare-quote`,
   flight_getBookingDetails: `${BASE_URL}/flight/get-booking-details`,
   flight_sendChangeRequest: `${BASE_URL}/flight/send-change-request`,
