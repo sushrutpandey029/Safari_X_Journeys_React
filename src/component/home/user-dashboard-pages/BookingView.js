@@ -471,6 +471,7 @@
 // export default BookingView;
 
 // BookingView.jsx
+
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -516,8 +517,6 @@ export default function BookingView() {
       <h4 className="mb-4 text-capitalize">{serviceType} Booking Details</h4>
 
       {renderComponent()}
-
-     
     </div>
   );
 }

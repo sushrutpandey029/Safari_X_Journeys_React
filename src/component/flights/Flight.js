@@ -25,7 +25,16 @@ import FlightDetail from "./Flghitdetail";
 
 const Flight = () => {
   // Flight segments (multi-city form)
-  const [flights, setFlights] = useState([{ from: "", to: "", date: "" }]);
+  // const [flights, setFlights] = useState([{ from: "", to: "", date: "" }]);
+  const [flights, setFlights] = useState([
+    {
+      from: "DEL",
+      to: "BOM",
+      date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+    },
+  ]);
 
   useEffect(() => {
     if (!flights[0]?.date) {
@@ -916,6 +925,21 @@ const Flight = () => {
       );
     });
   };
+
+  // Auto-search flights on initial render with default values
+  useEffect(() => {
+    const performInitialSearch = async () => {
+      // Wait for token and airports to be loaded
+      if (token && airports.length > 0) {
+        // Add a small delay to ensure form is properly initialized
+        setTimeout(() => {
+          searchFlights(true); // Pass true for initial load
+        }, 1000);
+      }
+    };
+
+    performInitialSearch();
+  }, [token, airports]);
 
   return (
     <div>

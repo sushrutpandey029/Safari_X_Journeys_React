@@ -156,11 +156,11 @@ function Footer() {
                     Hotels
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="/cabs" rel="noopener noreferrer">
                     Cabs
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a href="/places" rel="noopener noreferrer">
                     Destinations

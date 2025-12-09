@@ -160,8 +160,8 @@ function Home() {
       {/* guide section */}
       <GuidePreview />
 
-      {/* cab section */}
-      <CabPreview />
+      {/* cab section ------ commenting as it is out of work now */}
+      {/* <CabPreview /> */}
 
      
 
