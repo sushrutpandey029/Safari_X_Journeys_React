@@ -14,22 +14,25 @@ import {
 } from "react-icons/fa6";
 
 const bots = [
+
+
   {
-    icon: "/images/whats.png",
-    label: "Whatsapp Chatbot",
-    phone: "9821351111",
-    message: "Hello, I want to know more about your services.",
-    type: "whatsapp",
-  },
-  {
-    icon: "/images/call.png",
-    label: "Call Chatbot",
+    icon: "/images/whatsapp.gif",
+    label: "Call",
     phone: "9821351111",
     type: "call",
   },
   {
-    icon: "/images/mail.png",
-    label: "Mail Chatbot",
+    icon: "/images/call.gif",
+    label: "Whatsapp",
+    phone: "9821351111",
+    message: "Hello, I want to know more about your services.",
+    type: "whatsapp",
+  },
+
+  {
+    icon: "/images/mail.gif",
+    label: "Mail",
     email: "tomharry192999@gmail.com",
     subject: "Service Inquiry",
     body: "Hi, I'm interested in your services. Please provide more info.",
@@ -156,11 +159,11 @@ function Footer() {
                     Hotels
                   </a>
                 </li>
-                {/* <li>
+                <li>
                   <a href="/cabs" rel="noopener noreferrer">
                     Cabs
                   </a>
-                </li> */}
+                </li>
                 <li>
                   <a href="/places" rel="noopener noreferrer">
                     Destinations

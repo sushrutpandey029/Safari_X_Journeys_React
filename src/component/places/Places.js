@@ -1,95 +1,67 @@
-import React from 'react'
-import './Places.css'
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "./Places.css";
 
-
-const travelData = [
-    {
-        image: './images/place1.jpg',
-        title: 'MANALI',
-        duration: '5 Days Manali',
-        icons: ['bi-people', 'bi-house-door', 'bi-car-front'],
-    },
-    {
-        image: './images/place2.png',
-        title: 'KASOL',
-        duration: '2 Days Kasol',
-        icons: ['bi-house-door', 'bi-camera', 'bi-car-front'],
-    },
-    {
-        image: './images/place3.jpg',
-        title: 'SHIMLA',
-        duration: '7 Days Shimla',
-        icons: ['bi-camera', 'bi-house-door', 'bi-car-front'],
-    },
-    {
-        image: './images/place2.png',
-        title: 'SHIMLA',
-        duration: '7 Days Shimla',
-        icons: ['bi-camera', 'bi-house-door', 'bi-car-front'],
-    },
+const staticImages = [
+  "./images/place1.jpg",
+  "./images/place2.png",
+  "./images/place3.jpg",
+  "./images/place2.png",
 ];
 
-
-
-
 function Places() {
-    return (
-        <div className='place-box'>
-            <div className="container py-5">
-                <div className='row mb-4'>
-                    <div className='col-sm-8'>
-                        <h2>Check-in for Your Chill Mood</h2>
-                        <p>Easy picks for your perfect weekend break</p>
-                    </div>
-                    <div className='col-sm-4'>
-                        <form>
-                            <div class="search-container">
-                                <div class="search-input">
-                                    <i class="bi bi-search"></i>
-                                    <input placeholder="Find Place And Things To Do" type="text" />
-                                </div>
-                                <button class="explore-btn">Search</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div className="row g-4">
-                    {travelData.map((place, index) => (
-                        <div className="col-md-3" key={index}>
-                            <div className="card h-100 shadow-sm rounded-4 border">
-                                <img src={place.image} className="card-img-top rounded-top-4" alt={place.title} />
-                                <div className="card-body">
-                                    <h5 className="fw-bold">{place.title}</h5>
-                                    <p className="text-muted mb-2">{place.duration}</p>
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { category } = location.state || {}; // received from homepage
 
-                                    <div className="d-flex gap-3 mb-3 fs-5 text-dark">
-                                        {place.icons.map((icon, i) => (
-                                            <i className={`bi ${icon}`} key={i}></i>
-                                        ))}
-                                    </div>
+  if (!category) return <p>No category selected</p>;
 
-                                    <ul className="list-unstyled text-muted small mb-3">
-                                        <li><i className="bi bi-check text-primary me-2"></i> Lorem Ipsum Dolor Sit Amet Consectetur</li>
-                                        <li><i className="bi bi-check text-primary me-2"></i> Lorem Ipsum Dolor Sit Amet Consectetur</li>
-                                    </ul>
+  const handleCityClick = (city) => {
+    // Navigate to hotel list page with default city
+    navigate("/hotel-list", {
+      state: {
+        city: city.code,
+        cityName: city.name,
+        country: "IN", // optional
+      },
+    });
+  };
 
-                                    <div className="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <span className="text-muted small">Starting From</span><br />
-                                            <strong className="fs-5">₹8,000</strong>
-                                        </div>
-                                        <button className="explore-btn">View Package</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    ))}
-
-                </div>
-            </div>
+  return (
+    <div className="place-box">
+      <div className="container py-5">
+        <div className="row mb-4" style={{marginTop : "100px"}}>
+          <div className="col-sm-8">
+            <h2>{category.category} Destinations</h2>
+          </div>
+          <div className="col-sm-4">
+           
+          </div>
         </div>
-    );
+
+        <div className="row g-4">
+          {category.cities.map((city, index) => (
+            <div className="col-md-3" key={city.code}>
+              <div
+                className="card h-100 shadow-sm rounded-4 border"
+                style={{ cursor: "pointer" }}
+                onClick={() => handleCityClick(city)} // added click
+              >
+                <img
+                  src={staticImages[index % staticImages.length]}
+                  className="card-img-top rounded-top-4"
+                  alt={city.name}
+                />
+                <div className="card-body">
+                  <h5 className="fw-bold">{city.name}</h5>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default Places
+export default Places;

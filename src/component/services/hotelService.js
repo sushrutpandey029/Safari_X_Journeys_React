@@ -106,3 +106,13 @@ export const getUserHotelBookingDetails = async (payload) => {
     throw err;
   }
 };
+
+export const getHotelCityByCategory = async () => {
+  try {
+    const response = await axios.get(API.HOTEL_BY_CATEGORY);
+    return response.data;
+  } catch (error) {
+    console.error("Axios error:", error);
+    throw error;
+  }
+};
