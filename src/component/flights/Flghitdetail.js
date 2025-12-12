@@ -467,7 +467,7 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
           <div className="modal-main-title">
             Flight Details and Fare Options available for you!
           </div>
-          <div className="flight-route">
+          {/* <div className="flight-route">
             DEPART: {flightInfo.origin.code} - {flightInfo.destination.code}
           </div>
           <div className="flight-details">
@@ -480,7 +480,7 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
           {/* Passenger Count Display */}
           <div className="passenger-count-display">
             <strong>Passengers:</strong> {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
-          </div>
+          </div> 
 
           {fareRulesData && (
             <div className="fare-basis-info">
@@ -573,6 +573,7 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
                 border: "none",
                 borderRadius: "30px",
                 color: "white",
+                textAlign: "end"
               }}
             >
               BOOK NOW - ₹{formatPrice(totalPrice)}

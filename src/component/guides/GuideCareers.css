@@ -44,6 +44,7 @@
   gap: 50px; 
 }
 
+
 .checkbox-item {
   display: flex;
   align-items: center;
@@ -52,8 +53,6 @@
 .checkbox-item input[type="checkbox"] {
   margin-right: 8px; 
 }
-
-
 
 .repeater-item {
   border: 1px solid #eee;
@@ -383,7 +382,7 @@ background-color: #4958c9ff;
 }
 
 .tab.active {
-  background: #007bff;
+  background: #274a62;
   color: white;
 }
 

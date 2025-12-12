@@ -203,723 +203,256 @@
 }
 
 /* Flight Detail Modal Styles */
+/* =======================================================
+   PERFECT CENTERED MODAL (React-Bootstrap Compatible)
+   ======================================================= */
+
 .flight-detail-modal .modal-dialog {
+  max-width: 1600px !important;
+  width: 100%;
+  margin: 0 auto !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   min-height: 100vh !important;
-  margin: 0 auto !important;
 }
 
+.flight-detail-modal .modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeInScale 0.25s ease-out;
+  background: #ffffff;
+}
 
+/* Smooth intro animation */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
-
+/* =======================================================
+   HEADER – Gradient MMT Style
+   ======================================================= */
 .modal-header-custom {
-  border-bottom: 2px solid #107ce0ff;
-  padding: 20px 25px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 25px 30px;
+  color: #fff;
+  border-bottom: none;
 }
 
 .modal-header-custom .btn-close {
   filter: invert(1);
   opacity: 0.8;
-  font-size: 14px;
 }
 
 .modal-header-custom .btn-close:hover {
   opacity: 1;
 }
 
-.modal-main-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  text-align: center;
-  color: white;
-}
-
-.flight-route {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  text-align: center;
-  color: white;
-}
-
-.flight-details {
-  font-size: 12px;
-  opacity: 0.9;
-  text-align: center;
-  color: white;
-}
-
+/* =======================================================
+   BODY SCROLL AREA
+   ======================================================= */
 .modal-body-custom {
-  padding: 0;
-  background: #f8f9fa;
-  display: flex;
-  flex-direction: column;
-  min-height: 400px;
-  max-height: calc(90vh - 200px);
+  max-height: 70vh;
   overflow-y: auto;
+  padding: 25px 28px;
+  background: #f7f9fc;
 }
 
-/* Column Wise Layout */
-.fare-options-container {
-  padding: 20px 25px;
-  flex: 1;
-}
+/* =======================================================
+   3-COLUMN MMT GRID LAYOUT
+   ======================================================= */
 
 .fare-options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
+  display: flex;
+  justify-content: space-between;
+  gap: 22px;
+  width: 100%;
   margin-bottom: 20px;
-  align-items: start;
 }
 
 .fare-option-column {
+  flex: 1;
+  min-width: 32%;
   display: flex;
-  flex-direction: column;
-  gap: 15px;
 }
 
-/* Selectable Fare Cards - REDUCED HEIGHT */
+/* =======================================================
+   MMT FARE CARD DESIGN
+   ======================================================= */
+
 .fare-option-card {
-  background: white;
-  border-radius: 12px;
-  padding: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e9ecef;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #d7e1ef;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  height: fit-content;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  min-height: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: all 0.25s ease;
+  width: 100%;
 }
 
 .fare-option-card:hover {
-  border-color: #4ecdc4;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border-color: #2b80ff;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .fare-option-card.selected {
-  border-color: #ff6b6b;
-  background: linear-gradient(135deg, #fff, #fff5f5);
-  box-shadow: 0 4px 20px rgba(255, 107, 107, 0.2);
+  border: 2px solid #2b80ff;
+  box-shadow: 0 12px 28px rgba(43,128,255,0.25);
 }
 
-.fare-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 15px;
+/* =======================================================
+   PRICE + TITLE
+   ======================================================= */
+
+.fare-price-top {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 5px;
 }
 
-.fare-price {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  justify-content: center;
-}
-
-.price-emoji {
-  font-size: 18px;
-}
-
-.price-amount {
-  font-size: 20px;
-  font-weight: 700;
-  color: #2c5aa0;
-}
-
-.price-label {
+.fare-per-adult {
   font-size: 12px;
-  color: #6c757d;
-  margin-left: 4px;
+  color: #6d6f73;
+  margin-bottom: 14px;
 }
 
-.fare-type {
-  display: flex;
-  justify-content: center;
-}
-
-.fare-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: center;
-  border: none;
-}
-
-.fare-badge.xpress-value {
-  background: #ff6b6b;
-  color: white;
-}
-
-.fare-badge.fare-by-makemytrip {
-  background: #4ecdc4;
-  color: white;
-}
-
-.fare-badge.xpress-flex {
-  background: #45b7d1;
-  color: white;
-}
-
-/* Non-refundable Banner */
-.non-refundable-banner {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
+.fare-type-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4376ff;
   margin-bottom: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.fare-section {
+/* =======================================================
+   MMT SPECIAL BADGE
+   ======================================================= */
+
+.mmt-special-badge {
+  background: #ffcc00;
+  color: #111;
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
   margin-bottom: 12px;
 }
 
-.section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: center;
-  border-bottom: 1px solid #e9ecef;
-  padding-bottom: 4px;
-}
+/* =======================================================
+   FEATURES SECTIONS
+   ======================================================= */
 
-.section-content {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 10px;
+.feature-block { margin-bottom: 18px; }
+
+.feature-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
 }
 
 .feature-item {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 4px;
-  font-size: 13px;
-  color: #495057;
-  line-height: 1.4;
-}
-
-.feature-item:last-child {
-  margin-bottom: 0;
-}
-
-.feature-emoji {
+  margin-bottom: 6px;
   font-size: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
+  color: #444;
 }
 
-.fare-benefits {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-  border-radius: 8px;
-  padding: 12px;
-  margin: 12px 0;
-  border-left: 4px solid #2196f3;
-  text-align: center;
-}
-
-.benefits-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1976d2;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.benefits-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #1565c0;
-  font-weight: 500;
-  justify-content: center;
-}
-
-/* Selection Indicator */
-.selection-indicator {
-  margin-top: 12px;
-  text-align: center;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.selected-tick {
-  color: #28a745;
-  background: #d4edda;
-  padding: 6px 10px;
-  border-radius: 20px;
-  border: 1px solid #c3e6cb;
-}
-
-.select-prompt {
-  color: #6c757d;
-  background: #f8f9fa;
-  padding: 6px 10px;
-  border-radius: 20px;
-  border: 1px dashed #dee2e6;
-}
-
-/* Total Price Section */
-.total-price-section {
-  background: white;
-  margin: 15px 0;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e9ecef;
-  text-align: center;
-}
-
-.total-price-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.total-amount {
-  font-size: 24px;
-  font-weight: 800;
-  color: #2c5aa0;
-}
-
-.total-label {
-  font-size: 12px;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-}
-
-/* Fare Rules Section */
-.fare-rules-section {
-  padding: 20px 0;
-  border-top: 2px solid #e8f4ff;
-  background: white;
-  margin-top: 20px;
-}
-
-.fare-rules-section .section-title {
-  font-size: 14px;
-  color: #495057;
-  margin-bottom: 12px;
-  text-align: center;
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.loading-rules {
-  text-align: center;
-  padding: 30px;
-  color: #6c757d;
-}
-
-.loading-rules p {
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-
-.no-rules {
-  text-align: center;
-  padding: 30px;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.fare-rules-content {
-  max-height: 300px;
-  overflow-y: auto;
-  font-size: 12px;
-  line-height: 1.6;
-  color: #495057;
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
-
-/* Footer with Single Book Button */
-.modal-footer-custom {
-  border-top: 1px solid #e9ecef;
-  padding: 20px 25px;
-  background: #f8f9fa;
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-}
-
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.selected-fare-info {
-  flex: 1;
-}
-
-.selected-info {
-  color: #28a745;
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.no-selection {
-  color: #6c757d;
-  font-size: 14px;
-  font-style: italic;
-}
-
-.refundable-badge {
-  background: #ff6b6b;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  text-transform: uppercase;
-}
-
-.non-refundable {
-  background: #ff6b6b;
-}
-
-.footer-actions {
-  flex-shrink: 0;
-}
-
-.explore-btn.book-now-main-btn {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-weight: 600;
+.feature-item .tick {
+  color: #18b36e;
   font-size: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  min-width: 200px;
-  color: white;
 }
 
-.explore-btn.book-now-main-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ee5a52, #ff6b6b);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-  color: white;
+.feature-item .dot {
+  color: #e1a126;
+  font-size: 16px;
 }
 
-.explore-btn.book-now-main-btn:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-  color: white;
+/* =======================================================
+   ACTION BUTTONS (LOCK PRICE / BOOK NOW)
+   ======================================================= */
+
+.card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #edeef0;
 }
 
-.footer-note {
-  font-size: 11px;
-  color: #6c757d;
-  text-align: center;
-  width: 100%;
-}
-
-.non-refundable-note {
-  color: #ff6b6b;
+.lock-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 30px;
+  border: 2px solid #2b80ff;
+  background: white;
+  color: #2b80ff;
   font-weight: 600;
-}
-
-/* Fare Basis Info */
-.fare-basis-info {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s;
   text-align: center;
-  margin-top: 8px;
-  font-style: italic;
 }
 
-/* Enhanced fare rules content styling */
-.fare-rules-content table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 10px 0;
-  font-size: 11px;
-}
+.lock-btn:hover { background: #e9f1ff; }
 
-.fare-rules-content table, 
-.fare-rules-content th, 
-.fare-rules-content td {
-  border: 1px solid #dee2e6;
-}
-
-.fare-rules-content th, 
-.fare-rules-content td {
-  padding: 8px;
-  text-align: left;
-}
-
-.fare-rules-content th {
-  background-color: #e9ecef;
+.book-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 30px;
+  background: linear-gradient(90deg,#1a73e8,#2b80ff);
+  color: white;
+  border: none;
   font-weight: 600;
+  transition: 0.2s;
+  text-align: center;
 }
 
-.fare-rules-content ul {
-  padding-left: 20px;
-  margin: 10px 0;
+.book-btn:hover {
+  box-shadow: 0 4px 16px rgba(43,128,255,0.45);
 }
 
-.fare-rules-content li {
-  margin-bottom: 5px;
-}
+/* =======================================================
+   TOP BORDER COLORS PER COLUMN (MMT STYLE)
+   ======================================================= */
 
-.fare-rules-content b {
-  color: #2c5aa0;
-}
-
-.fare-rules-content fieldset {
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 15px;
-  margin: 15px 0;
-}
-
-.fare-rules-content legend {
-  font-weight: 700;
-  color: #2c5aa0;
-  padding: 0 10px;
-  width: auto;
-}
-
-/* Better scrollbar for fare rules */
-.fare-rules-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.fare-rules-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.fare-rules-content::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.fare-rules-content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Scrollbar for modal body */
-.modal-body-custom::-webkit-scrollbar {
-  width: 6px;
-}
-
-.modal-body-custom::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.modal-body-custom::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.modal-body-custom::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Column Specific Styling */
 .fare-option-column:nth-child(1) .fare-option-card {
-  border-top: 3px solid #ff6b6b;
+  border-top: 4px solid #2b80ff;
 }
 
 .fare-option-column:nth-child(2) .fare-option-card {
-  border-top: 3px solid #4ecdc4;
+  border-top: 4px solid #ffcc00;
 }
 
 .fare-option-column:nth-child(3) .fare-option-card {
-  border-top: 3px solid #45b7d1;
+  border-top: 4px solid #18b36e;
 }
 
-/* Equal Height Cards */
-.fare-options-grid {
-  align-items: stretch;
-}
+/* =======================================================
+   RESPONSIVE DESIGN
+   ======================================================= */
 
-.fare-option-column {
-  height: 100%;
-}
-
-.fare-option-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Responsive Design */
 @media (max-width: 1024px) {
-  .fare-options-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
+  .fare-options-grid { flex-wrap: wrap; }
+  .fare-option-column { min-width: 48%; }
 }
 
 @media (max-width: 768px) {
-  .flight-detail-modal .modal-content {
-    margin: 10px;
-    min-height: 500px;
+  .flight-detail-modal .modal-dialog {
+    align-items: flex-start !important;
+    min-height: auto !important;
   }
-  
-  .fare-options-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  
-  .footer-content {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .selected-fare-info {
-    order: 2;
-  }
-  
-  .footer-actions {
-    order: 1;
-    width: 100%;
-  }
-  
-  .explore-btn.book-now-main-btn {
-    width: 100%;
-  }
-  
-  .fare-header {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .fare-type {
-    justify-content: center;
-  }
-  
-  .modal-header-custom,
-  .fare-options-container {
-    padding: 15px;
-  }
-  
-  .price-amount {
-    font-size: 18px;
-  }
-  
-  .fare-option-card {
-    padding: 15px;
-  }
-  
-  .modal-footer-custom {
-    padding: 15px;
-  }
+
+  .fare-option-column { min-width: 100%; }
 }
 
-@media (max-width: 480px) {
-  .modal-header-custom {
-    padding: 12px;
-  }
-  
-  .modal-main-title {
-    font-size: 16px;
-  }
-  
-  .flight-route {
-    font-size: 14px;
-  }
-  
-  .flight-details {
-    font-size: 11px;
-  }
-  
-  .fare-options-container {
-    padding: 10px;
-  }
-  
-  .fare-option-card {
-    padding: 12px;
-  }
-  
-  .price-amount {
-    font-size: 16px;
-  }
-  
-  .section-title {
-    font-size: 12px;
-  }
-  
-  .feature-item {
-    font-size: 12px;
-  }
-  
-  .explore-btn.book-now-main-btn {
-    padding: 10px 20px;
-    font-size: 14px;
-  }
-}
-
-/* Animation for modal appearance */
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.flight-detail-modal .modal-content {
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-/* Focus styles for accessibility */
-.fare-option-card:focus {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
-}
-
-.explore-btn.book-now-main-btn:focus {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
 
 
 /* checkout */

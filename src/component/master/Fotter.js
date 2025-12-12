@@ -17,14 +17,14 @@ const bots = [
   {
     icon: "/images/whats.png",
     label: "Whatsapp",
-    phone: "9821351111",
+    phone: "9821373111",
     message: "Hello, I want to know more about your services.",
     type: "whatsapp",
   },
   {
     icon: "/images/call.png",
     label: "Call ",
-    phone: "9821351111",
+    phone: "9821373111",
     type: "call",
   },
   {
@@ -156,11 +156,11 @@ function Footer() {
                     Hotels
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="/cabs" rel="noopener noreferrer">
                     Cabs
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a href="/places" rel="noopener noreferrer">
                     Destinations

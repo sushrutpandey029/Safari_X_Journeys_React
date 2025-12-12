@@ -755,7 +755,7 @@ const GuideCareers = () => {
         </div>
 
         {/* Skill Ratings Section */}
-        <div className="form-section">
+        {/* <div className="form-section">
           <h3>Skill Ratings</h3>
           <div className="row">
             <div className="col-sm-6">
@@ -842,46 +842,57 @@ const GuideCareers = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Availability & Preferences Section */}
         <div className="form-section">
           <h3>Availability & Preferences</h3>
           <div className="row">
             <div className="col-sm-12">
-  <div className="form-group">
-    <label>Available Days</label>
-    <div className="checkbox-group d-flex flex-wrap gap-3">
-      {weekDays.map((day, index) => (
-        <div key={index} className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id={`day-${index}`}
-            checked={formData.availability.days.includes(day)}
-            onChange={(e) => {
-              let updatedDays = [...formData.availability.days];
-              if (e.target.checked) {
-                updatedDays.push(day);
-              } else {
-                updatedDays = updatedDays.filter((d) => d !== day);
-              }
-              setFormData({
-                ...formData,
-                availability: {
-                  ...formData.availability,
-                  days: updatedDays,
-                },
-              });
-            }}
-          />
-          <label className="form-check-label" htmlFor={`day-${index}`}>
-            {day}
-          </label>
-        </div>
-      ))}
-    </div>
+ <div className="form-group">
+  <label>Available Days</label>
+
+  <div className="checkbox-group d-flex flex-wrap gap-4">
+
+    {weekDays.map((day, index) => (
+      <div
+        key={index}
+        className="form-check d-flex align-items-center gap-2"
+        style={{ marginBottom: "6px" }}
+      >
+        <input
+          className="form-check-input small-checkbox"
+          type="checkbox"
+          id={`day-${index}`}
+          checked={formData.availability.days.includes(day)}
+          onChange={(e) => {
+            let updatedDays = [...formData.availability.days];
+
+            if (e.target.checked) {
+              updatedDays.push(day);
+            } else {
+              updatedDays = updatedDays.filter((d) => d !== day);
+            }
+
+            setFormData({
+              ...formData,
+              availability: {
+                ...formData.availability,
+                days: updatedDays,
+              },
+            });
+          }}
+        />
+
+        <label className="form-check-label" htmlFor={`day-${index}`}>
+          {day}
+        </label>
+      </div>
+    ))}
+
   </div>
+</div>
+
 </div>
 
 

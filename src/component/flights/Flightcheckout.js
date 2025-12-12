@@ -571,7 +571,7 @@ const Flightcheckout = () => {
   const flightDetails = flightInfo?.flight || {};
 
   return (
-    <Container className="flight-checkout-container py-4">
+    <Container className="flight-checkout-container py-4" style={{marginTop:"100px"}}>
       <Row>
         <Col lg={8}>
           {/* Flight Details Card */}
@@ -1127,7 +1127,7 @@ const Flightcheckout = () => {
               </div>
 
               {/* Coupon Section */}
-              <div className="coupon-section mb-3">
+              {/* <div className="coupon-section mb-3">
                 <Form.Group>
                   <Form.Label>Coupons and Offers</Form.Label>
                   <div className="d-flex gap-2">
@@ -1152,7 +1152,7 @@ const Flightcheckout = () => {
                     VIEW ALL COUPONS ✅
                   </Button>
                 </div>
-              </div>
+              </div> */}
 
               {/* Cancellation Policy */}
               <div className="cancellation-policy">

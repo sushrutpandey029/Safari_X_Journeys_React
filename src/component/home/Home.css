@@ -588,6 +588,17 @@ header {
 /************blog*************/
 
 /************testimonial-faq-newslettetr-footer*************/
+
+
+
+.Testimonials{
+   padding: 60px 0px;
+
+  h2 span {
+    color: #498ab5;
+  }
+
+}
 .Faq {
   background: linear-gradient(
     135deg,

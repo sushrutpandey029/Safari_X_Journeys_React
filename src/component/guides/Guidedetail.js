@@ -257,91 +257,7 @@ const Guidedetail = () => {
           </div>
         )}
 
-        {/* Permanent User Form at Bottom */}
-        <div className="user-form-section">
-          <div className="user-form-container">
-            <div className="user-form-header">
-              <h2 className="user-form-title">User Detail</h2>
-            </div>
-
-            <div className="user-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="userName" className="form-label">
-                    <span className="required">*</span> Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="userName"
-                    name="name"
-                    value={userForm.name}
-                    onChange={handleUserFormChange}
-                    required
-                    placeholder="Enter your full name"
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="userPhone" className="form-label">
-                    <span className="required">*</span> Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="userPhone"
-                    name="phone"
-                    value={userForm.phone}
-                    onChange={handleUserFormChange}
-                    required
-                    placeholder="Enter your phone number"
-                    className="form-input"
-                    maxLength="10"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="userAddress" className="form-label">
-                  <span className="required">*</span> Address
-                </label>
-                <textarea
-                  id="userAddress"
-                  name="address"
-                  value={userForm.address}
-                  onChange={handleUserFormChange}
-                  required
-                  placeholder="Enter your complete address"
-                  rows="3"
-                  className="form-textarea"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="userLocation" className="form-label">
-                  Preferred Tour Location
-                </label>
-                <input
-                  type="text"
-                  id="userLocation"
-                  name="location"
-                  value={userForm.location}
-                  onChange={handleUserFormChange}
-                  className="form-input location-field"
-                  readOnly
-                />
-                <small className="location-note">
-                  Based on guide's location: {guide.city}, {guide.state}
-                </small>
-              </div>
-
-              <div className="form-status">
-                <p className="status-message">
-                  ✅ Your details will be used for booking and messaging
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       <div className="divider-gradient"></div>
@@ -512,6 +428,14 @@ const Guidedetail = () => {
             </ul>
           </div>
 
+            <div className="contact-widget">
+            <h3 className="widget-title">Contact Information</h3>
+            <div className="contact-info">
+              <p>📧 {guide.emailAddress}</p>
+              <p>📞 {guide.phoneNumber}</p>
+            </div>
+          </div>
+
           <div className="action-buttons">
             <button className="book-now-button" onClick={handleBookNow}>
               <span className="button-icon">🎯</span>
@@ -523,15 +447,94 @@ const Guidedetail = () => {
             </button>
           </div>
 
-          <div className="contact-widget">
-            <h3 className="widget-title">Contact Information</h3>
-            <div className="contact-info">
-              <p>📧 {guide.emailAddress}</p>
-              <p>📞 {guide.phoneNumber}</p>
+        
+        </div>
+      </div>
+      {/* Permanent User Form at Bottom */}
+        <div className="user-form-section">
+          <div className="user-form-container">
+            <div className="user-form-header">
+              <h2 className="user-form-title">User Detail</h2>
+            </div>
+
+            <div className="user-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="userName" className="form-label">
+                    <span className="required">*</span> Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="userName"
+                    name="name"
+                    value={userForm.name}
+                    onChange={handleUserFormChange}
+                    required
+                    placeholder="Enter your full name"
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="userPhone" className="form-label">
+                    <span className="required">*</span> Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="userPhone"
+                    name="phone"
+                    value={userForm.phone}
+                    onChange={handleUserFormChange}
+                    required
+                    placeholder="Enter your phone number"
+                    className="form-input"
+                    maxLength="10"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="userAddress" className="form-label">
+                  <span className="required">*</span> Address
+                </label>
+                <textarea
+                  id="userAddress"
+                  name="address"
+                  value={userForm.address}
+                  onChange={handleUserFormChange}
+                  required
+                  placeholder="Enter your complete address"
+                  rows="3"
+                  className="form-textarea"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="userLocation" className="form-label">
+                  Preferred Tour Location
+                </label>
+                <input
+                  type="text"
+                  id="userLocation"
+                  name="location"
+                  value={userForm.location}
+                  onChange={handleUserFormChange}
+                  className="form-input location-field"
+                  readOnly
+                />
+                <small className="location-note">
+                  Based on guide's location: {guide.city}, {guide.state}
+                </small>
+              </div>
+
+              <div className="form-status">
+                <p className="status-message">
+                  ✅ Your details will be used for booking and messaging
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Booking Form Modal */}
       {showBookingForm && (

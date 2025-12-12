@@ -271,6 +271,16 @@ function Header() {
                         </li>
                       )}
 
+                      <li
+  onClick={() => {
+    setShowProfileMenu(false);
+    navigate("/guide-careers");
+  }}
+>
+  Guide Careers
+</li>
+
+
                     
                       {!user && !guide && !driver && ""}
                       {user && (

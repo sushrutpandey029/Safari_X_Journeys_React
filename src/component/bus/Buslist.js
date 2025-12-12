@@ -12,6 +12,7 @@ import {
   Bus_busLayout,
   fetchBoardingPoints,
 } from "../services/busservice";
+import Loading from "../common/loading";  
 
 function BusList() {
   const [busData, setBusData] = useState([]);
@@ -833,13 +834,9 @@ useEffect(() => {
         style={{ height: "100vh", marginTop: "100px" }}
       >
         <div className="text-center">
-          <div className="logo-loader">
-            <img
-              src="/images/Safarix-Blue-Logo.png"
-              alt="logo"
-              className="loader-logo"
-            />
-          </div>
+        
+          <Loading />
+        
           <p className="mt-2">Loading bus services...</p>
         </div>
       </div>

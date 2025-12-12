@@ -211,25 +211,44 @@ function Home() {
 
       <WhyChooseUs />
 
-   <div className="Testionials">
+ <div className="Testimonials">
   <div className="container">
-    <div className="row align-items-start">
 
-      {/* LEFT STATIC BOX */}
-      <div className="Testionials">
-  <div className="container">
-    <div className="row align-items-start">
+    {/* ---------- TOP HEADER ROW ---------- */}
+    <div className="row align-items-center mb-4">
+      <div className="col-sm-9">
+        <h2 className="testimonial-main-title">
+          Our Recent <span>Testimonial</span>
+        </h2>
+        <p className="perra">
+          Lorem ipsum dolor sit amet consectetur. Porttitor dolor malesuada
+          sodales convallis nisi odio. Porttitor dolor malesuada sodales
+          convallis nisi odio.
+        </p>
+      </div>
 
-      {/* LEFT SECTION (col-sm-4) */}
+      <div className="col-sm-3 text-end">
+        <Link to="/testimonials">
+          <button className="explore-btn">Explore More</button>
+        </Link>
+      </div>
+    </div>
+
+    {/* ---------- MAIN CONTENT ROW ---------- */}
+    <div className="row">
+
+      {/* LEFT STATIC SECTION */}
       <div className="col-sm-3">
         <h2 className="feedback-title">Client Feedback</h2>
-        <p className="feedback-heading">What They Say After Using Our Product</p>
+        <p className="feedback-heading">
+          What They Say After Using Our Product
+        </p>
         <p className="feedback-sub">
-          Many of our members have started their early careers with us
-             Many of our members have started their early careers with us
+          Many of our members have started their early careers with us. Many
+          of our members have started their early careers with us.
         </p>
 
-        {/* Slider Arrows */}
+        {/* SLIDER ARROWS */}
         <div className="testimonial-arrows">
           <button
             onClick={() => {
@@ -239,6 +258,7 @@ function Home() {
           >
             ←
           </button>
+
           <button
             onClick={() => {
               const slider = document.getElementById("testimonialSlider");
@@ -250,56 +270,49 @@ function Home() {
         </div>
       </div>
 
-      {/* RIGHT SECTION (col-sm-8) */}
-     <div className="col-sm-9">
+      {/* RIGHT SLIDER SECTION */}
+      <div className="col-sm-9">
+        <div id="testimonialSlider" className="testimonial-slider">
 
-  {/* SLIDER START */}
-  <div id="testimonialSlider" className="testimonial-slider">
-    <div className="row flex-nowrap">
+          <div className="row flex-nowrap">
 
-      {testimonialData?.map((item) => (
-        <div key={item.id} className="col-sm-3">  {/* ← show 3 cards */}
+            {testimonialData?.map((item) => (
+              <div key={item.id} className="col-sm-2">
+                <div className="testimonial-card">
 
-          <div className="testimonial-card">
+                  {/* Rating Stars */}
+                  <div className="stars">
+                    {"★".repeat(item.rating)}
+                  </div>
 
-            <div className="stars">
-              {"★".repeat(item.rating)}
-            </div>
+                  {/* Review */}
+                  <p className="review-text">
+                    {item.description?.substring(0, 110)}...
+                  </p>
 
-            <p className="review-text">
-              {item.description?.substring(0, 110)}...
-            </p>
+                  {/* User Details */}
+                  <div className="review-user">
+                    <img
+                      src={`${BASE_URL}/testimonial/images/${item.image}`}
+                      alt={item.name}
+                    />
+                    <div>
+                      <h4>{item.name}</h4>
+                      <small>{item.designation}</small>
+                    </div>
+                  </div>
 
-            <div className="review-user">
-              <img
-                src={`${BASE_URL}/testimonial/images/${item.image}`}
-                alt={item.name}
-              />
-              <div>
-                <h4>{item.name}</h4>
-                <small>{item.designation}</small>
+                </div>
               </div>
-            </div>
+            ))}
 
           </div>
 
         </div>
-      ))}
+      </div>
 
     </div>
 
-  </div>
-  {/* SLIDER END */}
-
-</div>
-
-
-    </div>
-  </div>
-</div>
-
-
-    </div>
   </div>
 </div>
 

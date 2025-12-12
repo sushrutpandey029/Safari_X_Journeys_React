@@ -22,6 +22,7 @@ import {
 } from "../services/flightService";
 import { Modal } from "react-bootstrap";
 import FlightDetail from "./Flghitdetail";
+import Loading from "../common/loading";
 
 const Flight = () => {
   // Flight segments (multi-city form)
@@ -764,10 +765,7 @@ const Flight = () => {
     if (searchLoading) {
       return (
         <div className="text-center py-5">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Searching flights...</span>
-          </Spinner>
-          <p className="mt-2">Searching for the best flights...</p>
+          <Loading />
         </div>
       );
     }
@@ -981,8 +979,8 @@ const Flight = () => {
 
             {loading && (
               <div className="text-center py-3">
-                <Spinner animation="border" size="sm" className="me-2" />
-                <span>Initializing application...</span>
+                {/* <Spinner animation="border" size="sm" className="me-2" />
+                <span>Initializing application...</span> */}
               </div>
             )}
 
