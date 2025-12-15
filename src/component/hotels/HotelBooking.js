@@ -64,7 +64,9 @@ function HotelBooking() {
     refundable: false,
   });
 
-  // pagination
+  // Infinite scroll states
+  const [visibleCount, setVisibleCount] = useState(9); // Show 9 cards initially
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const navigate = useNavigate();
 
@@ -85,8 +87,31 @@ function HotelBooking() {
     setCheckOut(formatDate(dayAfterTomorrow));
   }, []);
 
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isLoadingMore) return;
+
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+      ) {
+        setIsLoadingMore(true);
+        // Load more hotels after a small delay to show loading indicator
+        setTimeout(() => {
+          setVisibleCount((prev) => prev + 9); // Load next 9 cards
+          setIsLoadingMore(false);
+        }, 300);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoadingMore]);
+
   const handleSearch = async () => {
     setIsSearching(true);
+    setVisibleCount(9); // Reset to 9 cards on new search
 
     try {
       // 🔹 Step 1: Get hotel codes for selected city
@@ -336,9 +361,14 @@ function HotelBooking() {
         ResponseTime: responseTime, // default 30s
         IsDetailedResponse: isDetailedResponse, // true/false
         Filters: {
-          Refundable: "true",
-          MealType: "WithMeal", // All | WithMeal | RoomOnly
+          Refundable: "false",
+          MealType: "All", // All | WithMeal | RoomOnly
         },
+        //i have changed due to refundedamount varilables
+        // Filters: {
+        //   Refundable: "true",
+        //   MealType: "WithMeal", // All | WithMeal | RoomOnly
+        // },
       },
     });
   };
@@ -346,6 +376,9 @@ function HotelBooking() {
   // Determine which hotels to display
   const displayedHotels = isSearching ? searchResults : hotelList;
   const filteredHotels = getFilteredHotels();
+
+  // Get only visible hotels for infinite scroll
+  const visibleHotels = filteredHotels.slice(0, visibleCount);
 
   // ✅ Run only once on first load if data exists
   useEffect(() => {
@@ -383,11 +416,6 @@ function HotelBooking() {
       handleSearch();
     }
   }, [selectedCity]);
-  // useEffect(() => {
-  //   if (selectedCity && checkIn && checkOut) {
-  //     handleSearch();
-  //   }
-  // }, [selectedCity, checkIn, checkOut, rooms, paxRooms, guestNationality]);
 
   return (
     <div>
@@ -433,43 +461,43 @@ function HotelBooking() {
               </select>
             </div>
 
-           <div className="col-md-2">
-  <label className="form-label">Check-In</label>
-  <DatePicker
-    selected={checkIn ? new Date(checkIn) : null}
-    onChange={(date) => {
-      if (!date) return;
+            <div className="col-md-2">
+              <label className="form-label">Check-In</label>
+              <DatePicker
+                selected={checkIn ? new Date(checkIn) : null}
+                onChange={(date) => {
+                  if (!date) return;
 
-      const checkInDate = date.toISOString().split("T")[0];
-      setCheckIn(checkInDate);
+                  const checkInDate = date.toISOString().split("T")[0];
+                  setCheckIn(checkInDate);
 
-      // ⭐ Automatically set Check-Out = tomorrow date
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
-      setCheckOut(nextDay.toISOString().split("T")[0]);
-    }}
-    className="form-control"
-    dateFormat="yyyy-MM-dd"
-    minDate={new Date()}
-    placeholderText="Select Check-In"
-  />
-</div>
+                  // ⭐ Automatically set Check-Out = tomorrow date
+                  const nextDay = new Date(date);
+                  nextDay.setDate(nextDay.getDate() + 1);
+                  setCheckOut(nextDay.toISOString().split("T")[0]);
+                }}
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                minDate={new Date()}
+                placeholderText="Select Check-In"
+              />
+            </div>
 
-{/* Check-Out */}
-<div className="col-md-2">
-  <label className="form-label">Check-Out</label>
-  <DatePicker
-    selected={checkOut ? new Date(checkOut) : null}
-    onChange={(date) =>
-      setCheckOut(date ? date.toISOString().split("T")[0] : "")
-    }
-    className="form-control"
-    dateFormat="yyyy-MM-dd"
-    minDate={checkIn ? new Date(checkIn) : new Date()}
-    excludeDates={checkIn ? [new Date(checkIn)] : []}   // ⭐ Hide check-in date
-    placeholderText="Select Check-Out"
-  />
-</div>
+            {/* Check-Out */}
+            <div className="col-md-2">
+              <label className="form-label">Check-Out</label>
+              <DatePicker
+                selected={checkOut ? new Date(checkOut) : null}
+                onChange={(date) =>
+                  setCheckOut(date ? date.toISOString().split("T")[0] : "")
+                }
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                minDate={checkIn ? new Date(checkIn) : new Date()}
+                excludeDates={checkIn ? [new Date(checkIn)] : []} // ⭐ Hide check-in date
+                placeholderText="Select Check-Out"
+              />
+            </div>
 
             {/* Rooms Dropdown */}
             <div className="col-md-4 position-relative">
@@ -660,7 +688,7 @@ function HotelBooking() {
                 className=" form-control explore-btn w-100"
                 onClick={handleSearch}
               >
-                Modify Search
+                Search
               </button>
             </div>
           </div>
@@ -729,34 +757,6 @@ function HotelBooking() {
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        id="bookZero"
-                        checked={showProperties.bookWithZero}
-                        onChange={() =>
-                          handleShowPropertyChange("bookWithZero")
-                        }
-                      />
-                      <label className="form-check-label" htmlFor="bookZero">
-                        Book With ₹0
-                      </label>
-                    </div>
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="freeCancel"
-                        checked={showProperties.freeCancellation}
-                        onChange={() =>
-                          handleShowPropertyChange("freeCancellation")
-                        }
-                      />
-                      <label className="form-check-label" htmlFor="freeCancel">
-                        Free Cancellation
-                      </label>
-                    </div>
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
                         id="freeBreakfast"
                         checked={showProperties.freeBreakfast}
                         onChange={() =>
@@ -802,7 +802,7 @@ function HotelBooking() {
                 </div>
                 {toggle.star && (
                   <div className="filter-options mt-2">
-                    {["5 Star", "4 Star", "3 Star", "Budget", "Unrated"].map(
+                    {["5 Star", "4 Star", "3 Star", "2 Star", "1 Star"].map(
                       (rating) => (
                         <div className="form-check" key={rating}>
                           <input
@@ -867,7 +867,7 @@ function HotelBooking() {
               </div>
 
               {/* Filter: Amenities */}
-              <div className="filter-group mb-3">
+              {/* <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   onClick={() => handleToggle("amenities")}
@@ -908,7 +908,7 @@ function HotelBooking() {
                     ))}
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -921,8 +921,8 @@ function HotelBooking() {
               </div>
             ) : (
               <div className="row">
-                {filteredHotels && filteredHotels.length > 0 ? (
-                  filteredHotels.map((hotel, idx) => (
+                {visibleHotels && visibleHotels.length > 0 ? (
+                  visibleHotels.map((hotel, idx) => (
                     <div key={idx} className="col-md-4 mb-4">
                       <div className="card shadow-sm border-0 h-100 rounded-3">
                         {/* Hotel Image */}
@@ -1025,26 +1025,34 @@ function HotelBooking() {
                   </div>
                 )}
 
-                {/* ✅ Bootstrap 5 Pagination */}
-                <nav aria-label="Hotel pagination">
-                  <ul className="pagination justify-content-center float-end">
-                    <li className="page-item disabled">
-                      <button className="page-link">Previous</button>
-                    </li>
-                    <li className="page-item active" aria-current="page">
-                      <button className="page-link">1</button>
-                    </li>
-                    <li className="page-item">
-                      <button className="page-link">2</button>
-                    </li>
-                    <li className="page-item">
-                      <button className="page-link">3</button>
-                    </li>
-                    <li className="page-item">
-                      <button className="page-link">Next</button>
-                    </li>
-                  </ul>
-                </nav>
+                {/* Loading indicator for infinite scroll */}
+                {isLoadingMore && (
+                  <div className="col-12 text-center my-3">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">
+                        Loading more hotels...
+                      </span>
+                    </div>
+                    <p className="mt-2">Loading more hotels...</p>
+                  </div>
+                )}
+
+                {/* Show message if all hotels are loaded */}
+                {visibleCount >= filteredHotels.length &&
+                  filteredHotels.length > 0 && (
+                    <div className="col-12 text-center my-4 text-muted">
+                      <small>All {filteredHotels.length} hotels loaded</small>
+                    </div>
+                  )}
+
+                {/* Show how many hotels are being displayed */}
+                {/* {filteredHotels.length > 0 && (
+                  <div className="col-12 text-center mt-3 mb-1">
+                    <small className="text-muted">
+                      Showing {Math.min(visibleCount, filteredHotels.length)} of {filteredHotels.length} hotels
+                    </small>
+                  </div>
+                )} */}
               </div>
             )}
           </div>

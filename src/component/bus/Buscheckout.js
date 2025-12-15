@@ -130,17 +130,29 @@ const BusCheckout = () => {
     console.log("selected seats", selectedSeats);
     if (!selectedSeats || !busDetails) return;
 
-    const arr = selectedSeats.map((seat, i) => ({
-      id: i + 1,
-      seatNumber: seat.number || seat.seatNumber,
-      name: "",
-      age: "",
-      gender: "Male",
-      price: seat.price,
-      seatIndex: seat.seatIndex ?? seat.SeatIndex ?? 0,
-      idType: "",
-      idNumber: "",
-    }));
+    const arr = selectedSeats.map((seat, i) => {
+      const seatId =
+        seat.SeatId ?? seat.SeatIndex ?? Number(seat.SeatName) ?? null;
+      const price = seat.SeatFare ?? seat.Price ?? seat.Price?.BasePrice ?? 0;
+
+      return {
+        id: i + 1,
+        seatNumber: seat.SeatName,
+        firstName: "",
+        lastName: "",
+        age: "",
+        gender: "Male",
+        price,
+
+        // REQUIRED
+        fullSeatObject: seat, // <--- THIS is the key change
+
+        seatIndex: seat.SeatIndex,
+        seatName: seat.SeatName,
+        idType: "",
+        idNumber: "",
+      };
+    });
 
     setPassengers(arr);
   }, [selectedSeats, busDetails]);
@@ -176,8 +188,9 @@ const BusCheckout = () => {
       return alert("Select boarding & dropping points");
     if (!contactDetails.email || !contactDetails.mobile)
       return alert("Enter contact details");
-    if (passengers.some((p) => !p.name || !p.age))
-      return alert("Enter passenger details");
+    if (passengers.some((p) => !p.firstName || !p.lastName))
+      return alert("Enter full first name and last name for all passengers");
+
     if (passengers.some((p) => !p.idType || !p.idNumber))
       return alert("Enter ID type & ID number");
 
@@ -187,42 +200,37 @@ const BusCheckout = () => {
     const TraceId = busDetails?.TraceId || state.traceId;
     const ResultIndex = busDetails?.ResultIndex ?? state.resultIndex;
 
-    const Passenger = passengers.map((p, i) => {
-      const { firstName, lastName } = splitName(p.name);
+    const Passenger = passengers.map((p, i) => ({
+      LeadPassenger: i === 0,
+      IsPrimary: i === 0,
+      Title: p.gender === "Male" ? "Mr" : "Ms",
+      FirstName: p.firstName,
+      LastName: p.lastName || "NA",
+      Age: Number(p.age),
+      Gender: p.gender === "Female" ? 2 : 1,
+      Email: contactDetails.email,
+      Phoneno: `+91-${contactDetails.mobile}`, // Correct field
+      IDType: p.idType,
+      IDNumber: p.idNumber,
+      Address: "NA",
 
-      return {
-        Title: p.gender === "Male" ? "Mr" : "Ms",
-        FirstName: firstName,
-        LastName: lastName,
-        Age: Number(p.age),
-        Gender: p.gender === "Female" ? 2 : 1,
-        Email: contactDetails.email,
-        PhoneNo: contactDetails.mobile,
-        IDType: p.idType,
-        IDNumber: p.idNumber,
-        Address: "NA",
-        Seat: {
-          SeatIndex: p.seatIndex,
-        },
-        Price: {
-          BasePrice: Number(p.price),
-          Tax: 0,
-        },
-      };
-    });
+      // MOST IMPORTANT FIX:
+      Seat: p.fullSeatObject, // TBO requires full seat object
+
+      SeatType: p.fullSeatObject.SeatType ?? 1,
+      Price: {
+        BasePrice: Number(p.price) || 0,
+        Tax: 0,
+      },
+    }));
+
     console.log("selected boarding", selectedBoarding);
     const payload = {
       userId: userdetails?.id,
       serviceType: "bus",
       vendorType: "bus",
       vendorId: null,
-      // EndUserIp: "127.0.0.1",
-      // TokenId,
-      // TraceId,
-      // ResultIndex,
-      // BoardingPointId: selectedBoarding.CityPointIndex,
-      // DropingPointId: selectedDropping.CityPointIndex,
-      // Passenger,
+
       startDate: selectedBoarding.CityPointTime,
       totalAmount: calculateTotalPrice(),
       serviceDetails: {
@@ -384,9 +392,33 @@ const BusCheckout = () => {
                   </h4>
 
                   <div className="passenger-form">
-                    {/* Name */}
+                    {/* First Name */}
                     <div className="form-group">
-                      <label>Full Name</label>
+                      <label>First Name</label>
+                      <input
+                        value={p.firstName}
+                        onChange={(e) =>
+                          handlePassengerChange(i, "firstName", e.target.value)
+                        }
+                        placeholder="Enter first name"
+                      />
+                    </div>
+
+                    {/* Last Name */}
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        value={p.lastName}
+                        onChange={(e) =>
+                          handlePassengerChange(i, "lastName", e.target.value)
+                        }
+                        placeholder="Enter last name"
+                      />
+                    </div>
+
+                    {/* Name */}
+                    {/* <div className="form-group">
+                      <label>First Name</label>
                       <input
                         value={p.name}
                         onChange={(e) =>
@@ -395,6 +427,18 @@ const BusCheckout = () => {
                         placeholder="Enter full name"
                       />
                     </div>
+
+                   
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        value={p.name}
+                        onChange={(e) =>
+                          handlePassengerChange(i, "name", e.target.value)
+                        }
+                        placeholder="Enter last name"
+                      />
+                    </div> */}
 
                     {/* Age & Gender */}
                     <div className="form-row">

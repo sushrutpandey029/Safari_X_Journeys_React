@@ -210,7 +210,7 @@ export default function PaymentStatus() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4"style={{marginTop:"100px"}}>
       <div className="p-6 rounded-xl shadow-lg w-full max-w-md text-center">
         {renderContent()}
 

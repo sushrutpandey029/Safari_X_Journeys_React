@@ -22,16 +22,11 @@ const GuideList = () => {
 
   const [cityList, setCityList] = useState([]);
 
-
-  
-
-
   const [selectedCity, setSelectedCity] = useState("");
- const [startDate, setStartDate] = useState(new Date());            // today
-const [endDate, setEndDate] = useState(
-  new Date(Date.now() + 24 * 60 * 60 * 1000)                       // tomorrow
-);
-
+  const [startDate, setStartDate] = useState(new Date()); // today
+  const [endDate, setEndDate] = useState(
+    new Date(Date.now() + 24 * 60 * 60 * 1000) // tomorrow
+  );
 
   const [filters, setFilters] = useState({
     languages: [],
@@ -44,6 +39,10 @@ const [endDate, setEndDate] = useState(
     specialization: true,
     rating: true,
   });
+
+  // Infinite scroll states
+  const [visibleCount, setVisibleCount] = useState(6); // Show 6 cards initially
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const navigate = useNavigate();
 
@@ -77,6 +76,28 @@ const [endDate, setEndDate] = useState(
     fetchCities();
   }, []);
 
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isLoadingMore) return;
+      
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+      ) {
+        setIsLoadingMore(true);
+        // Load more guides after a small delay to show loading indicator
+        setTimeout(() => {
+          setVisibleCount((prev) => prev + 6); // Load next 6 cards
+          setIsLoadingMore(false);
+        }, 300);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoadingMore]);
+
   // -----------------------------------------
   // FETCH ALL GUIDES (first load)
   // -----------------------------------------
@@ -87,6 +108,7 @@ const [endDate, setEndDate] = useState(
   const loadGuides = async (filters = null) => {
     try {
       setLoading(true);
+      setVisibleCount(6); // Reset to 6 cards on new search
       console.log("filters data", filters);
       const response = filters
         ? await getAllGuides(filters)
@@ -159,6 +181,9 @@ const [endDate, setEndDate] = useState(
 
     await loadGuides(filterPayload);
   };
+
+  // Get only visible guides for infinite scroll
+  const visibleGuides = filteredGuides.slice(0, visibleCount);
 
   // ------------------ UI --------------------
   if (loading) return <div className="text-center py-5">Loading guides...</div>;
@@ -432,8 +457,8 @@ const [endDate, setEndDate] = useState(
               <h5>Found {filteredGuides.length} guides</h5>
             </div>
 
-            {/* GUIDE CARDS */}
-            {filteredGuides.map((guide) => (
+            {/* GUIDE CARDS - Only show visible guides */}
+            {visibleGuides.map((guide) => (
               <div
                 key={guide.guideId}
                 className="guide-card border rounded-3 p-3 mb-4 shadow-sm"
@@ -524,6 +549,32 @@ const [endDate, setEndDate] = useState(
                 </div>
               </div>
             ))}
+
+            {/* Loading indicator for infinite scroll */}
+            {isLoadingMore && (
+              <div className="col-12 text-center my-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading more guides...</span>
+                </div>
+                <p className="mt-2">Loading more guides...</p>
+              </div>
+            )}
+
+            {/* Show message if all guides are loaded */}
+            {visibleCount >= filteredGuides.length && filteredGuides.length > 0 && (
+              <div className="col-12 text-center my-4 text-muted">
+                <small>All {filteredGuides.length} guides loaded</small>
+              </div>
+            )}
+
+            {/* Show count of displayed guides */}
+            {/* {filteredGuides.length > 0 && (
+              <div className="col-12 text-center mt-3 mb-1">
+                <small className="text-muted">
+                  Showing {Math.min(visibleCount, filteredGuides.length)} of {filteredGuides.length} guides
+                </small>
+              </div>
+            )} */}
 
             {filteredGuides.length === 0 && (
               <div className="text-center py-5">

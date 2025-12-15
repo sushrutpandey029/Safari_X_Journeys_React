@@ -986,6 +986,7 @@ width: 45px;
 
 .foot {
   position: relative;
+  top : -6px;
 
   .chatbot-box img {
     width: 43px;
@@ -1052,9 +1053,22 @@ footer {
 }
 
 .payment-box {
-  width: 40px;
-  height: 25px;
+  width: 50px;       /* perfect square box */
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f1; /* keep what you want */
+  border-radius: 8px; 
+  overflow: hidden;   /* prevent image overflow */
 }
+
+.payment-icon {
+  max-width: 100%;    /* resize to fit nicely */
+  max-height: 100%;
+  object-fit: contain;
+}
+
 
 .newsletter-box {
   background-color: #f5f6ff;

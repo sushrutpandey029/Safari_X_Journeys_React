@@ -480,7 +480,7 @@ const HotelCheckout = () => {
       serviceProviderId: hotel?.hotelCode,
       serviceDetails: { ...payload.serviceDetails, startDate, endDate, city },
       BookingCode: hotel?.bookingCode,
-      IsVoucherBooking: false,
+      IsVoucherBooking: true,
       GuestNationality: hotel?.guestNationality || "IN",
       EndUserIp: payload.serviceDetails.enduserip,
       totalAmount: price.finalPrice,

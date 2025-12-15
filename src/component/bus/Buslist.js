@@ -52,6 +52,36 @@ function BusList() {
     toCityId: "",
   });
 
+  const [visibleCount, setVisibleCount] = useState(6);
+  const loadAmount = 6; // हर बार 6 load होंगे
+  const maxLoad = filteredBusData.length;
+
+  // throttle flag
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isLoading) return; // already loading? don't load again
+
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 200
+      ) {
+        // LOAD MORE
+        setIsLoading(true);
+        setTimeout(() => {
+          setVisibleCount((prev) =>
+            prev + loadAmount > maxLoad ? maxLoad : prev + loadAmount
+          );
+          setIsLoading(false);
+        }, 600); // delay to prevent multiple triggers
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoading, filteredBusData]);
+
   const navigate = useNavigate();
 
   // 🚀 INITIALIZATION - Sequential flow: Auth → Cities → Defaults
@@ -137,6 +167,12 @@ function BusList() {
     }
   };
 
+  const getSeatFare = (seat) => {
+    return (
+      seat.SeatFare ?? seat.Price?.BasePrice ?? seat.Price?.PublishedPrice ?? 0
+    );
+  };
+
   // 🚌 GET BUS LAYOUT - CORRECTED VERSION
   const fetchBusLayout = async (bus) => {
     try {
@@ -175,10 +211,32 @@ function BusList() {
       if (!layout) throw new Error("No seat layout found in response");
 
       console.log("🎉 Final Layout Extracted:", layout);
+
       setSeatLayoutData(layout);
 
       // Extract seat prices from layout
       extractSeatPrices(layout);
+      let seatDetailsRaw =
+        layout?.SeatDetails ||
+        layout?.SeatLayoutDetails?.SeatDetails ||
+        layout?.SeatLayout?.SeatDetails ||
+        layout?.Seats ||
+        [];
+
+      console.log("RAW SEAT DETAILS:", seatDetailsRaw);
+
+      // IMPORTANT: Flatten 2D array into flat list of seats
+      let seatDetails = Array.isArray(seatDetailsRaw[0])
+        ? seatDetailsRaw.flat()
+        : seatDetailsRaw;
+      console.log("SEATS GOING TO MODAL:", seatDetails);
+
+      console.log("FLATTENED SEAT DETAILS:", seatDetails);
+
+      setSeatLayoutData({
+        ...layout,
+        seats: seatDetails,
+      });
 
       return layout;
     } catch (err) {
@@ -423,17 +481,21 @@ function BusList() {
     setSeatPrices({});
   };
 
-  const handleSeatSelect = (seatNumber, seatPrice) => {
-    console.log("🎯 Seat selected:", seatNumber, "Price:", seatPrice);
-
+  // In BusList.js
+  const handleSeatSelect = (seat) => {
     setSelectedSeats((prev) => {
-      const isAlreadySelected = prev.some((seat) => seat.number === seatNumber);
+      const seatIndex = seat.SeatIndex;
+      if (!seatIndex) return prev;
 
-      if (isAlreadySelected) {
-        return prev.filter((seat) => seat.number !== seatNumber);
-      } else {
-        return [...prev, { number: seatNumber, price: seatPrice }];
+      const exists = prev.some((s) => s.SeatIndex === seatIndex);
+
+      // If already selected → remove seat
+      if (exists) {
+        return prev.filter((s) => s.SeatIndex !== seatIndex);
       }
+
+      // ADD THE FULL SEAT OBJECT EXACTLY AS RECEIVED FROM API
+      return [...prev, seat];
     });
   };
 
@@ -542,141 +604,184 @@ function BusList() {
 
   // Calculate total price
   const calculateTotalPrice = () => {
-    return selectedSeats.reduce(
-      (total, seat) => total + (seat.price || selectedBus?.price || 0),
-      0
-    );
+    return selectedSeats.reduce((total, seat) => total + getSeatFare(seat), 0);
   };
 
   // 🪑 RENDER SEATS FROM API - CORRECTED VERSION
+  // const renderSeatsFromAPI = () => {
+  //   if (!seatLayoutData)
+  //     return <div className="loading-seats">Loading seat layout...</div>;
+
+  //   if (seatLayoutData.HTMLLayout) {
+  //     const parser = new DOMParser();
+  //     const doc = parser.parseFromString(
+  //       seatLayoutData.HTMLLayout,
+  //       "text/html"
+  //     );
+  //     const seatDivs = doc.querySelectorAll(".nseat");
+
+  //     const totalSeats = seatDivs.length;
+  //     const seatsPerRow = Math.ceil(Math.sqrt(totalSeats * 1.5));
+  //     const containerWidth = 800;
+  //     const containerHeight = 400;
+  //     const seatWidth = 70;
+  //     const seatHeight = 80;
+  //     const horizontalSpacing =
+  //       (containerWidth - seatsPerRow * seatWidth) / (seatsPerRow + 1);
+  //     const verticalSpacing = 20;
+
+  //     return (
+  //       <div
+  //         className="bus-layout-api"
+  //         style={{
+  //           position: "relative",
+  //           width: "100%",
+  //           height: "500px",
+  //           overflow: "auto",
+  //           border: "1px solid #e0e0e0",
+  //           borderRadius: "8px",
+  //           padding: "20px",
+  //           background: "#f8f9fa",
+  //         }}
+  //       >
+  //         {Array.from(seatDivs).map((seatDiv, index) => {
+  //           const seatNumber = seatDiv.textContent?.trim() || `S${index + 1}`;
+  //           let price = selectedBus?.price || 500;
+
+  //           const onclickAttr = seatDiv.getAttribute("onclick");
+  //           if (onclickAttr) {
+  //             const priceMatch = onclickAttr.match(
+  //               /AddRemoveSeat\(['"][^'"]*['"],\s*['"]([^'"]*)['"]\)/
+  //             );
+  //             if (priceMatch) {
+  //               price = parseFloat(priceMatch[1]);
+  //             }
+  //           }
+
+  //           const isSelected = selectedSeats.some(
+  //             (seat) => seat.number === seatNumber
+  //           );
+  //           const row = Math.floor(index / seatsPerRow);
+  //           const col = index % seatsPerRow;
+  //           const left =
+  //             horizontalSpacing + col * (seatWidth + horizontalSpacing);
+  //           const top = 20 + row * (seatHeight + verticalSpacing);
+
+  //           return (
+  //             <div
+  //               key={index}
+  //               className={`seat-api ${isSelected ? "selected" : ""}`}
+  //               style={{
+  //                 position: "absolute",
+  //                 top: `${top}px`,
+  //                 left: `${left}px`,
+  //                 width: `${seatWidth}px`,
+  //                 height: `${seatHeight}px`,
+  //                 display: "flex",
+  //                 flexDirection: "column",
+  //                 alignItems: "center",
+  //                 justifyContent: "center",
+  //                 cursor: "pointer",
+  //                 transition: "all 0.3s ease",
+  //               }}
+  //               onClick={() => handleSeatSelect(seatNumber, price)}
+  //             >
+  //               <div
+  //                 className="seat-icon"
+  //                 style={{
+  //                   width: "48px",
+  //                   height: "48px",
+  //                   border: isSelected
+  //                     ? "3px solid #e23738"
+  //                     : "3px solid #8c8c8c",
+  //                   borderRadius: "8px",
+  //                   position: "relative",
+  //                   background: isSelected ? "#ffe6e6" : "#f5f5f5",
+  //                   display: "flex",
+  //                   alignItems: "center",
+  //                   justifyContent: "center",
+  //                   fontSize: "14px",
+  //                   fontWeight: "bold",
+  //                   color: isSelected ? "#e23738" : "#333",
+  //                   transition: "all 0.2s ease",
+  //                 }}
+  //               >
+  //                 {seatNumber}
+  //                 <div
+  //                   style={{
+  //                     position: "absolute",
+  //                     bottom: "6px",
+  //                     left: "8px",
+  //                     right: "8px",
+  //                     height: "2px",
+  //                     background: isSelected ? "#e23738" : "#8c8c8c",
+  //                   }}
+  //                 />
+  //               </div>
+  //               <span
+  //                 style={{
+  //                   fontSize: "12px",
+  //                   color: isSelected ? "#e23738" : "#666",
+  //                   marginTop: "4px",
+  //                   fontWeight: "bold",
+  //                 }}
+  //               >
+  //                 ₹{price}
+  //               </span>
+  //             </div>
+  //           );
+  //         })}
+  //       </div>
+  //     );
+  //   }
+
+  //   return <div className="no-seats">No seat layout available</div>;
+  // };
+
   const renderSeatsFromAPI = () => {
-    if (!seatLayoutData)
-      return <div className="loading-seats">Loading seat layout...</div>;
+    console.log("seatlayout data in renderSeatsFromAPI", seatLayoutData);
+    if (!seatLayoutData) return <div>Loading seat layout...</div>;
 
-    if (seatLayoutData.HTMLLayout) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(
-        seatLayoutData.HTMLLayout,
-        "text/html"
-      );
-      const seatDivs = doc.querySelectorAll(".nseat");
+    const seats =
+      seatLayoutData.seats ||
+      seatLayoutData.SeatDetails ||
+      seatLayoutData.SeatLayoutDetails?.SeatDetails ||
+      seatLayoutData.SeatLayout?.SeatDetails ||
+      [];
 
-      const totalSeats = seatDivs.length;
-      const seatsPerRow = Math.ceil(Math.sqrt(totalSeats * 1.5));
-      const containerWidth = 800;
-      const containerHeight = 400;
-      const seatWidth = 70;
-      const seatHeight = 80;
-      const horizontalSpacing =
-        (containerWidth - seatsPerRow * seatWidth) / (seatsPerRow + 1);
-      const verticalSpacing = 20;
+    if (seats.length === 0) return <div>No seat layout available</div>;
 
-      return (
-        <div
-          className="bus-layout-api"
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "500px",
-            overflow: "auto",
-            border: "1px solid #e0e0e0",
-            borderRadius: "8px",
-            padding: "20px",
-            background: "#f8f9fa",
-          }}
-        >
-          {Array.from(seatDivs).map((seatDiv, index) => {
-            const seatNumber = seatDiv.textContent?.trim() || `S${index + 1}`;
-            let price = selectedBus?.price || 500;
+    return (
+      <div
+        className="bus-layout-api"
+        style={{ position: "relative", height: "500px", overflow: "auto" }}
+      >
+        {seats.map((seat) => {
+          const isSelected = selectedSeats.some(
+            (s) => s.SeatIndex === seat.SeatIndex
+          );
 
-            const onclickAttr = seatDiv.getAttribute("onclick");
-            if (onclickAttr) {
-              const priceMatch = onclickAttr.match(
-                /AddRemoveSeat\(['"][^'"]*['"],\s*['"]([^'"]*)['"]\)/
-              );
-              if (priceMatch) {
-                price = parseFloat(priceMatch[1]);
-              }
-            }
+          const row = Number(seat.RowNo) || 0;
+          const col = Number(seat.ColumnNo) || 0;
 
-            const isSelected = selectedSeats.some(
-              (seat) => seat.number === seatNumber
-            );
-            const row = Math.floor(index / seatsPerRow);
-            const col = index % seatsPerRow;
-            const left =
-              horizontalSpacing + col * (seatWidth + horizontalSpacing);
-            const top = 20 + row * (seatHeight + verticalSpacing);
-
-            return (
-              <div
-                key={index}
-                className={`seat-api ${isSelected ? "selected" : ""}`}
-                style={{
-                  position: "absolute",
-                  top: `${top}px`,
-                  left: `${left}px`,
-                  width: `${seatWidth}px`,
-                  height: `${seatHeight}px`,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                }}
-                onClick={() => handleSeatSelect(seatNumber, price)}
-              >
-                <div
-                  className="seat-icon"
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    border: isSelected
-                      ? "3px solid #e23738"
-                      : "3px solid #8c8c8c",
-                    borderRadius: "8px",
-                    position: "relative",
-                    background: isSelected ? "#ffe6e6" : "#f5f5f5",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    color: isSelected ? "#e23738" : "#333",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  {seatNumber}
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "6px",
-                      left: "8px",
-                      right: "8px",
-                      height: "2px",
-                      background: isSelected ? "#e23738" : "#8c8c8c",
-                    }}
-                  />
-                </div>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: isSelected ? "#e23738" : "#666",
-                    marginTop: "4px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  ₹{price}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      );
-    }
-
-    return <div className="no-seats">No seat layout available</div>;
+          return (
+            <div
+              key={seat.SeatIndex}
+              className={`seat-api ${isSelected ? "selected" : ""}`}
+              style={{
+                position: "absolute",
+                top: row * 45,
+                left: col * 45,
+              }}
+              onClick={() => seat.SeatStatus && handleSeatSelect(seat)}
+            >
+              <div className="seat-icon">{seat.SeatName}</div>
+              <span>₹{getSeatFare(seat)}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   // Rest of the component remains the same...
@@ -1227,11 +1332,12 @@ function BusList() {
 
             <div className="row">
               {filteredBusData.length > 0 ? (
-                filteredBusData.map((bus) => (
+                filteredBusData.slice(0, visibleCount).map((bus) => (
                   <div className="col-sm-12 mb-4" key={bus.busId}>
                     <div className="bus-card rounded-4 border shadow-sm overflow-hidden h-100">
                       <div className="bus-body p-3">
                         <div className="row align-items-center">
+                          {/* ==== Left Image ==== */}
                           <div className="col-sm-2">
                             <img
                               src={`https://via.placeholder.com/150x120/667eea/ffffff?text=Bus+${bus.busId}`}
@@ -1245,6 +1351,7 @@ function BusList() {
                             />
                           </div>
 
+                          {/* ==== Middle Info ==== */}
                           <div className="col-sm-7">
                             <div className="d-flex justify-content-between align-items-center mb-2">
                               <h6 className="fw-bold mb-0">{bus.busName}</h6>
@@ -1255,6 +1362,7 @@ function BusList() {
                                 </small>
                               </div>
                             </div>
+
                             <p className="mb-2 text-muted small">
                               {bus.busType} • {bus.operator}
                             </p>
@@ -1288,6 +1396,7 @@ function BusList() {
                             </div>
                           </div>
 
+                          {/* ==== Right Price Box ==== */}
                           <div className="col-sm-3">
                             <div className="d-flex flex-column justify-content-between h-100">
                               <div>
@@ -1299,8 +1408,10 @@ function BusList() {
                                     10% Off
                                   </small>
                                 </div>
+
                                 <h5 className="fw-bold mb-1">₹{bus.price}</h5>
                                 <small className="text-muted">per seat</small>
+
                                 <div className="mt-1">
                                   <small
                                     className={
@@ -1334,6 +1445,13 @@ function BusList() {
                 </div>
               )}
             </div>
+
+            {/* ⭐ SPINNER OUTSIDE THE MAP (Correct Spot) */}
+            {isLoading && visibleCount < filteredBusData.length && (
+              <div className="text-center my-3">
+                <div className="spinner-border text-primary"></div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1412,8 +1530,10 @@ function BusList() {
                   <div className="selected-seats-list">
                     {selectedSeats.map((seat, index) => (
                       <div key={index} className="selected-seat-item">
-                        <span className="seat-number">Seat {seat.number}</span>
-                        <span className="seat-price">₹{seat.price}</span>
+                        <span className="seat-number">
+                          Seat {seat.SeatName}
+                        </span>
+                        <span className="seat-price">₹{getSeatFare(seat)}</span>
                       </div>
                     ))}
                   </div>

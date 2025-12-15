@@ -158,7 +158,6 @@ function Home() {
   </div>
 </div>
 
-
       <HotelPopularDestination />
 
       {/* guide section */}
@@ -303,9 +302,6 @@ function Home() {
     </div>
   </div>
 </div>
-
-
-
 
       {/* FAQ section */}
       <FAQ />

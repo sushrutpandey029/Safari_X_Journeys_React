@@ -179,53 +179,89 @@ function Footer() {
               </div>
 
               <h5 className="mt-5">Payment Methods</h5>
-             <div className="d-flex gap-2 flex-wrap">
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/paymen.png" alt="UPI" className="payment-icon" />
-  </div>
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/payments/visa.png" alt="Visa" className="payment-icon" />
-  </div>
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/payments/mastercard.png" alt="MasterCard" className="payment-icon" />
-  </div>
-  <div className="payment-box bg-secondary p-2 rounded">
-    <img src="/images/payments/rupay.png" alt="RuPay" className="payment-icon" />
-  </div>
-  
-  {/* Chatbot Icon */}
-  {/* <div
+
+              <div className="d-flex gap-2 flex-wrap">
+                <div className="payment-box p-2 rounded">
+                  <img
+                    src="/images/upi.jpg"
+                    alt="UPI"
+                    className="payment-icon"
+                  />
+                </div>
+
+                <div className="payment-box p-2 rounded">
+                  <img
+                    src="/images/visa.jpg"
+                    alt="Visa"
+                    className="payment-icon"
+                  />
+                </div>
+
+                <div className="payment-box p-2 rounded">
+                  <img
+                    src="/images/mastercard.jpg"
+                    alt="MasterCard"
+                    className="payment-icon"
+                  />
+                </div>
+
+                <div className="payment-box p-2 rounded">
+                  <img
+                    src="/images/rupay.jpg"
+                    alt="RuPay"
+                    className="payment-icon"
+                  />
+                </div>
+
+                {/* Chatbot Icon */}
+                {/* <div
     className="chatbot-icon d-flex justify-content-center align-items-center"
     onClick={toggleChat}
   >
     <i className="bi bi-globe-americas"></i>
   </div> */}
 
-  {/* Chat Popup */}
-  {showChat && <BotModal toggleChat={toggleChat} />}
-</div>
+                {/* Chat Popup */}
+                {showChat && <BotModal toggleChat={toggleChat} />}
+              </div>
+
+              {/* 🔐 256-bit encryption text – yeh 4 icons ke bilkul neeche hai */}
+              <div className="mt-2 d-flex align-items-center">
+                <i className="bi bi-shield-lock-fill me-2 text-success"></i>
+                <small className="text-white">
+                  Your payment is protected with{" "}
+                  <strong>256-bit SSL encryption</strong>.
+                </small>
+              </div>
             </div>
           </div>
           {/* Footer Bottom */}
 
           <div className="footer-bottom mt-4 border-top pt-3">
-  <p className="mb-2">&copy; 2025. All Rights Reserved</p>
- <div className="d-flex justify-content-center align-items-center gap-2 mt-0 text-light">
-  <a href="/terms-conditions" className="text-decoration-none text-light">
-    Terms & Condition
-  </a>
-  <span className="mx-2">|</span>
-  <a href="/privacy-policy" className="text-decoration-none text-light">
-    Privacy Policy
-  </a>
-  <span className="mx-2">|</span>
-  <a href="/cancelation" className="text-decoration-none text-light">
-    Cancellation
-  </a>
-</div>
-
-
-</div>
+            <p className="mb-2">&copy; 2025. All Rights Reserved</p>
+            <div className="d-flex justify-content-center align-items-center gap-2 mt-0 text-light">
+              <a
+                href="/terms-conditions"
+                className="text-decoration-none text-light"
+              >
+                Terms & Condition
+              </a>
+              <span className="mx-2">|</span>
+              <a
+                href="/privacy-policy"
+                className="text-decoration-none text-light"
+              >
+                Privacy Policy
+              </a>
+              <span className="mx-2">|</span>
+              <a
+                href="/cancelation"
+                className="text-decoration-none text-light"
+              >
+                Cancellation
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
@@ -233,6 +269,3 @@ function Footer() {
 }
 
 export default Footer;
-
-
-
