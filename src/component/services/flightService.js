@@ -82,14 +82,13 @@ export const flight_getBookingDetails = async (payload) => {
     headers: { "Content-Type": "application/json" },
   });
 };
-export const flight_sendChangeRequest= async (payload) => {
+export const flight_sendChangeRequest = async (payload) => {
   return await axios.post(API.flight_sendChangeRequest, payload, {
     headers: { "Content-Type": "application/json" },
   });
 };
-export const flight_getChangeRequestStatus= async (payload) => {
+export const flight_getChangeRequestStatus = async (payload) => {
   return await axios.post(API.flight_getChangeRequestStatus, payload, {
     headers: { "Content-Type": "application/json" },
   });
 };
-

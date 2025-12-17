@@ -1,22 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
 import { userBookingDetails } from "../../services/userService";
 import { getUserData } from "../../utils/storage";
+import BookingView from "./BookingView"; // <-- Import BookingView
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./Booking.css";
 
 function Booking() {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const navigate = useNavigate();
-
-  const itemsPerPage = 10; // 🔥 Show 20 bookings per page
+  const itemsPerPage = 10;
 
   const fetchDetails = async () => {
     const userdetails = await getUserData("safarix_user");
     try {
       const resp = await userBookingDetails(userdetails.id);
+      console.log("userbooking deailts", resp);
       setBookings(resp.data || []);
     } catch (err) {
       console.log("err in user booking details", err);
@@ -27,11 +30,19 @@ function Booking() {
     fetchDetails();
   }, []);
 
-  // Pagination Logic
+  const handleView = (booking) => {
+    setSelectedBooking(booking);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedBooking(null);
+  };
+
   const lastIndex = currentPage * itemsPerPage;
   const firstIndex = lastIndex - itemsPerPage;
   const currentBookings = bookings.slice(firstIndex, lastIndex);
-
   const totalPages = Math.ceil(bookings.length / itemsPerPage);
 
   return (
@@ -58,6 +69,8 @@ function Booking() {
                       ? "text-danger"
                       : booking.status === "pending"
                       ? "text-warning"
+                      : booking.status === "cancelled"
+                      ? "text-danger"
                       : "text-success"
                   }
                 >
@@ -67,11 +80,7 @@ function Booking() {
                   <button
                     type="button"
                     className="btn btn-success btn-sm"
-                    onClick={() =>
-                      navigate("/view-booking", {
-                        state: { bookingData: booking },
-                      })
-                    }
+                    onClick={() => handleView(booking)}
                   >
                     <FontAwesomeIcon icon={faEye} /> View
                   </button>
@@ -111,6 +120,44 @@ function Booking() {
             Next ➡
           </button>
         </div>
+      )}
+
+      {/* 🔥 Booking View Modal */}
+      {showModal && (
+        <>
+          <div
+            className="modal fade show d-flex align-items-center justify-content-center"
+            tabIndex="-1"
+            role="dialog"
+            style={{
+              background: "rgba(0, 0, 1, 0.6)", // Dark blue transparent
+              pointerEvents: "none", // Disable background click
+            }}
+          >
+            <div
+              className="modal-dialog modal-dialog-centered fixed-size-modal"
+              role="document"
+              style={{ pointerEvents: "auto" }} // Enable clicks only inside modal
+            >
+              <div className="modal-content" style={{ height: "100%" }}>
+                <div className="modal-header bg-primary text-white">
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={closeModal}
+                  ></button>
+                </div>
+
+                <div className="modal-body" style={{ overflowY: "auto" }}>
+                  <BookingView
+                    booking={selectedBooking}
+                    closeModal={closeModal}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

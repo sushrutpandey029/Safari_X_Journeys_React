@@ -179,6 +179,8 @@ function Header() {
 
                 {/* Cab */}
                 {/* <li className="nav-item">
+                {/* Cab */}
+                {/* <li className="nav-item">
             <NavLink
               to="/cabs"
               className={({ isActive }) =>

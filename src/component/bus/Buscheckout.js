@@ -4,6 +4,7 @@ import "./Bus.css";
 import { fetchBoardingPoints } from "../services/busservice";
 import { getUserData } from "../utils/storage";
 import useCashfreePayment from "../hooks/useCashfreePayment";
+import { bus_block } from "../services/busservice";
 
 const BusCheckout = () => {
   const { startPayment } = useCashfreePayment();
@@ -26,6 +27,10 @@ const BusCheckout = () => {
   const [loading, setLoading] = useState(true);
   const [apiLoading, setApiLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [blockResponse, setBlockResponse] = useState(null);
+  const [blockLoading, setBlockLoading] = useState(false);
 
   const BOOK_ENDPOINT = "https://busbe.tektravels.com/BusService.svc/rest/Book";
 
@@ -130,17 +135,29 @@ const BusCheckout = () => {
     console.log("selected seats", selectedSeats);
     if (!selectedSeats || !busDetails) return;
 
-    const arr = selectedSeats.map((seat, i) => ({
-      id: i + 1,
-      seatNumber: seat.number || seat.seatNumber,
-      name: "",
-      age: "",
-      gender: "Male",
-      price: seat.price,
-      seatIndex: seat.seatIndex ?? seat.SeatIndex ?? 0,
-      idType: "",
-      idNumber: "",
-    }));
+    const arr = selectedSeats.map((seat, i) => {
+      const seatId =
+        seat.SeatId ?? seat.SeatIndex ?? Number(seat.SeatName) ?? null;
+      const price = seat.SeatFare ?? seat.Price ?? seat.Price?.BasePrice ?? 0;
+
+      return {
+        id: i + 1,
+        seatNumber: seat.SeatName,
+        firstName: "",
+        lastName: "",
+        age: "",
+        gender: "Male",
+        price,
+
+        // REQUIRED
+        fullSeatObject: seat, // <--- THIS is the key change
+
+        seatIndex: seat.SeatIndex,
+        seatName: seat.SeatName,
+        idType: "",
+        idNumber: "",
+      };
+    });
 
     setPassengers(arr);
   }, [selectedSeats, busDetails]);
@@ -172,77 +189,140 @@ const BusCheckout = () => {
   // --------------------------- FINAL SUBMIT ------------------------------
 
   const handleFinalSubmit = async () => {
-    if (!selectedBoarding || !selectedDropping)
-      return alert("Select boarding & dropping points");
-    if (!contactDetails.email || !contactDetails.mobile)
-      return alert("Enter contact details");
-    if (passengers.some((p) => !p.name || !p.age))
-      return alert("Enter passenger details");
-    if (passengers.some((p) => !p.idType || !p.idNumber))
-      return alert("Enter ID type & ID number");
+    try {
+      if (!selectedBoarding || !selectedDropping)
+        return alert("Select boarding & dropping points");
+      if (!contactDetails.email || !contactDetails.mobile)
+        return alert("Enter contact details");
+      if (passengers.some((p) => !p.firstName || !p.lastName))
+        return alert("Enter full name for all passengers");
+      if (passengers.some((p) => !p.idType || !p.idNumber))
+        return alert("Enter ID details");
 
-    const userdetails = await getUserData("safarix_user");
+      setBlockLoading(true);
 
-    const TokenId = busDetails?.TokenId || state.tokenId;
-    const TraceId = busDetails?.TraceId || state.traceId;
-    const ResultIndex = busDetails?.ResultIndex ?? state.resultIndex;
+      const TokenId = busDetails?.TokenId || state.tokenId;
+      const TraceId = busDetails?.TraceId || state.traceId;
+      const ResultIndex = busDetails?.ResultIndex ?? state.resultIndex;
 
-    const Passenger = passengers.map((p, i) => {
-      const { firstName, lastName } = splitName(p.name);
-
-      return {
-        Title: p.gender === "Male" ? "Mr" : "Ms",
-        FirstName: firstName,
-        LastName: lastName,
-        Age: Number(p.age),
-        Gender: p.gender === "Female" ? 2 : 1,
-        Email: contactDetails.email,
-        PhoneNo: contactDetails.mobile,
-        IDType: p.idType,
-        IDNumber: p.idNumber,
-        Address: "NA",
-        Seat: {
-          SeatIndex: p.seatIndex,
-        },
-        Price: {
-          BasePrice: Number(p.price),
-          Tax: 0,
-        },
-      };
-    });
-    console.log("selected boarding", selectedBoarding);
-    const payload = {
-      userId: userdetails?.id,
-      serviceType: "bus",
-      vendorType: "bus",
-      vendorId: null,
-      // EndUserIp: "127.0.0.1",
-      // TokenId,
-      // TraceId,
-      // ResultIndex,
-      // BoardingPointId: selectedBoarding.CityPointIndex,
-      // DropingPointId: selectedDropping.CityPointIndex,
-      // Passenger,
-      startDate: selectedBoarding.CityPointTime,
-      totalAmount: calculateTotalPrice(),
-      serviceDetails: {
-        ResultIndex,
+      // 🔴 BUS BLOCK PAYLOAD (MATCHES YOUR BACKEND)
+      const blockPayload = {
         TokenId,
         TraceId,
-        Passenger,
-        EndUserIp: "127.0.0.1",
+        ResultIndex,
         BoardingPointId: selectedBoarding.CityPointIndex,
         DroppingPointId: selectedDropping.CityPointIndex,
-      },
-    };
+        Passenger: passengers.map((p, i) => ({
+          LeadPassenger: i === 0,
+          Title: p.gender === "Male" ? "Mr" : "Ms",
+          FirstName: p.firstName,
+          LastName: p.lastName,
+          Age: Number(p.age),
+          Gender: p.gender === "Female" ? 2 : 1,
+          Email: contactDetails.email,
+          Phoneno: `+91-${contactDetails.mobile}`,
+          IDType: p.idType,
+          IDNumber: p.idNumber,
+          Address: "NA",
+          Seat: p.fullSeatObject,
+        })),
+        EndUserIp: "127.0.0.1",
+      };
 
-    console.log("FINAL BOOK PAYLOAD:", payload);
-    const result = startPayment(payload);
+      console.log("📤 Calling BusBlock:", blockPayload);
 
-    // Save payload for payment page
-    // localStorage.setItem("Bus_Book_Payload", JSON.stringify(payload));
+      const res = await bus_block(blockPayload);
 
-    // navigate("/payment", { state: { payload, total: calculateTotalPrice() } });
+      if (!res?.data?.success) {
+        alert(res?.data?.message || "Seat blocking failed");
+        return;
+      }
+
+      // ✅ SAVE BLOCK RESULT
+      setBlockResponse(res.data.data);
+      localStorage.setItem("Bus_Block_Result", JSON.stringify(res.data.data));
+
+      // ✅ OPEN CONFIRMATION MODAL
+      setShowConfirmModal(true);
+    } catch (err) {
+      console.error("Bus block error", err);
+      alert("Unable to block seats. Please try again.");
+    } finally {
+      setBlockLoading(false);
+    }
+  };
+
+  const handleBookNow = async () => {
+    try {
+      setShowConfirmModal(false);
+
+      const userdetails = await getUserData("safarix_user");
+      if (!userdetails?.id) {
+        alert("User not logged in");
+        return;
+      }
+
+      const TokenId = busDetails?.TokenId || state.tokenId;
+      const TraceId = busDetails?.TraceId || state.traceId;
+      const ResultIndex = busDetails?.ResultIndex ?? state.resultIndex;
+
+      if (!blockResponse) {
+        alert("Block data missing. Please try again.");
+        return;
+      }
+
+      // ✅ FINAL BOOKING + PAYMENT PAYLOAD (INDUSTRY FORMAT)
+      const bookingPayload = {
+        userId: userdetails.id,
+        serviceType: "bus",
+        vendorType: "bus",
+        vendorId: null, // ✅ (can be operatorId later)
+        startDate: formatFullDate(selectedBoarding?.CityPointTime),
+
+        totalAmount: calculateTotalPrice(),
+        insuranceSelected: insurance,
+
+        serviceDetails: {
+          TokenId,
+          TraceId,
+          ResultIndex,
+
+          // 🔐 BLOCK DATA
+          BlockId: blockResponse.BlockId || blockResponse.TraceId,
+
+          BoardingPointId: selectedBoarding.CityPointIndex,
+          DroppingPointId: selectedDropping.CityPointIndex,
+
+          Passenger: passengers.map((p, i) => ({
+            LeadPassenger: i === 0,
+            IsPrimary: i === 0,
+            Title: p.gender === "Male" ? "Mr" : "Ms",
+            FirstName: p.firstName,
+            LastName: p.lastName,
+            Age: Number(p.age),
+            Gender: p.gender === "Female" ? 2 : 1,
+            Email: contactDetails.email,
+            Phoneno: `+91-${contactDetails.mobile}`,
+            IDType: p.idType,
+            IDNumber: p.idNumber,
+            Address: "NA",
+
+            // 🔴 MUST send FULL seat object
+            Seat: p.fullSeatObject,
+          })),
+
+          EndUserIp: "127.0.0.1",
+        },
+      };
+
+      console.log("💳 FINAL PAYMENT PAYLOAD:", bookingPayload);
+
+      // ✅ START PAYMENT (Cashfree)
+      startPayment(bookingPayload);
+    } catch (err) {
+      console.error("❌ Book Now Error:", err);
+      alert("Unable to proceed with booking. Please try again.");
+    }
   };
 
   // --------------------------- UI HELPERS ------------------------------
@@ -384,9 +464,33 @@ const BusCheckout = () => {
                   </h4>
 
                   <div className="passenger-form">
-                    {/* Name */}
+                    {/* First Name */}
                     <div className="form-group">
-                      <label>Full Name</label>
+                      <label>First Name</label>
+                      <input
+                        value={p.firstName}
+                        onChange={(e) =>
+                          handlePassengerChange(i, "firstName", e.target.value)
+                        }
+                        placeholder="Enter first name"
+                      />
+                    </div>
+
+                    {/* Last Name */}
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        value={p.lastName}
+                        onChange={(e) =>
+                          handlePassengerChange(i, "lastName", e.target.value)
+                        }
+                        placeholder="Enter last name"
+                      />
+                    </div>
+
+                    {/* Name */}
+                    {/* <div className="form-group">
+                      <label>First Name</label>
                       <input
                         value={p.name}
                         onChange={(e) =>
@@ -395,6 +499,18 @@ const BusCheckout = () => {
                         placeholder="Enter full name"
                       />
                     </div>
+
+                   
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        value={p.name}
+                        onChange={(e) =>
+                          handlePassengerChange(i, "name", e.target.value)
+                        }
+                        placeholder="Enter last name"
+                      />
+                    </div> */}
 
                     {/* Age & Gender */}
                     <div className="form-row">
@@ -517,11 +633,44 @@ const BusCheckout = () => {
               onClick={handleFinalSubmit}
               disabled={apiLoading}
             >
-              {apiLoading ? "Processing..." : "Continue to Payment"}
+              {blockLoading ? "Blocking Seats..." : "Continue to Payment"}
             </button>
           </div>
         </div>
       </div>
+      {showConfirmModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirm Booking</h3>
+
+            <p>
+              <strong>Bus:</strong> {blockResponse?.TravelName}
+            </p>
+            <p>
+              <strong>Seats:</strong>{" "}
+              {passengers.map((p) => p.seatNumber).join(", ")}
+            </p>
+
+            <p>
+              <strong>Total Fare:</strong> ₹{calculateTotalPrice()}
+            </p>
+
+            {blockResponse?.IsPriceChanged && (
+              <p className="text-danger">
+                Fare has changed. Please review before proceeding.
+              </p>
+            )}
+
+            <div className="modal-actions">
+              <button onClick={() => setShowConfirmModal(false)}>Cancel</button>
+
+              <button className="confirm-btn" onClick={handleBookNow}>
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

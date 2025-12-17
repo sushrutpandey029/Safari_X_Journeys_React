@@ -1,9 +1,9 @@
 // export const BASE_URL = "https://7183d0378457.ngrok-free.app";
 
 // export const BASE_URL = "http://node.millclient.com:3001";
-// export const BASE_URL = "http://localhost:2625";
-// export const BASE_URL = "http://localhost:2625";
-export const BASE_URL = "http://192.168.1.10:2625";
+// export const BASE_URL = "http://localhost:2625/";
+// export const BASE_URL = "http://10.31.33.26:2625";
+export const BASE_URL = "http://192.168.1.6:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -51,6 +51,7 @@ export const API = {
   HOTEL_SEARCH: `${BASE_URL}/api/search-hotels`,
   CITY_LIST_FILTER: `${BASE_URL}/api/filter/citylist`,
   HOTEL_BY_CATEGORY: `${BASE_URL}/api/getHotelCityByCategory`,
+  HOTEL_PREBOOK: `${BASE_URL}/api/prebook`,
   HOTEL_CANCEL: `${BASE_URL}/api/hotel/cancel`,
   HOTEL_CANCEL_STATUS: `${BASE_URL}/api/hotel/cancel-status`,
   USER_HOTEL_BOOKING_DETAILS: `${BASE_URL}/api/booking-detail`,
@@ -60,7 +61,7 @@ export const API = {
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
   Flight_authenticate: `${BASE_URL}/flight/authenticate`,
   flight_search: `${BASE_URL}/flight/search-flights`,
-  Flight_farerule: `${BASE_URL}/flight/fare-rules`, 
+  Flight_farerule: `${BASE_URL}/flight/fare-rule`,
   Flight_farequote: `${BASE_URL}/flight/fare-quote`,
   flight_getBookingDetails: `${BASE_URL}/flight/get-booking-details`,
   flight_sendChangeRequest: `${BASE_URL}/flight/send-change-request`,
@@ -72,16 +73,16 @@ export const API = {
   Bus_getcitylist: `${BASE_URL}/Bus/getBusCityList`,
   Bus_searchbus: `${BASE_URL}/Bus/busSearch`,
   Bus_busLayout: `${BASE_URL}/Bus/bus-layout`,
+  Bus_block: `${BASE_URL}/Bus/bus-block`,
   Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
+  Bus_getBookingDetails: `${BASE_URL}/bus/getBookingDetail`,
+  Bus_sendChangeRequest: `${BASE_URL}/bus/send-change-request`,
+  Bus_getChangeRequestStatus: `${BASE_URL}/bus/get-change-request-status`,
 
   //cancel boooking
-  CANCEL_BOOKING : `${BASE_URL}/api/booking/cancel/confirm`,
+  CANCEL_BOOKING: `${BASE_URL}/api/booking/cancel/confirm`,
 
-
- 
-  // insurance
-   SEARCH_INSURANCE: `${BASE_URL}/insurance/search`,
+  //insurance endpoints
+  SEARCH_INSURANCE: `${BASE_URL}/insurance/search`,
   GET_INSURANCE_BOOKING_DETAILS: `${BASE_URL}/insurance/getBookingDetail`,
 };
-
-

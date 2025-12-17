@@ -91,7 +91,7 @@ function HotelBooking() {
   useEffect(() => {
     const handleScroll = () => {
       if (isLoadingMore) return;
-      
+
       if (
         window.innerHeight + window.scrollY >=
         document.body.offsetHeight - 100
@@ -361,9 +361,14 @@ function HotelBooking() {
         ResponseTime: responseTime, // default 30s
         IsDetailedResponse: isDetailedResponse, // true/false
         Filters: {
-          Refundable: "true",
-          MealType: "WithMeal", // All | WithMeal | RoomOnly
+          Refundable: "false",
+          MealType: "All", // All | WithMeal | RoomOnly
         },
+        //i have changed due to refundedamount varilables
+        // Filters: {
+        //   Refundable: "true",
+        //   MealType: "WithMeal", // All | WithMeal | RoomOnly
+        // },
       },
     });
   };
@@ -456,43 +461,43 @@ function HotelBooking() {
               </select>
             </div>
 
-           <div className="col-md-2">
-  <label className="form-label">Check-In</label>
-  <DatePicker
-    selected={checkIn ? new Date(checkIn) : null}
-    onChange={(date) => {
-      if (!date) return;
+            <div className="col-md-2">
+              <label className="form-label">Check-In</label>
+              <DatePicker
+                selected={checkIn ? new Date(checkIn) : null}
+                onChange={(date) => {
+                  if (!date) return;
 
-      const checkInDate = date.toISOString().split("T")[0];
-      setCheckIn(checkInDate);
+                  const checkInDate = date.toISOString().split("T")[0];
+                  setCheckIn(checkInDate);
 
-      // ⭐ Automatically set Check-Out = tomorrow date
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
-      setCheckOut(nextDay.toISOString().split("T")[0]);
-    }}
-    className="form-control"
-    dateFormat="yyyy-MM-dd"
-    minDate={new Date()}
-    placeholderText="Select Check-In"
-  />
-</div>
+                  // ⭐ Automatically set Check-Out = tomorrow date
+                  const nextDay = new Date(date);
+                  nextDay.setDate(nextDay.getDate() + 1);
+                  setCheckOut(nextDay.toISOString().split("T")[0]);
+                }}
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                minDate={new Date()}
+                placeholderText="Select Check-In"
+              />
+            </div>
 
-{/* Check-Out */}
-<div className="col-md-2">
-  <label className="form-label">Check-Out</label>
-  <DatePicker
-    selected={checkOut ? new Date(checkOut) : null}
-    onChange={(date) =>
-      setCheckOut(date ? date.toISOString().split("T")[0] : "")
-    }
-    className="form-control"
-    dateFormat="yyyy-MM-dd"
-    minDate={checkIn ? new Date(checkIn) : new Date()}
-    excludeDates={checkIn ? [new Date(checkIn)] : []}   // ⭐ Hide check-in date
-    placeholderText="Select Check-Out"
-  />
-</div>
+            {/* Check-Out */}
+            <div className="col-md-2">
+              <label className="form-label">Check-Out</label>
+              <DatePicker
+                selected={checkOut ? new Date(checkOut) : null}
+                onChange={(date) =>
+                  setCheckOut(date ? date.toISOString().split("T")[0] : "")
+                }
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                minDate={checkIn ? new Date(checkIn) : new Date()}
+                excludeDates={checkIn ? [new Date(checkIn)] : []} // ⭐ Hide check-in date
+                placeholderText="Select Check-Out"
+              />
+            </div>
 
             {/* Rooms Dropdown */}
             <div className="col-md-4 position-relative">
@@ -683,7 +688,7 @@ function HotelBooking() {
                 className=" form-control explore-btn w-100"
                 onClick={handleSearch}
               >
-                Modify Search
+                Search
               </button>
             </div>
           </div>
@@ -706,25 +711,6 @@ function HotelBooking() {
               </ol>
             </nav>
           </div>
-          {/* <div className="col-sm-3 ms-auto d-flex gap-2">
-            <input
-              type="text"
-              className="form-select flex-fill"
-              placeholder="Enter Hotel Name or Location"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-            />
-            <select
-              className="form-select flex-fill"
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-            >
-              <option value="Popularity">Popularity</option>
-              <option value="PriceLowHigh">Price (Low to High)</option>
-              <option value="PriceHighLow">Price (High to Low)</option>
-              <option value="Rating">Rating</option>
-            </select>
-          </div> */}
         </div>
 
         <div className="row">
@@ -748,7 +734,6 @@ function HotelBooking() {
                 </div>
                 {toggle.showProperties && (
                   <div className="filter-options mt-2">
-                   
                     <div className="form-check">
                       <input
                         className="form-check-input"
@@ -861,50 +846,6 @@ function HotelBooking() {
                   </div>
                 )}
               </div>
-
-              {/* Filter: Amenities */}
-              {/* <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  onClick={() => handleToggle("amenities")}
-                  style={{ cursor: "pointer" }}
-                >
-                  <span>Amenities</span>
-                  <span>
-                    <FontAwesomeIcon
-                      icon={toggle.amenities ? faChevronUp : faChevronDown}
-                    />
-                  </span>
-                </div>
-                {toggle.amenities && (
-                  <div className="filter-options mt-2">
-                    {[
-                      "Free Cancellation",
-                      "24 Hour Front Desk",
-                      "Ac",
-                      "Bar",
-                      "Wi-Fi",
-                      "Breakfast",
-                    ].map((amenity) => (
-                      <div className="form-check" key={amenity}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`amenity-${amenity}`}
-                          checked={selectedAmenities.includes(amenity)}
-                          onChange={() => handleAmenityChange(amenity)}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`amenity-${amenity}`}
-                        >
-                          {amenity}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div> */}
             </div>
           </div>
 
@@ -1025,18 +966,21 @@ function HotelBooking() {
                 {isLoadingMore && (
                   <div className="col-12 text-center my-3">
                     <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading more hotels...</span>
+                      <span className="visually-hidden">
+                        Loading more hotels...
+                      </span>
                     </div>
                     <p className="mt-2">Loading more hotels...</p>
                   </div>
                 )}
 
                 {/* Show message if all hotels are loaded */}
-                {visibleCount >= filteredHotels.length && filteredHotels.length > 0 && (
-                  <div className="col-12 text-center my-4 text-muted">
-                    <small>All {filteredHotels.length} hotels loaded</small>
-                  </div>
-                )}
+                {visibleCount >= filteredHotels.length &&
+                  filteredHotels.length > 0 && (
+                    <div className="col-12 text-center my-4 text-muted">
+                      <small>All {filteredHotels.length} hotels loaded</small>
+                    </div>
+                  )}
 
                 {/* Show how many hotels are being displayed */}
                 {/* {filteredHotels.length > 0 && (
