@@ -11,7 +11,6 @@ const Guidedetail = () => {
   const guide = location.state?.guideData;
   const { startPayment } = useCashfreePayment();
 
-
   const [activeTab, setActiveTab] = useState("about");
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [userForm, setUserForm] = useState({
@@ -563,6 +562,14 @@ const Guidedetail = () => {
                 <div className="summary-item">
                   <span>Number of Days:</span>
                   <span>{numberOfDays}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Start Date:</span>
+                  <span>{startDate}</span>
+                </div>
+                <div className="summary-item">
+                  <span>End Date:</span>
+                  <span>{endDate}</span>
                 </div>
                 <div className="summary-item">
                   <span>Location:</span>

@@ -140,3 +140,8 @@ export const bus_getChangeRequestStatus = async (payload) => {
     headers: { "Content-Type": "application/json" },
   });
 };
+export const bus_block = async (payload) => {
+  return await axios.post(API.Bus_block, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};

@@ -711,25 +711,6 @@ function HotelBooking() {
               </ol>
             </nav>
           </div>
-          {/* <div className="col-sm-3 ms-auto d-flex gap-2">
-            <input
-              type="text"
-              className="form-select flex-fill"
-              placeholder="Enter Hotel Name or Location"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-            />
-            <select
-              className="form-select flex-fill"
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-            >
-              <option value="Popularity">Popularity</option>
-              <option value="PriceLowHigh">Price (Low to High)</option>
-              <option value="PriceHighLow">Price (High to Low)</option>
-              <option value="Rating">Rating</option>
-            </select>
-          </div> */}
         </div>
 
         <div className="row">
@@ -865,50 +846,6 @@ function HotelBooking() {
                   </div>
                 )}
               </div>
-
-              {/* Filter: Amenities */}
-              {/* <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  onClick={() => handleToggle("amenities")}
-                  style={{ cursor: "pointer" }}
-                >
-                  <span>Amenities</span>
-                  <span>
-                    <FontAwesomeIcon
-                      icon={toggle.amenities ? faChevronUp : faChevronDown}
-                    />
-                  </span>
-                </div>
-                {toggle.amenities && (
-                  <div className="filter-options mt-2">
-                    {[
-                      "Free Cancellation",
-                      "24 Hour Front Desk",
-                      "Ac",
-                      "Bar",
-                      "Wi-Fi",
-                      "Breakfast",
-                    ].map((amenity) => (
-                      <div className="form-check" key={amenity}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`amenity-${amenity}`}
-                          checked={selectedAmenities.includes(amenity)}
-                          onChange={() => handleAmenityChange(amenity)}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`amenity-${amenity}`}
-                        >
-                          {amenity}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div> */}
             </div>
           </div>
 

@@ -85,6 +85,11 @@ const HotelDetail = () => {
         ResponseTime: bookingData.ResponseTime,
         IsDetailedResponse: bookingData.IsDetailedResponse,
         Filters: bookingData.Filters,
+        // IsPackageFare:
+        //   booking?.serviceDetails?.ValidationInfo?.PackageFare || false,
+        // IsPackageDetailsMandatory:
+        //   booking?.serviceDetails?.ValidationInfo?.PackageDetailsMandatory ||
+        //   false,
       },
       startDate: bookingData.checkIn,
       endDate: bookingData.checkOut,
