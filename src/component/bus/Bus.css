@@ -100,7 +100,7 @@ label {
   z-index: 1000;
 }
 
-.modal-content {
+/* .modal-content {
   background: white;
   border-radius: 12px;
   width: 90%;
@@ -108,7 +108,7 @@ label {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
+} */
 
 /* .modal-header {
   display: flex;

@@ -26,19 +26,15 @@
 }
 
 /* CARD STYLE SAME AS IMAGE */
-.testimonial-card {
+/* .testimonial-card {
   width: 330px;
   background: #fbeeee;
   padding: 25px 30px;
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-}
+} */
 
-.stars {
-  color: #ffa500;
-  font-size: 20px;
-  margin-bottom: 15px;
-}
+
 
 .testimonial-text {
   font-size: 15px;

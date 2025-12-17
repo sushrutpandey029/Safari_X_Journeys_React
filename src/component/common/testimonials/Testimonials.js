@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BASE_URL } from "../../services/apiEndpoints";
 import { fetchTestimonialList } from "../../services/commonService";
 
-import "./Testimonials.css";
-
 function Testimonials() {
   const [testimonialData, setTestimonialData] = useState([]);
 
@@ -21,58 +19,42 @@ function Testimonials() {
     getTestimonials();
   }, []);
 
-
- return (
-
-  
- <div className="Testimonials" style={{ margin: "50px" }}>
-
-  {/* -------- PAGE HEADING -------- */}
-  <div className="heading-section text-center mb-5">
-    <h2 className="main-title">
-      Our Client <span>Testimonials</span>
-    </h2>
-    <p className="sub-title">
-      What our clients say after using our services
-    </p>
-  </div>
-
-  {/* -------- AUTO 2 ROWS (3 CARDS EACH) -------- */}
-  <div className="testimonial-row">
-    {Array.isArray(testimonialData) &&
-      testimonialData.slice(0, 6).map((item) => (   // 6 cards = 2 rows
-        <div key={item.id} className="testimonial-card">
-
-          {/* Stars */}
-          <div className="stars">
-            {"★".repeat(item.rating)}
-            {"☆".repeat(5 - item.rating)}
+  return (
+    <div className="Testionials" style={{ marginTop: "100px" }}>
+      <div className="container">
+        <div className="row align-items-center mb-4">
+          <div className="col-sm-9">
+            <h2>
+              Our Recent <span>Testimonials</span>
+            </h2>
           </div>
 
-          {/* Description */}
-          <p className="testimonial-text">
-            {item.description?.substring(0, 140)}...
-          </p>
+          {testimonialData?.map((item) => (
+            <div key={item.id} className="col-sm-4 mb-4">
+              <div className="testimonial-card">
+                <div className="stars">{"★".repeat(item.rating)}</div>
 
-          {/* User */}
-          <div className="testimonial-user">
-            <img
-              src={`${BASE_URL}/testimonial/images/${item.image}`}
-              alt={item.name}
-              className="user-img"
-            />
-            <h4 className="user-name">{item.name}</h4>
-          </div>
+                <p className="review-text">
+                  {item.description?.substring(0, 110)}...
+                </p>
 
+                <div className="review-user">
+                  <img
+                    src={`${BASE_URL}/testimonial/images/${item.image}`}
+                    alt={item.name}
+                  />
+                  <div>
+                    <h4>{item.name}</h4>
+                    <small>{item.designation}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-  </div>
-
-</div>
-
-
-);
-
+      </div>
+    </div>
+  );
 }
 
 export default Testimonials;

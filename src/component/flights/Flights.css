@@ -113,15 +113,8 @@
 
   font-weight: bold;
 }
-.explore-btn {
-  background-color: #274a62;
-  color: white;
-  border: none;
-  padding: 4px 20px;
-  border-radius: 16px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s ease;
+.explore-btnsearch-box{
+
 }
 
 /* src/components/Flights.css */
@@ -194,12 +187,12 @@
   color: white;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: bold;
 }
 
 .airport-name {
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 /* Flight Detail Modal Styles */
@@ -224,6 +217,7 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   animation: fadeInScale 0.25s ease-out;
   background: #ffffff;
+  width: 60%;
 }
 
 /* Smooth intro animation */
@@ -236,8 +230,7 @@
    HEADER – Gradient MMT Style
    ======================================================= */
 .modal-header-custom {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  padding: 25px 30px;
+  background-color: #274a62;
   color: #fff;
   border-bottom: none;
 }
@@ -245,6 +238,7 @@
 .modal-header-custom .btn-close {
   filter: invert(1);
   opacity: 0.8;
+
 }
 
 .modal-header-custom .btn-close:hover {
@@ -259,6 +253,7 @@
   overflow-y: auto;
   padding: 25px 28px;
   background: #f7f9fc;
+  width: 500px
 }
 
 /* =======================================================
@@ -280,159 +275,264 @@
 }
 
 /* =======================================================
-   MMT FARE CARD DESIGN
+   SCREENSHOT SPECIFIC DESIGN (EXACT MATCH)
    ======================================================= */
 
+/* Main fare card container */
 .fare-option-card {
   background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid #d7e1ef;
-  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
   width: 100%;
+  position: relative;
+  border-top: 4px solid #2c3c5e;
 }
 
 .fare-option-card:hover {
-  border-color: #2b80ff;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  border-color: #2c3c5e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .fare-option-card.selected {
-  border: 2px solid #2b80ff;
-  box-shadow: 0 12px 28px rgba(43,128,255,0.25);
+  border: 2px solid #2c3c5e;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
+}
+
+/* Red accent border at top */
+.fare-option-card::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2c3c5e, #2c3c5e);
+  border-radius: 4px 4px 0 0;
 }
 
 /* =======================================================
-   PRICE + TITLE
+   PRICE SECTION (₹10,811 per adult)
    ======================================================= */
 
-.fare-price-top {
-  font-size: 26px;
+.fare-header {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.fare-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.price-emoji {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+.price-amount {
+  font-size: 28px;
   font-weight: 800;
-  color: #111;
-  margin-bottom: 5px;
+  color: #111827;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.fare-per-adult {
-  font-size: 12px;
-  color: #6d6f73;
-  margin-bottom: 14px;
-}
-
-.fare-type-title {
+.price-label {
   font-size: 14px;
-  font-weight: 700;
-  color: #4376ff;
-  margin-bottom: 15px;
+  color: #6b7280;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+/* SPICESAVER Badge */
+.fare-type {
+  margin-top: 8px;
+}
+
+.fare-badge {
+  background: #2c3c5e !important;
+  color: white !important;
+  padding: 4px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: inline-block !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none !important;
+}
+
+.fare-badge.spicesaver {
+  background: #2c3c5e !important;
 }
 
 /* =======================================================
-   MMT SPECIAL BADGE
+   FEATURE SECTIONS (Baggage, Flexibility, Seats & Meals)
    ======================================================= */
 
-.mmt-special-badge {
-  background: #ffcc00;
-  color: #111;
-  padding: 4px 12px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  display: inline-block;
-  margin-bottom: 12px;
+.fare-section {
+  margin-bottom: 20px;
 }
 
-/* =======================================================
-   FEATURES SECTIONS
-   ======================================================= */
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
 
-.feature-block { margin-bottom: 18px; }
-
-.feature-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 8px;
+.section-content {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .feature-item {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 14px;
-  color: #444;
+ color: white;
 }
 
-.feature-item .tick {
-  color: #18b36e;
-  font-size: 16px;
+.feature-emoji {
+  color: #10b981;
+  font-size: 14px;
+  min-width: 16px;
+  text-align: center;
 }
 
-.feature-item .dot {
-  color: #e1a126;
-  font-size: 16px;
+/* Specific icons for each section */
+.fare-section:nth-child(2) .feature-item .feature-emoji { /* Baggage */
+  color: #10b981;
+}
+
+.fare-section:nth-child(3) .feature-item .feature-emoji { /* Flexibility */
+  color: #2c3c5e;
+}
+
+.fare-section:nth-child(4) .feature-item .feature-emoji { /* Seats & Meals */
+  color: #3b82f6;
 }
 
 /* =======================================================
-   ACTION BUTTONS (LOCK PRICE / BOOK NOW)
+   DISCOUNT TAGS SECTION (YELLOW BACKGROUND)
    ======================================================= */
 
-.card-actions {
-  display: flex;
-  gap: 12px;
+/* This will render the discount text as shown in screenshot */
+.fare-option-card .feature-item:last-child {
+  display: none; /* Hide the last feature item since we'll use discount-tags instead */
+}
+
+/* Custom discount section matching screenshot */
+.fare-option-card::after {
+  content: "FLAT ₹100 OFF using MMTSUPER | FLAT 1000 OFF on ICICI Credit cards using FLYMON";
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2c3c5e;
+  padding: 12px;
+  margin: 16px 0;
+  background: #fef3c7;
+  border-radius: 8px;
+  border-left: 3px solid #2c3c5e;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* =======================================================
+   VERTICAL ACTION BUTTONS (LOCK PRICE & BOOK NOW)
+   ======================================================= */
+
+.selection-indicator {
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #edeef0;
 }
 
-.lock-btn {
-  flex: 1;
-  padding: 10px;
-  border-radius: 30px;
-  border: 2px solid #2b80ff;
-  background: white;
-  color: #2b80ff;
-  font-weight: 600;
-  transition: all 0.2s;
-  text-align: center;
+/* Button container */
+.fare-option-card > div:nth-last-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
 }
 
-.lock-btn:hover { background: #e9f1ff; }
+/* LOCK PRICE Button */
+.fare-option-card .selected-tick,
+.fare-option-card .select-prompt {
+  display: none; /* Hide the selection indicator since we have buttons */
+}
 
-.book-btn {
-  flex: 1;
-  padding: 10px;
-  border-radius: 30px;
-  background: linear-gradient(90deg,#1a73e8,#2b80ff);
+/* Custom button styles matching screenshot */
+.fare-option-card::before {
+  /* This is already used for red border */
+}
+
+/* Custom buttons */
+.fare-option-card > div:nth-last-child(2) > div:first-child {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid #2c3c5e;
+  background: white;
+  color: #2c3c5e;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fare-option-card > div:nth-last-child(2) > div:first-child:hover {
+  background: #fef2f2;
+}
+
+/* BOOK NOW Button */
+.fare-option-card > div:nth-last-child(2) > div:last-child {
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2c3c5e, #2c3c5e);
   color: white;
   border: none;
-  font-weight: 600;
-  transition: 0.2s;
+  font-weight: 700;
+  font-size: 14px;
   text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
 }
 
-.book-btn:hover {
-  box-shadow: 0 4px 16px rgba(43,128,255,0.45);
+.fare-option-card > div:nth-last-child(2) > div:last-child:hover {
+  background: linear-gradient(135deg, #2c3c5e, #2c3c5e);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
 }
 
 /* =======================================================
-   TOP BORDER COLORS PER COLUMN (MMT STYLE)
+   SELECTION INDICATOR
    ======================================================= */
 
-.fare-option-column:nth-child(1) .fare-option-card {
-  border-top: 4px solid #2b80ff;
-}
-
-.fare-option-column:nth-child(2) .fare-option-card {
-  border-top: 4px solid #ffcc00;
-}
-
-.fare-option-column:nth-child(3) .fare-option-card {
-  border-top: 4px solid #18b36e;
+.fare-option-card.selected::after {
+  content: "✓ SELECTED";
+  color: ffffff;
+  font-weight: 600;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 8px;
 }
 
 /* =======================================================
@@ -451,8 +551,204 @@
   }
 
   .fare-option-column { min-width: 100%; }
+  
+  .price-amount {
+    font-size: 24px;
+  }
+  
+  .fare-option-card {
+    padding: 16px;
+  }
+  
+  .fare-option-card > div:nth-last-child(2) > div:first-child,
+  .fare-option-card > div:nth-last-child(2) > div:last-child {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
 }
 
+/* =======================================================
+   NON-REFUNDABLE BANNER
+   ======================================================= */
+
+.non-refundable-banner {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* =======================================================
+   EXISTING STYLES (KEEP THESE AS THEY WERE)
+   ======================================================= */
+
+.modal-main-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.flight-route {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #e0e7ff;
+}
+
+.flight-details {
+  font-size: 14px;
+  color: #d1d5db;
+  margin-bottom: 8px;
+}
+
+.passenger-count-display {
+  font-size: 13px;
+  color: #d1d5db;
+  margin-top: 8px;
+}
+
+.fare-basis-info {
+  font-size: 12px;
+  color: #d1d5db;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.total-price-section {
+  margin: 24px 0;
+}
+
+.total-price-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.total-price {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.total-amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.total-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.passenger-breakdown {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.breakdown-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fare-rules-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  margin-top: 20px;
+}
+
+.fare-rules-section .section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 16px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.loading-rules {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+}
+
+.no-rules {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+.modal-footer-custom {
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  padding: 20px 30px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.selected-fare-info {
+  flex: 1;
+}
+
+.selected-info {
+  font-size: 14px;
+  color: #374151;
+}
+
+.refundable-badge {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.refundable-badge.non-refundable {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.no-selection {
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.footer-actions {
+  flex-shrink: 0;
+}
+
+.footer-note {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  width: 100%;
+}
+
+.non-refundable-note {
+  color: #dc2626;
+  font-weight: 600;
+}
 
 
 /* checkout */
@@ -561,3 +857,517 @@
 
 
 
+
+
+
+
+/* Seat Modal Styles */
+.seat-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1050;
+}
+
+.seat-modal-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 56rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.seat-modal-header {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.seat-modal-body {
+  padding: 1.5rem;
+  background: linear-gradient(to bottom, #bae6fd, #7dd3fc);
+}
+
+.airplane-layout {
+  position: relative;
+  margin: 0 auto;
+  max-width: 500px;
+}
+
+.cockpit-container {
+  margin: 0 auto 2rem;
+  width: 80%;
+}
+
+.exit-indicators {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0 2rem;
+}
+
+.exit-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #dc2626;
+}
+
+.exit-label span {
+  background-color: #e5e7eb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.column-headers {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0 1rem;
+}
+
+.column-header {
+  width: 3.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.seats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seat-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.row-number {
+  width: 2.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.seat-button {
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0.25rem;
+  border-radius: 0.5rem;
+  border: 2px solid #94a3b8;
+  transition: all 0.2s;
+  position: relative;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.seat-button:not(:disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.seat-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.seat-button.selected {
+  border-color: #16a34a;
+  border-width: 3px;
+}
+
+.seat-checkmark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seat-checkmark svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.aisle-gap {
+  width: 1.5rem;
+}
+
+.seat-legend {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-top: 1.5rem;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .legend-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+}
+
+.selected-seat-display {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 2px solid #22c55e;
+  z-index: 1060;
+}
+
+
+
+
+
+
+
+
+
+.seat-selection-modal .modal-dialog {
+  max-width: 900px;
+}
+
+.seat-selection-modal .modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.seat-selection-modal .modal-header {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.seat-legend {
+  border: 1px solid #dee2e6;
+}
+
+.seat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.seat-icon.seat-free {
+  background: #d1f4e0;
+  border-color: #40c463;
+}
+
+.seat-icon.seat-200-500 {
+  background: #b3d9ff;
+  border-color: #4a90e2;
+}
+
+.seat-icon.seat-650-2300 {
+  background: #d4b5f7;
+  border-color: #9c6fd4;
+}
+
+.seat-icon.seat-exit {
+  background: #ff6b6b;
+  border-color: #c92a2a;
+}
+
+.seat-icon.seat-non-reclining {
+  background: #b8a8ff;
+  border-color: #7c5cdb;
+}
+
+.seat-icon.seat-extra-legroom {
+  background: #b8a8ff;
+  border-color: #7c5cdb;
+  color: white;
+}
+
+.airplane-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
+  border-radius: 12px;
+  position: relative;
+}
+
+.airplane-cockpit {
+  width: 100%;
+  height: 60px;
+  margin-bottom: 20px;
+}
+
+.cockpit-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.seat-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+}
+
+.seat-columns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.column-letter {
+  width: 50px;
+  text-align: center;
+}
+
+.exit-marker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #c92a2a;
+  font-size: 11px;
+  font-weight: 600;
+  width: 60px;
+}
+
+.exit-marker.left {
+  justify-content: flex-end;
+  margin-right: 10px;
+}
+
+.exit-marker.right {
+  justify-content: flex-start;
+  margin-left: 10px;
+}
+
+.exit-arrow {
+  font-size: 14px;
+}
+
+.aisle {
+  width: 40px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #e9ecef 0px,
+    #e9ecef 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
+.row-number {
+  width: 40px;
+  text-align: center;
+  color: #868e96;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.seat-grid-wrapper {
+  position: relative;
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.seat-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.seat-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
+}
+
+.seat-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  background: repeating-linear-gradient(
+    45deg,
+    #f8f9fa,
+    #f8f9fa 5px,
+    #e9ecef 5px,
+    #e9ecef 10px
+  );
+}
+
+.seat-button.seat-occupied {
+  background: #ced4da;
+}
+
+.seat-button.seat-free {
+  background: #d1f4e0;
+  border-color: #40c463;
+}
+
+.seat-button.seat-200-500 {
+  background: #b3d9ff;
+  border-color: #4a90e2;
+}
+
+.seat-button.seat-650-2300 {
+  background: #d4b5f7;
+  border-color: #9c6fd4;
+}
+
+.seat-button.seat-selected {
+  background: #007bff;
+  border-color: #0056b3;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.seat-button.seat-xl {
+  font-size: 10px;
+}
+
+.seat-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #7c5cdb;
+  color: white;
+  font-size: 8px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.seat-checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+}
+
+.seat-number {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.wing-indicators {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wing {
+  position: absolute;
+  height: 60px;
+  background: linear-gradient(90deg, transparent 0%, #adb5bd 50%, transparent 100%);
+  opacity: 0.3;
+}
+
+.left-wing {
+  left: -50px;
+  right: 50%;
+  border-radius: 30px 0 0 30px;
+}
+
+.right-wing {
+  left: 50%;
+  right: -50px;
+  border-radius: 0 30px 30px 0;
+}
+
+@media (max-width: 768px) 
+  .airplane-container {
+    padding: 10px;
+  }
+  
+  .seat-button {
+    width: 40px;
+    height: 40px;
+    font-size: 10px;
+  }
+  
+  .column-letter {
+    width: 40px;
+  }
+  
+  .aisle {
+    width: 30px;
+  }

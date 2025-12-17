@@ -15,11 +15,11 @@ function GuideCard({ guide }) {
           <p>
             <span class="label">Name:</span> {guide.fullName}
           </p>
-          <p>
-            <span class="label">Rating:</span> <span class="stars">★★★★</span>
+          <p className="rating">
+            <span class="stars">★★★★</span>
           </p>
           <p>
-            <span className="label">Charges/Day:</span> {guide.chargesPerDay}
+            <span className="label">Charges/Day:</span> ₹{guide.chargesPerDay}
           </p>
         </div>
       </div>

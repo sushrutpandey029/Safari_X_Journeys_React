@@ -34,12 +34,18 @@ const formatPrice = (price) => {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
-const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }) => {
-  console.log("searchdata in fligtdetail",searchData)
+const FlightDetail = ({
+  flightData,
+  travelClass,
+  showModal,
+  onHide,
+  searchData,
+}) => {
   const [fareDetail, setFareDetail] = useState("");
   const [loadingFare, setLoadingFare] = useState(false);
   const [selectedFare, setSelectedFare] = useState(null);
   const [fareRulesData, setFareRulesData] = useState(null);
+  console.log("search data in flightdetails ", searchData);
 
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
@@ -49,42 +55,39 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Search data se passenger count set karo
-    if (searchData && searchData.passengers) {
-      setAdults(searchData.passengers.adults || 1);
+    if (showModal && flightData && !fareRulesData) {
+      fetchFareRules();
+    }
+  }, [showModal, flightData]);
+  useEffect(() => {
+    if (searchData?.passengers) {
+      setAdults(searchData.passengers.adults || 0);
       setChildren(searchData.passengers.children || 0);
       setInfants(searchData.passengers.infants || 0);
-      setTripType(searchData.tripType || "oneway");
     }
-
-    if (showModal && flightData) {
-      fetchFareRules();
-      setSelectedFare(null); // Reset selection when modal opens
-    }
-  }, [showModal, flightData, searchData]);
+  }, [searchData]);
 
   const fetchFareRules = async () => {
     setLoadingFare(true);
     try {
-      const fareData = {
-        Airline: flightData.Airline?.AirlineCode || flightData.AirlineCode || "AI",
-        FareBasisCode: flightData.Fare?.FareBasisCode || "VU1YXSII",
+      const payload = {
+        TraceId: searchData?.TraceId,
+        ResultIndex: flightData?.ResultIndex,
       };
-      const res = await Flight_FareRule(fareData);
-      console.log("Fare Rules API Response:", res); // Debug log
-      
-      if (res.success && res.data?.Response?.FareRules?.length > 0) {
-        const fareRule = res.data.Response.FareRules[0];
-        setFareDetail(fareRule.FareRuleDetail);
-        setFareRulesData(fareRule);
+
+      const res = await Flight_FareRule(payload);
+      console.log("Fare Rules API Response:", res);
+
+      if (res?.data?.Response?.FareRules?.length > 0) {
+        const rule = res.data.Response.FareRules[0];
+        setFareDetail(rule.FareRuleDetail);
+        setFareRulesData(rule);
       } else {
-        setFareDetail("<p>No fare rule found for this flight.</p>");
-        setFareRulesData(null);
+        setFareDetail("<p>No fare rule available.</p>");
       }
-    } catch (error) {
-      console.error("Error fetching fare rules:", error);
+    } catch (err) {
+      console.error(err);
       setFareDetail("<p>Error fetching fare rules.</p>");
-      setFareRulesData(null);
     } finally {
       setLoadingFare(false);
     }
@@ -94,36 +97,17 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
   const extractFareRulesInfo = () => {
     if (!fareRulesData) return null;
 
-    const fareRuleDetail = fareRulesData.FareRuleDetail || "";
-    
-    // Extract cancellation fee from API response
-    let cancellationFee = "Cancellation fee starts at ₹4,300 (up to 2 hours before departure)";
-    let dateChangeFee = "Date Change fee starts at ₹3,000 up to 2 hrs before departure";
-
-    // Try to extract actual values from the API response
-    if (fareRuleDetail.includes("CHARGE INR 4300 FOR CANCEL/REFUND")) {
-      cancellationFee = "Cancellation fee: ₹4,300 (up to 2 hours before departure)";
-    }
-    
-    if (fareRuleDetail.includes("CHARGE INR 3000 FOR REISSUE/REVALIDATION")) {
-      dateChangeFee = "Date Change fee: ₹3,000 up to 2 hrs before departure";
-    }
-
-    // Check if it's refundable
-    const isRefundable = !fareRuleDetail.includes("Non Refundable Fares");
-
     return {
-      cancellation: cancellationFee,
-      dateChange: dateChangeFee,
-      isRefundable: isRefundable,
-      fareBasisCode: fareRulesData.FareBasisCode || "VU1YXSII",
-      airline: fareRulesData.Airline || "AI"
+      isRefundable: flightData?.IsRefundable ?? false,
+      fareBasisCode: fareRulesData.FareBasisCode,
+      airline: fareRulesData.Airline,
+      rawHtml: fareRulesData.FareRuleDetail,
     };
   };
 
   const extractFlightInfo = () => {
     if (!flightData) return null;
-    
+
     // API data structure ke according data extract karo
     const segments = flightData.Segments?.[0] || [];
     const firstSegment = Array.isArray(segments) ? segments[0] : segments;
@@ -144,21 +128,21 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         code: origin.Airport?.AirportCode || "DEL",
         time: origin.DepTime,
         airport: origin.Airport?.AirportName || "Delhi Airport",
-        Airport: origin.Airport || {}
+        Airport: origin.Airport || {},
       },
       destination: {
         city: destination.Airport?.CityName || "Mumbai",
         code: destination.Airport?.AirportCode || "BOM",
         time: destination.ArrTime,
         airport: destination.Airport?.AirportName || "Mumbai Airport",
-        Airport: destination.Airport || {}
+        Airport: destination.Airport || {},
       },
       flight: {
         baggage: firstSegment?.Baggage || "15 KG",
         cabinBaggage: firstSegment?.CabinBaggage || "7 KG",
         duration: flightData.TotalJourneyTime || "2h 15m",
         aircraft: firstSegment?.AircraftType || "A320",
-        stops: Array.isArray(segments) ? segments.length - 1 : 0
+        stops: Array.isArray(segments) ? segments.length - 1 : 0,
       },
       fare: {
         total: fare.OfferedFare || fare.PublishedFare || 0,
@@ -175,44 +159,20 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       TotalJourneyTime: flightData.TotalJourneyTime,
       Airline: flightData.Airline,
       IsLCC: flightData.IsLCC,
-      IsRefundable: flightData.IsRefundable
+      IsRefundable: flightData.IsRefundable,
     };
   };
 
   const generateFareOptions = (flightInfo) => {
     if (!flightInfo) return [];
+
     const baseFare = flightInfo.fare.total;
-    
-    // Get fare rules info from API
-    const fareRulesInfo = extractFareRulesInfo();
+    const isRefundable = flightData?.IsRefundable ?? false;
 
     return [
       {
         id: 1,
-        type: "XPRESS VALUE",
-        FareType: "XPRESS_VALUE", // API ke liye
-        price: formatPrice(Math.max(1000, baseFare - 500)),
-        originalPrice: Math.max(1000, baseFare - 500),
-        baggage: {
-          cabin: flightInfo.flight.cabinBaggage,
-          checkin: flightInfo.flight.baggage,
-        },
-        flexibility: {
-          cancellation: fareRulesInfo?.cancellation || "Cancellation fee starts at ₹4,300 (up to 2 hours before departure)",
-          dateChange: fareRulesInfo?.dateChange || "Date Change fee starts at ₹3,000 up to 2 hrs before departure",
-        },
-        amenities: {
-          seats: "Chargeable Seats",
-          meals: "Chargeable Meals",
-          priority: "",
-        },
-        offers: [],
-        isRefundable: fareRulesInfo?.isRefundable || false,
-      },
-      {
-        id: 2,
-        type: "FARE BY MAKEMYTRIP",
-        FareType: "STANDARD", // API ke liye
+        type: "Standard Fare",
         price: formatPrice(baseFare),
         originalPrice: baseFare,
         baggage: {
@@ -220,39 +180,16 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
           checkin: flightInfo.flight.baggage,
         },
         flexibility: {
-          cancellation: fareRulesInfo?.cancellation || "Cancellation fee starts at ₹4,300 (up to 2 hours before departure)",
-          dateChange: fareRulesInfo?.dateChange || "Date Change fee starts at ₹3,000 up to 2 hrs before departure",
+          cancellation: isRefundable
+            ? "Cancellation allowed as per airline fare rules"
+            : "This fare is non-refundable",
+          dateChange: "Date change allowed as per airline policy",
         },
         amenities: {
           seats: "Chargeable Seats",
           meals: "Chargeable Meals",
-          priority: "",
         },
-        benefits: "BENEFITS WORTH ₹299 INCLUDED - Travel Insurance for 2 days 😊",
-        offers: [],
-        isRefundable: fareRulesInfo?.isRefundable || false,
-      },
-      {
-        id: 3,
-        type: "XPRESS FLEX",
-        FareType: "FLEX", // API ke liye
-        price: formatPrice(Math.max(1000, baseFare + 200)),
-        originalPrice: Math.max(1000, baseFare + 200),
-        baggage: {
-          cabin: flightInfo.flight.cabinBaggage,
-          checkin: flightInfo.flight.baggage,
-        },
-        flexibility: {
-          cancellation: fareRulesInfo?.cancellation || "Cancellation fee starts at ₹4,300 (up to 2 hours before departure)",
-          dateChange: "Free Date Change up to 2 hrs before departure",
-        },
-        amenities: {
-          seats: "Chargeable Seats",
-          meals: "Chargeable Meals",
-          priority: "",
-        },
-        offers: [],
-        isRefundable: fareRulesInfo?.isRefundable || false,
+        isRefundable,
       },
     ];
   };
@@ -264,12 +201,12 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
   // Calculate total price based on passenger count
   const calculateTotalPrice = (selectedFare) => {
     if (!selectedFare) return 0;
-    
+
     const basePrice = selectedFare.originalPrice;
     const totalAdults = adults * basePrice;
     const totalChildren = children * basePrice * 0.75; // 25% discount for children
     const totalInfants = infants * basePrice * 0.1; // 90% discount for infants
-    
+
     return totalAdults + totalChildren + totalInfants;
   };
 
@@ -286,7 +223,7 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       passengers: {
         adults: adults,
         children: children,
-        infants: infants
+        infants: infants,
       },
       tripType: tripType,
       travelClass: travelClass,
@@ -294,7 +231,8 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
       destination: flightInfo.destination.city,
       departureDate: flightInfo.origin.time,
       returnDate: searchData?.returnDate || null,
-      TraceId:searchData?.TraceId
+      TraceId: searchData?.TraceId,
+      TokenId: searchData?.TokenId,
     };
 
     // Calculate total price for all passengers
@@ -305,38 +243,39 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         ...flightInfo,
         ResultIndex: flightData.ResultIndex,
         FlightId: flightData.FlightId,
-        FareType: selectedFare.FareType,
-        originalFlightData: flightData
+        originalFlightData: flightData,
       },
 
       selectedFare: {
         ...selectedFare,
-        price: selectedFare.originalPrice
+        price: selectedFare.originalPrice,
       },
 
       searchData: finalSearchData,
-      
+
       // Passenger information for checkout forms
       passengerCount: {
         adults: adults,
         children: children,
-        infants: infants
+        infants: infants,
       },
-      
-      totalPrice: totalPrice
+
+      totalPrice: totalPrice,
     };
 
     console.log("Checkout Data:", checkoutData);
-    
+
     // Navigate to checkout page with all data
     navigate("/flight-checkout", { state: checkoutData });
     onHide();
   };
 
   const renderFareOptionCard = (fare, index) => (
-    <div 
-      key={fare.id} 
-      className={`fare-option-card ${selectedFare?.id === fare.id ? 'selected' : ''}`}
+    <div
+      key={fare.id}
+      className={`fare-option-card ${
+        selectedFare?.id === fare.id ? "selected" : ""
+      }`}
       onClick={() => handleFareSelect(fare)}
     >
       <div className="fare-header">
@@ -346,16 +285,18 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
           <span className="price-label">per adult</span>
         </div>
         <div className="fare-type">
-          <Badge className={`fare-badge ${fare.type.replace(/\s+/g, '-').toLowerCase()}`}>
+          <Badge
+            className={`fare-badge ${fare.type
+              .replace(/\s+/g, "-")
+              .toLowerCase()}`}
+          >
             {fare.type}
           </Badge>
         </div>
       </div>
 
       {!fare.isRefundable && (
-        <div className="non-refundable-banner">
-          🚫 Non-Refundable Fare
-        </div>
+        <div className="non-refundable-banner">🚫 Non-Refundable Fare</div>
       )}
 
       <div className="fare-section">
@@ -467,24 +408,26 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
           <div className="modal-main-title">
             Flight Details and Fare Options available for you!
           </div>
-          {/* <div className="flight-route">
+          <div className="flight-route">
             DEPART: {flightInfo.origin.code} - {flightInfo.destination.code}
           </div>
           <div className="flight-details">
             {flightInfo.airline.name} · {formatDate(flightInfo.origin.time)} ·
-            Departure: {formatTime(flightInfo.origin.time)} - 
-            Arrival: {formatTime(flightInfo.destination.time)}
+            Departure: {formatTime(flightInfo.origin.time)} - Arrival:{" "}
+            {formatTime(flightInfo.destination.time)}
             {isNextDayArrival() && " (+1 day)"}
           </div>
-          
+
           {/* Passenger Count Display */}
           <div className="passenger-count-display">
-            <strong>Passengers:</strong> {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
-          </div> 
+            <strong>Passengers:</strong> {adults} Adult(s), {children}{" "}
+            Child(ren), {infants} Infant(s)
+          </div>
 
           {fareRulesData && (
             <div className="fare-basis-info">
-              Fare Basis: {extractFareRulesInfo()?.fareBasisCode} · Airline: {extractFareRulesInfo()?.airline}
+              Fare Basis: {extractFareRulesInfo()?.fareBasisCode} · Airline:{" "}
+              {extractFareRulesInfo()?.airline}
             </div>
           )}
         </Modal.Title>
@@ -499,24 +442,38 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
               </div>
             ))}
           </div>
-          
+
           <div className="total-price-section">
             <div className="total-price-card">
               <div className="total-price">
-                <span className="total-amount">₹ {formatPrice(totalPrice)}</span>
+                <span className="total-amount">
+                  ₹ {formatPrice(totalPrice)}
+                </span>
                 <span className="total-label">
-                  {selectedFare ? 
-                    `${selectedFare.type} FOR ${adults} ADULT(S), ${children} CHILD(REN), ${infants} INFANT(S)` : 
-                    'SELECT A FARE TO SEE TOTAL'
-                  }
+                  {selectedFare
+                    ? `${selectedFare.type} FOR ${adults} ADULT(S), ${children} CHILD(REN), ${infants} INFANT(S)`
+                    : "SELECT A FARE TO SEE TOTAL"}
                 </span>
               </div>
               <div className="passenger-breakdown">
                 {selectedFare && (
                   <div className="breakdown-details">
-                    <div>Adults ({adults} x ₹{formatPrice(selectedFare.originalPrice)})</div>
-                    {children > 0 && <div>Children ({children} x ₹{formatPrice(selectedFare.originalPrice * 0.75)})</div>}
-                    {infants > 0 && <div>Infants ({infants} x ₹{formatPrice(selectedFare.originalPrice * 0.1)})</div>}
+                    <div>
+                      Adults ({adults} x ₹
+                      {formatPrice(selectedFare.originalPrice)})
+                    </div>
+                    {children > 0 && (
+                      <div>
+                        Children ({children} x ₹
+                        {formatPrice(selectedFare.originalPrice * 0.75)})
+                      </div>
+                    )}
+                    {infants > 0 && (
+                      <div>
+                        Infants ({infants} x ₹
+                        {formatPrice(selectedFare.originalPrice * 0.1)})
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -550,10 +507,13 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
           <div className="selected-fare-info">
             {selectedFare ? (
               <div className="selected-info">
-                <strong>Selected: {selectedFare.type}</strong> - 
-                Total: ₹{formatPrice(totalPrice)} for {adults} Adult(s), {children} Child(ren), {infants} Infant(s)
+                <strong>Selected: {selectedFare.type}</strong> - Total: ₹
+                {formatPrice(totalPrice)} for {adults} Adult(s), {children}{" "}
+                Child(ren), {infants} Infant(s)
                 {!selectedFare.isRefundable && (
-                  <span className="refundable-badge non-refundable">Non-Refundable</span>
+                  <span className="refundable-badge non-refundable">
+                    Non-Refundable
+                  </span>
                 )}
               </div>
             ) : (
@@ -573,7 +533,6 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
                 border: "none",
                 borderRadius: "30px",
                 color: "white",
-                textAlign: "end"
               }}
             >
               BOOK NOW - ₹{formatPrice(totalPrice)}
@@ -583,7 +542,10 @@ const FlightDetail = ({ flightData, travelClass, showModal, onHide, searchData }
         <div className="footer-note">
           All prices include taxes and fees. Additional charges may apply.
           {fareRulesData && !extractFareRulesInfo()?.isRefundable && (
-            <span className="non-refundable-note"> · This is a non-refundable fare</span>
+            <span className="non-refundable-note">
+              {" "}
+              · This is a non-refundable fare
+            </span>
           )}
         </div>
       </Modal.Footer>

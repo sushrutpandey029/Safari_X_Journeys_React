@@ -3,7 +3,7 @@
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625";
 // export const BASE_URL = "http://localhost:2625";
-export const BASE_URL = "http://192.168.1.10:2625"
+export const BASE_URL = "http://192.168.1.10:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -54,6 +54,7 @@ export const API = {
   HOTEL_CANCEL: `${BASE_URL}/api/hotel/cancel`,
   HOTEL_CANCEL_STATUS: `${BASE_URL}/api/hotel/cancel-status`,
   USER_HOTEL_BOOKING_DETAILS: `${BASE_URL}/api/booking-detail`,
+  HOTEL_BY_CATEGORY: `${BASE_URL}/api/getHotelCityByCategory`,
 
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
@@ -64,6 +65,7 @@ export const API = {
   flight_getBookingDetails: `${BASE_URL}/flight/get-booking-details`,
   flight_sendChangeRequest: `${BASE_URL}/flight/send-change-request`,
   flight_getChangeRequestStatus: `${BASE_URL}/flight/get-change-request-status`,
+  flight_SSR: `${BASE_URL}/flight/SSR-flight`,
 
   // BUS
   Bus_Authenticate: `${BASE_URL}/Bus/Authenticate`,
@@ -73,5 +75,13 @@ export const API = {
   Bus_boardingPoints: `${BASE_URL}/Bus/bus-boarding-points`,
 
   //cancel boooking
-  CANCEL_BOOKING : `${BASE_URL}/api/booking/cancel/confirm`
+  CANCEL_BOOKING : `${BASE_URL}/api/booking/cancel/confirm`,
+
+
+ 
+  // insurance
+   SEARCH_INSURANCE: `${BASE_URL}/insurance/search`,
+  GET_INSURANCE_BOOKING_DETAILS: `${BASE_URL}/insurance/getBookingDetail`,
 };
+
+

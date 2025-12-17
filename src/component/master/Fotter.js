@@ -14,22 +14,25 @@ import {
 } from "react-icons/fa6";
 
 const bots = [
+
+
   {
-    icon: "/images/whats.png",
-    label: "Whatsapp",
-    phone: "9821373111",
-    message: "Hello, I want to know more about your services.",
-    type: "whatsapp",
-  },
-  {
-    icon: "/images/call.png",
-    label: "Call ",
-    phone: "9821373111",
+    icon: "/images/whatsapp.gif",
+    label: "Call",
+    phone: "9821351111",
     type: "call",
   },
   {
-    icon: "/images/mail.png",
-    label: "Mail ",
+    icon: "/images/call.gif",
+    label: "Whatsapp",
+    phone: "9821351111",
+    message: "Hello, I want to know more about your services.",
+    type: "whatsapp",
+  },
+
+  {
+    icon: "/images/mail.gif",
+    label: "Mail",
     email: "tomharry192999@gmail.com",
     subject: "Service Inquiry",
     body: "Hi, I'm interested in your services. Please provide more info.",
@@ -170,13 +173,38 @@ function Footer() {
             </div>
             <div className="col-sm-6 col-md-3 mb-4">
               <h5>Safari X Nation</h5>
-              <div className="d-flex gap-2 mb-3">
-                <FaFacebookF />
-                <FaInstagram />
-                <FaXTwitter />
+             <div className="d-flex gap-2 mb-3">
+  <a
+    href="https://www.facebook.com/profile.php?id=61584561766143"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaFacebookF />
+  </a>
 
-                <FaLinkedinIn />
-              </div>
+  <a
+    href="https://www.instagram.com/safarixjourneys"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaInstagram />
+  </a>
+
+  <a
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaXTwitter />
+  </a>
+
+  <a
+    href="https://www.linkedin.com/in/yourprofile"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <FaLinkedinIn />
+  </a>
+</div>
 
            <h5 className="mt-5">Payment Methods</h5>
 

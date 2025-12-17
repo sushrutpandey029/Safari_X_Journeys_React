@@ -1,0 +1,284 @@
+// flight/FlightView.jsx
+import React, { useEffect, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { flight_getBookingDetails } from "../../../services/flightService";
+import useCancellation from "../../../hooks/useCancellation";
+
+export default function FlightView({ booking }) {
+  const {
+    bookingId,
+    status,
+    totalAmount,
+    currency,
+    vendorResponse,
+    bookingPayments,
+    serviceType,
+  } = booking || {};
+
+  const {
+    isCancelling,
+    cancelStatus,
+    cancelMessage,
+    cancelResult,
+    startCancellation,
+  } = useCancellation(serviceType || "flight");
+
+  const [liveBookingData, setLiveBookingData] = useState(null);
+
+  const paymentInfo = bookingPayments?.[0] || {};
+
+  // Extract fallback data
+  const bookRoot = vendorResponse?.Response;
+  const bookInner = bookRoot?.Response || bookRoot || {};
+
+  const ticketRoot = vendorResponse?.ticketResponse?.Response;
+  const ticketInner = ticketRoot?.Response || ticketRoot || {};
+
+  const fallbackFlight =
+    ticketInner?.FlightItinerary || bookInner?.FlightItinerary || {};
+
+  const fallbackPNR = ticketInner?.PNR || bookInner?.PNR || "N/A";
+  const fallbackBookingId =
+    ticketInner?.BookingId || bookInner?.BookingId || "N/A";
+
+  // Preferred live API → fallback
+  const flightAPIData = liveBookingData?.data?.Response || {};
+  const flightItinerary = flightAPIData?.FlightItinerary || fallbackFlight;
+  const PNR = flightAPIData?.PNR || fallbackPNR;
+  const vendorBookingId = flightAPIData?.BookingId || fallbackBookingId;
+
+  const segments = flightItinerary?.Segments || [];
+  const passengers = flightItinerary?.Passenger || [];
+
+  const firstSegment = Array.isArray(segments) && segments[0];
+
+  const originAirport = firstSegment?.Origin?.Airport;
+  const destinationAirport = firstSegment?.Destination?.Airport;
+
+  const originCity = originAirport?.CityName || originAirport?.AirportCode;
+  const destinationCity =
+    destinationAirport?.CityName || destinationAirport?.AirportCode;
+
+  const depTime =
+    firstSegment?.Origin?.DepTime && new Date(firstSegment.Origin.DepTime);
+  const arrTime =
+    firstSegment?.Destination?.ArrTime &&
+    new Date(firstSegment.Destination.ArrTime);
+
+  const airline = firstSegment?.Airline;
+
+  // Fetch booking details (Live Data)
+  const getBookingDetails = async () => {
+    try {
+      let payload = { EndUserIp: "192.168.1.11" };
+
+      if (vendorBookingId !== "N/A") payload.BookingId = vendorBookingId;
+      else if (PNR !== "N/A") payload.PNR = PNR;
+      else return;
+
+      const resp = await flight_getBookingDetails(payload);
+      setLiveBookingData(resp.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    getBookingDetails();
+  }, []);
+
+  // PDF Invoice
+  const handleDownloadInvoice = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("FLIGHT Booking Invoice", 14, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Booking ID: ${bookingId}`, 14, 28);
+    doc.text(`PNR: ${PNR}`, 14, 34);
+    doc.text(`Vendor Booking ID: ${vendorBookingId}`, 14, 40);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 46);
+
+    autoTable(doc, {
+      startY: 54,
+      head: [["Field", "Value"]],
+      body: [
+        ["PNR", PNR],
+        ["Vendor Booking ID", String(vendorBookingId)],
+        ["Route", `${originCity} → ${destinationCity}`],
+        ["Departure", depTime?.toLocaleString()],
+        ["Arrival", arrTime?.toLocaleString()],
+        [
+          "Airline",
+          airline
+            ? `${airline.AirlineName} (${airline.AirlineCode} ${airline.FlightNumber})`
+            : "N/A",
+        ],
+        ["Total Fare", `${currency} ${totalAmount}`],
+      ],
+    });
+
+    if (passengers.length > 0) {
+      autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [["Name", "Type", "Gender", "DOB", "Ticket No.", "Status"]],
+        body: passengers.map((p) => [
+          `${p.Title} ${p.FirstName} ${p.LastName}`,
+          p.PaxType === 1 ? "Adult" : p.PaxType === 2 ? "Child" : "Infant",
+          p.Gender === 1 ? "Male" : "Female",
+          p.DateOfBirth ? new Date(p.DateOfBirth).toLocaleDateString() : "-",
+          p.Ticket?.TicketNumber || "-",
+          p.Ticket?.Status || "-",
+        ]),
+      });
+    }
+
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 10,
+      head: [["Payment Field", "Value"]],
+      body: [
+        ["Amount", `${currency} ${totalAmount}`],
+        ["Method", paymentInfo.paymentMethod || "N/A"],
+        ["Payment Status", paymentInfo.paymentStatus || "N/A"],
+      ],
+    });
+
+    doc.save(`Invoice_Flight_${bookingId}.pdf`);
+  };
+
+  return (
+    <>
+      <h5 className="mb-3">Flight Booking Details</h5>
+
+      {/* STATUS UI */}
+      {cancelStatus === "processing" && (
+        <div className="alert alert-warning mt-3">{cancelMessage}</div>
+      )}
+      {cancelStatus === "success" && cancelResult && (
+        <div className="alert alert-success mt-3">
+          <strong>Cancellation Complete</strong>
+          <p>Refund Amount: ₹{cancelResult.refund}</p>
+          <p>Cancellation Fee: ₹{cancelResult.charge}</p>
+          <p>Credit Note: {cancelResult.creditNote}</p>
+        </div>
+      )}
+      {(cancelStatus === "failed" || cancelStatus === "rejected") && (
+        <div className="alert alert-danger mt-2">{cancelMessage}</div>
+      )}
+
+      {/* BOOKING TABLE */}
+      <table className="table table-bordered mt-3">
+        <tbody>
+          <tr>
+            <th>Booking ID</th>
+            <td>{bookingId}</td>
+          </tr>
+          <tr>
+            <th>Vendor Booking ID</th>
+            <td>{vendorBookingId}</td>
+          </tr>
+          <tr>
+            <th>PNR</th>
+            <td>{PNR}</td>
+          </tr>
+          <tr>
+            <th>Status</th>
+            <td>{status}</td>
+          </tr>
+          <tr>
+            <th>Total Amount</th>
+            <td>
+              {currency} {totalAmount}
+            </td>
+          </tr>
+          <tr>
+            <th>Route</th>
+            <td>
+              {originCity} → {destinationCity}
+            </td>
+          </tr>
+          <tr>
+            <th>Departure</th>
+            <td>{depTime?.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <th>Arrival</th>
+            <td>{arrTime?.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <th>Airline</th>
+            <td>
+              {airline?.AirlineName} ({airline?.AirlineCode}{" "}
+              {airline?.FlightNumber})
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* PASSENGER TABLE */}
+      <h6>
+        <strong>Passengers</strong>
+      </h6>
+      {passengers.length ? (
+        <table className="table table-bordered">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Gender</th>
+              <th>DOB</th>
+              <th>Ticket No</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {passengers.map((p, i) => (
+              <tr key={i}>
+                <td>
+                  {p.Title} {p.FirstName} {p.LastName}
+                </td>
+                <td>
+                  {p.PaxType === 1
+                    ? "Adult"
+                    : p.PaxType === 2
+                    ? "Child"
+                    : "Infant"}
+                </td>
+                <td>{p.Gender === 1 ? "Male" : "Female"}</td>
+                <td>
+                  {p.DateOfBirth
+                    ? new Date(p.DateOfBirth).toLocaleDateString()
+                    : "-"}
+                </td>
+                <td>{p.Ticket?.TicketNumber || "-"}</td>
+                <td>{p.Ticket?.Status || "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        "No passenger details available"
+      )}
+
+      {/* ACTION BUTTONS */}
+      {status === "confirmed" && (
+        <>
+          <button
+            className="btn btn-success mt-3"
+            onClick={handleDownloadInvoice}
+          >
+            Download Invoice (PDF)
+          </button>
+          <button
+            className="btn btn-danger mt-3 ms-2"
+            disabled={isCancelling}
+            onClick={() => startCancellation({ vendorBookingId, bookingId })}
+          >
+            {isCancelling ? "Processing..." : "Cancel Flight"}
+          </button>
+        </>
+      )}
+    </>
+  );
+}

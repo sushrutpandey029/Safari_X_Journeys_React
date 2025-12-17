@@ -27,26 +27,32 @@ function FAQ() {
   };
 
   return (
-    <div className="Faq" id="faq">
-      <div className="container-fluid">
-        <div className="main">
-          <div className="row justify-content-center">
-            <div className="col-sm-6">
-              <h2 className="text-start mb-3"> FAQ</h2>
-
-              <div
-                className="accordion accordion-flush"
-                id="accordionFlushExample"
-              >
+    <div className="modern-faq-section" id="faq">
+      <div className="container">
+        <div className="row align-items-center">
+  
+          {/* LEFT SIDE – 40% */}
+          <div className="col-md-5">
+            <h2 className="faq-title-left">Frequently <span>Asked</span> <br/> Questions</h2>
+  
+            <img
+              src="/images/faq.png"  
+              alt="faq"
+              className="faq-gif"
+            />
+          </div>
+  
+          {/* RIGHT SIDE – 60% */}
+          <div className="col-md-7">
+            <div className="modern-faq">
+  
+              <div className="accordion modern-accordion" id="accordionFlushExample">
                 {faqData &&
                   faqData.slice(0, visibleCount).map((item, index) => (
-                    <div className="accordion-item" key={index}>
-                      <h2
-                        className="accordion-header"
-                        id={`flush-heading-${index}`}
-                      >
+                    <div className="accordion-item modern-item" key={index}>
+                      <h2 className="accordion-header" id={`flush-heading-${index}`}>
                         <button
-                          className="accordion-button collapsed"
+                          className="accordion-button collapsed modern-btn"
                           type="button"
                           data-bs-toggle="collapse"
                           data-bs-target={`#flush-collapse-${index}`}
@@ -56,51 +62,43 @@ function FAQ() {
                           {item.question}
                         </button>
                       </h2>
+  
                       <div
                         id={`flush-collapse-${index}`}
                         className="accordion-collapse collapse"
                         aria-labelledby={`flush-heading-${index}`}
                         data-bs-parent="#accordionFlushExample"
                       >
-                        <div className="accordion-body">{item.answer}</div>
+                        <div className="accordion-body modern-body">
+                          {item.answer}
+                        </div>
                       </div>
                     </div>
                   ))}
               </div>
-
-              {/* Buttons */}
+  
+              {/* Read More / Less Buttons */}
               <div className="d-flex justify-content-end mt-3 gap-3">
                 {visibleCount > 5 && (
-                  <span
-                    onClick={handleReadLess}
-                    style={{
-                      color: "#ed3a3aff",
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                    }}
-                  >
+                  <span className="faq-less" onClick={handleReadLess}>
                     Read Less
                   </span>
                 )}
                 {visibleCount < faqData?.length && (
-                  <span
-                    onClick={handleReadMore}
-                    style={{
-                      color: "#0d6efd",
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                    }}
-                  >
+                  <span className="faq-more" onClick={handleReadMore}>
                     Read More
                   </span>
                 )}
               </div>
+  
             </div>
           </div>
+  
         </div>
       </div>
     </div>
   );
+  
 }
 
 export default FAQ;
