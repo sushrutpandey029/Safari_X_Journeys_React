@@ -12,7 +12,7 @@ import {
   Bus_busLayout,
   fetchBoardingPoints,
 } from "../services/busservice";
-import Loading from "../common/loading";  
+import Loading from "../common/loading";
 
 function BusList() {
   const [busData, setBusData] = useState([]);
@@ -34,12 +34,16 @@ function BusList() {
 
   const [toggle, setToggle] = useState({
     busType: true,
+    busTypeCategory: true, // नया: AC/Non-AC के लिए
+    seatType: true, // नया: Seat Type के लिए
     amenities: true,
     operator: true,
   });
 
   const [filters, setFilters] = useState({
     busType: [],
+    busTypeCategory: [], // नया: AC/Non-AC
+    seatType: [], // नया: Sleeper/Seater
     amenities: [],
     operator: [],
   });
@@ -380,44 +384,72 @@ function BusList() {
         }
 
         // 🚍 Transform API BUS data
-        const transformedBuses = BusResults.map((bus, index) => ({
-          busId: bus.ResultIndex || index,
-          resultIndex: bus.ResultIndex,
-          routeId: bus.RouteId,
-          operatorId: bus.OperatorId,
-          busName: bus.ServiceName,
-          travelName: bus.TravelName,
-          operator: bus.TravelName,
-          busType: bus.BusType,
-          availableSeats: bus.AvailableSeats,
-          maxSeatsPerTicket: bus.MaxSeatsPerTicket,
-          idProofRequired: bus.IdProofRequired,
-          isDropPointMandatory: bus.IsDropPointMandatory,
-          liveTracking: bus.LiveTrackingAvailable,
-          mTicketEnabled: bus.MTicketEnabled,
-          partialCancellationAllowed: bus.PartialCancellationAllowed,
-          boardingPoints: bus.BoardingPointsDetails || [],
-          departureTime: bus.DepartureTime,
-          arrivalTime: bus.ArrivalTime,
-          origin: Origin,
-          destination: Destination,
-          from: Origin || "Unknown",
-          to: Destination || "Unknown",
-          traceId: TraceId,
-          duration: bus.Duration || "N/A",
-          price:
-            bus.BusPrice?.PublishedPriceRoundedOff ||
-            bus.BusPrice?.PublishedPrice ||
-            0,
-          fare: bus.BusPrice?.PublishedPrice || 0,
-          rating: 4.0 + Math.random() * 1.5,
-          amenities: bus.Amenities || [],
-          imagePath: `bus${(index % 3) + 1}.jpg`,
-          totalSeats: 40,
-          apiData: bus,
-          // Ensure TokenId is available for layout API
-          TokenId: SearchToken || token,
-        }));
+        const transformedBuses = BusResults.map((bus, index) => {
+          // बस के नाम/टाइप से AC/Non-AC पहचानें
+          const busName = bus.ServiceName || bus.TravelName || "";
+          const busType = bus.BusType || "";
+          const busTypeLower = busName.toLowerCase() + " " + busType.toLowerCase();
+          
+          // Determine if AC or Non-AC
+          let busTypeCategory = "";
+          if (busTypeLower.includes("ac") || busName.includes("AC") || busType.includes("AC")) {
+            busTypeCategory = "AC";
+          } else {
+            busTypeCategory = "Non-AC";
+          }
+
+          // Determine seat type from bus type
+          let seatType = "";
+          if (busTypeLower.includes("sleeper") || busName.includes("Sleeper")) {
+            seatType = "Sleeper";
+          } else if (busTypeLower.includes("seater") || busName.includes("Seater")) {
+            seatType = "Seater";
+          } else {
+            // Default based on bus type
+            seatType = busType.includes("SLEEPER") ? "Sleeper" : "Seater";
+          }
+
+          return {
+            busId: bus.ResultIndex || index,
+            resultIndex: bus.ResultIndex,
+            routeId: bus.RouteId,
+            operatorId: bus.OperatorId,
+            busName: bus.ServiceName,
+            travelName: bus.TravelName,
+            operator: bus.TravelName,
+            busType: bus.BusType,
+            busTypeCategory: busTypeCategory, // नया: AC/Non-AC
+            seatType: seatType, // नया: Sleeper/Seater
+            availableSeats: bus.AvailableSeats,
+            maxSeatsPerTicket: bus.MaxSeatsPerTicket,
+            idProofRequired: bus.IdProofRequired,
+            isDropPointMandatory: bus.IsDropPointMandatory,
+            liveTracking: bus.LiveTrackingAvailable,
+            mTicketEnabled: bus.MTicketEnabled,
+            partialCancellationAllowed: bus.PartialCancellationAllowed,
+            boardingPoints: bus.BoardingPointsDetails || [],
+            departureTime: bus.DepartureTime,
+            arrivalTime: bus.ArrivalTime,
+            origin: Origin,
+            destination: Destination,
+            from: Origin || "Unknown",
+            to: Destination || "Unknown",
+            traceId: TraceId,
+            duration: bus.Duration || "N/A",
+            price:
+              bus.BusPrice?.PublishedPriceRoundedOff ||
+              bus.BusPrice?.PublishedPrice ||
+              0,
+            fare: bus.BusPrice?.PublishedPrice || 0,
+            rating: 4.0 + Math.random() * 1.5,
+            amenities: bus.Amenities || [],
+            imagePath: `bus${(index % 3) + 1}.jpg`,
+            totalSeats: 40,
+            apiData: bus,
+            // Ensure TokenId is available for layout API
+            TokenId: SearchToken || token,
+          };
+        });
 
         setBusData(transformedBuses);
         setFilteredBusData(transformedBuses);
@@ -706,16 +738,18 @@ function BusList() {
     const busTypes = [
       ...new Set(busData.map((bus) => bus.busType).filter(Boolean)),
     ];
+    const busTypeCategories = ["AC", "Non-AC"]; // Fixed categories
+    const seatTypes = ["Sleeper", "Seater"]; // Fixed categories
     const operators = [
       ...new Set(busData.map((bus) => bus.operator).filter(Boolean)),
     ];
     const allAmenities = busData.flatMap((bus) => bus.amenities || []);
     const amenities = [...new Set(allAmenities)].filter(Boolean);
 
-    return { busTypes, operators, amenities };
+    return { busTypes, busTypeCategories, seatTypes, operators, amenities };
   };
 
-  const { busTypes, operators, amenities } = getDynamicFilterOptions();
+  const { busTypes, busTypeCategories, seatTypes, operators, amenities } = getDynamicFilterOptions();
 
   const getCityOptions = () => {
     const fromCities = cities.map((city) => city.CityName).filter(Boolean);
@@ -725,17 +759,36 @@ function BusList() {
 
   const { fromCities, toCities } = getCityOptions();
 
+
+
+
   useEffect(() => {
     if (!busData || busData.length === 0) return;
 
     let filteredData = [...busData];
 
+    // Apply Bus Type filter
     if (filters.busType.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.busType.includes(bus.busType)
       );
     }
 
+    // Apply Bus Type Category filter (AC/Non-AC)
+    if (filters.busTypeCategory.length > 0) {
+      filteredData = filteredData.filter((bus) =>
+        filters.busTypeCategory.includes(bus.busTypeCategory)
+      );
+    }
+
+    // Apply Seat Type filter (Sleeper/Seater)
+    if (filters.seatType.length > 0) {
+      filteredData = filteredData.filter((bus) =>
+        filters.seatType.includes(bus.seatType)
+      );
+    }
+
+    // Apply Amenities filter
     if (filters.amenities.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.amenities.every((amenity) =>
@@ -744,6 +797,7 @@ function BusList() {
       );
     }
 
+    // Apply Operator filter
     if (filters.operator.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.operator.includes(bus.operator)
@@ -980,25 +1034,7 @@ function BusList() {
                   />
                 </div>
 
-                {/* Bus Type */}
-                <div className="col-md-2">
-                  <label className="text-muted small mb-1">Bus Type</label>
-                  <select
-                    className="form-select fw-bold"
-                    value={searchParams.busType}
-                    onChange={(e) =>
-                      handleSearchParamChange("busType", e.target.value)
-                    }
-                  >
-                    <option value="">All Types</option>
-                    {busTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
+             
                 {/* Search Button */}
                 <div className="col-md-2">
                   <button
@@ -1048,39 +1084,75 @@ function BusList() {
             </li>
           </ol>
         </nav>
-
-        <div className="row">
+           <div className="row">
           {/* FILTER COLUMN */}
           <div className="col-sm-3 mb-4">
             <div className="bus-card rounded-4 border shadow-sm p-3">
               <h5 className="mb-3 fw-bold">FILTER</h5>
 
-              {/* Bus Type Filter - Dynamic */}
+           
+            
+              {/* Bus Type Category Filter (AC/Non-AC) */}
               <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
-                  onClick={() => handleToggle("busType")}
+                  onClick={() => handleToggle("busTypeCategory")}
                   style={{ cursor: "pointer" }}
                 >
-                  <span>Bus Type</span>
+                  <span>Bus Type (AC/Non-AC)</span>
                   <FontAwesomeIcon
-                    icon={toggle.busType ? faChevronUp : faChevronDown}
+                    icon={toggle.busTypeCategory ? faChevronUp : faChevronDown}
                   />
                 </div>
-                {toggle.busType && (
+                {toggle.busTypeCategory && (
                   <div className="filter-options mt-2">
-                    {busTypes.map((type) => (
+                    {busTypeCategories.map((category) => (
+                      <div className="form-check" key={category}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`bus-category-${category}`}
+                          checked={filters.busTypeCategory.includes(category)}
+                          onChange={() => handleFilterChange("busTypeCategory", category)}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`bus-category-${category}`}
+                        >
+                          {category}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Seat Type Filter (Sleeper/Seater) */}
+              <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  onClick={() => handleToggle("seatType")}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span>Seat Type</span>
+                  <FontAwesomeIcon
+                    icon={toggle.seatType ? faChevronUp : faChevronDown}
+                  />
+                </div>
+                {toggle.seatType && (
+                  <div className="filter-options mt-2">
+                    {seatTypes.map((type) => (
                       <div className="form-check" key={type}>
                         <input
                           className="form-check-input"
                           type="checkbox"
-                          id={`bus-${type}`}
-                          checked={filters.busType.includes(type)}
-                          onChange={() => handleFilterChange("busType", type)}
+                          id={`seat-${type}`}
+                          checked={filters.seatType.includes(type)}
+                          onChange={() => handleFilterChange("seatType", type)}
                         />
                         <label
                           className="form-check-label"
-                          htmlFor={`bus-${type}`}
+                          htmlFor={`seat-${type}`}
                         >
                           {type}
                         </label>
@@ -1090,84 +1162,18 @@ function BusList() {
                 )}
               </div>
 
-              {/* Amenities Filter - Dynamic */}
-              <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  onClick={() => handleToggle("amenities")}
-                  style={{ cursor: "pointer" }}
-                >
-                  <span>Amenities</span>
-                  <FontAwesomeIcon
-                    icon={toggle.amenities ? faChevronUp : faChevronDown}
-                  />
-                </div>
-                {toggle.amenities && (
-                  <div className="filter-options mt-2">
-                    {amenities.map((amenity) => (
-                      <div className="form-check" key={amenity}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`amenity-${amenity}`}
-                          checked={filters.amenities.includes(amenity)}
-                          onChange={() =>
-                            handleFilterChange("amenities", amenity)
-                          }
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`amenity-${amenity}`}
-                        >
-                          {amenity}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Operator Filter - Dynamic */}
-              <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  onClick={() => handleToggle("operator")}
-                  style={{ cursor: "pointer" }}
-                >
-                  <span>Operator</span>
-                  <FontAwesomeIcon
-                    icon={toggle.operator ? faChevronUp : faChevronDown}
-                  />
-                </div>
-                {toggle.operator && (
-                  <div className="filter-options mt-2">
-                    {operators.map((operator) => (
-                      <div className="form-check" key={operator}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`operator-${operator}`}
-                          checked={filters.operator.includes(operator)}
-                          onChange={() =>
-                            handleFilterChange("operator", operator)
-                          }
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`operator-${operator}`}
-                        >
-                          {operator}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+             
 
               <button
                 className="btn btn-outline-secondary w-100 mt-3"
                 onClick={() =>
-                  setFilters({ busType: [], amenities: [], operator: [] })
+                  setFilters({ 
+                    
+                    busTypeCategory: [], 
+                    seatType: [], 
+              
+                  
+                  })
                 }
               >
                 Clear Filters
@@ -1230,7 +1236,7 @@ function BusList() {
                             </div>
 
                             <p className="mb-2 text-muted small">
-                              {bus.busType} • {bus.operator}
+                              {bus.busType} • {bus.operator} • {bus.busTypeCategory} • {bus.seatType}
                             </p>
                             <p className="mb-2 text-muted small">
                               {bus.amenities?.join(" • ")}

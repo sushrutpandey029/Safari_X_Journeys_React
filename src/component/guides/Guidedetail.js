@@ -9,6 +9,14 @@ const Guidedetail = () => {
   const location = useLocation();
   const { guideId } = useParams();
   const guide = location.state?.guideData;
+
+  // Get data from previous page (GuideList)
+  const prevStartDate = location.state?.startDate;
+  const prevEndDate = location.state?.endDate;
+  const selectedCity =
+    location.state?.city ||
+    `${guide?.city}, ${guide?.state}, ${guide?.country}`;
+
   const { startPayment } = useCashfreePayment();
 
   const [activeTab, setActiveTab] = useState("about");
@@ -17,12 +25,19 @@ const Guidedetail = () => {
     name: "",
     phone: "",
     address: "",
-    location: `${guide?.city}, ${guide?.state}, ${guide?.country}` || "",
+    location:
+      selectedCity ||
+      `${guide?.city}, ${guide?.state}, ${guide?.country}` ||
+      "",
   });
 
-  // Simple date states
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Use dates from previous page or set defaults
+  const [startDate, setStartDate] = useState(
+    prevStartDate ? new Date(prevStartDate).toISOString().split("T")[0] : ""
+  );
+  const [endDate, setEndDate] = useState(
+    prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : ""
+  );
 
   // Calculate total price based on number of days
   const calculateTotalPrice = () => {
@@ -159,7 +174,7 @@ const Guidedetail = () => {
       //   name: "",
       //   phone: "",
       //   address: "",
-      //   location: `${guide?.city}, ${guide?.state}, ${guide?.country}` || "",
+      //   location: selectedCity || `${guide?.city}, ${guide?.state}, ${guide?.country}` || "",
       // });
       // setStartDate("");
       // setEndDate("");
@@ -242,7 +257,7 @@ const Guidedetail = () => {
           ))}
         </div>
 
-        {/* Show selected date range */}
+        {/* Show selected date range from previous page */}
         {startDate && endDate && (
           <div className="selected-date-range">
             <div className="range-badge">
@@ -256,33 +271,35 @@ const Guidedetail = () => {
           </div>
         )}
 
-        
+        {/* Show selected city from previous page */}
+        {selectedCity && (
+          <div className="selected-city-badge">
+            <div className="city-badge">
+              <span className="city-icon">📍</span>
+              Selected City: <strong>{selectedCity}</strong>
+            </div>
+          </div>
+        )}
       </div>
-
-      <div className="divider-gradient"></div>
-
-      {/* Tabs */}
-      <div className="tabs-navigation">
-        {["about", "tours", "reviews"].map((tab) => (
-          <button
-            key={tab}
-            className={`tab ${activeTab === tab ? "active" : ""}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            <span className="tab-text">
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </span>
-            <span className="tab-indicator"></span>
-          </button>
-        ))}
-      </div>
-
-      <div className="divider-gradient"></div>
 
       {/* Main Content */}
-      <div className="main-content-layout">
+    <div className="main-content-layout">
         {/* Left Content */}
         <div className="content-area">
+          <div className="tabs-navigation">
+            {["about", "tours", "reviews"].map((tab) => (
+              <button
+                key={tab}
+                className={`tab ${activeTab === tab ? "active" : ""}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                <span className="tab-text">
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </span>
+                <span className="tab-indicator"></span>
+              </button>
+            ))}
+          </div>
           {activeTab === "about" && (
             <div className="about-content">
               <h2 className="section-title">About Me</h2>
@@ -328,8 +345,94 @@ const Guidedetail = () => {
               </div>
             </div>
           )}
-        </div>
 
+          <div className="user-form-section">
+            <div className="user-form-container">
+              <div className="user-form-header">
+                <h2 className="user-form-title">User Detail</h2>
+              </div>
+
+              <div className="user-form">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="userName" className="form-label">
+                      <span className="required">*</span> Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="userName"
+                      name="name"
+                      value={userForm.name}
+                      onChange={handleUserFormChange}
+                      required
+                      placeholder="Enter your full name"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="userPhone" className="form-label">
+                      <span className="required">*</span> Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="userPhone"
+                      name="phone"
+                      value={userForm.phone}
+                      onChange={handleUserFormChange}
+                      required
+                      placeholder="Enter your phone number"
+                      className="form-input"
+                      maxLength="10"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="userAddress" className="form-label">
+                    <span className="required">*</span> Address
+                  </label>
+                  <textarea
+                    id="userAddress"
+                    name="address"
+                    value={userForm.address}
+                    onChange={handleUserFormChange}
+                    required
+                    placeholder="Enter your complete address"
+                    rows="3"
+                    className="form-textarea"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="userLocation" className="form-label">
+                    Selected Tour Location
+                  </label>
+                  <input
+                    type="text"
+                    id="userLocation"
+                    name="location"
+                    value={
+                      selectedCity ||
+                      `${guide?.city}, ${guide?.state}, ${guide?.country}`
+                    }
+                    readOnly
+                    className="form-input location-field"
+                  />
+                  <small className="location-note">
+                    City selected from previous page
+                  </small>
+                </div>
+
+                <div className="form-status">
+                  <p className="status-message">
+                    ✅ Your details will be used for booking and messaging
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* Right Sidebar */}
         <div className="booking-sidebar">
           <div className="date-selection-widget">
@@ -362,6 +465,7 @@ const Guidedetail = () => {
                   onChange={(e) => setEndDate(e.target.value)}
                   className="date-input"
                   min={startDate || new Date().toISOString().split("T")[0]}
+                  max={endDate}
                 />
               </div>
             </div>
@@ -427,7 +531,7 @@ const Guidedetail = () => {
             </ul>
           </div>
 
-            <div className="contact-widget">
+          <div className="contact-widget">
             <h3 className="widget-title">Contact Information</h3>
             <div className="contact-info">
               <p>📧 {guide.emailAddress}</p>
@@ -445,95 +549,8 @@ const Guidedetail = () => {
               Send Message
             </button>
           </div>
-
-        
         </div>
       </div>
-      {/* Permanent User Form at Bottom */}
-        <div className="user-form-section">
-          <div className="user-form-container">
-            <div className="user-form-header">
-              <h2 className="user-form-title">User Detail</h2>
-            </div>
-
-            <div className="user-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="userName" className="form-label">
-                    <span className="required">*</span> Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="userName"
-                    name="name"
-                    value={userForm.name}
-                    onChange={handleUserFormChange}
-                    required
-                    placeholder="Enter your full name"
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="userPhone" className="form-label">
-                    <span className="required">*</span> Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="userPhone"
-                    name="phone"
-                    value={userForm.phone}
-                    onChange={handleUserFormChange}
-                    required
-                    placeholder="Enter your phone number"
-                    className="form-input"
-                    maxLength="10"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="userAddress" className="form-label">
-                  <span className="required">*</span> Address
-                </label>
-                <textarea
-                  id="userAddress"
-                  name="address"
-                  value={userForm.address}
-                  onChange={handleUserFormChange}
-                  required
-                  placeholder="Enter your complete address"
-                  rows="3"
-                  className="form-textarea"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="userLocation" className="form-label">
-                  Preferred Tour Location
-                </label>
-                <input
-                  type="text"
-                  id="userLocation"
-                  name="location"
-                  value={userForm.location}
-                  onChange={handleUserFormChange}
-                  className="form-input location-field"
-                  readOnly
-                />
-                <small className="location-note">
-                  Based on guide's location: {guide.city}, {guide.state}
-                </small>
-              </div>
-
-              <div className="form-status">
-                <p className="status-message">
-                  ✅ Your details will be used for booking and messaging
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
       {/* Booking Form Modal */}
       {showBookingForm && (
@@ -575,8 +592,8 @@ const Guidedetail = () => {
                   <span>{endDate}</span>
                 </div>
                 <div className="summary-item">
-                  <span>Location:</span>
-                  <span>{userForm.location}</span>
+                  <span>Selected City:</span>
+                  <span>{selectedCity}</span>
                 </div>
                 <div className="summary-item">
                   <span>Customer:</span>

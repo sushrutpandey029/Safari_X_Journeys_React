@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BASE_URL } from "../../services/apiEndpoints";
 import { fetchTestimonialList } from "../../services/commonService";
+import "./Testimonials.css";
 
 function Testimonials() {
   const [testimonialData, setTestimonialData] = useState([]);

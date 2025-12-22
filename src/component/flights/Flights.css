@@ -113,7 +113,15 @@
 
   font-weight: bold;
 }
-.explore-btnsearch-box{
+.explore-flight-btn{
+  background: #6369b2 !important;
+        color: #fff!important;
+        padding: 10px 24px !important;
+        border-radius: 50px !important;
+        font-size: 15px !important;
+        border: none !important;
+        transition: 0.3s !important;
+        box-shadow: 0px 4px 12px rgba(99, 105, 178, 0.25) !important;
 
 }
 
@@ -200,482 +208,356 @@
    PERFECT CENTERED MODAL (React-Bootstrap Compatible)
    ======================================================= */
 
+/* =======================================================
+   MODAL CONTAINER - SINGLE COLUMN LAYOUT
+   ======================================================= */
 .flight-detail-modal .modal-dialog {
-  max-width: 1600px !important;
-  width: 100%;
-  margin: 0 auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-height: 100vh !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  margin: 1.75rem auto !important;
+  min-height: auto !important;
 }
 
 .flight-detail-modal .modal-content {
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   border: none;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-  animation: fadeInScale 0.25s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   background: #ffffff;
-  width: 60%;
-}
-
-/* Smooth intro animation */
-@keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.92); }
-  to   { opacity: 1; transform: scale(1); }
+  width: 100% !important;
 }
 
 /* =======================================================
-   HEADER – Gradient MMT Style
+   HEADER - Like first screenshot
    ======================================================= */
 .modal-header-custom {
   background-color: #274a62;
   color: #fff;
   border-bottom: none;
+  padding: 15px 20px;
 }
-
-.modal-header-custom .btn-close {
-  filter: invert(1);
-  opacity: 0.8;
-
-}
-
-.modal-header-custom .btn-close:hover {
-  opacity: 1;
-}
-
-/* =======================================================
-   BODY SCROLL AREA
-   ======================================================= */
-.modal-body-custom {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding: 25px 28px;
-  background: #f7f9fc;
-  width: 500px
-}
-
-/* =======================================================
-   3-COLUMN MMT GRID LAYOUT
-   ======================================================= */
-
-.fare-options-grid {
-  display: flex;
-  justify-content: space-between;
-  gap: 22px;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.fare-option-column {
-  flex: 1;
-  min-width: 32%;
-  display: flex;
-}
-
-/* =======================================================
-   SCREENSHOT SPECIFIC DESIGN (EXACT MATCH)
-   ======================================================= */
-
-/* Main fare card container */
-.fare-option-card {
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
-  width: 100%;
-  position: relative;
-  border-top: 4px solid #2c3c5e;
-}
-
-.fare-option-card:hover {
-  border-color: #2c3c5e;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
-.fare-option-card.selected {
-  border: 2px solid #2c3c5e;
-  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
-}
-
-/* Red accent border at top */
-.fare-option-card::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2c3c5e, #2c3c5e);
-  border-radius: 4px 4px 0 0;
-}
-
-/* =======================================================
-   PRICE SECTION (₹10,811 per adult)
-   ======================================================= */
-
-.fare-header {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px dashed #e0e0e0;
-}
-
-.fare-price {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-bottom: 4px;
-}
-
-.price-emoji {
-  font-size: 18px;
-  margin-right: 6px;
-}
-
-.price-amount {
-  font-size: 28px;
-  font-weight: 800;
-  color: #111827;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.price-label {
-  font-size: 14px;
-  color: #6b7280;
-  margin-left: 8px;
-  font-weight: 500;
-}
-
-/* SPICESAVER Badge */
-.fare-type {
-  margin-top: 8px;
-}
-
-.fare-badge {
-  background: #2c3c5e !important;
-  color: white !important;
-  padding: 4px 12px !important;
-  border-radius: 6px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  display: inline-block !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: none !important;
-}
-
-.fare-badge.spicesaver {
-  background: #2c3c5e !important;
-}
-
-/* =======================================================
-   FEATURE SECTIONS (Baggage, Flexibility, Seats & Meals)
-   ======================================================= */
-
-.fare-section {
-  margin-bottom: 20px;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.section-content {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 14px;
- color: white;
-}
-
-.feature-emoji {
-  color: #10b981;
-  font-size: 14px;
-  min-width: 16px;
-  text-align: center;
-}
-
-/* Specific icons for each section */
-.fare-section:nth-child(2) .feature-item .feature-emoji { /* Baggage */
-  color: #10b981;
-}
-
-.fare-section:nth-child(3) .feature-item .feature-emoji { /* Flexibility */
-  color: #2c3c5e;
-}
-
-.fare-section:nth-child(4) .feature-item .feature-emoji { /* Seats & Meals */
-  color: #3b82f6;
-}
-
-/* =======================================================
-   DISCOUNT TAGS SECTION (YELLOW BACKGROUND)
-   ======================================================= */
-
-/* This will render the discount text as shown in screenshot */
-.fare-option-card .feature-item:last-child {
-  display: none; /* Hide the last feature item since we'll use discount-tags instead */
-}
-
-/* Custom discount section matching screenshot */
-.fare-option-card::after {
-  content: "FLAT ₹100 OFF using MMTSUPER | FLAT 1000 OFF on ICICI Credit cards using FLYMON";
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #2c3c5e;
-  padding: 12px;
-  margin: 16px 0;
-  background: #fef3c7;
-  border-radius: 8px;
-  border-left: 3px solid #2c3c5e;
-  text-align: center;
-  line-height: 1.4;
-}
-
-/* =======================================================
-   VERTICAL ACTION BUTTONS (LOCK PRICE & BOOK NOW)
-   ======================================================= */
-
-.selection-indicator {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid #edeef0;
-}
-
-/* Button container */
-.fare-option-card > div:nth-last-child(2) {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-/* LOCK PRICE Button */
-.fare-option-card .selected-tick,
-.fare-option-card .select-prompt {
-  display: none; /* Hide the selection indicator since we have buttons */
-}
-
-/* Custom button styles matching screenshot */
-.fare-option-card::before {
-  /* This is already used for red border */
-}
-
-/* Custom buttons */
-.fare-option-card > div:nth-last-child(2) > div:first-child {
-  padding: 12px 20px;
-  border-radius: 8px;
-  border: 2px solid #2c3c5e;
-  background: white;
-  color: #2c3c5e;
-  font-weight: 700;
-  font-size: 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.fare-option-card > div:nth-last-child(2) > div:first-child:hover {
-  background: #fef2f2;
-}
-
-/* BOOK NOW Button */
-.fare-option-card > div:nth-last-child(2) > div:last-child {
-  padding: 12px 20px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #2c3c5e, #2c3c5e);
-  color: white;
-  border: none;
-  font-weight: 700;
-  font-size: 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
-}
-
-.fare-option-card > div:nth-last-child(2) > div:last-child:hover {
-  background: linear-gradient(135deg, #2c3c5e, #2c3c5e);
-  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
-}
-
-/* =======================================================
-   SELECTION INDICATOR
-   ======================================================= */
-
-.fare-option-card.selected::after {
-  content: "✓ SELECTED";
-  color: ffffff;
-  font-weight: 600;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 8px;
-}
-
-/* =======================================================
-   RESPONSIVE DESIGN
-   ======================================================= */
-
-@media (max-width: 1024px) {
-  .fare-options-grid { flex-wrap: wrap; }
-  .fare-option-column { min-width: 48%; }
-}
-
-@media (max-width: 768px) {
-  .flight-detail-modal .modal-dialog {
-    align-items: flex-start !important;
-    min-height: auto !important;
-  }
-
-  .fare-option-column { min-width: 100%; }
-  
-  .price-amount {
-    font-size: 24px;
-  }
-  
-  .fare-option-card {
-    padding: 16px;
-  }
-  
-  .fare-option-card > div:nth-last-child(2) > div:first-child,
-  .fare-option-card > div:nth-last-child(2) > div:last-child {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
-}
-
-/* =======================================================
-   NON-REFUNDABLE BANNER
-   ======================================================= */
-
-.non-refundable-banner {
-  background: #fef2f2;
-  color: #dc2626;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* =======================================================
-   EXISTING STYLES (KEEP THESE AS THEY WERE)
-   ======================================================= */
 
 .modal-main-title {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   margin-bottom: 8px;
+  color: white;
 }
 
 .flight-route {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   margin-bottom: 4px;
   color: #e0e7ff;
 }
 
 .flight-details {
-  font-size: 14px;
-  color: #d1d5db;
-  margin-bottom: 8px;
-}
-
-.passenger-count-display {
   font-size: 13px;
   color: #d1d5db;
-  margin-top: 8px;
+  margin-bottom: 0;
 }
 
-.fare-basis-info {
+/* =======================================================
+   BODY - Single fare card
+   ======================================================= */
+.modal-body-custom {
+  padding: 20px !important;
+  background: #f8fafc;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Single column layout */
+.fare-options-grid {
+  display: block !important;
+  margin-bottom: 25px;
+}
+
+.fare-option-column {
+  width: 100% !important;
+  margin-bottom: 15px;
+}
+
+/* =======================================================
+   FARE CARD - Clean single card
+   ======================================================= */
+.fare-option-card {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 20px;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+.fare-option-card:hover {
+  border-color: #2c3c5e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fare-option-card.selected {
+  border: 2px solid #2c3c5e;
+  background-color: #f8fafc;
+}
+
+/* Remove all pseudo-elements */
+.fare-option-card::before,
+.fare-option-card::after {
+  content: none !important;
+}
+
+/* =======================================================
+   PRICE SECTION - Top section
+   ======================================================= */
+.fare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.fare-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.price-emoji {
+  font-size: 18px;
+  margin-right: 4px;
+}
+
+.price-amount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.price-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.fare-type {
+  margin: 0;
+}
+
+.fare-badge {
+  background: #2c3c5e !important;
+  color: white !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: none !important;
+}
+
+/* =======================================================
+   NON-REFUNDABLE BANNER
+   ======================================================= */
+.non-refundable-banner {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 6px 10px;
+  border-radius: 4px;
   font-size: 12px;
-  color: #d1d5db;
-  margin-top: 4px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* =======================================================
+   FEATURE SECTIONS - Vertical stack
+   ======================================================= */
+.fare-section {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.fare-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.feature-emoji {
+  font-size: 14px;
+  min-width: 16px;
+}
+
+/* =======================================================
+   BENEFITS SECTION
+   ======================================================= */
+.fare-benefits {
+  background: #f0f9ff;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 15px 0;
+  border-left: 3px solid #2c3c5e;
+}
+
+.benefits-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2c3c5e;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.benefits-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* =======================================================
+   SELECTION INDICATOR
+   ======================================================= */
+.selection-indicator {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.selected-tick {
+  color: #2c3c5e;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.select-prompt {
+  color: #6b7280;
+  font-size: 13px;
   font-style: italic;
 }
 
+/* =======================================================
+   PRICE AND RULES - Vertical layout
+   ======================================================= */
+.price-rules-50 {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.price-50, .rules-50 {
+  width: 100% !important;
+}
+
+/* Total price card */
 .total-price-section {
-  margin: 24px 0;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .total-price-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  text-align: center;
 }
 
 .total-price {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin-bottom: 10px;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .total-amount {
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 900;
   color: #111827;
 }
 
 .total-label {
   font-size: 14px;
   color: #6b7280;
+  font-weight: 500;
+  max-width: 300px;
+  line-height: 1.4;
 }
 
 .passenger-breakdown {
   font-size: 13px;
   color: #6b7280;
+  margin-top: 8px;
 }
 
 .breakdown-details {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  align-items: center;
 }
 
+/* Fare rules section */
 .fare-rules-section {
   background: white;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 20px;
   border: 1px solid #e5e7eb;
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .fare-rules-section .section-title {
   font-size: 16px;
   font-weight: 700;
   color: #374151;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
   text-transform: none;
   letter-spacing: 0;
+}
+
+.fare-rules-content {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4b5563;
 }
 
 .loading-rules {
@@ -683,6 +565,7 @@
   align-items: center;
   gap: 10px;
   color: #6b7280;
+  font-size: 14px;
 }
 
 .no-rules {
@@ -690,59 +573,77 @@
   font-style: italic;
   text-align: center;
   padding: 20px;
+  font-size: 14px;
 }
 
+/* =======================================================
+   FOOTER - Clean footer
+   ======================================================= */
 .modal-footer-custom {
   background: #f9fafb;
   border-top: 1px solid #e5e7eb;
-  padding: 20px 30px;
+  padding: 15px 20px;
 }
 
 .footer-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 12px;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .selected-fare-info {
-  flex: 1;
+  text-align: center;
 }
 
 .selected-info {
   font-size: 14px;
-  color: #374151;
-}
-
-.refundable-badge {
-  margin-left: 10px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
   font-weight: 600;
+  color: #374151;
+  background: #f0f9ff;
+  padding: 8px 15px;
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .refundable-badge.non-refundable {
   background: #fee2e2;
   color: #dc2626;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
 }
 
 .no-selection {
   font-size: 14px;
   color: #9ca3af;
   font-style: italic;
+  text-align: center;
 }
 
 .footer-actions {
-  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.book-now-main-btn {
+  padding: 12px 30px !important;
+  font-size: 15px !important;
+  font-weight: bold !important;
+  border-radius: 25px !important;
+  background: linear-gradient(90deg, #2c3c5e, #1e293b) !important;
+  border: none !important;
+  min-width: 200px;
 }
 
 .footer-note {
   font-size: 12px;
   color: #6b7280;
   text-align: center;
-  width: 100%;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .non-refundable-note {
@@ -750,10 +651,57 @@
   font-weight: 600;
 }
 
+/* =======================================================
+   RESPONSIVE
+   ======================================================= */
+@media (max-width: 768px) {
+  .flight-detail-modal .modal-dialog {
+    margin: 0.5rem auto !important;
+    max-width: 95% !important;
+  }
+  
+  .modal-body-custom {
+    padding: 15px !important;
+  }
+  
+  .fare-option-card {
+    padding: 15px;
+  }
+  
+  .price-amount {
+    font-size: 20px;
+  }
+  
+  .fare-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .total-amount {
+    font-size: 24px;
+  }
+  
+  .total-label {
+    font-size: 13px;
+  }
+  
+  .book-now-main-btn {
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    min-width: 180px;
+  }
+}
+
 
 /* checkout */
 
 /* Flight Checkout Styles */
+
+.fare-summary-header {
+  background: #274a62;
+  color: white;
+}
 .flight-checkout-container {
   max-width: 1200px;
 }

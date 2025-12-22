@@ -80,7 +80,7 @@ function Home() {
           setCategories(res.data); // store API data
         }
       } catch (err) {
-        console.error("Fetch error:", err.response?.data || err.message);
+        console.error("Fetch error hotel category:", err.response?.data || err.message);
       }
     };
 

@@ -196,6 +196,328 @@ background-color: #4958c9ff;
 
 /* GuideCareers.css */
 
+
+/* =========================
+   DIVIDER
+========================= */
+.divider-gradient {
+  height: 2px;
+  background: linear-gradient(to right, #2563eb, transparent);
+  margin-bottom: 24px;
+}
+
+/* =========================
+   PAGE WRAPPER FIX
+========================= */
+body {
+  background: #f4f6f8;
+}
+
+/* =========================
+   MAIN CONTENT LAYOUT
+========================= */
+.main-content-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* =========================
+   LEFT CONTENT
+========================= */
+.content-area {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =========================
+   RIGHT SIDEBAR
+========================= */
+.booking-sidebar {
+  width: 360px;
+  flex-shrink: 0;
+}
+
+/* =========================
+   USER FORM — FORCE NICHE
+========================= */
+.user-form-section {
+  display: block;
+  width: 100%;
+  clear: both;                /* 🔥 IMPORTANT */
+  margin-top: 40px;
+}
+
+.user-form-section::before {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* =========================
+   SAME WIDTH AS MAIN LAYOUT
+========================= */
+.user-form-section {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =========================
+   FORM CONTAINER
+========================= */
+.user-form-container {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+ 
+}
+
+/* =========================
+   FORM
+========================= */
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.form-textarea {
+  resize: vertical;
+}
+
+.location-field {
+  background: #f9fafb;
+}
+
+.form-status {
+  background: #f0fdf4;
+  padding: 10px;
+  border-radius: 8px;
+  color: #166534;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 992px) {
+  .main-content-layout {
+    flex-direction: column;
+  }
+
+  .booking-sidebar {
+    width: 100%;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+
+
+
+/* =========================
+   OVERLAY (BACKGROUND)
+========================= */
+
+.booking-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* =========================
+   MODAL CONTAINER
+========================= */
+
+.booking-form-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.3s ease;
+  overflow: hidden;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.booking-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: #1c364a;
+  color: #fff;
+}
+
+.booking-form-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* =========================
+   FORM BODY
+========================= */
+
+.booking-form {
+  padding: 20px 22px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* =========================
+   BOOKING SUMMARY
+========================= */
+
+.booking-summary {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.booking-summary h4 {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.booking-summary .summary-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.booking-summary .price-breakdown {
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.booking-summary .total {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #ddd;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.cancel-button {
+  flex: 1;
+  background: #f1f5f9;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-button {
+  flex: 1;
+  background: #1c364a;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-button .button-icon {
+  margin-right: 6px;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+
+@keyframes modalFadeIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 480px) {
+  .booking-form-container {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .booking-form {
+    max-height: 75vh;
+  }
+}
+
+
+
+
 .guidedetail-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -365,7 +687,7 @@ background-color: #4958c9ff;
   padding: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border: 1px solid #dee2e6;
-  width: 67%;
+  width: 100%;
 }
 
 .tab {
@@ -651,7 +973,7 @@ background-color: #4958c9ff;
 }
 
 .book-now-button {
-  background: #28a745;
+  background: #1c364a;
   color: white;
 }
 
@@ -730,8 +1052,6 @@ background-color: #4958c9ff;
   padding: 25px 0;
   background: white;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
 }
 
 .user-form-container {

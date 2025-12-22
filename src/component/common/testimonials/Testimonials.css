@@ -63,3 +63,11 @@
   margin: 0;
   color: #000;
 }
+
+.section-line {
+  width: 70px;              /* line length */
+  height: 4px;              /* thickness */
+  background: linear-gradient(90deg, #ff7a00, #ffc107);
+  margin-top: 8px;
+  border-radius: 4px;
+}

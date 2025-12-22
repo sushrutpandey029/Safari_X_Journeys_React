@@ -53,11 +53,9 @@ function HotelPopularDestination() {
                 Top Trending <span> Destinations</span>
               </h2>
             </div>
-            <div className="col-sm-6 text-end">
-              <Link to={"/hotel"}>
-                <button className="explore-btn">Explore More</button>
-              </Link>
-            </div>
+           
+             
+           
           </div>
 
           {City &&
