@@ -114,7 +114,7 @@ function Header() {
               <img
                 src="/images/Safarix-Blue-Logo.png"
                 alt="Safarix Logo"
-                height="50"
+                height="70"
               />
             </a>
 
@@ -141,7 +141,10 @@ function Header() {
                       (isActive || location.pathname === "/" ? " active" : "")
                     }
                   >
-                    <i className="bi bi-airplane"></i> Flight
+                    <img
+                      src="/images/aircraft.gif"
+                      alt="Safarix Logo" className="icon-img"
+                    /> Flight
                   </NavLink>
                 </li>
 
@@ -153,7 +156,10 @@ function Header() {
                       "nav-link" + (isActive ? " active" : "")
                     }
                   >
-                    <i className="bi bi-building"></i> Hotel
+                    <img
+                      src="/images/hotel.gif"
+                      alt="Safarix Logo" className="icon-img"
+                    /> Hotel
                   </NavLink>
                 </li>
 
@@ -165,10 +171,15 @@ function Header() {
                       "nav-link" + (isActive ? " active" : "")
                     }
                   >
-                    <i className="bi bi-person-badge"></i> Guides
+                    <img
+                      src="/images/tour-guide.gif"
+                      alt="Safarix Logo" className="icon-img"
+                    /> Guides
                   </NavLink>
                 </li>
 
+                {/* Cab */}
+                {/* <li className="nav-item">
                 {/* Cab */}
                 {/* <li className="nav-item">
             <NavLink
@@ -188,13 +199,16 @@ function Header() {
                       "nav-link" + (isActive ? " active" : "")
                     }
                   >
-                    <i className="bi bi-bus-front"></i> Buses
+                    <img
+                      src="/images/bus-journey.gif"
+                      alt="Safarix Logo" className="icon-img"
+                    /> Buses
                   </NavLink>
                 </li>
               </ul>
             </div>
 
-            <div className="plan my-3" style={{ marginRight: "14px" }}>
+            <div className="plan" style={{ marginRight: "5px" }}>
               <button
                 className="explore-btn"
                 onClick={() => navigate("/bot-modal")}
@@ -211,7 +225,7 @@ function Header() {
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img
-                    src="/images/userprofile.jpg"
+                    src="images/userprofile.png"
                     alt="User Icon"
                     className="user-icon-image"
                   />
@@ -271,6 +285,7 @@ function Header() {
                           My Profile
                         </li>
                       )}
+
 
                       {!user && !guide && !driver && ""}
                       {user && (

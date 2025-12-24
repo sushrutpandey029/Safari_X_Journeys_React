@@ -116,6 +116,7 @@ function Hotel() {
                 }}
                 disabled={loading}
               >
+                
                 <option value="">-- Select City --</option>
                 {cityList.map((city, idx) => (
                   <option key={idx} value={city.CityCode || city.Code}>
@@ -350,7 +351,7 @@ function Hotel() {
           </div>
         </div>
       </div>
-      <HotelPopularDestination />
+       <HotelPopularDestination />
     </div>
   );
 }

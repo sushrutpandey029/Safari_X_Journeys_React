@@ -20,9 +20,13 @@ const GuideList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Delhi selected by default
+  const [selectedCity, setSelectedCity] = useState(() => {
+    return localStorage.getItem("selectedCity") || "Delhi";
+  });
+
   const [cityList, setCityList] = useState([]);
 
-  const [selectedCity, setSelectedCity] = useState("");
   const [startDate, setStartDate] = useState(new Date()); // today
   const [endDate, setEndDate] = useState(
     new Date(Date.now() + 24 * 60 * 60 * 1000) // tomorrow
@@ -52,9 +56,6 @@ const GuideList = () => {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        // const res = await getAllCities();
-        // const cities = res?.cities || [];
-        // console.log("cities", cities);
         const cities = [
           "Delhi",
           "Rajasthan",
@@ -76,11 +77,48 @@ const GuideList = () => {
     fetchCities();
   }, []);
 
+  // -----------------------------------------
+  // FETCH ALL GUIDES - DELHI BY DEFAULT
+  // -----------------------------------------
+  useEffect(() => {
+    loadGuides();
+  }, []);
+
+  const loadGuides = async (filters = null) => {
+    try {
+      setLoading(true);
+      setVisibleCount(6); // Reset to 6 cards on new search
+      console.log("filters data", filters);
+      
+      // If no filters provided, load Delhi by default
+      if (!filters) {
+        filters = {
+          city: "Delhi",
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        };
+      }
+      
+      const response = await getAllGuides(filters);
+      console.log("guide resp", response);
+      const list = response?.data?.filter((g) => g.profileImage) || [];
+      console.log("guide list", list);
+
+      setGuides(list);
+      setFilteredGuides(list);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching guides:", err);
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   // Infinite Scroll Logic
   useEffect(() => {
     const handleScroll = () => {
       if (isLoadingMore) return;
-      
+
       if (
         window.innerHeight + window.scrollY >=
         document.body.offsetHeight - 100
@@ -97,36 +135,6 @@ const GuideList = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoadingMore]);
-
-  // -----------------------------------------
-  // FETCH ALL GUIDES (first load)
-  // -----------------------------------------
-  useEffect(() => {
-    loadGuides();
-  }, []);
-
-  const loadGuides = async (filters = null) => {
-    try {
-      setLoading(true);
-      setVisibleCount(6); // Reset to 6 cards on new search
-      console.log("filters data", filters);
-      const response = filters
-        ? await getAllGuides(filters)
-        : await getAllGuides();
-
-      console.log("guide resp", response);
-      const list = response?.data?.filter((g) => g.profileImage) || [];
-      console.log("guide list", list);
-
-      setGuides(list);
-      setFilteredGuides(list);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching guides:", err);
-      setError(err.message);
-      setLoading(false);
-    }
-  };
 
   // -----------------------------------------
   // FILTERS FOR ratings / languages / tours
@@ -222,36 +230,40 @@ const GuideList = () => {
             </div>
 
             {/* START DATE */}
-           <div className="col-md-3">
-  <label className="form-label fw-semibold text-white">Start Day</label>
-  <DatePicker
-    selected={startDate}
-    onChange={(date) => {
-      setStartDate(date);
+            <div className="col-md-3">
+              <label className="form-label fw-semibold text-white">
+                Start Day
+              </label>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
 
-      // 👉 Auto fill END DATE = next day
-      if (date) {
-        const nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate() + 1);
-        setEndDate(nextDay);
-      }
-    }}
-    className="form-control"
-    minDate={new Date()}
-    dateFormat="yyyy-MM-dd"
-  />
-</div>
+                  // 👉 Auto fill END DATE = next day
+                  if (date) {
+                    const nextDay = new Date(date);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    setEndDate(nextDay);
+                  }
+                }}
+                className="form-control"
+                minDate={new Date()}
+                dateFormat="yyyy-MM-dd"
+              />
+            </div>
 
-<div className="col-md-3">
-  <label className="form-label fw-semibold text-white">End Day</label>
-  <DatePicker
-    selected={endDate}
-    onChange={(date) => setEndDate(date)}
-    className="form-control"
-    minDate={startDate || new Date()}
-    dateFormat="yyyy-MM-dd"
-  />
-</div>
+            <div className="col-md-3">
+              <label className="form-label fw-semibold text-white">
+                End Day
+              </label>
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                className="form-control"
+                minDate={startDate || new Date()}
+                dateFormat="yyyy-MM-dd"
+              />
+            </div>
 
             {/* BUTTON */}
             <div className="col-md-3">
@@ -449,7 +461,7 @@ const GuideList = () => {
             </div>
           </div>
 
-          {/* ============================= */}
+         
           {/* RIGHT SIDE – GUIDE LIST        */}
           {/* ============================= */}
           <div className="col-md-9 px-4">
@@ -554,27 +566,21 @@ const GuideList = () => {
             {isLoadingMore && (
               <div className="col-12 text-center my-4">
                 <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading more guides...</span>
+                  <span className="visually-hidden">
+                    Loading more guides...
+                  </span>
                 </div>
                 <p className="mt-2">Loading more guides...</p>
               </div>
             )}
 
             {/* Show message if all guides are loaded */}
-            {visibleCount >= filteredGuides.length && filteredGuides.length > 0 && (
-              <div className="col-12 text-center my-4 text-muted">
-                <small>All {filteredGuides.length} guides loaded</small>
-              </div>
-            )}
-
-            {/* Show count of displayed guides */}
-            {/* {filteredGuides.length > 0 && (
-              <div className="col-12 text-center mt-3 mb-1">
-                <small className="text-muted">
-                  Showing {Math.min(visibleCount, filteredGuides.length)} of {filteredGuides.length} guides
-                </small>
-              </div>
-            )} */}
+            {visibleCount >= filteredGuides.length &&
+              filteredGuides.length > 0 && (
+                <div className="col-12 text-center my-4 text-muted">
+                  <small>All {filteredGuides.length} guides loaded</small>
+                </div>
+              )}
 
             {filteredGuides.length === 0 && (
               <div className="text-center py-5">

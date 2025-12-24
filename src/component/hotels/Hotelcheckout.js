@@ -225,7 +225,7 @@ const HotelCheckout = () => {
 
             {/* HOTEL INFO */}
             <div className="card shadow-sm border p-3 mb-3 rounded-3">
-              <h5 className="fw-bold text-primary">{hotel?.name}</h5>
+              <h5 className="fw-bold">{hotel?.name}</h5>
               <p>
                 <b>📍 Location:</b> {hotel?.location}
               </p>

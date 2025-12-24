@@ -83,11 +83,10 @@ export const fetchCityList = async (countryCode) => {
 
 export const getHotelCityByCategory = async () => {
   try {
-    const response = await axios.get(API.HOTEL_BY_CATEGORY);
-    return response.data;
-  } catch (error) {
-    console.error("Axios error:", error);
-    throw error;
+    const resp = await axios.get(API.HOTEL_BY_CATEGORY);
+    return resp.data;
+  } catch (err) {
+    throw err;
   }
 };
 

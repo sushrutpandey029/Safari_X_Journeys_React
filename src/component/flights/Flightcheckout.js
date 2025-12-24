@@ -660,13 +660,7 @@ const Flightcheckout = () => {
       EndUserIp: "127.0.0.1",
       Passengers,
       InsuranceRequired: !!selectedInsurancePlan,
-      // InsuranceData: selectedInsurancePlan || null,
-      InsuranceData: selectedInsurancePlan
-        ? {
-            ...selectedInsurancePlan,
-            insuranceTraceid: insuranceTraceId,
-          }
-        : null,
+      InsuranceData: selectedInsurancePlan || null,
     };
   };
 
@@ -874,6 +868,7 @@ const Flightcheckout = () => {
                     </p>
                   </div>
                   <Badge bg="primary">
+              
                     {selectedFare.type || selectedFare.FareType || "Standard"}
                   </Badge>
                 </div>
@@ -1521,7 +1516,7 @@ const Flightcheckout = () => {
           <Col lg={4}>
             {/* Fare Summary */}
             <Card className="sticky-top shadow-sm" style={{ top: "20px" }}>
-              <Card.Header className="bg-primary text-white">
+              <Card.Header className="fare-summary-header">
                 <h5 className="mb-0">Fare Summary</h5>
                 {fareDetails && <small>Live prices from airline</small>}
               </Card.Header>
@@ -1721,65 +1716,193 @@ const Flightcheckout = () => {
           </Col>
         </Row>
       </Container>
-      <Modal
-        show={showSeatModal}
-        onHide={() => setShowSeatModal(false)}
-        size="lg"
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Select Seat – {passengers[activeSeatPaxIndex]?.type}{" "}
+     <Modal
+  show={showSeatModal}
+  onHide={() => setShowSeatModal(false)}
+  size="xl"
+  centered
+  className="seat-selection-modal"
+>
+  <Modal.Header closeButton className="border-0 pb-2">
+    <Modal.Title className="w-100">
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 className="mb-1">New Delhi → Bengaluru</h5>
+          <small className="text-muted">
+            1 of 1 Seat(s) Selected - Select Seat for {passengers[activeSeatPaxIndex]?.type}{" "}
             {activeSeatPaxIndex + 1}
-          </Modal.Title>
-        </Modal.Header>
+          </small>
+        </div>
+        <div className="text-end">
+          <h5 className="mb-0 text-primary">₹ 2,300</h5>
+          <small className="text-muted">Added to fare</small>
+        </div>
+      </div>
+    </Modal.Title>
+  </Modal.Header>
 
-        <Modal.Body>
-          <div className="seat-grid">
-            {ssrData?.seats?.map((row, rowIndex) => (
-              <div key={rowIndex} className="d-flex mb-2 align-items-center">
-                <div style={{ width: 30 }} className="text-muted">
-                  {row.Seats?.[0]?.RowNo}
-                </div>
-
-                {row.Seats.map((seat) => {
-                  const isAvailable = seat.AvailablityType === 1;
-                  const isSelected =
-                    selectedSeats?.[activeSeatPaxIndex]?.Code === seat.Code;
-
-                  return (
-                    <Button
-                      key={seat.Code}
-                      size="sm"
-                      className="me-2"
-                      variant={
-                        !isAvailable
-                          ? "secondary"
-                          : isSelected
-                          ? "success"
-                          : "outline-primary"
-                      }
-                      disabled={!isAvailable}
-                      onClick={() => {
-                        setSelectedSeats((prev) => ({
-                          ...prev,
-                          [activeSeatPaxIndex]: seat,
-                        }));
-                        setShowSeatModal(false);
-                      }}
-                    >
-                      {seat.SeatNo || "—"}
-                      {seat.Price > 0 && (
-                        <small className="d-block">₹{seat.Price}</small>
-                      )}
-                    </Button>
-                  );
-                })}
-              </div>
-            ))}
+  <Modal.Body className="px-4 py-3">
+    {/* Legend */}
+    <div className="seat-legend mb-4 p-3 bg-light rounded">
+      <div className="row g-3">
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-free me-2"></div>
+            <small>Free</small>
           </div>
-        </Modal.Body>
-      </Modal>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-200-500 me-2"></div>
+            <small>₹ 200-500</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-650-2300 me-2"></div>
+            <small>₹ 650-2300</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-exit me-2"></div>
+            <small>Exit Row Seats</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-non-reclining me-2"></div>
+            <small>Non Reclining</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-extra-legroom me-2">XL</div>
+            <small>Extra Legroom</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Airplane Seat Layout */}
+    <div className="airplane-container">
+      {/* Cockpit */}
+      <div className="airplane-cockpit">
+        <svg viewBox="0 0 100 40" className="cockpit-svg">
+          <path d="M 50 5 Q 20 15 10 40 L 90 40 Q 80 15 50 5 Z" fill="#e9ecef" />
+          <rect x="35" y="15" width="10" height="15" rx="2" fill="#495057" />
+          <rect x="55" y="15" width="10" height="15" rx="2" fill="#495057" />
+        </svg>
+      </div>
+
+      {/* Exit markers and column headers */}
+      <div className="seat-header mb-2">
+        <div className="row-number"></div>
+        <div className="seat-columns">
+          <div className="exit-marker left">
+            <span className="exit-arrow">←</span>
+            <span className="exit-text">EXIT</span>
+          </div>
+          <div className="column-letter">A</div>
+          <div className="column-letter">B</div>
+          <div className="column-letter">C</div>
+          <div className="aisle"></div>
+          <div className="column-letter">D</div>
+          <div className="column-letter">E</div>
+          <div className="column-letter">F</div>
+          <div className="exit-marker right">
+            <span className="exit-text">EXIT</span>
+            <span className="exit-arrow">→</span>
+          </div>
+        </div>
+        <div className="row-number"></div>
+      </div>
+
+      {/* Seat Grid */}
+      <div className="seat-grid-wrapper">
+        {ssrData?.seats?.map((row, rowIndex) => (
+          <div key={rowIndex} className="seat-row">
+            <div className="row-number">{row.Seats?.[0]?.RowNo}</div>
+            
+            <div className="seat-columns">
+              {row.Seats.map((seat, seatIndex) => {
+                const isAvailable = seat.AvailablityType === 1;
+                const isSelected =
+                  selectedSeats?.[activeSeatPaxIndex]?.Code === seat.Code;
+
+                // Add aisle after 3rd seat (C column)
+                const showAisle = seatIndex === 2;
+
+                return (
+                  <>
+                    <button
+  key={seat.Code}
+  // Aapki purani class logic same hai
+  className={`seat-button ${
+    !isAvailable
+      ? "seat-occupied"
+      : isSelected
+      ? "seat-selected"
+      : seat.Price === 0
+      ? "seat-free"
+      : seat.Price <= 500
+      ? "seat-200-500"
+      : "seat-650-2300"
+  } ${seat.Code?.includes('XL') ? 'seat-xl' : ''}`}
+  
+  disabled={!isAvailable}
+  
+  onClick={() => {
+    if (isAvailable) {
+      setSelectedSeats((prev) => ({
+        ...prev,
+        [activeSeatPaxIndex]: seat,
+      }));
+      // setShowSeatModal(false); // Optional: Agar click par band karna ho
+    }
+  }}
+>
+  {/* Content Logic */}
+  
+  {/* 1. SEAT NUMBER */}
+  <span className="seat-number">{seat.SeatNo || "—"}</span>
+
+  {/* 2. PRICE (New Addition) */}
+  {/* Sirf tab dikhaye agar Available hai, Selected nahi hai, aur Price > 0 hai */}
+  {isAvailable && !isSelected && seat.Price > 0 && (
+    <span className="seat-price-text">₹{seat.Price}</span>
+  )}
+
+  {/* 3. XL BADGE */}
+  {seat.Code?.includes('XL') && (
+    <span className="seat-badge">XL</span>
+  )}
+
+  {/* 4. CHECKMARK (Selected State) */}
+  {isSelected && (
+    <div className="seat-checkmark">✓</div>
+  )}
+
+</button>
+                    {showAisle && <div className="aisle"></div>}
+                  </>
+                );
+              })}
+            </div>
+
+            <div className="row-number">{row.Seats?.[0]?.RowNo}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Wing indicators */}
+      <div className="wing-indicators">
+        <div className="wing left-wing"></div>
+        <div className="wing right-wing"></div>
+      </div>
+    </div>
+  </Modal.Body>
+</Modal>
 
       <Modal show={showConfirmModal} centered>
         <Modal.Header>

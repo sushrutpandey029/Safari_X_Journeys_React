@@ -30,8 +30,11 @@ const formatDate = (dateStr) => {
 };
 
 const formatPrice = (price) => {
-  if (!price) return "0";
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if (price === null || price === undefined || isNaN(price)) return "0.00";
+
+  return Number(price)
+    .toFixed(2)                       // 👈 2 digits after point
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 const FlightDetail = ({
@@ -406,7 +409,7 @@ const FlightDetail = ({
       <Modal.Header closeButton className="modal-header-custom">
         <Modal.Title className="w-100">
           <div className="modal-main-title">
-            Flight Details and Fare Options available for you!
+          Flight Details and Fare Options available
           </div>
           <div className="flight-route">
             DEPART: {flightInfo.origin.code} - {flightInfo.destination.code}
@@ -419,17 +422,7 @@ const FlightDetail = ({
           </div>
 
           {/* Passenger Count Display */}
-          <div className="passenger-count-display">
-            <strong>Passengers:</strong> {adults} Adult(s), {children}{" "}
-            Child(ren), {infants} Infant(s)
-          </div>
-
-          {fareRulesData && (
-            <div className="fare-basis-info">
-              Fare Basis: {extractFareRulesInfo()?.fareBasisCode} · Airline:{" "}
-              {extractFareRulesInfo()?.airline}
-            </div>
-          )}
+          
         </Modal.Title>
       </Modal.Header>
 
@@ -443,62 +436,70 @@ const FlightDetail = ({
             ))}
           </div>
 
-          <div className="total-price-section">
-            <div className="total-price-card">
-              <div className="total-price">
-                <span className="total-amount">
-                  ₹ {formatPrice(totalPrice)}
-                </span>
-                <span className="total-label">
-                  {selectedFare
-                    ? `${selectedFare.type} FOR ${adults} ADULT(S), ${children} CHILD(REN), ${infants} INFANT(S)`
-                    : "SELECT A FARE TO SEE TOTAL"}
-                </span>
-              </div>
-              <div className="passenger-breakdown">
-                {selectedFare && (
-                  <div className="breakdown-details">
-                    <div>
-                      Adults ({adults} x ₹
-                      {formatPrice(selectedFare.originalPrice)})
-                    </div>
-                    {children > 0 && (
-                      <div>
-                        Children ({children} x ₹
-                        {formatPrice(selectedFare.originalPrice * 0.75)})
-                      </div>
-                    )}
-                    {infants > 0 && (
-                      <div>
-                        Infants ({infants} x ₹
-                        {formatPrice(selectedFare.originalPrice * 0.1)})
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+         <div className="price-rules-50">
 
-          {/* Fare Rules Section */}
-          <div className="fare-rules-section">
-            <div className="section-title">Fare Rules & Terms</div>
-            {loadingFare ? (
-              <div className="loading-rules">
-                <Spinner animation="border" variant="primary" size="sm" />
-                <p>Loading fare rules...</p>
+  {/* LEFT 50% – Total Price */}
+  <div className="price-50">
+    <div className="total-price-section">
+      <div className="total-price-card">
+        <div className="total-price">
+          <span className="total-amount">
+            ₹ {formatPrice(totalPrice)}
+          </span>
+          <span className="total-label">
+            {selectedFare
+              ? `${selectedFare.type} FOR ${adults} ADULT(S), ${children} CHILD(REN), ${infants} INFANT(S)`
+              : "SELECT A FARE TO SEE TOTAL"}
+          </span>
+        </div>
+
+        <div className="passenger-breakdown">
+          {selectedFare && (
+            <div className="breakdown-details">
+              <div>
+                Adults ({adults} x ₹
+                {formatPrice(selectedFare.originalPrice)})
               </div>
-            ) : fareDetail ? (
-              <div
-                className="fare-rules-content"
-                dangerouslySetInnerHTML={{ __html: fareDetail }}
-              />
-            ) : (
-              <div className="no-rules">
-                No fare rules available for this flight.
-              </div>
-            )}
-          </div>
+              {children > 0 && (
+                <div>
+                  Children ({children} x ₹
+                  {formatPrice(selectedFare.originalPrice * 0.75)})
+                </div>
+              )}
+              {infants > 0 && (
+                <div>
+                  Infants ({infants} x ₹
+                  {formatPrice(selectedFare.originalPrice * 0.1)})
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+  {/* RIGHT 50% – Fare Rules */}
+    <div className="fare-rules-section">
+      <div className="section-title">Fare Rules & Terms</div>
+
+      {loadingFare ? (
+        <div className="loading-rules">
+          <Spinner animation="border" variant="primary" size="sm" />
+          <p>Loading fare rules...</p>
+        </div>
+      ) : fareDetail ? (
+        <div
+          className="fare-rules-content"
+          dangerouslySetInnerHTML={{ __html: fareDetail }}
+        />
+      ) : (
+        <div className="no-rules">
+          No fare rules available for this flight.
+        </div>
+      )}
+    </div>
+</div>
+
         </div>
       </Modal.Body>
 

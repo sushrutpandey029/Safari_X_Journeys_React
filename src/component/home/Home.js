@@ -18,16 +18,17 @@ import ScrollToTop from "../common/ScrollToTop";
 import FAQ from "../common/faq/FAQ";
 import HotelPopularDestination from "../hotels/HotelPopularDestination";
 import FlightPreview from "../flights/Flightpreview";
+
 import { getHotelCityByCategory } from "../services/hotelService";
 
 import SearchBox from "../flights/Searchbox";
-  
+
 const staticImages = [
   "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
   "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
-  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg"
+  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
 ];
 
 const destinations = [
@@ -70,22 +71,21 @@ function Home() {
 
   const [categories, setCategories] = useState([]);
 
- useEffect(() => {
-  const fetchHotelCategories = async () => {
-    try {
-      const res = await getHotelCityByCategory();
-      console.log("Hotel categories raw:", res);
-      if (res.success) {
-        setCategories(res.data); // store API data
+  useEffect(() => {
+    const fetchHotelCategories = async () => {
+      try {
+        const res = await getHotelCityByCategory();
+        console.log("Hotel categories raw:", res);
+        if (res.success) {
+          setCategories(res.data); // store API data
+        }
+      } catch (err) {
+        console.error("Fetch error hotel category:", err.response?.data || err.message);
       }
-    } catch (err) {
-      console.error("Fetch error:", err.response?.data || err.message);
-    }
-  };
+    };
 
-  fetchHotelCategories();
-}, []);// empty dependency array → sirf mount hone pe chalega
-
+    fetchHotelCategories();
+  }, []); // empty dependency array → sirf mount hone pe chalega
 
   const getFaqList = async () => {
     try {
@@ -131,42 +131,41 @@ function Home() {
       <ScrollToTop />
       <HomeBanner />
 
-    <div className="top-destination">
-  <div className="container">
-    <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
-      {categories.map((item, index) => (
-        <div className="col" key={index}>
-          {/* Category Card */}
-          <div
-            className="place-card-link place"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/places", { state: { category: item } })}
-          >
-            <div className="place">
-              <img
-                src={staticImages[index % staticImages.length]}
-                alt={item.category}
-              />
-              <div className="overlay">
-                <p className="card-destination">{item.category}</p>
+      <div className="top-destination">
+        <div className="container">
+          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
+            {categories.map((item, index) => (
+              <div className="col" key={index}>
+                {/* Category Card */}
+                <div
+                  className="place-card-link place"
+                  style={{ cursor: "pointer" }}
+                  onClick={() =>
+                    navigate("/places", { state: { category: item } })
+                  }
+                >
+                  <div className="place">
+                    <img
+                      src={staticImages[index % staticImages.length]}
+                      alt={item.category}
+                    />
+                    <div className="overlay">
+                      <p className="card-destination">{item.category}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>     
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
-  </div>
-</div>
+      </div>
 
       <HotelPopularDestination />
 
       {/* guide section */}
       <GuidePreview />
 
-      {/* cab section ------ commenting as it is out of work now */}
-      {/* <CabPreview /> */}
-
-     
+      {/* cab section */}
 
       {/* <div className="book-hotel ">
         <div className="container">
@@ -211,166 +210,182 @@ function Home() {
 
       <WhyChooseUs />
 
-   <div className="Testionials">
-  <div className="container">
-    <div className="row align-items-start">
-
-      {/* LEFT STATIC BOX */}
       <div className="Testionials">
-  <div className="container">
-    <div className="row align-items-start">
+        <div className="container">
 
-      {/* LEFT SECTION (col-sm-4) */}
-      <div className="col-sm-3">
-        <h2 className="feedback-title">Client Feedback</h2>
-        <p className="feedback-heading">What They Say After Using Our Product</p>
-        <p className="feedback-sub">
-          Many of our members have started their early careers with us
-             Many of our members have started their early careers with us
-        </p>
-
-        {/* Slider Arrows */}
-        <div className="testimonial-arrows">
-          <button
-            onClick={() => {
-              const slider = document.getElementById("testimonialSlider");
-              slider.scrollLeft -= 370;
-            }}
-          >
-            ←
-          </button>
-          <button
-            onClick={() => {
-              const slider = document.getElementById("testimonialSlider");
-              slider.scrollLeft += 370;
-            }}
-          >
-            →
-          </button>
-        </div>
-      </div>
-
-      {/* RIGHT SECTION (col-sm-8) */}
-     <div className="col-sm-9">
-
-  {/* SLIDER START */}
-  <div id="testimonialSlider" className="testimonial-slider">
-    <div className="row flex-nowrap">
-
-      {testimonialData?.map((item) => (
-        <div key={item.id} className="col-sm-3">  {/* ← show 3 cards */}
-
-          <div className="testimonial-card">
-
-            <div className="stars">
-              {"★".repeat(item.rating)}
+           <div className="row align-items-center mb-4">
+            <div className="col-sm-9">
+              <h2>
+                Our Recent <span>Testimonials</span>
+              </h2>
+              <p className="section-subtext">
+                Stay inspired with our latest travel stories, guides, and
+                destination tips crafted just for you.
+              </p>
             </div>
+            <div className="col-sm-3 text-end">
+              <Link to={"/testimonials"}>
+                <button className="explore-btn">Explore More</button>
+              </Link>
+            </div>
+          </div>
+          <div className="row align-items-start">
+            {/* LEFT STATIC BOX */}
+            <div className="Testionials">
+              <div className="container">
+                <div className="row align-items-start">
+                  {/* LEFT SECTION (col-sm-4) */}
+                  <div className="col-sm-4">
+                    <h2 className="feedback-title">
+                      Client <span>Feedback</span>
+                    </h2>
+                    <p className="feedback-heading">
+                      What They Say After Using Our Product
+                    </p>
+                    <p className="feedback-sub">
+                      Many of our members have started their early careers with
+                      us Many of our members have started their early careers
+                      with us
+                    </p>
 
-            <p className="review-text">
-              {item.description?.substring(0, 110)}...
-            </p>
+                    {/* Slider Arrows */}
+                    <div className="testimonial-arrows">
+                      <button
+                        onClick={() => {
+                          const slider =
+                            document.getElementById("testimonialSlider");
+                          slider.scrollLeft -= 370;
+                        }}
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={() => {
+                          const slider =
+                            document.getElementById("testimonialSlider");
+                          slider.scrollLeft += 370;
+                        }}
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
 
-            <div className="review-user">
-              <img
-                src={`${BASE_URL}/testimonial/images/${item.image}`}
-                alt={item.name}
-              />
-              <div>
-                <h4>{item.name}</h4>
-                <small>{item.designation}</small>
+                  {/* RIGHT SECTION (col-sm-8) */}
+                  <div className="col-sm-8">
+                    {/* SLIDER START */}
+                    <div id="testimonialSlider" className="testimonial-slider">
+                      <div className="row flex-nowrap">
+                        {testimonialData?.map((item) => (
+                          <div key={item.id} className="col-sm-3">
+                            {" "}
+                            {/* ← show 3 cards */}
+                            <div className="testimonial-card">
+                              <div className="stars">
+                                {"★".repeat(item.rating)}
+                              </div>
+
+                              <p className="review-text">
+                                {item.description?.substring(0, 110)}...
+                              </p>
+
+                              <div className="review-user">
+                                <img
+                                  src={`${BASE_URL}/testimonial/images/${item.image}`}
+                                  alt={item.name}
+                                />
+                                <div>
+                                  <h4>{item.name}</h4>
+                                  <small>{item.designation}</small>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* SLIDER END */}
+                  </div>
+                </div>
               </div>
             </div>
-
           </div>
-
         </div>
-      ))}
-
-    </div>
-
-  </div>
-  {/* SLIDER END */}
-
-</div>
-
-
-    </div>
-  </div>
-</div>
-
-
-    </div>
-  </div>
-</div>
+      </div>
 
       {/* FAQ section */}
       <FAQ />
 
-      <div className="blog">
+      <div className=" modern-blog">
         <div className="container">
-          <div class="row">
-            <div class="col-sm-9">
+          <div className="row align-items-center mb-4">
+            <div className="col-sm-9">
               <h2>
                 Our Recent <span>Blogs</span>
               </h2>
-              <p className="perra">
-                Lorem ipsum dolor sit amet consectetur. Porttitor dolor
-                malesuada sodales convallis nisi odio Porttitor dolor malesuada
-                sodales convallis nisi odio{" "}
+              <p className="section-subtext">
+                Stay inspired with our latest travel stories, guides, and
+                destination tips crafted just for you.
               </p>
             </div>
-            <div class="col-sm-3 text-end">
+            <div className="col-sm-3 text-end">
               <Link to={"/blogs"}>
-                <button class="explore-btn">Explore More</button>
+                <button className="explore-btn">Explore More</button>
               </Link>
             </div>
           </div>
+
           <div className="row">
             {blogData &&
-              blogData?.slice(0, 3).map(function (blog, index) {
-                return (
-                  <div
-                    className="col-sm-4"
-                    key={index}
-                    onClick={() => handleNavigate(blog)}
-                  >
-                    <div className="blog-box" style={{ cursor: "pointer" }}>
+              blogData.slice(0, 3).map((blog, index) => (
+                <div
+                  className="col-sm-4"
+                  key={index}
+                  onClick={() => handleNavigate(blog)}
+                >
+                  <div className="blog-card">
+                    <div className="blog-image">
                       <img
                         src={`${BASE_URL}/blog/images/${blog.image}`}
                         alt="blog"
                         className="img-fluid"
                       />
-                      <h5>{blog.title}</h5>
-                      <h4>{blog.heading}</h4>
-                      <p>
+                    </div>
+
+                    <div className="blog-content">
+                      <h5 className="blog-category">{blog.title}</h5>
+                      <h4 className="blog-title">{blog.heading}</h4>
+                      <p className="blog-desc">
                         {blog.description.length > 100
                           ? blog.description.substring(0, 100) + "..."
                           : blog.description}
                       </p>
-               <div className="d-flex justify-content-between align-items-end  bottom-row mb-0">
-  <h6 className="mb-0">
-    {new Date(blog.createdAt).toLocaleDateString("en-US", {
-      year: "numeric",
-      day: "numeric",
-      month: "long",
-    })}
-  </h6>
 
-  <button
-    className="explore-btn"
-    onClick={() =>
-      navigate("/blog-detail", { state: { blog } })
-    }
-  >
-    Read More
-  </button>
-</div>
+                      <div className="d-flex justify-content-between align-items-center mt-3">
+                        <h6 className="date">
+                          {new Date(blog.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              day: "numeric",
+                              month: "long",
+                            }
+                          )}
+                        </h6>
 
-
+                        <button
+                          className="read-more-btn"
+                          onClick={() =>
+                            navigate("/blog-detail", { state: { blog } })
+                          }
+                        >
+                          Read More
+                        </button>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
           </div>
         </div>
       </div>

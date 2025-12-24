@@ -66,7 +66,6 @@ function BotModal() {
         toDestination: formData.toDestination,
         noOfAdults: formData.noOfAdults,
         noOfChildren: formData.noOfChildren,
-        cabNeed: formData.cabNeed,
         purposeType: formData.purposeType,
       };
 
@@ -197,49 +196,7 @@ function BotModal() {
                     </Col>
 
                     {/* Cab Need */}
-                    <Col md={12} className="mb-4">
-                      <Form.Label className="fw-bold">
-                        Do you need a cab?
-                      </Form.Label>
-                      <Row>
-                        <Col md={6} className="mb-2">
-                          <Button
-                            variant={
-                              formData.cabNeed === "Yes"
-                                ? "primary"
-                                : "outline-secondary"
-                            }
-                            className="w-100"
-                            onClick={() =>
-                              handleChange({
-                                target: { name: "cabNeed", value: "Yes" },
-                              })
-                            }
-                          >
-                            <i className="bi bi-car-front fs-4 me-2"></i>
-                            Yes
-                          </Button>
-                        </Col>
-                        <Col md={6} className="mb-2">
-                          <Button
-                            variant={
-                              formData.cabNeed === "No"
-                                ? "primary"
-                                : "outline-secondary"
-                            }
-                            className="w-100"
-                            onClick={() =>
-                              handleChange({
-                                target: { name: "cabNeed", value: "No" },
-                              })
-                            }
-                          >
-                            <i className="bi bi-x-circle fs-4 me-2"></i>
-                            No
-                          </Button>
-                        </Col>
-                      </Row>
-                    </Col>
+                    
                   </Row>
                 </Form>
               </div>

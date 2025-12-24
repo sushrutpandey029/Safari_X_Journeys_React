@@ -4,6 +4,7 @@
   background-position: center;
   background-repeat: no-repeat;
   padding: 160px 0;
+ height: 500px; 
 }
 
 
@@ -38,10 +39,7 @@ label {
 .btn-primary {
   transition: all 0.3s ease;
 }
-.btn-primary:hover {
-  transform: scale(1.03);
-  background: linear-gradient(to right, #0056d2, #003c9e);
-}
+
 .bus-card {
   background: white;
   transition: transform 0.2s ease-in-out;
@@ -100,7 +98,7 @@ label {
   z-index: 1000;
 }
 
-.modal-content {
+/* .modal-content {
   background: white;
   border-radius: 12px;
   width: 90%;
@@ -108,7 +106,7 @@ label {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
+} */
 
 /* .modal-header {
   display: flex;

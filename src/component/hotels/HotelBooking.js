@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./HotelBooking.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -7,10 +7,10 @@ import {
   faChevronUp,
   faChevronDown,
   faLocationDot,
+  faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { getCityList, getHotelCodeListNew } from "../services/hotelService";
-import { getHotelCodeList } from "../services/hotelService";
 import { searchHotels } from "../services/hotelService";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -68,6 +68,12 @@ function HotelBooking() {
   const [visibleCount, setVisibleCount] = useState(9); // Show 9 cards initially
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  // NEW STATE FOR ADDRESS SEARCH AND RECOMMENDATIONS
+  const [addressSearch, setAddressSearch] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -109,9 +115,41 @@ function HotelBooking() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoadingMore]);
 
+  // Fetch addresses for the selected city
+  useEffect(() => {
+    if (selectedCity && hotelList.length > 0) {
+      // Extract unique addresses from hotelList
+      const addresses = hotelList
+        .map((hotel) => hotel.Address)
+        .filter(
+          (address, index, self) =>
+            address && address.trim() !== "" && self.indexOf(address) === index
+        );
+      setAddressSuggestions(addresses);
+    } else {
+      setAddressSuggestions([]);
+    }
+  }, [selectedCity, hotelList]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleSearch = async () => {
     setIsSearching(true);
     setVisibleCount(9); // Reset to 9 cards on new search
+    setAddressSearch(""); // Reset address search on new search
+    setAddressSuggestions([]); // Reset suggestions
 
     try {
       // 🔹 Step 1: Get hotel codes for selected city
@@ -165,7 +203,6 @@ function HotelBooking() {
       // 🔹 Step 4: Call Search API
       const res = await searchHotels(payload);
       console.log("Hotel Search Response:", res);
-      // console.log("HotelResult", JSON.stringify(res.HotelResult));
       if (res?.data?.HotelResult) {
         setSearchResults(res.data.HotelResult);
       } else {
@@ -224,6 +261,68 @@ function HotelBooking() {
 
     loadCities();
   }, [location.state]);
+
+  // Handle address search
+  const handleAddressSearch = (e) => {
+    const value = e.target.value;
+    setAddressSearch(value);
+
+    if (value.trim() === "") {
+      // Show all addresses when search is empty
+      const allAddresses = searchResults.length > 0 ? searchResults : hotelList;
+      const addresses = allAddresses
+        .filter((hotel) => hotel.Address && hotel.Address.trim() !== "")
+        .map((hotel) => hotel.Address)
+        .filter((address, index, self) => self.indexOf(address) === index);
+      setAddressSuggestions(addresses);
+    } else {
+      // Filter addresses based on search
+      const sourceArray = searchResults.length > 0 ? searchResults : hotelList;
+      const filtered = sourceArray
+        .filter(
+          (hotel) =>
+            hotel.Address &&
+            hotel.Address.toLowerCase().includes(value.toLowerCase())
+        )
+        .map((hotel) => hotel.Address)
+        .filter((address, index, self) => self.indexOf(address) === index);
+      setAddressSuggestions(filtered);
+    }
+
+    setShowSuggestions(true);
+  };
+
+  // Handle address selection from suggestions
+  const handleAddressSelect = (address) => {
+    setAddressSearch(address);
+    setShowSuggestions(false);
+
+    // Filter hotels by selected address
+    if (address.trim() === "") {
+      // If address is empty, show all hotels
+      const sourceArray = searchResults.length > 0 ? searchResults : hotelList;
+      setSearchResults(sourceArray);
+    } else {
+      // Filter hotels by address
+      const sourceArray = searchResults.length > 0 ? searchResults : hotelList;
+      const filteredHotels = sourceArray.filter(
+        (hotel) =>
+          hotel.Address &&
+          hotel.Address.toLowerCase().includes(address.toLowerCase())
+      );
+      setSearchResults(filteredHotels);
+      setVisibleCount(9); // Reset visible count
+    }
+  };
+
+  // Clear address search
+  const clearAddressSearch = () => {
+    setAddressSearch("");
+    const sourceArray = searchResults.length > 0 ? searchResults : hotelList;
+    setSearchResults(sourceArray);
+    setShowSuggestions(false);
+    setVisibleCount(9); // Reset visible count
+  };
 
   // Toggle states for each filter section
   const [toggle, setToggle] = useState({
@@ -327,6 +426,15 @@ function HotelBooking() {
       filtered = filtered.filter((hotel) => hotel.Refundable === true);
     }
 
+    // Address search filter
+    if (addressSearch.trim() !== "") {
+      filtered = filtered.filter(
+        (hotel) =>
+          hotel.Address &&
+          hotel.Address.toLowerCase().includes(addressSearch.toLowerCase())
+      );
+    }
+
     // Sort logic
     if (sortOption === "PriceLowHigh") {
       filtered = [...filtered].sort(
@@ -364,11 +472,6 @@ function HotelBooking() {
           Refundable: "false",
           MealType: "All", // All | WithMeal | RoomOnly
         },
-        //i have changed due to refundedamount varilables
-        // Filters: {
-        //   Refundable: "true",
-        //   MealType: "WithMeal", // All | WithMeal | RoomOnly
-        // },
       },
     });
   };
@@ -420,7 +523,6 @@ function HotelBooking() {
   return (
     <div>
       {/* search hotel box filter */}
-
       <div
         className="search-box listing-search-form"
         style={{ marginTop: "108px" }}
@@ -449,6 +551,10 @@ function HotelBooking() {
                   setSelectedCityName(cityName);
                   localStorage.setItem("selectedCity", cityCode);
                   localStorage.setItem("selectedCityName", cityName);
+
+                  // Reset address search when city changes
+                  setAddressSearch("");
+                  setAddressSuggestions([]);
                 }}
                 disabled={!selectedCountry || loading}
               >
@@ -687,18 +793,82 @@ function HotelBooking() {
               <button
                 className=" form-control explore-btn w-100"
                 onClick={handleSearch}
+                disabled={!selectedCity}
               >
                 Search
               </button>
             </div>
           </div>
         </div>
-
-        {/* Keyword + Sort */}
       </div>
+      {/* searchbox */}
 
+      <div className="container">
+        <div className="address-search-container" ref={searchRef}>
+          <div className="input-group">
+            <span className="input-group-text">
+              <FontAwesomeIcon icon={faSearch} />
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder={`Search hotels by address in ${
+                selectedCityName || "selected city"
+              }...`}
+              value={addressSearch}
+              onChange={handleAddressSearch}
+              onFocus={() => setShowSuggestions(true)}
+              disabled={!selectedCity || hotelList.length === 0}
+            />
+          </div>
+
+          {/* Address Suggestions Dropdown */}
+          {showSuggestions && addressSuggestions.length > 0 && (
+            <div className="address-suggestions-dropdown">
+              <div className="dropdown-header">
+                <small className="text-muted">
+                  <FontAwesomeIcon icon={faLocationDot} className="me-1" />
+                  Address recommendations for {selectedCityName}
+                </small>
+              </div>
+              {addressSuggestions.slice(0, 10).map((address, index) => (
+                <div
+                  key={index}
+                  className="suggestion-item"
+                  onClick={() => handleAddressSelect(address)}
+                >
+                  <FontAwesomeIcon
+                    icon={faLocationDot}
+                    className="text-primary me-2"
+                  />
+                  <span>{address}</span>
+                </div>
+              ))}
+              {addressSuggestions.length > 10 && (
+                <div className="dropdown-header">
+                  <small className="text-muted">
+                    And {addressSuggestions.length - 10} more addresses...
+                  </small>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* No suggestions message */}
+          {showSuggestions &&
+            addressSearch &&
+            addressSuggestions.length === 0 && (
+              <div className="address-suggestions-dropdown">
+                <div className="suggestion-item text-muted">
+                  No addresses found matching "{addressSearch}"
+                </div>
+              </div>
+            )}
+        </div>
+      </div>
+      {/* Hotel Listing */}
       <div className="container hotel-listing">
-        <div className="row align-items-end pt-5 pb-3 mb-4">
+        <div className="row align-items-end pb-3">
           <div className="col-sm-5">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
@@ -711,6 +881,18 @@ function HotelBooking() {
               </ol>
             </nav>
           </div>
+          {/* Display current search info */}
+          {/* <div className="col-sm-7">
+            <div className="d-flex justify-content-end">
+
+          
+              <small className="text-muted">
+                {selectedCityName && `Searching in: ${selectedCityName}`}
+                {addressSearch && ` | Address: ${addressSearch}`}
+                {addressSearch && ` (${filteredHotels.length} hotels found)`}
+              </small>
+            </div>
+          </div> */}
         </div>
 
         <div className="row">
@@ -855,6 +1037,9 @@ function HotelBooking() {
                 <div className="spinner-border text-primary" role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
+                <p className="mt-2">
+                  Searching hotels in {selectedCityName}...
+                </p>
               </div>
             ) : (
               <div className="row">
@@ -944,20 +1129,29 @@ function HotelBooking() {
                   ))
                 ) : (
                   <div className="col-12 text-center py-5">
-                    <h5>No hotels available</h5>
-
                     {selectedCity ? (
-                      <img
-                        src="/images/Safarix-Logo1.png"
-                        alt="Try changing search"
-                        style={{ maxWidth: "200px", height: "auto" }}
-                      />
+                      <>
+                        <h5>No hotels available</h5>
+                        <p className="text-muted">
+                          {addressSearch
+                            ? `No hotels found with address containing "${addressSearch}"`
+                            : `No hotels found in ${selectedCityName}`}
+                        </p>
+                        <img
+                          src="/images/Safarix-Logo1.png"
+                          alt="Try changing search"
+                          style={{ maxWidth: "200px", height: "auto" }}
+                        />
+                      </>
                     ) : (
-                      <img
-                        src="/images/select-city.png"
-                        alt="Select city"
-                        style={{ maxWidth: "200px", height: "auto" }}
-                      />
+                      <>
+                        <h5>Please select a city</h5>
+                        <img
+                          src="/images/select-city.png"
+                          alt="Select city"
+                          style={{ maxWidth: "200px", height: "auto" }}
+                        />
+                      </>
                     )}
                   </div>
                 )}
@@ -981,15 +1175,6 @@ function HotelBooking() {
                       <small>All {filteredHotels.length} hotels loaded</small>
                     </div>
                   )}
-
-                {/* Show how many hotels are being displayed */}
-                {/* {filteredHotels.length > 0 && (
-                  <div className="col-12 text-center mt-3 mb-1">
-                    <small className="text-muted">
-                      Showing {Math.min(visibleCount, filteredHotels.length)} of {filteredHotels.length} hotels
-                    </small>
-                  </div>
-                )} */}
               </div>
             )}
           </div>

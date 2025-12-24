@@ -9,6 +9,7 @@ import {
   Spinner,
   Alert,
 } from "react-bootstrap";
+import { FaUndoAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -913,7 +914,10 @@ const Flight = () => {
                   <h5 className="fw-bold text-primary">
                     ₹ {formatPrice(offeredFare)}
                   </h5>
-                  <small className="text-muted">per adult</small>
+                  <small className="text-muted">
+                    Total {adults} adult{adults > 1 ? "s" : ""}
+</small>
+
 
                   {savings > 0 && (
                     <>
@@ -926,9 +930,8 @@ const Flight = () => {
 
                   <br />
                   <Button
-                    variant="primary"
-                    size="sm"
-                    className="mt-2 rounded-pill px-4"
+                 
+                    className="view-price-flight"
                     onClick={() => onViewPrices(flight)}
                   >
                     VIEW PRICES
@@ -1022,7 +1025,7 @@ const Flight = () => {
   return (
     <div>
       {/* Flight Search Form */}
-      <div className="flight-section" style={{ marginTop: "110px" }}>
+      <div className="flight-section" style={{ marginTop: "98px" }}>
         <div className="search-box rounded shadow-sm flight-form">
           <div className="container">
             {error && <Alert variant="warning">{error}</Alert>}
@@ -1140,13 +1143,8 @@ const Flight = () => {
                     <Dropdown.Toggle
                       id="travellers-dropdown"
                       variant="light"
-                      className="AddClass-toggle"
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        textAlign: "left",
-                        backgroundColor: "transparent",
-                      }}
+                      className="AddClass-toggle form-control"
+                  
                     >
                       {adults} Adult{adults > 1 ? "s" : ""},{" "}
                       {travelClass || "Economy"}
@@ -1201,30 +1199,25 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
-                <Button
-                  className="explore-btn w-100"
-                  style={{
-                    padding: "10px 16px",
-                    fontSize: "16px",
-                    background: "linear-gradient(90deg, #2b87da, #1e63b5)",
-                    border: "none",
-                    borderRadius: "30px",
-                    color: "white",
-                  }}
-                  onClick={searchFlights}
-                  disabled={searchLoading || loading || isInitialLoading}
-                >
-                  {searchLoading ? (
-                    <>
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Searching...
-                    </>
-                  ) : (
-                    "Search"
-                  )}
-                </Button>
-              </Col>
+        <Col md={2}>
+  <Button
+    type="submit"   // 👈 yahan explicitly set karo
+    className="explore-flight-btn w-100"
+    onClick={searchFlights}
+    disabled={searchLoading || loading || isInitialLoading}
+  >
+    {searchLoading ? (
+      <>
+        <Spinner animation="border" size="sm" className="me-2 spinner-white" />
+        Searching...
+      </>
+    ) : (
+      "Search"
+    )}
+  </Button>
+</Col>
+
+
             </Row>
             {tripType === "multi" &&
               flights.map((flight, index) => (
@@ -1320,7 +1313,19 @@ const Flight = () => {
           <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
             <fieldset disabled={isInitialLoading || searchLoading}>
               <div className="filter-box p-3 border rounded shadow-sm">
-                <h5 className="mb-3 fw-bold">FILTER</h5>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+  <h5 className="fw-bold mb-0">FILTER</h5>
+
+  <FaUndoAlt
+    title="Reset Filters"
+    style={{ cursor: "pointer", color: "#d04856ff" }}
+    onClick={clearAllFilters}
+  />
+</div>
+
+<div className="filter-group mb-3">
+ 
+</div>
 
                 {/* Refundable Filter */}
                 <div className="filter-group mb-3">
@@ -1335,7 +1340,7 @@ const Flight = () => {
                       }
                     />
                     <label
-                      className="form-check-label fw-semibold"
+                      className="form-check-label"
                       htmlFor="refundable"
                     >
                       Refundable Only
@@ -1351,7 +1356,7 @@ const Flight = () => {
                       style={{ cursor: "pointer" }}
                       onClick={() => handleToggle("airlines")}
                     >
-                      <span className="fw-semibold">Airlines</span>
+                      <span className="flight-heading">Airlines</span>
                       <FontAwesomeIcon
                         icon={toggle.airlines ? faChevronUp : faChevronDown}
                       />
@@ -1447,7 +1452,7 @@ const Flight = () => {
                     style={{ cursor: "pointer" }}
                     onClick={() => handleToggle("stops")}
                   >
-                    <span className="fw-semibold">Stops</span>
+                    <span className="flight-heading">Stops</span>
                     <FontAwesomeIcon
                       icon={toggle.stops ? faChevronUp : faChevronDown}
                     />
@@ -1488,7 +1493,7 @@ const Flight = () => {
                     style={{ cursor: "pointer" }}
                     onClick={() => handleToggle("price")}
                   >
-                    <span className="fw-semibold">Price Range</span>
+                    <span className="flight-heading">Price Range</span>
                     <FontAwesomeIcon
                       icon={toggle.price ? faChevronUp : faChevronDown}
                     />
@@ -1548,7 +1553,7 @@ const Flight = () => {
                     style={{ cursor: "pointer" }}
                     onClick={() => handleToggle("departure")}
                   >
-                    <span className="fw-semibold">Departure Time</span>
+                    <span className="flight-heading">Departure Time</span>
                     <FontAwesomeIcon
                       icon={toggle.departure ? faChevronUp : faChevronDown}
                     />
@@ -1596,7 +1601,7 @@ const Flight = () => {
                     style={{ cursor: "pointer" }}
                     onClick={() => handleToggle("duration")}
                   >
-                    <span className="fw-semibold">Flight Duration</span>
+                    <span className="flight-heading">Flight Duration</span>
                     <FontAwesomeIcon
                       icon={toggle.duration ? faChevronUp : faChevronDown}
                     />
@@ -1631,16 +1636,7 @@ const Flight = () => {
                 </div>
 
                 {/* Clear Filters Button */}
-                <div className="filter-group mb-3">
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    className="w-100"
-                    onClick={clearAllFilters}
-                  >
-                    Clear All Filters
-                  </Button>
-                </div>
+               
               </div>
             </fieldset>
           </Col>

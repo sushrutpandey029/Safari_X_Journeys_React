@@ -4,8 +4,7 @@ import { Dropdown } from "react-bootstrap";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-// import { Lock } from "lucide-react";
-// import { LockFill } from "react-bootstrap-icons";
+
 import "./Flights.css";
 
 const SearchBox = ({ placeholder = "Search...", onSearch }) => {
@@ -231,18 +230,13 @@ const SearchBox = ({ placeholder = "Search...", onSearch }) => {
     
                   {/* Search Button */}
                   <Col md={3}>
-                    <Button
-                      className="explore-btn"
-                      style={{
-                        width: "100%",
-                        padding: "10px 16px",
-                        fontSize: "16px",
-                        backgroundColor: "#274a62",
-                      }}
-                      onClick={searchFlights} // tumhara existing search function
-                    >
-                      Search
-                    </Button>
+                   <Button
+  className="explore-btn"
+  onClick={searchFlights}
+>
+  Search
+</Button>
+
                   </Col>
                 </Row>
               </div>
