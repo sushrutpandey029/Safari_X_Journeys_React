@@ -478,9 +478,7 @@ const FlightDetail = ({
       </div>
     </div>
   </div>
-
   {/* RIGHT 50% – Fare Rules */}
-  <div className="rules-50">
     <div className="fare-rules-section">
       <div className="section-title">Fare Rules & Terms</div>
 
@@ -500,8 +498,6 @@ const FlightDetail = ({
         </div>
       )}
     </div>
-  </div>
-
 </div>
 
         </div>

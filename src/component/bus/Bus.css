@@ -39,10 +39,7 @@ label {
 .btn-primary {
   transition: all 0.3s ease;
 }
-.btn-primary:hover {
-  transform: scale(1.03);
-  background: linear-gradient(to right, #0056d2, #003c9e);
-}
+
 .bus-card {
   background: white;
   transition: transform 0.2s ease-in-out;
