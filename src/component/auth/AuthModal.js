@@ -8,10 +8,12 @@ import { saveUserData } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { userVerifyEmailOtp } from "../services/authService";
 
 function AuthModal({ show, onClose, setShowUserLogin }) {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -76,18 +78,30 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
     try {
       const response = await registerOrLogin(formData);
 
-      if (response.data.status === true) {
-        console.log("response in register", response);
-        saveUserInfo(response);
-        setShowUserLogin(false);
-        alert(response.data.message);
-        window.location.reload(true);
+      if (response.data.status === "otp_required") {
+        setStep(4); // 👈 move to OTP screen
       }
     } catch (err) {
       alert(err.response.data.message);
-      console.log("err in register", err.response);
     }
   };
+
+  // const handleRegister = async () => {
+  //   try {
+  //     const response = await registerOrLogin(formData);
+
+  //     if (response.data.status === true) {
+  //       console.log("response in register", response);
+  //       saveUserInfo(response);
+  //       setShowUserLogin(false);
+  //       alert(response.data.message);
+  //       window.location.reload(true);
+  //     }
+  //   } catch (err) {
+  //     alert(err.response.data.message);
+  //     console.log("err in register", err.response);
+  //   }
+  // };
 
   const handleSuccess = async (credentialResponse) => {
     try {
@@ -111,6 +125,30 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
       }
     } catch (err) {
       console.log("error in login with google", err.response);
+    }
+  };
+
+  const verifyEmailOtp = async () => {
+    try {
+      const payload = {
+        emailid: formData.emailid,
+        otp: emailOtp,
+      };
+      console.log("payload before senign api", payload);
+      const res = await userVerifyEmailOtp(payload);
+      // const res = await verifyEmailOtpAPI({
+      //   emailid: formData.emailid,
+      //   otp: emailOtp,
+      // });
+      console.log("res of verify otp", JSON.stringify(res, null, 2));
+      if (res.data.status === true) {
+        dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
+        saveUserInfo(res);
+        setShowUserLogin(false);
+      }
+    } catch (err) {
+      console.log("error in verify otp", err.response);
+      alert(err.response.data.message);
     }
   };
 
@@ -142,11 +180,11 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
           {step === 1 && (
             <>
               <p className="text-center text-muted mb-3">
-                Plan your trip, book your tickets, and access everything with  
-                 <strong> SafariX</strong>
+                Plan your trip, book your tickets, and access everything with
+                <strong> SafariX</strong>
               </p>
 
-            {/* social logins */}
+              {/* social logins */}
               {/* <div className="d-flex justify-content-between gap-2 mb-3">
                 <GoogleOAuthProvider clientId="625734741238-62mdgmg6rrsuvgbef8vpq59p4gh9uli9.apps.googleusercontent.com">
                   <GoogleLogin
@@ -324,6 +362,35 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                   Create an account
                 </button>
               </div>
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <h5 className="text-center mb-2">Verify your email</h5>
+              <p className="text-muted text-center">
+                We’ve sent a verification code to <b>{formData.emailid}</b>
+              </p>
+
+              <input
+                type="text"
+                className="form-control mb-3"
+                placeholder="Enter 6-digit OTP"
+                value={emailOtp}
+                onChange={(e) => setEmailOtp(e.target.value)}
+              />
+
+              <button
+                className={`explore-btn ${
+                  emailOtp.length === 6
+                    ? "btn-primary text-white"
+                    : "btn-light text-muted"
+                }`}
+                disabled={emailOtp.length !== 6}
+                onClick={verifyEmailOtp}
+              >
+                Verify & Continue
+              </button>
             </>
           )}
         </Modal.Body>

@@ -225,7 +225,6 @@ function Footer() {
                 {showChat && <BotModal toggleChat={toggleChat} />}
               </div>
 
-              {/* 🔐 256-bit encryption text – yeh 4 icons ke bilkul neeche hai */}
               <div className="mt-2 d-flex align-items-center">
                 <i className="bi bi-shield-lock-fill me-2 text-success"></i>
                 <small className="text-white">

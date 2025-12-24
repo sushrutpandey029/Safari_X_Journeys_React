@@ -9,6 +9,7 @@ const Guidedetail = () => {
   const location = useLocation();
   const { guideId } = useParams();
   const guide = location.state?.guideData;
+  console.log("guidein guide detil",guide);
   const { startPayment } = useCashfreePayment();
 
   const [activeTab, setActiveTab] = useState("about");
@@ -116,7 +117,8 @@ const Guidedetail = () => {
       const bookingData = {
         userId: userdetails?.id,
         serviceType: "guide",
-        serviceProviderId: guide.guideId,
+        vendorType:"guide",
+        vendorId: guide.guideId,
         serviceDetails: {
           guideId: guide.guideId,
           guideName: guide.fullName,

@@ -2,20 +2,23 @@
 
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
-// export const BASE_URL = "http://10.31.33.26:2625";
-export const BASE_URL = "http://192.168.1.10:2625";
+export const BASE_URL = "http://10.31.33.26:2625";
+// export const BASE_URL = "http://192.168.1.12:2625";
+// export const BASE_URL = "http://192.168.1.8:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
   CAB_LIST: `${BASE_URL}/api/cab/list`,
-  DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/driver-guide/role-based-login`,
-  DRIVER_GUIDE_LOGOUT: `${BASE_URL}/api/driver-guide/logout`,
+  // DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/guide/login`,
+  GUIDE_LOGIN: `${BASE_URL}/guide/login`,
+  GUIDE_LOGOUT: `${BASE_URL}/guide/logout`,
   NEWSLATER: `${BASE_URL}/api/news/later`,
   CHATBOT_SUBMIT: `${BASE_URL}/api/chatbot`,
   GET_ALL_CITIES: `${BASE_URL}/api/getCities`,
 
   //user
   REGISTER_OR_LOGIN: `${BASE_URL}/api/user/register-or-login`,
+  USER_VERIFY_OTP: `${BASE_URL}/api/user/verify-email-otp`,
   USER_LOGOUT: `${BASE_URL}/api/user/logout`,
   BANNER_IMAGE: `${BASE_URL}/api/banner/image`,
   FAQ_LIST: `${BASE_URL}/api/FAQ/list`,
@@ -34,6 +37,9 @@ export const API = {
   GUIDE_CAREER_SUBMIT: `${BASE_URL}/guide/career-guide`,
   GUIDE_UPDATE_PROFILE: (id) => `${BASE_URL}/guide/update/${id}`,
   GUIDE_CHANGE_PASSWORD: (id) => `${BASE_URL}/guide/change-password/${id}`,
+  GUIDE_MARK_LEAVE: (id) => `${BASE_URL}/guide/unavailable/${id}`,
+  GUIDE_LEAVE_HISTORY: (id) => `${BASE_URL}/guide/leave-history/${id}`,
+  GUIDE_BOOKING_HISTORY: (id) => `${BASE_URL}/guide/booking-history/${id}`,
 
   // Booking + Payment
   CREATE_BOOKING_DRAFT: `${BASE_URL}/api/booking/create-draft`,

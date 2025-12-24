@@ -61,7 +61,7 @@ function UserDashboard() {
                   role="tab"
                 >
                   <FontAwesomeIcon icon={faCalendarCheck} className="me-2" />{" "}
-                  Booking
+                  Booking History
                 </button>
               </li>
               <li class="nav-item">

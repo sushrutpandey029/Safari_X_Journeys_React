@@ -9,18 +9,18 @@ import { logout } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
 import AuthModal from "../auth/AuthModal";
-import DriverGuideAuth from "../auth/DriverGuideAuth";
+import GuideAuth from "../auth/GuideAuth";
 import { getUserData, removeUserData } from "../utils/storage";
-import { userLogout, driverGuideLogout } from "../services/authService";
-
+import { userLogout } from "../services/authService";
+ 
 function Header() {
   const user = getUserData("safarix_user");
   const guide = getUserData("guide");
   const driver = getUserData("driver");
-
+ 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
-  const [showDriverGuideLogin, setShowDriverGuideLogin] = useState(false);
+  const [showGuideLogin, setShowGuideLogin] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
 
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ function Header() {
     if (!confirmed) return;
 
     setShowProfileMenu(false);
-    await driverGuideLogout();
+    // await driverGuideLogout();
     removeUserData("driver");
     removeUserData("driver_token");
     removeUserData("driver_refreshtoken");
@@ -62,12 +62,13 @@ function Header() {
     if (!confirmed) return;
 
     setShowProfileMenu(false);
-    await driverGuideLogout();
+    // await driverGuideLogout();
     removeUserData("guide");
     removeUserData("guide_token");
     removeUserData("guide_refreshtoken");
     dispatch(logout());
-    window.location.reload(true);
+    navigate("/")
+    // window.location.reload(true);
   };
 
   useEffect(() => {
@@ -228,15 +229,15 @@ function Header() {
                               setShowProfileMenu(false);
                             }}
                           >
-                            Login or Signup as User
+                            Login or Signup
                           </li>
                           <li
                             onClick={() => {
-                              setShowDriverGuideLogin(true);
+                              setShowGuideLogin(true);
                               setShowProfileMenu(false);
                             }}
                           >
-                            Login as Guide
+                            Guide Login
                           </li>
                         </>
                       )}
@@ -309,10 +310,11 @@ function Header() {
                 setShowUserLogin={setShowUserLogin}
               />
 
-              <DriverGuideAuth
-                show={showDriverGuideLogin}
-                onClose={() => setShowDriverGuideLogin(false)}
-                setShowDriverGuideLogin={setShowDriverGuideLogin}
+              <GuideAuth
+                show={showGuideLogin}
+                onClose={() => setShowGuideLogin(false)}
+                setShowGuideLogin={setShowGuideLogin}
+                // setShowDriverGuideLogin={setShowDriverGuideLogin}
               />
             </div>
           </div>
