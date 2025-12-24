@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BASE_URL } from "../../services/apiEndpoints";
 import { fetchTestimonialList } from "../../services/commonService";
-
 import "./Testimonials.css";
 
 function Testimonials() {
@@ -22,42 +21,38 @@ function Testimonials() {
   }, []);
 
   return (
-    <div className="Testimonials">
-      <div className="card-container">
-        {Array.isArray(testimonialData) &&
-          testimonialData.map((item) => (
-            <div key={item.id} className="card">
-              <div className="Time row">
-                <div className="col-sm-6">
-                  <h5 className="mb-1">{item.name}</h5>
-                </div>
-                <div className="col-sm-6 text-end">
-                  <div className="text-warning">
-                    {"★".repeat(item.rating)}
-                    {"☆".repeat(5 - item.rating)}
-                  </div>
-                  <div className="text-muted small">{item.time}</div>
-                </div>
-              </div>
+    <div className="Testionials" style={{ marginTop: "100px" }}>
+      <div className="container">
+        <div className="row align-items-center mb-4">
+          <div className="col-sm-9">
+            <h2>
+              Our Recent <span>Testimonials</span>
+            </h2>
+          </div>
 
-              <div className="col-sm-12 d-flex">
-                <div className="col-sm-5">
+          {testimonialData?.map((item) => (
+            <div key={item.id} className="col-sm-4 mb-4">
+              <div className="testimonial-card">
+                <div className="stars">{"★".repeat(item.rating)}</div>
+
+                <p className="review-text">
+                  {item.description?.substring(0, 110)}...
+                </p>
+
+                <div className="review-user">
                   <img
                     src={`${BASE_URL}/testimonial/images/${item.image}`}
                     alt={item.name}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      borderRadius: "10px",
-                    }}
                   />
-                </div>
-                <div className="col-sm-7">
-                  <p className="mb-0">{item.description}</p>
+                  <div>
+                    <h4>{item.name}</h4>
+                    <small>{item.designation}</small>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
+        </div>
       </div>
     </div>
   );

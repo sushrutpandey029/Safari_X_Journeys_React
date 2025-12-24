@@ -9,23 +9,29 @@ import {
   Spinner,
   Alert,
 } from "react-bootstrap";
+import { FaUndoAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import "./Flights.css";
 import axios from "axios";
-import {
-  getIndianAirports,
-  Flight_authenticate,
-  Flight_search,
-} from "../services/flightService";
+import { getIndianAirports, Flight_search } from "../services/flightService";
 import { Modal } from "react-bootstrap";
 import FlightDetail from "./Flghitdetail";
 
 const Flight = () => {
   // Flight segments (multi-city form)
-  const [flights, setFlights] = useState([{ from: "", to: "", date: "" }]);
+  // const [flights, setFlights] = useState([{ from: "", to: "", date: "" }]);
+  const [flights, setFlights] = useState([
+    {
+      from: "DEL",
+      to: "BOM",
+      date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+    },
+  ]);
 
   useEffect(() => {
     if (!flights[0]?.date) {
@@ -35,13 +41,14 @@ const Flight = () => {
     }
   }, []);
 
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
   // Dynamic airports data
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Authentication and search states
-  const [token, setToken] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -60,6 +67,23 @@ const Flight = () => {
   // fare rule detail
   const [showModal, setShowModal] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
+
+  const [visibleCount, setVisibleCount] = useState(6); // first 6 cards
+
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+      ) {
+        setVisibleCount((prev) => prev + 6); // load next 6
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // ============ FILTER STATES ============
   const [filters, setFilters] = useState({
@@ -290,13 +314,6 @@ const Flight = () => {
         const userIp = ipResponse.data.ip;
         setUserIP(userIp);
 
-        // Step 2: Authenticate
-        const authResponse = await Flight_authenticate(userIp);
-        const tokenId = authResponse?.TokenId || authResponse?.data?.TokenId;
-        if (!tokenId) throw new Error("No TokenId found in auth response");
-
-        setToken(tokenId);
-
         // Step 3: Fetch airports
         const airportsResponse = await getIndianAirports();
         if (airportsResponse?.data) {
@@ -322,6 +339,7 @@ const Flight = () => {
     value,
     onChange,
     placeholder = "Select Airport",
+    disabled = false,
     type = "from",
   }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -429,6 +447,7 @@ const Flight = () => {
             if (!isOpen) setIsOpen(true);
           }}
           onFocus={() => {
+            if (disabled) return;
             setIsOpen(true);
             // On focus, show available airports (not already selected)
             const selectedAirports = getAllSelectedAirports();
@@ -438,6 +457,7 @@ const Flight = () => {
             setFilteredAirports(availableAirports.slice(0, 10));
           }}
           className="custom-dropdown-input"
+          disabled={disabled}
         />
 
         {isOpen && (
@@ -585,11 +605,6 @@ const Flight = () => {
 
   // Search flights function
   const searchFlights = async () => {
-    if (!token) {
-      setSearchError("Please wait while we authenticate...");
-      return;
-    }
-
     // Validate form
     for (let flight of flights) {
       if (!flight.from || !flight.to || !flight.date) {
@@ -606,6 +621,11 @@ const Flight = () => {
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults([]);
+    setVisibleCount(6);
+    setFilters((prev) => ({
+      ...prev,
+      airlines: [],
+    }));
 
     try {
       let segments = [];
@@ -646,8 +666,6 @@ const Flight = () => {
       }
 
       const searchPayload = {
-        EndUserIp: userIP,
-        TokenId: token,
         AdultCount: adults,
         ChildCount: children,
         InfantCount: infants,
@@ -720,7 +738,8 @@ const Flight = () => {
 
   // Format time from ISO string
   const formatTime = (isoString) => {
-    if (!isoString) return "08:50";
+    if (!isoString) return "--:--";
+
     try {
       const date = new Date(isoString);
       return date.toLocaleTimeString("en-IN", {
@@ -735,13 +754,13 @@ const Flight = () => {
 
   // Format duration from minutes
   const formatDuration = (minutes) => {
-    if (!minutes) return "02h 50m";
+    if (!minutes && minutes !== 0) return "--";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
 
-  // Render flight results with filters applied
+  // Render flight results with filters applied AND infinite scroll
   const renderFlightResults = () => {
     if (searchLoading) {
       return (
@@ -785,137 +804,224 @@ const Flight = () => {
       );
     }
 
-    return filteredResults.map((flight, index) => {
-      const segments = flight.Segments || [];
-      const fareInfo = flight.Fare || {};
-      const airlineInfo = flight.Airline || {};
+    // Only show the first `visibleCount` flights
+    const visibleFlights = filteredResults.slice(0, visibleCount);
 
-      let segmentData = {};
-      if (segments.length > 0) {
-        const firstSegment = segments[0];
-        segmentData = Array.isArray(firstSegment)
-          ? firstSegment[0] || {}
-          : firstSegment || {};
-      }
+    return (
+      <>
+        {visibleFlights.map((flight, index) => {
+          const segments = flight.Segments || [];
+          const fareInfo = flight.Fare || {};
+          const airlineInfo = flight.Airline || {};
 
-      const segmentAirline = segmentData.Airline || airlineInfo;
-      const originInfo = segmentData.Origin || {};
-      const destinationInfo = segmentData.Destination || {};
+          let segmentData = {};
+          if (segments.length > 0) {
+            const firstSegment = segments[0];
+            segmentData = Array.isArray(firstSegment)
+              ? firstSegment[0] || {}
+              : firstSegment || {};
+          }
 
-      const originAirport = originInfo.Airport || {};
-      const destinationAirport = destinationInfo.Airport || {};
+          const segmentAirline = segmentData.Airline || airlineInfo;
+          const originInfo = segmentData.Origin || {};
+          const destinationInfo = segmentData.Destination || {};
 
-      const publishedFare = fareInfo.PublishedFare || 0;
-      const offeredFare = fareInfo.OfferedFare || publishedFare;
-      const savings = publishedFare - offeredFare;
+          const originAirport = originInfo.Airport || {};
+          const destinationAirport = destinationInfo.Airport || {};
 
-      return (
-        <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
-          <Row className="align-items-center">
-            <Col md={3} className="d-flex align-items-center">
-              <div
-                className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center"
-                style={{ width: "50px", height: "50px" }}
-              >
-                <strong className="text-primary">
-                  {segmentAirline.AirlineCode || "AI"}
-                </strong>
-              </div>
-              <div>
-                <h6 className="mb-0">
-                  {segmentAirline.AirlineName || "Air India"}
-                </h6>
-                <small className="text-muted">
-                  {segmentAirline.FlightNumber
-                    ? `Flight ${segmentAirline.FlightNumber}`
-                    : "Flight 2993"}
-                </small>
-                <br />
-                <small
-                  className={
-                    flight.IsRefundable ? "text-success" : "text-danger"
-                  }
-                >
-                  {flight.IsRefundable ? "🔄 Refundable" : "❌ Non-Refundable"}
-                </small>
-              </div>
-            </Col>
+          const publishedFare = fareInfo.PublishedFare || 0;
+          const offeredFare = fareInfo.OfferedFare || publishedFare;
+          const savings = publishedFare - offeredFare;
 
-            <Col md={2} className="text-center">
-              <h5 className="mb-0">{formatTime(originInfo.DepTime)}</h5>
-              <small className="text-muted">
-                {originAirport.AirportCode || "DEL"}
-              </small>
-              <br />
-              <small className="text-muted small">
-                {originAirport.CityName || "Delhi"}
-              </small>
-            </Col>
+          return (
+            <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
+              <Row className="align-items-center">
+                {/* Airline Info */}
+                <Col md={3} className="d-flex align-items-center">
+                  <div
+                    className="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center"
+                    style={{ width: "50px", height: "50px" }}
+                  >
+                    <strong className="text-primary">
+                      {segmentAirline?.AirlineCode || "--"}
+                    </strong>
+                  </div>
 
-            <Col md={2} className="text-center">
-              <p className="mb-1 text-success fw-bold">
-                {formatDuration(segmentData.Duration)}
-              </p>
-              <small className="text-muted">
-                {segmentData.StopOver ? "With Stop" : "Non stop"}
-              </small>
-              <br />
-              <small className="text-muted small">
-                {segmentData.Craft || "32N"}
-              </small>
-            </Col>
+                  <div>
+                    <h6 className="mb-0">
+                      {segmentAirline?.AirlineName || "Unknown Airline"}
+                    </h6>
+                    <small className="text-muted">
+                      {segmentAirline?.FlightNumber
+                        ? `Flight ${segmentAirline.FlightNumber}`
+                        : ""}
+                    </small>
+                    <br />
+                    <small
+                      className={
+                        flight.IsRefundable ? "text-success" : "text-danger"
+                      }
+                    >
+                      {flight.IsRefundable
+                        ? "🔄 Refundable"
+                        : "❌ Non-Refundable"}
+                    </small>
+                  </div>
+                </Col>
 
-            <Col md={2} className="text-center">
-              <h5 className="mb-0">{formatTime(destinationInfo.ArrTime)}</h5>
-              <small className="text-muted">
-                {destinationAirport.AirportCode || "BOM"}
-              </small>
-              <br />
-              <small className="text-muted small">
-                {destinationAirport.CityName || "Mumbai"}
-              </small>
-            </Col>
-
-            <Col md={3} className="text-end">
-              <h5 className="fw-bold text-primary">
-                ₹ {formatPrice(offeredFare)}
-              </h5>
-              <small className="text-muted">per adult</small>
-              {savings > 0 && (
-                <>
-                  <br />
-                  <small className="text-success small">
-                    Save ₹{formatPrice(savings)}
+                {/* Departure */}
+                <Col md={2} className="text-center">
+                  <h5 className="mb-0">{formatTime(originInfo.DepTime)}</h5>
+                  <small className="text-muted">
+                    {originAirport?.AirportCode || "--"}
                   </small>
-                </>
-              )}
-              <br />
-              <Button
-                variant="primary"
-                size="sm"
-                className="mt-2 rounded-pill px-4"
-                onClick={() => onViewPrices(flight)}
-              >
-                VIEW PRICES
-              </Button>
-            </Col>
-          </Row>
+                  <br />
+                  <small className="text-muted small">
+                    {originAirport?.CityName || "--"}
+                  </small>
+                </Col>
 
-          <Row className="mt-3">
-            <Col>
-              <div className="bg-light p-2 rounded-2">
-                <small className="text-muted">
-                  <strong>Baggage:</strong> {segmentData.Baggage || "15 KG"} •
-                  <strong> Cabin:</strong> {segmentData.CabinBaggage || "7 KG"}{" "}
-                  •<strong> Class:</strong> {travelClass}
-                </small>
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      );
-    });
+                {/* Duration */}
+                <Col md={2} className="text-center">
+                  <p className="mb-1 text-success fw-bold">
+                    {formatDuration(segmentData.Duration)}
+                  </p>
+                  <small className="text-muted">
+                    {segmentData.StopOver ? "With Stop" : "Non stop"}
+                  </small>
+                  <br />
+                  <small className="text-muted small">
+                    {segmentData.Craft || "32N"}
+                  </small>
+                </Col>
+
+                {/* Arrival */}
+                <Col md={2} className="text-center">
+                  <h5 className="mb-0">
+                    {formatTime(destinationInfo.ArrTime)}
+                  </h5>
+                  <small className="text-muted">
+                    {destinationAirport?.AirportCode || "--"}
+                  </small>
+                  <br />
+                  <small className="text-muted small">
+                    {destinationAirport?.CityName || "--"}
+                  </small>
+                </Col>
+
+                {/* Price */}
+                <Col md={3} className="text-end">
+                  <h5 className="fw-bold text-primary">
+                    ₹ {formatPrice(offeredFare)}
+                  </h5>
+                  <small className="text-muted">
+                    Total {adults} adult{adults > 1 ? "s" : ""}
+</small>
+
+
+                  {savings > 0 && (
+                    <>
+                      <br />
+                      <small className="text-success small">
+                        Save ₹{formatPrice(savings)}
+                      </small>
+                    </>
+                  )}
+
+                  <br />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="view-price-flight"
+                    onClick={() => onViewPrices(flight)}
+                  >
+                    VIEW PRICES
+                  </Button>
+                </Col>
+              </Row>
+
+              {/* Baggage Row */}
+              <Row className="mt-3">
+                <Col>
+                  <div className="bg-light p-2 rounded-2">
+                    <small className="text-muted">
+                      <strong>Baggage:</strong> {segmentData?.Baggage || "--"}•
+                      <strong> Cabin:</strong>{" "}
+                      {segmentData?.CabinBaggage || "--"} •
+                      <strong> Class:</strong> {travelClass}
+                    </small>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+          );
+        })}
+
+        {/* Show loading indicator if more flights are loading */}
+        {visibleCount < filteredResults.length && (
+          <div className="text-center my-4">
+            <Spinner animation="border" size="sm" className="me-2" />
+            <span>Loading more flights...</span>
+            <div className="small text-muted mt-2">
+              Showing {visibleCount} of {filteredResults.length} flights
+            </div>
+          </div>
+        )}
+
+        {/* Show message if all flights are loaded */}
+        {visibleCount >= filteredResults.length &&
+          filteredResults.length > 0 && (
+            <div className="text-center my-4 text-muted">
+              <small>All {filteredResults.length} flights loaded</small>
+            </div>
+          )}
+      </>
+    );
   };
+
+  // Auto-search flights on initial render with default values
+  useEffect(() => {
+    const performInitialSearch = async () => {
+      if (airports.length > 0) {
+        setTimeout(async () => {
+          try {
+            setIsInitialLoading(true);
+            await searchFlights();
+          } catch (error) {
+            // Handle error if needed
+            console.error("Error during initial search:", error);
+          } finally {
+            setIsInitialLoading(false);
+          }
+        }, 1000);
+      }
+    };
+
+    performInitialSearch();
+  }, [airports]);
+
+  const availableAirlines = React.useMemo(() => {
+    const map = new Map();
+
+    // Collect unique airlines
+    searchResults.forEach((flight) => {
+      const seg = flight?.Segments?.[0]?.[0];
+      if (seg?.Airline?.AirlineCode) {
+        map.set(seg.Airline.AirlineCode, seg.Airline.AirlineName);
+      }
+    });
+
+    return Array.from(map.entries())
+      .map(([code, name]) => {
+        // 🔹 Count flights for this airline
+        const count = searchResults.filter(
+          (f) => f?.Segments?.[0]?.[0]?.Airline?.AirlineCode === code
+        ).length;
+
+        return { code, name, count };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name)); // alphabetical
+  }, [searchResults]);
 
   return (
     <div>
@@ -942,6 +1048,7 @@ const Flight = () => {
                     value={tripType}
                     onChange={(e) => handleTripTypeChange(e.target.value)}
                     className="form-control"
+                    disabled={isInitialLoading || searchLoading}
                   >
                     <option value="oneway">One Way</option>
                     <option value="round">Round Trip</option>
@@ -958,6 +1065,7 @@ const Flight = () => {
                     onChange={(value) => handleFromChange(0, value)}
                     placeholder="From City"
                     type="from"
+                    disabled={isInitialLoading || searchLoading}
                   />
                 </Form.Group>
               </Col>
@@ -970,6 +1078,7 @@ const Flight = () => {
                     onChange={(value) => handleToChange(0, value)}
                     placeholder="To City"
                     type="to"
+                    disabled={isInitialLoading || searchLoading}
                   />
                 </Form.Group>
               </Col>
@@ -989,6 +1098,7 @@ const Flight = () => {
                     minDate={new Date()}
                     dateFormat="EEE, MMM d, yyyy"
                     className="form-control"
+                    disabled={isInitialLoading || searchLoading}
                   />
                 </Form.Group>
               </Col>
@@ -1095,30 +1205,25 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
-                <Button
-                  className="explore-btn w-100"
-                  style={{
-                    padding: "10px 16px",
-                    fontSize: "16px",
-                    background: "linear-gradient(90deg, #2b87da, #1e63b5)",
-                    border: "none",
-                    borderRadius: "30px",
-                    color: "white",
-                  }}
-                  onClick={searchFlights}
-                  disabled={searchLoading || !token || loading}
-                >
-                  {searchLoading ? (
-                    <>
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Searching...
-                    </>
-                  ) : (
-                    "Search"
-                  )}
-                </Button>
-              </Col>
+        <Col md={2}>
+  <Button
+    type="submit"   // 👈 yahan explicitly set karo
+    className="explore-flight-btn w-100"
+    onClick={searchFlights}
+    disabled={searchLoading || loading || isInitialLoading}
+  >
+    {searchLoading ? (
+      <>
+        <Spinner animation="border" size="sm" className="me-2 spinner-white" />
+        Searching...
+      </>
+    ) : (
+      "Search"
+    )}
+  </Button>
+</Col>
+
+
             </Row>
             {tripType === "multi" &&
               flights.map((flight, index) => (
@@ -1136,6 +1241,7 @@ const Flight = () => {
                         onChange={(value) => handleFromChange(index, value)}
                         placeholder="From City"
                         type="from"
+                        disabled={isInitialLoading || searchLoading}
                       />
                     </Form.Group>
                   </Col>
@@ -1148,6 +1254,7 @@ const Flight = () => {
                         onChange={(value) => handleToChange(index, value)}
                         placeholder="To City"
                         type="to"
+                        disabled={isInitialLoading || searchLoading}
                       />
                     </Form.Group>
                   </Col>
@@ -1209,33 +1316,99 @@ const Flight = () => {
       <div className="container py-5">
         <Row>
           {/* Filter Sidebar */}
-          <Col sm={3}>
-            <div className="filter-box p-3 border rounded shadow-sm">
-              <h5 className="mb-3 fw-bold">FILTER</h5>
+          <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
+            <fieldset disabled={isInitialLoading || searchLoading}>
+              <div className="filter-box p-3 border rounded shadow-sm">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+  <h5 className="fw-bold mb-0">FILTER</h5>
 
-              {/* Refundable Filter */}
-              <div className="filter-group mb-3">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="refundable"
-                    checked={filters.refundableOnly}
-                    onChange={(e) =>
-                      handleFilterChange("refundableOnly", e.target.checked)
-                    }
-                  />
-                  <label
-                    className="form-check-label fw-semibold"
-                    htmlFor="refundable"
-                  >
-                    Refundable Only
-                  </label>
+  <FaUndoAlt
+    title="Reset Filters"
+    style={{ cursor: "pointer", color: "#d04856ff" }}
+    onClick={clearAllFilters}
+  />
+</div>
+
+<div className="filter-group mb-3">
+ 
+</div>
+
+                {/* Refundable Filter */}
+                <div className="filter-group mb-3">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="refundable"
+                      checked={filters.refundableOnly}
+                      onChange={(e) =>
+                        handleFilterChange("refundableOnly", e.target.checked)
+                      }
+                    />
+                    <label
+                      className="form-check-label fw-semibold"
+                      htmlFor="refundable"
+                    >
+                      Refundable Only
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              {/* Airlines Filter */}
-              <div className="filter-group mb-3">
+                {/* Airlines Filter */}
+                <fieldset disabled={isInitialLoading || searchLoading}>
+                  <div className="filter-group mb-3">
+                    <div
+                      className="filter-title d-flex justify-content-between"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleToggle("airlines")}
+                    >
+                      <span className="fw-semibold">Airlines</span>
+                      <FontAwesomeIcon
+                        icon={toggle.airlines ? faChevronUp : faChevronDown}
+                      />
+                    </div>
+
+                    {toggle.airlines && (
+                      <div className="filter-options mt-2">
+                        {availableAirlines.length === 0 ? (
+                          <small className="text-muted">
+                            No airlines available
+                          </small>
+                        ) : (
+                          availableAirlines.map((airline) => (
+                            <div className="form-check" key={airline.code}>
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`airline-${airline.code}`}
+                                checked={filters.airlines.includes(
+                                  airline.code
+                                )}
+                                onChange={(e) =>
+                                  handleAirlineFilter(
+                                    airline.code,
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                              <label
+                                className="form-check-label"
+                                htmlFor={`airline-${airline.code}`}
+                              >
+                                {airline.name}
+                                <span className="text-muted">
+                                  ({airline.count})
+                                </span>
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </fieldset>
+
+                {/* <div className="filter-group mb-3">
                 <div
                   className="filter-title d-flex justify-content-between"
                   style={{ cursor: "pointer" }}
@@ -1276,210 +1449,202 @@ const Flight = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </div> */}
 
-              {/* Stops Filter */}
-              <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("stops")}
-                >
-                  <span className="fw-semibold">Stops</span>
-                  <FontAwesomeIcon
-                    icon={toggle.stops ? faChevronUp : faChevronDown}
-                  />
+                {/* Stops Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("stops")}
+                  >
+                    <span className="fw-semibold">Stops</span>
+                    <FontAwesomeIcon
+                      icon={toggle.stops ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.stops && (
+                    <div className="filter-options mt-2">
+                      {[
+                        { label: "Non-stop", value: 0 },
+                        { label: "1 Stop", value: 1 },
+                        { label: "2+ Stops", value: 2 },
+                      ].map((stop, i) => (
+                        <div className="form-check" key={stop.value}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`stop-${stop.value}`}
+                            checked={filters.stops.includes(stop.value)}
+                            onChange={(e) =>
+                              handleStopFilter(stop.value, e.target.checked)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`stop-${stop.value}`}
+                          >
+                            {stop.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {toggle.stops && (
-                  <div className="filter-options mt-2">
-                    {[
-                      { label: "Non-stop", value: 0 },
-                      { label: "1 Stop", value: 1 },
-                      { label: "2+ Stops", value: 2 },
-                    ].map((stop, i) => (
-                      <div className="form-check" key={stop.value}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`stop-${stop.value}`}
-                          checked={filters.stops.includes(stop.value)}
-                          onChange={(e) =>
-                            handleStopFilter(stop.value, e.target.checked)
-                          }
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`stop-${stop.value}`}
-                        >
-                          {stop.label}
+
+                {/* Price Range Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("price")}
+                  >
+                    <span className="fw-semibold">Price Range</span>
+                    <FontAwesomeIcon
+                      icon={toggle.price ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.price && (
+                    <div className="filter-options mt-2">
+                      <div className="mb-2">
+                        <label className="form-label small">
+                          Min: ₹{filters.priceRange.min}
                         </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Price Range Filter */}
-              <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("price")}
-                >
-                  <span className="fw-semibold">Price Range</span>
-                  <FontAwesomeIcon
-                    icon={toggle.price ? faChevronUp : faChevronDown}
-                  />
-                </div>
-                {toggle.price && (
-                  <div className="filter-options mt-2">
-                    <div className="mb-2">
-                      <label className="form-label small">
-                        Min: ₹{filters.priceRange.min}
-                      </label>
-                      <input
-                        type="range"
-                        className="form-range"
-                        min="0"
-                        max="50000"
-                        step="1000"
-                        value={filters.priceRange.min}
-                        onChange={(e) =>
-                          handlePriceRangeChange(
-                            "min",
-                            parseInt(e.target.value)
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="form-label small">
-                        Max: ₹{filters.priceRange.max}
-                      </label>
-                      <input
-                        type="range"
-                        className="form-range"
-                        min="0"
-                        max="50000"
-                        step="1000"
-                        value={filters.priceRange.max}
-                        onChange={(e) =>
-                          handlePriceRangeChange(
-                            "max",
-                            parseInt(e.target.value)
-                          )
-                        }
-                      />
-                    </div>
-                    <div className="d-flex justify-content-between small text-muted">
-                      <span>₹0</span>
-                      <span>₹50,000</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Departure Time Filter */}
-              <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("departure")}
-                >
-                  <span className="fw-semibold">Departure Time</span>
-                  <FontAwesomeIcon
-                    icon={toggle.departure ? faChevronUp : faChevronDown}
-                  />
-                </div>
-                {toggle.departure && (
-                  <div className="filter-options mt-2">
-                    {[
-                      { label: "Early Morning (00:00-06:00)", range: [0, 6] },
-                      { label: "Morning (06:00-12:00)", range: [6, 12] },
-                      { label: "Afternoon (12:00-18:00)", range: [12, 18] },
-                      { label: "Evening (18:00-24:00)", range: [18, 24] },
-                    ].map((time, i) => (
-                      <div className="form-check" key={i}>
                         <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`departure-${i}`}
-                          checked={filters.departureTimes.some(
-                            (t) =>
-                              t[0] === time.range[0] && t[1] === time.range[1]
-                          )}
+                          type="range"
+                          className="form-range"
+                          min="0"
+                          max="50000"
+                          step="1000"
+                          value={filters.priceRange.min}
                           onChange={(e) =>
-                            handleDepartureTimeFilter(
-                              time.range,
-                              e.target.checked
+                            handlePriceRangeChange(
+                              "min",
+                              parseInt(e.target.value)
                             )
                           }
                         />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`departure-${i}`}
-                        >
-                          {time.label}
-                        </label>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Duration Filter */}
-              <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("duration")}
-                >
-                  <span className="fw-semibold">Flight Duration</span>
-                  <FontAwesomeIcon
-                    icon={toggle.duration ? faChevronUp : faChevronDown}
-                  />
-                </div>
-                {toggle.duration && (
-                  <div className="filter-options mt-2">
-                    {[
-                      { label: "Short (< 2 hours)", max: 120 },
-                      { label: "Medium (2-4 hours)", min: 120, max: 240 },
-                      { label: "Long (> 4 hours)", min: 240 },
-                    ].map((duration, i) => (
-                      <div className="form-check" key={i}>
+                      <div className="mb-2">
+                        <label className="form-label small">
+                          Max: ₹{filters.priceRange.max}
+                        </label>
                         <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`duration-${i}`}
-                          checked={filters.durations.includes(duration.label)}
+                          type="range"
+                          className="form-range"
+                          min="0"
+                          max="50000"
+                          step="1000"
+                          value={filters.priceRange.max}
                           onChange={(e) =>
-                            handleDurationFilter(duration, e.target.checked)
+                            handlePriceRangeChange(
+                              "max",
+                              parseInt(e.target.value)
+                            )
                           }
                         />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`duration-${i}`}
-                        >
-                          {duration.label}
-                        </label>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <div className="d-flex justify-content-between small text-muted">
+                        <span>₹0</span>
+                        <span>₹50,000</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-              {/* Clear Filters Button */}
-              <div className="filter-group mb-3">
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  className="w-100"
-                  onClick={clearAllFilters}
-                >
-                  Clear All Filters
-                </Button>
+                {/* Departure Time Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("departure")}
+                  >
+                    <span className="fw-semibold">Departure Time</span>
+                    <FontAwesomeIcon
+                      icon={toggle.departure ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.departure && (
+                    <div className="filter-options mt-2">
+                      {[
+                        { label: "Early Morning (00:00-06:00)", range: [0, 6] },
+                        { label: "Morning (06:00-12:00)", range: [6, 12] },
+                        { label: "Afternoon (12:00-18:00)", range: [12, 18] },
+                        { label: "Evening (18:00-24:00)", range: [18, 24] },
+                      ].map((time, i) => (
+                        <div className="form-check" key={i}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`departure-${i}`}
+                            checked={filters.departureTimes.some(
+                              (t) =>
+                                t[0] === time.range[0] && t[1] === time.range[1]
+                            )}
+                            onChange={(e) =>
+                              handleDepartureTimeFilter(
+                                time.range,
+                                e.target.checked
+                              )
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`departure-${i}`}
+                          >
+                            {time.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Duration Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("duration")}
+                  >
+                    <span className="fw-semibold">Flight Duration</span>
+                    <FontAwesomeIcon
+                      icon={toggle.duration ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.duration && (
+                    <div className="filter-options mt-2">
+                      {[
+                        { label: "Short (< 2 hours)", max: 120 },
+                        { label: "Medium (2-4 hours)", min: 120, max: 240 },
+                        { label: "Long (> 4 hours)", min: 240 },
+                      ].map((duration, i) => (
+                        <div className="form-check" key={i}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`duration-${i}`}
+                            checked={filters.durations.includes(duration.label)}
+                            onChange={(e) =>
+                              handleDurationFilter(duration, e.target.checked)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`duration-${i}`}
+                          >
+                            {duration.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Clear Filters Button */}
+               
               </div>
-            </div>
+            </fieldset>
           </Col>
 
           {/* Flight Results Section */}

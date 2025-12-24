@@ -179,6 +179,8 @@ function Header() {
 
                 {/* Cab */}
                 {/* <li className="nav-item">
+                {/* Cab */}
+                {/* <li className="nav-item">
             <NavLink
               to="/cabs"
               className={({ isActive }) =>
@@ -207,7 +209,7 @@ function Header() {
 
             <div className="plan" style={{ marginRight: "5px" }}>
               <button
-                className="holiday"
+                className="explore-btn"
                 onClick={() => navigate("/bot-modal")}
               >
                 Plan My Holiday 24 x 7

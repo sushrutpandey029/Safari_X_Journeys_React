@@ -37,14 +37,24 @@ export default function HotelView({ booking }) {
         const vr = vendorResponse?.BookResult;
         if (!vr) return;
 
-        let payload = { EndUserIp: "192.168.1.11" };
+        let payload = {};
+        console.log("vr", vr);
 
         if (vr?.BookingId) payload.BookingId = vr.BookingId;
         else if (vr?.TraceId) payload.TraceId = vr.TraceId;
         else return;
 
+        console.log("payload in getuserhotelbookingdetali", payload);
+
         const resp = await getUserHotelBookingDetails(payload);
-        setBookingDetailData(resp?.data?.GetBookingDetailResult);
+        console.log("resp of hotel user booking details", resp.data);
+        const result = resp?.data?.GetBookingDetailResult;
+        setBookingDetailData(result);
+        // Handle error in booking detail
+        if (result?.Error?.ErrorCode !== 0) {
+          setCancelState("failed");
+          setCancelMessage(`Booking Failed: ${result?.Error?.ErrorMessage}`);
+        }
       } catch (err) {
         console.error("Hotel detail fetch failed:", err);
       } finally {
@@ -117,11 +127,11 @@ export default function HotelView({ booking }) {
     try {
       const cancelResp = await cancelHotelBooking({
         bookingId,
-        EndUserIp: "192.168.1.11",
+        // EndUserIp: "192.168.1.11",
         Remarks: "Customer requested cancellation",
       });
 
-      console.log("resp of cancel hotel booking",cancelResp)
+      console.log("resp of cancel hotel booking", cancelResp);
 
       const changeRequestId =
         cancelResp.data?.data?.HotelChangeRequestResult?.ChangeRequestId;
@@ -137,24 +147,27 @@ export default function HotelView({ booking }) {
 
       const pollInterval = setInterval(async () => {
         const statusResp = await getHotelCancelStatus({
-          EndUserIp: "192.168.1.11",
           ChangeRequestId: changeRequestId,
         });
 
-        console.log("status resp in gethotelcancelstatus",statusResp)
-
         const result = statusResp?.data?.data?.HotelChangeRequestStatusResult;
-        console.log("result in HotelChangeRequestStatusResult", result);
         const status = result?.ChangeRequestStatus;
-        console.log("status in HotelChangeRequestStatusResult", status);
 
-        if (status === 1 || status === 3) {
+        console.log("Cancellation status:", status);
+
+        // ⏳ Still processing
+        if (status === 1 || status === 2) {
+          setCancelMessage("⏳ Cancellation is being processed...");
+          return;
+        }
+
+        // ✅ SUCCESS
+        if (status === 3) {
           clearInterval(pollInterval);
 
-          const refund = result?.RefundedAmount;
-          const charge = result?.CancellationCharge;
-          const creditNote = result?.CreditNoteNo;
-          console.log("refund details :::", refund, charge, creditNote);
+          const refund = result?.RefundAmount || 0;
+          const charge = result?.CancellationCharge || 0;
+          const creditNote = result?.CreditNoteNo || null;
 
           await confirmBookingCancellation({
             bookingId,
@@ -168,11 +181,13 @@ export default function HotelView({ booking }) {
           setCancelResult({ refund, charge, creditNote });
           setCancelMessage("✔ Booking Cancelled Successfully!");
           setIsCancelling(false);
-          //   navigate("/user-dashboard");
-        } else if (status === 2) {
+        }
+
+        // ❌ REJECTED
+        if (status === 4) {
           clearInterval(pollInterval);
           setCancelState("rejected");
-          setCancelMessage("❌ Cancellation Rejected by Hotel");
+          setCancelMessage("❌ Cancellation rejected by hotel");
           setIsCancelling(false);
         }
       }, 5000);
@@ -185,9 +200,21 @@ export default function HotelView({ booking }) {
 
   // ================= Render UI ==================
   if (loading) {
+    return <div className="alert alert-info">⏳ Loading details...</div>;
+  }
+  // ERROR UI - If booking fetch failed
+  if (bookingDetailData?.Error?.ErrorCode !== 0) {
     return (
-      <div className="alert alert-info">
-        ⏳ Loading latest booking details...
+      <div className="alert alert-danger">
+        <h5>❌ Booking Failed</h5>
+        <p>
+          <strong>Reason:</strong> {bookingDetailData?.Error?.ErrorMessage}
+        </p>
+
+        <p className="text-muted">
+          The system was unable to fetch booking details. This might be due to
+          failed booking, network issue, or vendor rejection.
+        </p>
       </div>
     );
   }

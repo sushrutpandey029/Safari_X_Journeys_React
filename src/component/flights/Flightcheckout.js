@@ -10,16 +10,20 @@ import {
   Badge,
   Alert,
   Spinner,
+  Modal,
 } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fare_quote } from "../services/flightService";
+import { fare_quote, flight_fetchSSR } from "../services/flightService";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
+import { searchInsurance } from "../services/insuranceService";
 
 const Flightcheckout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { startPayment } = useCashfreePayment();
+  const [showSeatModal, setShowSeatModal] = useState(false);
+  const [activeSeatPaxIndex, setActiveSeatPaxIndex] = useState(null);
 
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [selectedFare, setSelectedFare] = useState(null);
@@ -30,6 +34,43 @@ const Flightcheckout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [error, setError] = useState(null);
 
+  const [ssrReady, setSSRReady] = useState(false);
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [fareQuoteResponse, setFareQuoteResponse] = useState(null);
+  const [priceChanged, setPriceChanged] = useState(false);
+  const [oldTotal, setOldTotal] = useState(0);
+  const [newTotal, setNewTotal] = useState(0);
+
+  //ssr data
+  const [ssrData, setSSRData] = useState(null);
+  const [ssrLoading, setSSRLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState("PASSENGER");
+
+  // 🔹 Selected SSR
+  const [selectedMeals, setSelectedMeals] = useState({
+    // paxIndex: mealObject
+    0: { Code: "AVML", Price: 0 },
+    1: { Code: "VGML", Price: 250 },
+  });
+
+  const [selectedBaggage, setSelectedBaggage] = useState({
+    0: { Code: "BG10", Weight: 10, Price: 1500 },
+  });
+
+  const [selectedSeats, setSelectedSeats] = useState({
+    0: { Code: "7A", SeatNo: "A", Price: 1200 },
+    1: { Code: "7B", SeatNo: "B", Price: 1100 },
+  });
+
+  //insurance
+  // Add near other state variables (around line 38)
+  const [insuranceData, setInsuranceData] = useState(null);
+  // const [insuranceSelected, setInsuranceSelected] = useState(false);
+  const [insuranceLoading, setInsuranceLoading] = useState(false);
+  const [insuranceError, setInsuranceError] = useState(null);
+  const [selectedInsurancePlan, setSelectedInsurancePlan] = useState(null);
+  const [insuranceTraceId, setInsuranceTraceId] = useState("");
   // Passenger data state
   const [passengers, setPassengers] = useState([]);
   const [contactEmail, setContactEmail] = useState("");
@@ -39,6 +80,85 @@ const Flightcheckout = () => {
   const state = location?.state;
   const { totalPrice } = state;
   console.log("Checkout received", state);
+
+  const [fareSource, setFareSource] = useState("search");
+
+  const cancellationRule = fareDetails?.MiniFareRules?.[0]?.find(
+    (r) => r.Type === "Cancellation"
+  );
+
+  const reissueRule = fareDetails?.MiniFareRules?.[0]?.find(
+    (r) => r.Type === "Reissue"
+  );
+
+  const fetchFareQuote = async () => {
+    try {
+      setLoading(true);
+
+      const payload = {
+        TraceId: searchData?.TraceId,
+        ResultIndex: selectedFlight?.ResultIndex,
+      };
+
+      console.log("FareQuote Payload:", payload);
+
+      const res = await fare_quote(payload);
+      console.log("farequote full:", res.data);
+      setFareDetails(res?.data?.Response?.Results || null);
+    } catch (err) {
+      console.error("FareQuote Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSSR = async () => {
+    try {
+      setSSRLoading(true);
+
+      const payload = {
+        TraceId: searchData?.TraceId,
+        ResultIndex: selectedFlight?.ResultIndex,
+      };
+
+      const res = await flight_fetchSSR(payload);
+      console.log("resp of flight ssr", res.data);
+
+      if (res.data.success) {
+        const response = res.data.data.Response;
+        console.log("resp inside", response);
+
+        const normalizedSSR = {
+          baggage: response?.Baggage?.[0] || [],
+          meals: response?.MealDynamic?.[0] || [],
+          seats: response?.SeatDynamic?.[0]?.SegmentSeat?.[0]?.RowSeats || [],
+          specialServices:
+            response?.SpecialServices?.[0]?.SegmentSpecialService?.[0]
+              ?.SSRService || [],
+        };
+
+        console.log("Normalized SSR:", normalizedSSR);
+
+        setSSRData(normalizedSSR);
+      }
+    } catch (err) {
+      console.error("SSR Error:", err);
+    } finally {
+      setSSRLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (state?.selectedFlight?.originalData?.Fare) {
+      setFareDetails({
+        Fare: state.selectedFlight.originalData.Fare,
+        Segments: state.selectedFlight.originalData.Segments,
+        MiniFareRules: state.selectedFlight.originalData.MiniFareRules || [],
+        IsRefundable: state.selectedFlight.isRefundable,
+      });
+
+      setFareSource("search");
+    }
+  }, [state]);
 
   // Get data from flight detail page
   useEffect(() => {
@@ -75,6 +195,169 @@ const Flightcheckout = () => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedFlight && searchData) {
+      fetchInsuranceData(); // ✅ OK on page load
+    }
+  }, [selectedFlight, searchData]);
+
+  // useEffect(() => {
+  //   if (passengers.length > 0) {
+  //     fetchInsuranceData();
+  //   }
+  // }, [passengers]);
+
+  const fetchInsuranceData = async () => {
+    try {
+      setInsuranceLoading(true);
+      setInsuranceError(null);
+
+      // Get travel start date from flight details
+      const travelStartDate =
+        selectedFlight?.origin?.time ||
+        selectedFlight?.origin?.DepartureTime ||
+        selectedFlight?.flight?.departureTime;
+
+      if (!travelStartDate) {
+        setInsuranceError("Unable to fetch travel date");
+        setInsuranceLoading(false);
+        return;
+      }
+
+      const passengerCount = getPassengerCount();
+      const totalPassengers = passengerCount.adults + passengerCount.children;
+
+      // Calculate ages properly
+      const paxAges = [];
+
+      // For adults
+      for (let i = 0; i < passengerCount.adults; i++) {
+        if (passengers[i]?.dateOfBirth) {
+          const birthDate = new Date(passengers[i].dateOfBirth);
+          const today = new Date();
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birthDate.getDate())
+          ) {
+            age--;
+          }
+          paxAges.push(Math.max(18, age).toString());
+        } else {
+          paxAges.push("30"); // Default adult age
+        }
+      }
+
+      // For children
+      for (let i = 0; i < passengerCount.children; i++) {
+        const childIndex = passengerCount.adults + i;
+        if (passengers[childIndex]?.dateOfBirth) {
+          const birthDate = new Date(passengers[childIndex].dateOfBirth);
+          const today = new Date();
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birthDate.getDate())
+          ) {
+            age--;
+          }
+          paxAges.push(Math.max(1, Math.min(17, age)).toString());
+        } else {
+          paxAges.push("10"); // Default child age
+        }
+      }
+
+      const payload = {
+        PlanCategory: 1,
+        PlanType: 1,
+        PlanCoverage: 4,
+        TravelStartDate: travelStartDate,
+        NoOfPax: totalPassengers,
+        PaxAge: paxAges,
+      };
+
+      console.log("Insurance request payload:", payload);
+
+      const response = await searchInsurance(payload);
+      console.log("Insurance API response:", response);
+
+      // Check if we have data in the response
+      if (response.data?.success && response.data?.data?.Response) {
+        const insuranceResponse = response.data.data.Response;
+
+        // Check if there are results
+        if (
+          insuranceResponse.ResponseStatus === 1 &&
+          insuranceResponse.Results
+        ) {
+          // Success with results
+          // Process the insurance data to make it easier to use
+          setInsuranceTraceId(insuranceResponse.TraceId);
+          const processedInsuranceData = insuranceResponse.Results.map(
+            (plan) => ({
+              PlanCode: plan.PlanCode,
+              PlanName: plan.PlanName,
+              SumInsured: plan.SumInsured,
+              PlanDescription: plan.PlanDescription,
+              // Extract price from the Price object
+              Premium:
+                plan.Price?.OfferedPrice ||
+                plan.Price?.PublishedPrice ||
+                plan.Price?.GrossFare ||
+                0,
+              Currency: plan.Price?.Currency || "INR",
+              CoverageDetails: plan.CoverageDetails || [],
+              PlanCategory: plan.PlanCategory,
+              PlanType: plan.PlanType,
+              PlanCoverage: plan.PlanCoverage,
+              ResultIndex: plan.ResultIndex,
+              SumInsuredCurrency: plan.SumInsuredCurrency,
+              PoweredBy: plan.PoweredBy,
+            })
+          );
+
+          setInsuranceData(processedInsuranceData);
+          setInsuranceError(null);
+        } else if (insuranceResponse.ResponseStatus === 2) {
+          // No results found
+          setInsuranceError(
+            insuranceResponse.Error?.ErrorMessage ||
+              "No insurance plans available for this trip"
+          );
+          setInsuranceData(null);
+        } else if (insuranceResponse.ResponseStatus === 3) {
+          // Error status
+          setInsuranceError(
+            insuranceResponse.Error?.ErrorMessage || "Insurance service error"
+          );
+          setInsuranceData(null);
+        }
+      } else {
+        setInsuranceError("Unable to fetch insurance options");
+        setInsuranceData(null);
+      }
+    } catch (error) {
+      console.error("Error fetching insurance:", error);
+      setInsuranceError("Failed to load insurance options");
+      setInsuranceData(null);
+    } finally {
+      setInsuranceLoading(false);
+    }
+  };
+
+  // 🔹 Auto-select insurance when plans are loaded
+  useEffect(() => {
+    if (
+      insuranceData &&
+      insuranceData.length > 0 &&
+      selectedInsurancePlan === null
+    ) {
+      setSelectedInsurancePlan(insuranceData[0]); // auto select first plan
+    }
+  }, [insuranceData]);
 
   // Initialize passengers based on passenger count
   const initializePassengers = (passengerCount) => {
@@ -157,96 +440,6 @@ const Flightcheckout = () => {
     setPassengers(newPassengers);
   };
 
-  // Fetch fare quote from API
-
-  // useEffect(() => {
-  //   if (selectedFlight && selectedFare) {
-  //     fetchFareQuote();
-  //   }
-  // }, [selectedFlight, selectedFare]);
-
-  // const fetchFareQuote = async () => {
-  //   setLoading(true);
-  //   setError(null);
-  //   try {
-  //     // Debug what data we have
-  //     console.log("Available data for API:", {
-  //       selectedFlight,
-  //       selectedFare,
-  //       searchData,
-  //     });
-
-  //     // Try different possible data locations
-  //     const resultIndex =
-  //       selectedFlight?.ResultIndex ||
-  //       selectedFlight?.originalFlightData?.ResultIndex ||
-  //       selectedFlight?.resultIndex;
-
-  //     const flightId =
-  //       selectedFlight?.FlightId ||
-  //       selectedFlight?.originalFlightData?.FlightId ||
-  //       selectedFlight?.flightId;
-
-  //     const fareType =
-  //       selectedFare?.FareType || selectedFare?.type || "STANDARD";
-
-  //     if (!resultIndex || !flightId) {
-  //       throw new Error("Missing required parameters: ResultIndex or FlightId");
-  //     }
-
-  //     const requestData = {
-  //       ResultIndex: resultIndex,
-  //       FareType: fareType,
-  //       FlightId: flightId,
-  //       SessionId:
-  //         selectedFlight?.SessionId ||
-  //         selectedFlight?.originalFlightData?.SessionId,
-  //       TraceId: searchData?.TraceId || searchData?.originalFlightData?.TraceId,
-  //       passengers: {
-  //         Adult: searchData?.passengers?.adults || 1,
-  //         Child: searchData?.passengers?.children || 0,
-  //         Infant: searchData?.passengers?.infants || 0,
-  //       },
-  //     };
-
-  //     console.log("Fare Quote API Request:", requestData);
-
-  //     const response = await fare_quote(requestData);
-
-  //     if (response && response.Status === 1) {
-  //       setFareDetails(response.Data);
-  //       console.log("Fare Quote API Success:", response.Data);
-  //     } else {
-  //       // If API fails, use mock data but don't throw error
-  //       console.log("API returned non-success status, using fallback data");
-  //       setFareDetails({
-  //         BaseFare: selectedFare?.originalPrice,
-  //         Tax: 913,
-  //         TotalAmount: selectedFare?.originalPrice,
-  //         // TotalAmount: (selectedFare?.originalPrice || 4500) + 913,
-  //         BaggageInformation: {
-  //           cabin: selectedFlight?.flight?.cabinBaggage || "7 Kgs / Adult",
-  //           checkin: selectedFlight?.flight?.baggage || "15 Kgs / Adult",
-  //         },
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Fare Quote API Error:", error);
-  //     // Don't show error to user, use fallback data
-  //     setFareDetails({
-  //       BaseFare: selectedFare?.originalPrice || 4500,
-  //       Tax: 913,
-  //       TotalAmount: (selectedFare?.originalPrice || 4500) + 913,
-  //       BaggageInformation: {
-  //         cabin: selectedFlight?.flight?.cabinBaggage || "7 Kgs / Adult",
-  //         checkin: selectedFlight?.flight?.baggage || "15 Kgs / Adult",
-  //       },
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const applyCoupon = () => {
     if (couponCode.trim() && couponCode.length >= 4) {
       const discount = Math.min(200, calculateTotalAmount() * 0.1);
@@ -263,6 +456,18 @@ const Flightcheckout = () => {
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
+  };
+  const ssrEligiblePassengers = passengers.filter(
+    (p) => p.paxType !== 3 // exclude infants
+  );
+
+  const handleSeatSelect = (seat, passengerIndex) => {
+    if (seat.AvailablityType !== 1) return;
+
+    setSelectedSeats((prev) => ({
+      ...prev,
+      [passengerIndex]: seat,
+    }));
   };
 
   const formatTime = (timeString) => {
@@ -293,44 +498,78 @@ const Flightcheckout = () => {
   };
 
   const calculateFareBreakdown = () => {
-    if (!fareDetails) {
-      return {
-        baseFare: selectedFare?.originalPrice || selectedFare?.price || 0,
-        tax: selectedFare?.tax || 913,
-        total:
-          (selectedFare?.originalPrice || selectedFare?.price || 0) +
-          (selectedFare?.tax || 913),
-      };
+    if (!fareDetails?.Fare) {
+      return { baseFare: 0, tax: 0, total: 0 };
     }
 
-    const baseFare = fareDetails.BaseFare || 0;
-    const tax = fareDetails.Tax || 0;
-    const total = fareDetails.TotalAmount || baseFare + tax;
+    // const { BaseFare, Tax, PublishedFare } = fareDetails.Fare;
+    const paxCount =
+      getPassengerCount().adults +
+      getPassengerCount().children +
+      getPassengerCount().infants;
+
+    const baseFare = Number(fareDetails.Fare.BaseFare || 0);
+    const tax = Number(fareDetails.Fare.Tax || 0);
+
+    return {
+      baseFare,
+      tax,
+      total: Number(fareDetails.Fare.PublishedFare || baseFare + tax),
+    };
+  };
+  const calculateFareBreakdownFromResponse = (fareResponse) => {
+    const fare = fareResponse?.Fare;
+    if (!fare) {
+      return { baseFare: 0, tax: 0, total: 0 };
+    }
+
+    const baseFare = Number(fare.BaseFare || 0);
+    const tax = Number(fare.Tax || 0);
+    const total =
+      Number(fare.PublishedFare) || Number(fare.OfferedFare) || baseFare + tax;
 
     return { baseFare, tax, total };
   };
 
   const calculateTotalAmount = () => {
     const { total } = calculateFareBreakdown();
-    return appliedCoupon ? Math.max(0, total - appliedCoupon.discount) : total;
+    let finalTotal = appliedCoupon
+      ? Math.max(0, total - appliedCoupon.discount)
+      : total;
+
+    if (!!selectedInsurancePlan && selectedInsurancePlan) {
+      const passengerCount = getPassengerCount();
+      const totalPassengers = passengerCount.adults + passengerCount.children;
+
+      finalTotal += selectedInsurancePlan.Premium * totalPassengers;
+    }
+    // 🔹 Add SSR charges
+    Object.values(selectedMeals).forEach((meal) => {
+      if (meal?.Price) finalTotal += meal.Price;
+    });
+
+    Object.values(selectedBaggage).forEach((bag) => {
+      if (bag?.Price) finalTotal += bag.Price;
+    });
+
+    Object.values(selectedSeats || {}).forEach((s) => {
+      if (s?.Price) finalTotal += s.Price;
+    });
+
+    return finalTotal;
   };
 
   const getBaggageInfo = () => {
-    if (fareDetails?.BaggageInformation) {
-      return fareDetails.BaggageInformation;
-    }
+    const segment = fareDetails?.Segments?.[0]?.[0];
 
-    if (selectedFlight?.flight) {
+    if (segment) {
       return {
-        cabin: selectedFlight.flight.cabinBaggage || "7 Kgs / Adult",
-        checkin: selectedFlight.flight.baggage || "15 Kgs / Adult",
+        cabin: segment.CabinBaggage || "N/A",
+        checkin: segment.Baggage || "N/A",
       };
     }
 
-    return {
-      cabin: "7 Kgs / Adult",
-      checkin: "15 Kgs / Adult",
-    };
+    return { cabin: "N/A", checkin: "N/A" };
   };
 
   const getPassengerCount = () => {
@@ -381,106 +620,97 @@ const Flightcheckout = () => {
     }
   };
 
-  // Get fare breakdown per passenger type
-  const getFareForPassengerType = (paxType) => {
-    if (!selectedFlight?.originalData?.FareBreakdown) {
-      // Return default fare based on passenger type
-      switch (paxType) {
-        case 1:
-          return { BaseFare: 8292, Tax: 1071 }; // Adult
-        case 2:
-          return { BaseFare: 2500, Tax: 1000 }; // Child (example)
-        case 3:
-          return { BaseFare: 500, Tax: 50 }; // Infant (example)
-        default:
-          return { BaseFare: 0, Tax: 0 };
-      }
-    }
-
-    const fareBreakdown = selectedFlight.originalData.FareBreakdown.find(
-      (item) => item.PassengerType === paxType
-    );
-
-    if (fareBreakdown) {
-      return {
-        BaseFare: fareBreakdown.BaseFare || 0,
-        Tax: fareBreakdown.Tax || 0,
-      };
-    }
-
-    // Fallback if not found
-    return { BaseFare: 0, Tax: 0 };
-  };
-
   // Build the complete booking payload
   const buildFlightBookingPayload = async () => {
-    const passengerCount = getPassengerCount();
+    const fareBreakdowns = fareDetails?.FareBreakdown || [];
 
     const Passengers = passengers.map((pax, index) => {
-      const fareData = getFareForPassengerType(pax.paxType);
-      const publishedFare = (fareData.BaseFare || 0) + (fareData.Tax || 0);
-
-      // Get YQTax and OtherTaxes from tax breakdown if available
-      const taxBreakup = selectedFlight?.originalData?.Fare?.TaxBreakup || [];
-      const yqTax = taxBreakup.find((item) => item.key === "YQTax")?.value || 0;
-      const otherCharges = 0; // This might need adjustment based on actual data
+      const fb = fareBreakdowns.find((f) => f.PassengerType === pax.paxType);
 
       return {
-        Title:
-          pax.title ||
-          (pax.paxType === 1 ? "Mr" : pax.paxType === 2 ? "Master" : "Master"),
-        FirstName: pax.firstName || "",
-        LastName: pax.lastName || "",
-        PaxType: pax.paxType, // 1 = Adult, 2 = Child, 3 = Infant
-        DateOfBirth: pax.dateOfBirth
-          ? new Date(pax.dateOfBirth).toISOString()
-          : "1987-12-06T00:00:00",
-        Gender: pax.gender === "male" || pax.gender === "1" ? 1 : 2,
-        PassportNo: pax.passportNumber || "KJHHJKHKJH",
-        PassportExpiry: pax.passportExpiry
-          ? new Date(pax.passportExpiry).toISOString()
-          : "2030-12-06T00:00:00",
-        AddressLine1: pax.addressLine1 || contactAddress || "123, Test",
-        City: pax.city || "Gurgaon",
-        CountryCode: pax.countryCode || "IN",
-        CellCountryCode: "+91",
-        ContactNo: pax.contactNo || contactMobile || "1234567890",
-        Nationality: pax.nationality || "IN",
-        Email: pax.email || contactEmail || "test@example.com",
-        IsLeadPax: pax.isLeadPax || index === 0,
+        Title: pax.title,
+        FirstName: pax.firstName,
+        LastName: pax.lastName,
+        PaxType: pax.paxType,
+        DateOfBirth: new Date(pax.dateOfBirth).toISOString(),
+        Gender: Number(pax.gender),
+        PassportNo: pax.passportNumber,
+        PassportExpiry: new Date(pax.passportExpiry).toISOString(),
+        AddressLine1: pax.addressLine1,
+        City: pax.city,
+        CountryCode: pax.countryCode,
+        ContactNo: pax.contactNo,
+        Nationality: pax.nationality,
+        Email: pax.email,
+        IsLeadPax: pax.isLeadPax,
+
         Fare: {
-          Currency: "INR",
-          BaseFare: fareData.BaseFare || 0,
-          Tax: fareData.Tax || 0,
-          YQTax: yqTax,
-          OtherCharges: otherCharges,
-          PublishedFare: publishedFare,
-          OfferedFare: publishedFare, // Adjust if you have different offered fare
+          Currency: fb?.Currency || "INR",
+          BaseFare: fb?.BaseFare || 0,
+          Tax: fb?.Tax || 0,
+          PublishedFare: (fb?.BaseFare || 0) + (fb?.Tax || 0),
+          OfferedFare: (fb?.BaseFare || 0) + (fb?.Tax || 0),
         },
       };
     });
 
-    const payload = {
-      ResultIndex:
-        selectedFlight?.ResultIndex ||
-        selectedFlight?.originalFlightData?.ResultIndex,
+    return {
+      TraceId: searchData.TraceId,
+      ResultIndex: selectedFlight.ResultIndex,
+      EndUserIp: "127.0.0.1",
       Passengers,
-      EndUserIp: "192.168.11.58", // You might want to get this dynamically
-      TraceId: searchData?.TraceId || null,
+      InsuranceRequired: !!selectedInsurancePlan,
+      InsuranceData: selectedInsurancePlan || null,
     };
+  };
 
-    console.log("Final Booking Payload:", JSON.stringify(payload, null, 2));
-    return payload;
+  const calculateFareFromResponse = (fareResponse) => {
+    const fare = fareResponse?.Fare;
+
+    if (!fare) {
+      return { baseFare: 0, tax: 0, total: 0 };
+    }
+
+    const baseFare = Number(fare.BaseFare || 0);
+    const tax = Number(fare.Tax || 0);
+    const total =
+      Number(fare.PublishedFare) || Number(fare.OfferedFare) || baseFare + tax;
+
+    return { baseFare, tax, total };
+  };
+
+  const handleConfirmPassengers = async () => {
+    setLoading(true);
+
+    try {
+      const payload = {
+        TraceId: searchData.TraceId,
+        ResultIndex: selectedFlight.ResultIndex,
+      };
+
+      // 1️⃣ FareQuote
+      const res = await fare_quote(payload);
+      const results = res?.data?.Response?.Results;
+      const normalizedFare = Array.isArray(results) ? results[0] : results;
+
+      setFareDetails(normalizedFare);
+      setFareSource("fareQuote");
+
+      // 2️⃣ SSR
+      await fetchSSR();
+      setSSRReady(true);
+
+      // 3️⃣ Move to SSR section
+      setActiveSection("SSR");
+    } catch (error) {
+      alert("Unable to confirm fare. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleProceedToPayment = async () => {
-    const userdetails = await getUserData("safarix_user");
-    if (!selectedFlight || !selectedFare) {
-      alert("Missing flight details. Please reselect the flight.");
-      return;
-    }
-
-    // Validate all passenger data
+    // 1️⃣ Validate passengers
     const requiredFields = [
       "title",
       "firstName",
@@ -491,39 +721,70 @@ const Flightcheckout = () => {
     for (const passenger of passengers) {
       for (const field of requiredFields) {
         if (!passenger[field]) {
-          alert(
-            `Please fill all required fields for ${passenger.type} passenger`
-          );
+          alert(`Please fill all required fields for ${passenger.type}`);
           return;
         }
       }
     }
 
+    // 2️⃣ Validate contact
     if (!contactEmail || !contactMobile) {
       alert("Please fill contact details");
       return;
     }
 
-    const payload = await buildFlightBookingPayload();
+    // 3️⃣ Lock totals for confirmation
+    const total = calculateTotalAmount();
+    setOldTotal(total);
+    setNewTotal(total);
 
-    console.log("Booking Payload", payload);
-    const bookingDetails = {
-      userId: userdetails?.id,
-      serviceType: "flight",
-      vendorType: "flight",
-      vendorId: selectedFlight?.airline.flightNumber || null,
-      serviceProviderId: "",
-      serviceDetails: payload,
-      totalAmount: selectedFlight?.fare.total,
-      startDate: selectedFlight?.origin.time,
-    };
+    // 4️⃣ Just open confirm modal
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmAndPay = async () => {
     try {
-      const result = startPayment(bookingDetails);
-      // navigate("/payment", { state: { bookingData: response } });
+      setLoading(true);
+
+      const userdetails = await getUserData("safarix_user");
+
+      // 1️⃣ Build final flight booking payload (TBO-ready)
+      const flightBookingPayload = await buildFlightBookingPayload();
+
+      // 2️⃣ Build ONE final booking object for backend + payment
+      const bookingDetails = {
+        userId: userdetails?.id,
+        serviceType: "flight",
+        vendorType: "flight",
+        vendorId: selectedFlight?.airline?.flightNumber || null,
+
+        startDate:
+          selectedFlight?.origin?.time || selectedFlight?.origin?.DepartureTime,
+
+        totalAmount: newTotal, // 🔒 locked amount from modal
+
+        serviceDetails: flightBookingPayload,
+
+        SSR: {
+          Meal: selectedMeals,
+          Baggage: selectedBaggage,
+          Seat: selectedSeats,
+          SpecialServices: ssrData?.specialServices || [],
+        },
+
+        insuranceSelected: !!selectedInsurancePlan,
+        insurancePlan: selectedInsurancePlan || null,
+      };
+
+      console.log("FINAL BOOKING DETAILS", bookingDetails);
+
+      // 3️⃣ Start payment
+      await startPayment(bookingDetails);
     } catch (error) {
-      console.error("Booking failed", error);
-      alert("Something went wrong! Try again.");
+      console.error("Confirm & Pay failed", error);
+      alert("Unable to start payment. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -557,8 +818,14 @@ const Flightcheckout = () => {
     );
   }
 
-  const { baseFare, tax } = calculateFareBreakdown();
-  const totalAmount = calculateTotalAmount();
+  const isFareReady = !!fareDetails?.Fare;
+
+  const { baseFare, tax, total } = isFareReady
+    ? calculateFareBreakdown()
+    : { baseFare: 0, tax: 0, total: 0 };
+
+  const totalAmount = isFareReady ? calculateTotalAmount() : 0;
+
   const baggageInfo = getBaggageInfo();
   const passengerCount = getPassengerCount();
 
@@ -571,669 +838,1114 @@ const Flightcheckout = () => {
   const flightDetails = flightInfo?.flight || {};
 
   return (
-    <Container className="flight-checkout-container py-4">
-      <Row>
-        <Col lg={8}>
-          {/* Flight Details Card */}
-          <Card className="mb-4 shadow-sm">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h4 className="mb-1">
-                    {originInfo.city || originInfo.City || "N/A"} →
-                    {destinationInfo.city || destinationInfo.City || "N/A"}
-                  </h4>
-                  <p className="text-muted mb-2">
-                    <strong>
-                      {formatDate(originInfo.time || originInfo.DepartureTime)}
-                    </strong>{" "}
-                    ·
-                    {flightDetails.stops === 0
-                      ? "Non Stop"
-                      : `${flightDetails.stops} Stop(s)`}{" "}
-                    -{flightDetails.duration || "N/A"}
-                  </p>
-                </div>
-                <Badge bg="primary">
-                  {selectedFare.type || selectedFare.FareType || "Standard"}
-                </Badge>
-              </div>
-
-              {/* Airline Info */}
-              <div className="airline-info mb-4 p-3 bg-light rounded">
-                <div className="d-flex justify-content-between align-items-center">
+    <>
+      <Container
+        className="flight-checkout-container py-4"
+        style={{ marginTop: "100px" }}
+      >
+        <Row>
+          <Col lg={8}>
+            {/* Flight Details Card */}
+            <Card className="mb-4 shadow-sm">
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
-                    <h6 className="mb-1">
-                      {airlineInfo.name || airlineInfo.AirlineName || "Airline"}
-                    </h6>
-                    <small className="text-muted">
-                      {airlineInfo.flightNumber || "N/A"} · (
-                      {flightDetails.aircraft || "A320"})
-                    </small>
-                  </div>
-                  <div className="text-end">
-                    <div className="fare-type-badge">
-                      {selectedFare.type || selectedFare.FareType}
-                    </div>
-                    {!selectedFare.isRefundable && (
-                      <Badge bg="danger" className="ms-2">
-                        Non-Refundable
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Flight Timeline */}
-              <div className="flight-timeline mb-4">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="text-center">
-                    <div className="time-display fs-4 fw-bold text-primary">
-                      {formatTime(originInfo.time || originInfo.DepartureTime)}
-                    </div>
-                    <div className="airport-info">
-                      <div>{originInfo.city || originInfo.City || "N/A"}</div>
-                      <small className="text-muted">
-                        {originInfo.airport ||
-                          originInfo.Airport?.AirportName ||
-                          "N/A"}
-                      </small>
-                    </div>
-                  </div>
-
-                  <div className="flight-duration text-center mx-3">
-                    <div className="duration-text text-muted">
-                      {flightDetails.duration || "N/A"}
-                    </div>
-                    <div className="flight-path">
-                      <div className="line"></div>
-                      <div className="plane">✈</div>
-                    </div>
-                    <div className="stops-text">
-                      {flightDetails.stops === 0
-                        ? "Non Stop"
-                        : `${flightDetails.stops} Stop(s)`}
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="time-display fs-4 fw-bold text-primary">
-                      {formatTime(
-                        destinationInfo.time || destinationInfo.ArrivalTime
-                      )}
-                    </div>
-                    <div className="airport-info">
-                      <div>
-                        {destinationInfo.city || destinationInfo.City || "N/A"}
-                      </div>
-                      <small className="text-muted">
-                        {destinationInfo.airport ||
-                          destinationInfo.Airport?.AirportName ||
-                          "N/A"}
-                      </small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Baggage Information */}
-              <div className="baggage-info mb-4">
-                <Row>
-                  <Col md={6}>
-                    <div className="baggage-item p-3 border rounded">
-                      <h6 className="mb-1">Cabin Baggage</h6>
-                      <p className="mb-0 text-success">{baggageInfo.cabin}</p>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="baggage-item p-3 border rounded">
-                      <h6 className="mb-1">Check-in Baggage</h6>
-                      <p className="mb-0 text-success">{baggageInfo.checkin}</p>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-
-              {/* Selected Fare Benefits */}
-              {selectedFare.benefits && (
-                <div className="fare-benefits mb-4 p-3 bg-warning bg-opacity-10 rounded">
-                  <h6 className="mb-2">🎁 Included Benefits</h6>
-                  <p className="mb-0">{selectedFare.benefits}</p>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-
-          {/* Passenger Details Form */}
-          <Card className="mb-4 shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Passenger Details</h5>
-              <small className="text-muted">
-                {passengerCount.adults} Adult(s), {passengerCount.children}{" "}
-                Child(s), {passengerCount.infants} Infant(s)
-              </small>
-            </Card.Header>
-            <Card.Body>
-              {passengers.map((passenger, index) => (
-                <div
-                  key={passenger.id}
-                  className="passenger-form-section mb-4 p-3 border rounded"
-                >
-                  <h6 className="mb-3">
-                    {passenger.type} {index + 1}
-                    {passenger.isLeadPax && (
-                      <Badge bg="info" className="ms-2">
-                        Lead Passenger
-                      </Badge>
-                    )}
-                  </h6>
-                  <Row>
-                    <Col md={4}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Title *</Form.Label>
-                        <Form.Select
-                          value={passenger.title}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "title",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          <option value="">Select</option>
-                          {passenger.paxType === 1 && (
-                            <>
-                              <option value="Mr">Mr</option>
-                              <option value="Ms">Ms</option>
-                              <option value="Mrs">Mrs</option>
-                            </>
-                          )}
-                          {passenger.paxType === 2 && (
-                            <>
-                              <option value="Master">Master</option>
-                              <option value="Miss">Miss</option>
-                            </>
-                          )}
-                          {passenger.paxType === 3 && (
-                            <>
-                              <option value="Master">Master</option>
-                              <option value="Miss">Miss</option>
-                            </>
-                          )}
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>First Name *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter first name"
-                          value={passenger.firstName}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "firstName",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Last Name *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter last name"
-                          value={passenger.lastName}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "lastName",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Date of Birth *</Form.Label>
-                        <Form.Control
-                          type="date"
-                          value={passenger.dateOfBirth}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "dateOfBirth",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Gender *</Form.Label>
-                        <Form.Select
-                          value={passenger.gender}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "gender",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          <option value="">Select</option>
-                          <option value="1">Male</option>
-                          <option value="2">Female</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Passport Number *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter passport number"
-                          value={passenger.passportNumber}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "passportNumber",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Passport Expiry Date *</Form.Label>
-                        <Form.Control
-                          type="date"
-                          value={passenger.passportExpiry}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "passportExpiry",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Nationality *</Form.Label>
-                        <Form.Select
-                          value={passenger.nationality}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "nationality",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          <option value="IN">India</option>
-                          <option value="US">United States</option>
-                          <option value="UK">United Kingdom</option>
-                          <option value="AE">UAE</option>
-                          <option value="SG">Singapore</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Contact Number *</Form.Label>
-                        <Form.Control
-                          type="tel"
-                          placeholder="Enter contact number"
-                          value={passenger.contactNo}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "contactNo",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={12}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Address Line 1 *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter address"
-                          value={passenger.addressLine1}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "addressLine1",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>City *</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter city"
-                          value={passenger.city}
-                          onChange={(e) =>
-                            handlePassengerChange(index, "city", e.target.value)
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Country *</Form.Label>
-                        <Form.Select
-                          value={passenger.countryCode}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "countryCode",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          <option value="IN">India</option>
-                          <option value="US">United States</option>
-                          <option value="UK">United Kingdom</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md={12}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Email Address *</Form.Label>
-                        <Form.Control
-                          type="email"
-                          placeholder="Enter email address"
-                          value={passenger.email}
-                          onChange={(e) =>
-                            handlePassengerChange(
-                              index,
-                              "email",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </div>
-              ))}
-            </Card.Body>
-          </Card>
-
-          {/* Contact Details */}
-          <Card className="shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">Contact Details</h5>
-              <small className="text-muted">
-                This will be used for booking confirmation
-              </small>
-            </Card.Header>
-            <Card.Body>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Email Address *</Form.Label>
-                    <Form.Control
-                      type="email"
-                      placeholder="Enter email"
-                      value={contactEmail}
-                      onChange={(e) =>
-                        handleContactChange("email", e.target.value)
-                      }
-                      required
-                    />
-                    <Form.Text className="text-muted">
-                      Booking confirmation will be sent here
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Mobile Number *</Form.Label>
-                    <Form.Control
-                      type="tel"
-                      placeholder="Enter mobile number"
-                      value={contactMobile}
-                      onChange={(e) =>
-                        handleContactChange("mobile", e.target.value)
-                      }
-                      required
-                    />
-                    <Form.Text className="text-muted">
-                      Important updates will be sent via SMS
-                    </Form.Text>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Col md={12}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Address *</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter your complete address"
-                      value={contactAddress}
-                      onChange={(e) =>
-                        handleContactChange("address", e.target.value)
-                      }
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={4}>
-          {/* Fare Summary */}
-          <Card className="sticky-top shadow-sm" style={{ top: "20px" }}>
-            <Card.Header className="bg-primary text-white">
-              <h5 className="mb-0">Fare Summary</h5>
-              {fareDetails && <small>Live prices from airline</small>}
-            </Card.Header>
-            <Card.Body>
-              {/* Passenger Count */}
-              <div className="passenger-count mb-3 p-2 bg-light rounded">
-                <small className="text-muted">
-                  <strong>Passengers:</strong> {passengerCount.adults} Adult(s),{" "}
-                  {passengerCount.children} Child(s), {passengerCount.infants}{" "}
-                  Infant(s)
-                </small>
-              </div>
-
-              {/* Base Fare & Taxes */}
-              <div className="fare-breakdown mb-3">
-                <div className="d-flex justify-content-between mb-2">
-                  <span>Base Fare</span>
-                  <span>₹ {baseFare.toLocaleString()}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-2">
-                  <span>Taxes and Surcharges</span>
-                  <span>₹ {tax.toLocaleString()}</span>
-                </div>
-
-                {appliedCoupon && (
-                  <div className="d-flex justify-content-between mb-2 text-success">
-                    <span>
-                      Coupon Discount ({appliedCoupon.code})
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-0 ms-1 text-danger"
-                        onClick={removeCoupon}
-                      >
-                        ✕
-                      </Button>
-                    </span>
-                    <span>- ₹ {appliedCoupon.discount.toLocaleString()}</span>
-                  </div>
-                )}
-
-                <hr />
-                <div className="d-flex justify-content-between fw-bold fs-5">
-                  <span>Total Amount</span>
-                  <span className="text-primary">
-                    ₹ {totalAmount.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Coupon Section */}
-              <div className="coupon-section mb-3">
-                <Form.Group>
-                  <Form.Label>Coupons and Offers</Form.Label>
-                  <div className="d-flex gap-2">
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter coupon code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      disabled={!!appliedCoupon}
-                    />
-                    <Button
-                      variant={appliedCoupon ? "success" : "outline-primary"}
-                      onClick={applyCoupon}
-                      disabled={!!appliedCoupon}
-                    >
-                      {appliedCoupon ? "Applied" : "Apply"}
-                    </Button>
-                  </div>
-                </Form.Group>
-                <div className="text-end">
-                  <Button variant="link" size="sm" className="p-0">
-                    VIEW ALL COUPONS ✅
-                  </Button>
-                </div>
-              </div>
-
-              {/* Cancellation Policy */}
-              <div className="cancellation-policy">
-                <h6>Cancellation & Date Change Policy</h6>
-                <Table bordered size="sm" className="mb-3">
-                  <thead>
-                    <tr>
-                      <th>Flight Details</th>
-                      <th>Penalty</th>
-                      <th>Refund</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Cancellation Penalty:</td>
-                      <td>₹ 4,650</td>
-                      <td>
-                        ₹{" "}
-                        {totalAmount - 4650 > 0
-                          ? (totalAmount - 4650).toLocaleString()
-                          : 0}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Cancel Between (ST):</td>
-                      <td colSpan="2">
-                        Now -{" "}
+                    <h4 className="mb-1">
+                      {originInfo.city || originInfo.City || "N/A"} →
+                      {destinationInfo.city || destinationInfo.City || "N/A"}
+                    </h4>
+                    <p className="text-muted mb-2">
+                      <strong>
                         {formatDate(
                           originInfo.time || originInfo.DepartureTime
-                        )}{" "}
-                        06:30
-                      </td>
-                    </tr>
-                  </tbody>
-                </Table>
-
-                <div className="text-center">
-                  <small className="text-muted">
-                    Get more benefits by upgrading your fare
-                  </small>
+                        )}
+                      </strong>{" "}
+                      ·
+                      {flightDetails.stops === 0
+                        ? "Non Stop"
+                        : `${flightDetails.stops} Stop(s)`}{" "}
+                      -{flightDetails.duration || "N/A"}
+                    </p>
+                  </div>
+                  <Badge bg="primary">
+              
+                    {selectedFare.type || selectedFare.FareType || "Standard"}
+                  </Badge>
                 </div>
-              </div>
 
-              {/* Proceed to Pay Button */}
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-100 mt-3"
-                onClick={handleProceedToPayment}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Spinner
-                      as="span"
-                      animation="border"
-                      size="sm"
-                      role="status"
-                      aria-hidden="true"
-                      className="me-2"
-                    />
-                    PROCESSING...
-                  </>
-                ) : (
-                  `PROCEED TO PAY ₹ ${totalPrice.toLocaleString()}`
+                {/* Airline Info */}
+                <div className="airline-info mb-4 p-3 bg-light rounded">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-1">
+                        {airlineInfo.name ||
+                          airlineInfo.AirlineName ||
+                          "Airline"}
+                      </h6>
+                      <small className="text-muted">
+                        {airlineInfo.flightNumber || "N/A"} · (
+                        {flightDetails.aircraft || "A320"})
+                      </small>
+                    </div>
+                    <div className="text-end">
+                      <div className="fare-type-badge">
+                        {selectedFare.type || selectedFare.FareType}
+                      </div>
+                      {fareDetails?.IsRefundable === false && (
+                        <Badge bg="danger" className="ms-2">
+                          Non-Refundable
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flight Timeline */}
+                <div className="flight-timeline mb-4">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="text-center">
+                      <div className="time-display fs-4 fw-bold text-primary">
+                        {formatTime(
+                          originInfo.time || originInfo.DepartureTime
+                        )}
+                      </div>
+                      <div className="airport-info">
+                        <div>{originInfo.city || originInfo.City || "N/A"}</div>
+                        <small className="text-muted">
+                          {originInfo.airport ||
+                            originInfo.Airport?.AirportName ||
+                            "N/A"}
+                        </small>
+                      </div>
+                    </div>
+
+                    <div className="flight-duration text-center mx-3">
+                      <div className="duration-text text-muted">
+                        {flightDetails.duration || "N/A"}
+                      </div>
+                      <div className="flight-path">
+                        <div className="line"></div>
+                        <div className="plane">✈</div>
+                      </div>
+                      <div className="stops-text">
+                        {flightDetails.stops === 0
+                          ? "Non Stop"
+                          : `${flightDetails.stops} Stop(s)`}
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="time-display fs-4 fw-bold text-primary">
+                        {formatTime(
+                          destinationInfo.time || destinationInfo.ArrivalTime
+                        )}
+                      </div>
+                      <div className="airport-info">
+                        <div>
+                          {destinationInfo.city ||
+                            destinationInfo.City ||
+                            "N/A"}
+                        </div>
+                        <small className="text-muted">
+                          {destinationInfo.airport ||
+                            destinationInfo.Airport?.AirportName ||
+                            "N/A"}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Baggage Information */}
+                <div className="baggage-info mb-4">
+                  <Row>
+                    <Col md={6}>
+                      <div className="baggage-item p-3 border rounded">
+                        <h6 className="mb-1">Cabin Baggage</h6>
+                        <p className="mb-0 text-success">{baggageInfo.cabin}</p>
+                      </div>
+                    </Col>
+                    <Col md={6}>
+                      <div className="baggage-item p-3 border rounded">
+                        <h6 className="mb-1">Check-in Baggage</h6>
+                        <p className="mb-0 text-success">
+                          {baggageInfo.checkin}
+                        </p>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* Selected Fare Benefits */}
+                {selectedFare.benefits && (
+                  <div className="fare-benefits mb-4 p-3 bg-warning bg-opacity-10 rounded">
+                    <h6 className="mb-2">🎁 Included Benefits</h6>
+                    <p className="mb-0">{selectedFare.benefits}</p>
+                  </div>
                 )}
-              </Button>
+              </Card.Body>
+            </Card>
 
-              {/* API Status Indicator */}
-              {fareDetails && (
-                <div className="text-center mt-2">
-                  <small className="text-success">
-                    ✅ Live fare loaded successfully
+            {activeSection === "PASSENGER" && (
+              <Card className="mb-4 shadow-sm">
+                <Card.Header>
+                  <h5 className="mb-0">Passenger Details</h5>
+                  <small className="text-muted">
+                    {passengerCount.adults} Adult(s), {passengerCount.children}{" "}
+                    Child(s), {passengerCount.infants} Infant(s)
                   </small>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                </Card.Header>
+                <Card.Body>
+                  {passengers.map((passenger, index) => (
+                    <div
+                      key={passenger.id}
+                      className="passenger-form-section mb-4 p-3 border rounded"
+                    >
+                      <h6 className="mb-3">
+                        {passenger.type} {index + 1}
+                        {passenger.isLeadPax && (
+                          <Badge bg="info" className="ms-2">
+                            Lead Passenger
+                          </Badge>
+                        )}
+                      </h6>
+                      <Row>
+                        <Col md={4}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Title *</Form.Label>
+                            <Form.Select
+                              value={passenger.title}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "title",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              <option value="">Select</option>
+                              {passenger.paxType === 1 && (
+                                <>
+                                  <option value="Mr">Mr</option>
+                                  <option value="Ms">Ms</option>
+                                  <option value="Mrs">Mrs</option>
+                                </>
+                              )}
+                              {passenger.paxType === 2 && (
+                                <>
+                                  <option value="Master">Master</option>
+                                  <option value="Miss">Miss</option>
+                                </>
+                              )}
+                              {passenger.paxType === 3 && (
+                                <>
+                                  <option value="Master">Master</option>
+                                  <option value="Miss">Miss</option>
+                                </>
+                              )}
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                        <Col md={4}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>First Name *</Form.Label>
+                            <Form.Control
+                              type="text"
+                              placeholder="Enter first name"
+                              value={passenger.firstName}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "firstName",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={4}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Last Name *</Form.Label>
+                            <Form.Control
+                              type="text"
+                              placeholder="Enter last name"
+                              value={passenger.lastName}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "lastName",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Date of Birth *</Form.Label>
+                            <Form.Control
+                              type="date"
+                              value={passenger.dateOfBirth}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "dateOfBirth",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Gender *</Form.Label>
+                            <Form.Select
+                              value={passenger.gender}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "gender",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              <option value="">Select</option>
+                              <option value="1">Male</option>
+                              <option value="2">Female</option>
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Passport Number *</Form.Label>
+                            <Form.Control
+                              type="text"
+                              placeholder="Enter passport number"
+                              value={passenger.passportNumber}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "passportNumber",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Passport Expiry Date *</Form.Label>
+                            <Form.Control
+                              type="date"
+                              value={passenger.passportExpiry}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "passportExpiry",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Nationality *</Form.Label>
+                            <Form.Select
+                              value={passenger.nationality}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "nationality",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              <option value="IN">India</option>
+                              <option value="US">United States</option>
+                              <option value="UK">United Kingdom</option>
+                              <option value="AE">UAE</option>
+                              <option value="SG">Singapore</option>
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Contact Number *</Form.Label>
+                            <Form.Control
+                              type="tel"
+                              placeholder="Enter contact number"
+                              value={passenger.contactNo}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "contactNo",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={12}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Address Line 1 *</Form.Label>
+                            <Form.Control
+                              type="text"
+                              placeholder="Enter address"
+                              value={passenger.addressLine1}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "addressLine1",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>City *</Form.Label>
+                            <Form.Control
+                              type="text"
+                              placeholder="Enter city"
+                              value={passenger.city}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "city",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Country *</Form.Label>
+                            <Form.Select
+                              value={passenger.countryCode}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "countryCode",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            >
+                              <option value="IN">India</option>
+                              <option value="US">United States</option>
+                              <option value="UK">United Kingdom</option>
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md={12}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Email Address *</Form.Label>
+                            <Form.Control
+                              type="email"
+                              placeholder="Enter email address"
+                              value={passenger.email}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  index,
+                                  "email",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </div>
+                  ))}
+
+                  <div className="text-end mt-3">
+                    <Button
+                      variant="primary"
+                      onClick={handleConfirmPassengers}
+                      disabled={loading}
+                    >
+                      {loading ? "Confirming..." : "Confirm Passenger Details"}
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            )}
+
+            {/* Contact Details */}
+            <Card className="shadow-sm">
+              <Card.Header>
+                <h5 className="mb-0">Contact Details</h5>
+                <small className="text-muted">
+                  This will be used for booking confirmation
+                </small>
+              </Card.Header>
+              <Card.Body>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Email Address *</Form.Label>
+                      <Form.Control
+                        type="email"
+                        placeholder="Enter email"
+                        value={contactEmail}
+                        onChange={(e) =>
+                          handleContactChange("email", e.target.value)
+                        }
+                        required
+                      />
+                      <Form.Text className="text-muted">
+                        Booking confirmation will be sent here
+                      </Form.Text>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Mobile Number *</Form.Label>
+                      <Form.Control
+                        type="tel"
+                        placeholder="Enter mobile number"
+                        value={contactMobile}
+                        onChange={(e) =>
+                          handleContactChange("mobile", e.target.value)
+                        }
+                        required
+                      />
+                      <Form.Text className="text-muted">
+                        Important updates will be sent via SMS
+                      </Form.Text>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={12}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Address *</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter your complete address"
+                        value={contactAddress}
+                        onChange={(e) =>
+                          handleContactChange("address", e.target.value)
+                        }
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+
+            {/* ================= SSR SECTION ================= */}
+            {activeSection === "SSR" && (
+              <Card className="mb-4 shadow-sm">
+                <Card.Header>
+                  <h5 className="mb-0">Additional Services</h5>
+                  <small className="text-muted">
+                    Meals, baggage and seat selection
+                  </small>
+                  <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    onClick={() => setActiveSection("PASSENGER")}
+                  >
+                    Edit Passenger Details
+                  </Button>
+                </Card.Header>
+
+                <Card.Body>
+                  {ssrLoading ? (
+                    <div className="text-center py-3">
+                      <Spinner animation="border" size="sm" />
+                      <p className="mt-2 mb-0">Loading available services…</p>
+                    </div>
+                  ) : (
+                    <Row>
+                      {/* ================= MEALS ================= */}
+                      {ssrData?.meals?.length > 0 && (
+                        <Col md={12} className="mb-4">
+                          <h6 className="mb-3">🍽️ Meals</h6>
+
+                          {passengers.map((pax, index) => (
+                            <Form.Group key={index} className="mb-2">
+                              <Form.Label>
+                                {pax.type} {index + 1}
+                              </Form.Label>
+
+                              <Form.Select
+                                value={selectedMeals[index]?.Code || ""}
+                                onChange={(e) => {
+                                  const meal = ssrData.meals.find(
+                                    (m) => m.Code === e.target.value
+                                  );
+
+                                  setSelectedMeals((prev) => ({
+                                    ...prev,
+                                    [index]: meal || null,
+                                  }));
+                                }}
+                              >
+                                <option value="">No meal</option>
+                                {ssrData.meals.map((meal) => (
+                                  <option key={meal.Code} value={meal.Code}>
+                                    {meal.AirlineDescription || meal.Code}
+                                    {meal.Price > 0 && ` (+₹${meal.Price})`}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          ))}
+                        </Col>
+                      )}
+
+                      {/* ================= BAGGAGE ================= */}
+                      {ssrData?.baggage?.length > 0 && (
+                        <Col md={12} className="mb-4">
+                          <h6 className="mb-3">🧳 Extra Baggage</h6>
+
+                          {passengers.map((pax, index) => (
+                            <Form.Group key={index} className="mb-2">
+                              <Form.Label>
+                                {pax.type} {index + 1}
+                              </Form.Label>
+
+                              <Form.Select
+                                value={selectedBaggage[index]?.Code || ""}
+                                onChange={(e) => {
+                                  const bag = ssrData.baggage.find(
+                                    (b) => b.Code === e.target.value
+                                  );
+
+                                  setSelectedBaggage((prev) => ({
+                                    ...prev,
+                                    [index]: bag || null,
+                                  }));
+                                }}
+                              >
+                                <option value="">No extra baggage</option>
+
+                                {ssrData.baggage.map((bag) => (
+                                  <option key={bag.Code} value={bag.Code}>
+                                    {bag.Text || `${bag.Weight} KG`}
+                                    {bag.Price > 0 && ` (+₹${bag.Price})`}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          ))}
+                        </Col>
+                      )}
+
+                      {/* ================= SEAT SELECTION (PLACEHOLDER) ================= */}
+                      {ssrData?.seats?.length > 0 && (
+                        <Col md={12}>
+                          <h6 className="mb-2">💺 Seat Selection</h6>
+
+                          {ssrEligiblePassengers.map((pax, index) => (
+                            <div
+                              key={pax.id}
+                              className="d-flex justify-content-between align-items-center mb-2 p-2 border rounded"
+                            >
+                              <div>
+                                <strong>
+                                  {pax.type} {index + 1}
+                                </strong>
+                                <div className="text-muted small">
+                                  {selectedSeats[index]
+                                    ? `Seat ${selectedSeats[index].SeatNo} (₹${selectedSeats[index].Price})`
+                                    : "No seat selected"}
+                                </div>
+                              </div>
+
+                              <Button
+                                size="sm"
+                                variant="outline-primary"
+                                onClick={() => {
+                                  setActiveSeatPaxIndex(index);
+                                  setShowSeatModal(true);
+                                }}
+                              >
+                                {selectedSeats[index]
+                                  ? "Change Seat"
+                                  : "Select Seat"}
+                              </Button>
+                            </div>
+                          ))}
+                        </Col>
+                      )}
+                    </Row>
+                  )}
+                </Card.Body>
+              </Card>
+            )}
+            {/* ================= END SSR SECTION ================= */}
+          </Col>
+
+          <Col lg={4}>
+            {/* Fare Summary */}
+            <Card className="sticky-top shadow-sm" style={{ top: "20px" }}>
+              <Card.Header className="fare-summary-header">
+                <h5 className="mb-0">Fare Summary</h5>
+                {fareDetails && <small>Live prices from airline</small>}
+              </Card.Header>
+
+              <Card.Body>
+                {/* ================= FARE SOURCE MESSAGE ================= */}
+                {fareSource === "search" && (
+                  <Alert variant="secondary" className="text-center">
+                    Prices shown are <strong>estimated</strong>. Final price
+                    will be confirmed before payment.
+                  </Alert>
+                )}
+
+                {fareSource === "fareQuote" && (
+                  <Alert variant="success" className="text-center">
+                    ✅ Live fare confirmed by airline
+                  </Alert>
+                )}
+
+                {/* ================= FARE SUMMARY ================= */}
+                {fareDetails && (
+                  <>
+                    {/* Passenger Count */}
+                    <div className="passenger-count mb-3 p-2 bg-light rounded">
+                      <small className="text-muted">
+                        <strong>Passengers:</strong> {passengerCount.adults}{" "}
+                        Adult(s), {passengerCount.children} Child(s),{" "}
+                        {passengerCount.infants} Infant(s)
+                      </small>
+                    </div>
+
+                    {/* Base Fare & Taxes */}
+                    <div className="fare-breakdown mb-3">
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Base Fare</span>
+                        <span>₹ {baseFare.toLocaleString()}</span>
+                      </div>
+
+                      <div className="d-flex justify-content-between mb-2">
+                        <span>Taxes and Surcharges</span>
+                        <span>₹ {tax.toLocaleString()}</span>
+                      </div>
+
+                      {/* Insurance */}
+                      {selectedInsurancePlan && (
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Travel Insurance</span>
+                          <span className="text-success">
+                            + ₹{selectedInsurancePlan.Premium.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Coupon */}
+                      {appliedCoupon && (
+                        <div className="d-flex justify-content-between mb-2 text-success">
+                          <span>
+                            Coupon Discount ({appliedCoupon.code})
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 ms-1 text-danger"
+                              onClick={removeCoupon}
+                            >
+                              ✕
+                            </Button>
+                          </span>
+                          <span>
+                            - ₹ {appliedCoupon.discount.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+
+                      <hr />
+
+                      {/* Total */}
+                      <div className="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total Amount</span>
+                        <span className="text-primary">
+                          ₹ {totalAmount.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* ================= INSURANCE SECTION ================= */}
+                    <div className="insurance-section mb-3 p-3 border rounded">
+                      <h6 className="mb-3">Travel Insurance</h6>
+
+                      {insuranceLoading ? (
+                        <div className="text-center py-2">
+                          <Spinner animation="border" size="sm" />
+                          <small className="d-block mt-2">
+                            Checking available insurance plans...
+                          </small>
+                        </div>
+                      ) : insuranceError ? (
+                        <Alert variant="warning" className="mb-2 py-2">
+                          <small>{insuranceError}</small>
+                          <div className="mt-2">
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedInsurancePlan(null);
+                                setInsuranceError(null);
+                              }}
+                            >
+                              Continue without insurance
+                            </Button>
+                          </div>
+                        </Alert>
+                      ) : null}
+
+                      {insuranceData?.length > 0 && (
+                        <>
+                          <div className="insurance-plans mb-3">
+                            {insuranceData.map((plan, index) => (
+                              <div
+                                key={index}
+                                className={`insurance-plan p-2 mb-2 border rounded ${
+                                  selectedInsurancePlan?.PlanCode ===
+                                  plan.PlanCode
+                                    ? "border-primary"
+                                    : ""
+                                }`}
+                                onClick={() => setSelectedInsurancePlan(plan)}
+                                style={{ cursor: "pointer" }}
+                              >
+                                <div className="d-flex justify-content-between">
+                                  <div>
+                                    <strong>{plan.PlanName}</strong>
+                                    <small className="d-block text-muted">
+                                      Coverage ₹
+                                      {Number(plan.SumInsured).toLocaleString()}
+                                    </small>
+                                  </div>
+                                  <strong className="text-primary">
+                                    ₹{plan.Premium.toLocaleString()}
+                                  </strong>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Insurance Yes / No */}
+                          <Form.Check
+                            type="radio"
+                            id="insurance-yes"
+                            label="Yes, add travel insurance"
+                            checked={!!selectedInsurancePlan}
+                            onChange={() =>
+                              !selectedInsurancePlan &&
+                              setSelectedInsurancePlan(insuranceData[0])
+                            }
+                          />
+
+                          <Form.Check
+                            type="radio"
+                            id="insurance-no"
+                            label="No, I don't need insurance"
+                            checked={!selectedInsurancePlan}
+                            onChange={() => setSelectedInsurancePlan(null)}
+                            className="mt-1"
+                          />
+                        </>
+                      )}
+                    </div>
+
+                    {/* ================= PROCEED BUTTON ================= */}
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      className="w-100 mt-3"
+                      onClick={handleProceedToPayment}
+                      disabled={!ssrReady || loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Spinner
+                            as="span"
+                            animation="border"
+                            size="sm"
+                            className="me-2"
+                          />
+                          PROCESSING...
+                        </>
+                      ) : ssrReady ? (
+                        `PROCEED TO PAY ₹ ${totalAmount.toLocaleString()}`
+                      ) : (
+                        "CONFIRM FARE & ADD SERVICES"
+                      )}
+                    </Button>
+                  </>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+     <Modal
+  show={showSeatModal}
+  onHide={() => setShowSeatModal(false)}
+  size="xl"
+  centered
+  className="seat-selection-modal"
+>
+  <Modal.Header closeButton className="border-0 pb-2">
+    <Modal.Title className="w-100">
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 className="mb-1">New Delhi → Bengaluru</h5>
+          <small className="text-muted">
+            1 of 1 Seat(s) Selected - Select Seat for {passengers[activeSeatPaxIndex]?.type}{" "}
+            {activeSeatPaxIndex + 1}
+          </small>
+        </div>
+        <div className="text-end">
+          <h5 className="mb-0 text-primary">₹ 2,300</h5>
+          <small className="text-muted">Added to fare</small>
+        </div>
+      </div>
+    </Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body className="px-4 py-3">
+    {/* Legend */}
+    <div className="seat-legend mb-4 p-3 bg-light rounded">
+      <div className="row g-3">
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-free me-2"></div>
+            <small>Free</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-200-500 me-2"></div>
+            <small>₹ 200-500</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-650-2300 me-2"></div>
+            <small>₹ 650-2300</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-exit me-2"></div>
+            <small>Exit Row Seats</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-non-reclining me-2"></div>
+            <small>Non Reclining</small>
+          </div>
+        </div>
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <div className="seat-icon seat-extra-legroom me-2">XL</div>
+            <small>Extra Legroom</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Airplane Seat Layout */}
+    <div className="airplane-container">
+      {/* Cockpit */}
+      <div className="airplane-cockpit">
+        <svg viewBox="0 0 100 40" className="cockpit-svg">
+          <path d="M 50 5 Q 20 15 10 40 L 90 40 Q 80 15 50 5 Z" fill="#e9ecef" />
+          <rect x="35" y="15" width="10" height="15" rx="2" fill="#495057" />
+          <rect x="55" y="15" width="10" height="15" rx="2" fill="#495057" />
+        </svg>
+      </div>
+
+      {/* Exit markers and column headers */}
+      <div className="seat-header mb-2">
+        <div className="row-number"></div>
+        <div className="seat-columns">
+          <div className="exit-marker left">
+            <span className="exit-arrow">←</span>
+            <span className="exit-text">EXIT</span>
+          </div>
+          <div className="column-letter">A</div>
+          <div className="column-letter">B</div>
+          <div className="column-letter">C</div>
+          <div className="aisle"></div>
+          <div className="column-letter">D</div>
+          <div className="column-letter">E</div>
+          <div className="column-letter">F</div>
+          <div className="exit-marker right">
+            <span className="exit-text">EXIT</span>
+            <span className="exit-arrow">→</span>
+          </div>
+        </div>
+        <div className="row-number"></div>
+      </div>
+
+      {/* Seat Grid */}
+      <div className="seat-grid-wrapper">
+        {ssrData?.seats?.map((row, rowIndex) => (
+          <div key={rowIndex} className="seat-row">
+            <div className="row-number">{row.Seats?.[0]?.RowNo}</div>
+            
+            <div className="seat-columns">
+              {row.Seats.map((seat, seatIndex) => {
+                const isAvailable = seat.AvailablityType === 1;
+                const isSelected =
+                  selectedSeats?.[activeSeatPaxIndex]?.Code === seat.Code;
+
+                // Add aisle after 3rd seat (C column)
+                const showAisle = seatIndex === 2;
+
+                return (
+                  <>
+                    <button
+  key={seat.Code}
+  // Aapki purani class logic same hai
+  className={`seat-button ${
+    !isAvailable
+      ? "seat-occupied"
+      : isSelected
+      ? "seat-selected"
+      : seat.Price === 0
+      ? "seat-free"
+      : seat.Price <= 500
+      ? "seat-200-500"
+      : "seat-650-2300"
+  } ${seat.Code?.includes('XL') ? 'seat-xl' : ''}`}
+  
+  disabled={!isAvailable}
+  
+  onClick={() => {
+    if (isAvailable) {
+      setSelectedSeats((prev) => ({
+        ...prev,
+        [activeSeatPaxIndex]: seat,
+      }));
+      // setShowSeatModal(false); // Optional: Agar click par band karna ho
+    }
+  }}
+>
+  {/* Content Logic */}
+  
+  {/* 1. SEAT NUMBER */}
+  <span className="seat-number">{seat.SeatNo || "—"}</span>
+
+  {/* 2. PRICE (New Addition) */}
+  {/* Sirf tab dikhaye agar Available hai, Selected nahi hai, aur Price > 0 hai */}
+  {isAvailable && !isSelected && seat.Price > 0 && (
+    <span className="seat-price-text">₹{seat.Price}</span>
+  )}
+
+  {/* 3. XL BADGE */}
+  {seat.Code?.includes('XL') && (
+    <span className="seat-badge">XL</span>
+  )}
+
+  {/* 4. CHECKMARK (Selected State) */}
+  {isSelected && (
+    <div className="seat-checkmark">✓</div>
+  )}
+
+</button>
+                    {showAisle && <div className="aisle"></div>}
+                  </>
+                );
+              })}
+            </div>
+
+            <div className="row-number">{row.Seats?.[0]?.RowNo}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Wing indicators */}
+      <div className="wing-indicators">
+        <div className="wing left-wing"></div>
+        <div className="wing right-wing"></div>
+      </div>
+    </div>
+  </Modal.Body>
+</Modal>
+
+      <Modal show={showConfirmModal} centered>
+        <Modal.Header>
+          <Modal.Title>Confirm Fare & Details</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {priceChanged && (
+            <Alert variant="warning">
+              Fare has changed from ₹{oldTotal} to ₹{newTotal}
+            </Alert>
+          )}
+
+          <h6>Selected Services</h6>
+          <ul>
+            <li>Seats: {Object.values(selectedSeats).length}</li>
+            <li>Meals: {Object.values(selectedMeals).length}</li>
+            <li>Baggage: {Object.values(selectedBaggage).length}</li>
+            <li>
+              Insurance:{" "}
+              {selectedInsurancePlan
+                ? selectedInsurancePlan.PlanName
+                : "Not Selected"}
+            </li>
+          </ul>
+
+          <h5 className="mt-3">Final Payable Amount: ₹{newTotal}</h5>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConfirmModal(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button variant="primary" onClick={handleConfirmAndPay}>
+            Confirm & Pay
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 

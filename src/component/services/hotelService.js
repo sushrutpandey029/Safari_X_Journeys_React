@@ -81,9 +81,9 @@ export const fetchCityList = async (countryCode) => {
   }
 };
 
-export const fetchHotelByCategory = async () => {
+export const getHotelCityByCategory = async () => {
   try {
-    const resp = await axios.post(API.HOTEL_BY_CATEGORY);
+    const resp = await axios.get(API.HOTEL_BY_CATEGORY);
     return resp.data;
   } catch (err) {
     throw err;
@@ -97,6 +97,9 @@ export const cancelHotelBooking = async (payload) => {
 export const getHotelCancelStatus = async (payload) => {
   return await axios.post(API.HOTEL_CANCEL_STATUS, payload);
 };
+export const hotel_prebook = async (payload) => {
+  return await axios.post(API.HOTEL_PREBOOK, payload);
+};
 
 export const getUserHotelBookingDetails = async (payload) => {
   try {
@@ -104,15 +107,5 @@ export const getUserHotelBookingDetails = async (payload) => {
     return resp.data;
   } catch (err) {
     throw err;
-  }
-};
-
-export const getHotelCityByCategory = async () => {
-  try {
-    const response = await axios.get(API.HOTEL_BY_CATEGORY);
-    return response.data;
-  } catch (error) {
-    console.error("Axios error:", error);
-    throw error;
   }
 };

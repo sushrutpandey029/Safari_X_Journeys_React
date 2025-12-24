@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { newsLaterSubmit } from "../services/commonService";
 
+
 const NewsLater = () => {
   const [formData, setFormdata] = useState({
     email: "",

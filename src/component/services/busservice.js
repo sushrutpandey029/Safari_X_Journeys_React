@@ -1,6 +1,6 @@
 // ✅ busservice.js
 import axios from "axios";
-import { API } from "./apiEndpoints"; 
+import { API } from "./apiEndpoints";
 
 // 🧠 AUTHENTICATE BUS API
 export const Bus_authenticate = async () => {
@@ -59,7 +59,11 @@ export const Bus_busSearch = async (searchData) => {
 
 export const Bus_busLayout = async (layoutData) => {
   try {
-    if (!layoutData?.TokenId || !layoutData?.TraceId || layoutData?.ResultIndex === undefined) {
+    if (
+      !layoutData?.TokenId ||
+      !layoutData?.TraceId ||
+      layoutData?.ResultIndex === undefined
+    ) {
       console.log("❌ INVALID LAYOUT REQUEST DATA:", layoutData);
       return { status: false };
     }
@@ -76,42 +80,37 @@ export const Bus_busLayout = async (layoutData) => {
     const response = await axios.post(API.Bus_busLayout, body);
     console.log("✅ Bus_busLayout Response:", response.data);
     return response.data;
-
   } catch (err) {
     console.error("❌ Error in Bus_busLayout:", err);
     return { status: false };
   }
 };
 
-
 // services/busservice.js
 export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
   const bodyData = {
     TokenId: TokenId?.trim(),
     TraceId: TraceId?.trim(),
-    ResultIndex: parseInt(ResultIndex)
+    ResultIndex: parseInt(ResultIndex),
   };
-
 
   try {
     const response = await axios.post(API.Bus_boardingPoints, bodyData, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      timeout: 15000
+      timeout: 15000,
     });
-    
-    
-    
+
     return response.data;
   } catch (error) {
     console.error("❌ Boarding Points API Error Details:", {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
     });
-    
+
     // Specific error messages based on status code
     if (error.response?.status === 400) {
       throw new Error("Invalid parameters sent to server");
@@ -123,4 +122,26 @@ export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
       throw new Error(`API Error: ${error.message}`);
     }
   }
+};
+
+export const bus_getBookingDetails = async (payload) => {
+  return await axios.post(API.Bus_getBookingDetails, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const bus_sendChangeRequest = async (payload) => {
+  return await axios.post(API.Bus_sendChangeRequest, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const bus_getChangeRequestStatus = async (payload) => {
+  return await axios.post(API.Bus_getChangeRequestStatus, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const bus_block = async (payload) => {
+  return await axios.post(API.Bus_block, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
 };

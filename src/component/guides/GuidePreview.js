@@ -2,6 +2,7 @@ import { getAllGuides } from "../services/guideService";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import GuideCard from "./GuideCard";
+import "./GuideCareers.css";
 
 const GuidePreview = () => {
   const [guides, setGuides] = useState([]);

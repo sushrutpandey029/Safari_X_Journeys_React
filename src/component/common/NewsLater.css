@@ -1,0 +1,224 @@
+/* NewsLater.css - Compact Version */
+.newslater {
+  position: relative;
+  z-index: 1;
+}
+
+.newslater .container {
+  padding: 1.5rem 0;
+}
+
+.newslater .row {
+  min-height: 280px; /* Reduced from auto/300px+ */
+  max-height: 350px;
+}
+
+.bg-gradient-overlay {
+  background: linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 100%);
+}
+
+.icon-wrapper {
+  transition: transform 0.3s ease;
+  padding: 0.75rem !important;
+}
+
+.icon-wrapper:hover {
+  transform: scale(1.05);
+}
+
+.input-group-text {
+  border-top-left-radius: 50px !important;
+  border-bottom-left-radius: 50px !important;
+  padding: 0.5rem 1rem;
+}
+
+.form-control {
+  border-top-right-radius: 50px !important;
+  border-bottom-right-radius: 50px !important;
+  border-left: none !important;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+}
+
+.alert {
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  animation: slideDown 0.3s ease;
+  font-size: 0.9rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Compact Content Section */
+.newsletter-box {
+  padding: 1.5rem !important;
+}
+
+.display-6 {
+  font-size: 1.5rem !important;
+  line-height: 1.3;
+  margin-bottom: 0.5rem !important;
+}
+
+.fs-5 {
+  font-size: 0.95rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Compact Button */
+.btn-primary {
+  padding: 0.6rem 1.5rem !important;
+  font-size: 1rem !important;
+  border-radius: 50px !important;
+}
+
+/* Compact Benefits List */
+.newslater .row .col-6 {
+  margin-bottom: 0.5rem;
+}
+
+.newslater .row .col-6 span {
+  font-size: 0.85rem;
+}
+
+/* Privacy Note */
+.newslater .small {
+  font-size: 0.8rem;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Image Height */
+.newslater img {
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+}
+
+/* Decorative Elements */
+.position-absolute.top-0.end-0 {
+  width: 150px !important;
+  height: 150px !important;
+}
+
+.position-absolute.bottom-0.start-0 {
+  width: 100px !important;
+  height: 100px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .newslater .row {
+    min-height: 250px;
+    max-height: 320px;
+  }
+  
+  .newsletter-box {
+    padding: 1.25rem !important;
+  }
+  
+  .display-6 {
+    font-size: 1.4rem !important;
+  }
+  
+  .fs-5 {
+    font-size: 0.9rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .btn-primary {
+    padding: 0.5rem 1.25rem !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .newslater .row {
+    min-height: auto;
+    max-height: none;
+    flex-direction: column;
+  }
+  
+  .newslater img {
+    min-height: 180px !important;
+    max-height: 180px !important;
+    width: 100%;
+  }
+  
+  .newsletter-box {
+    padding: 1.5rem 1rem !important;
+  }
+  
+  .display-6 {
+    font-size: 1.3rem !important;
+    text-align: center;
+    width: 100%;
+  }
+  
+  .fs-5 {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1.25rem !important;
+  }
+  
+  .icon-wrapper {
+    margin: 0 auto 0.75rem !important;
+    display: block;
+    text-align: center;
+  }
+  
+  /* Hide decorative circles on mobile */
+  .position-absolute.top-0.end-0,
+  .position-absolute.bottom-0.start-0 {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .newslater .container {
+    padding: 1rem 0;
+  }
+  
+  .newslater img {
+    min-height: 150px !important;
+    max-height: 150px !important;
+  }
+  
+  .newsletter-box {
+    padding: 1.25rem 0.75rem !important;
+  }
+  
+  .display-6 {
+    font-size: 1.2rem !important;
+  }
+  
+  .fs-5 {
+    font-size: 0.85rem !important;
+  }
+  
+  .form-control,
+  .input-group-text {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .btn-primary {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+  }
+}

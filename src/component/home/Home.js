@@ -18,7 +18,7 @@ import ScrollToTop from "../common/ScrollToTop";
 import FAQ from "../common/faq/FAQ";
 import HotelPopularDestination from "../hotels/HotelPopularDestination";
 import FlightPreview from "../flights/Flightpreview";
-// import { getHotelCityByCategory } from "../services/hotelService";
+
 import { getHotelCityByCategory } from "../services/hotelService";
 
 import SearchBox from "../flights/Searchbox";
@@ -28,7 +28,7 @@ const staticImages = [
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
   "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
-  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg"
+  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
 ];
 
 const destinations = [
@@ -80,13 +80,12 @@ function Home() {
           setCategories(res.data); // store API data
         }
       } catch (err) {
-        console.error("Fetch error:", err.response?.data || err.message);
+        console.error("Fetch error hotel category:", err.response?.data || err.message);
       }
     };
 
     fetchHotelCategories();
-  }, []);// empty dependency array → sirf mount hone pe chalega
-
+  }, []); // empty dependency array → sirf mount hone pe chalega
 
   const getFaqList = async () => {
     try {
@@ -141,7 +140,9 @@ function Home() {
                 <div
                   className="place-card-link place"
                   style={{ cursor: "pointer" }}
-                  onClick={() => navigate("/places", { state: { category: item } })}
+                  onClick={() =>
+                    navigate("/places", { state: { category: item } })
+                  }
                 >
                   <div className="place">
                     <img
@@ -159,16 +160,12 @@ function Home() {
         </div>
       </div>
 
-
       <HotelPopularDestination />
 
       {/* guide section */}
       <GuidePreview />
 
       {/* cab section */}
-
-
-
 
       {/* <div className="book-hotel ">
         <div className="container">
@@ -215,27 +212,48 @@ function Home() {
 
       <div className="Testionials">
         <div className="container">
-          <div className="row align-items-start">
 
+           <div className="row align-items-center mb-4">
+            <div className="col-sm-9">
+              <h2>
+                Our Recent <span>Testimonials</span>
+              </h2>
+              <p className="section-subtext">
+                Stay inspired with our latest travel stories, guides, and
+                destination tips crafted just for you.
+              </p>
+            </div>
+            <div className="col-sm-3 text-end">
+              <Link to={"/testimonials"}>
+                <button className="explore-btn">Explore More</button>
+              </Link>
+            </div>
+          </div>
+          <div className="row align-items-start">
             {/* LEFT STATIC BOX */}
             <div className="Testionials">
               <div className="container">
                 <div className="row align-items-start">
-
                   {/* LEFT SECTION (col-sm-4) */}
                   <div className="col-sm-4">
-                    <h2 className="feedback-title">Client <span>Feedback</span></h2>
-                    <p className="feedback-heading">What They Say After Using Our Product</p>
+                    <h2 className="feedback-title">
+                      Client <span>Feedback</span>
+                    </h2>
+                    <p className="feedback-heading">
+                      What They Say After Using Our Product
+                    </p>
                     <p className="feedback-sub">
-                      Many of our members have started their early careers with us
-                      Many of our members have started their early careers with us
+                      Many of our members have started their early careers with
+                      us Many of our members have started their early careers
+                      with us
                     </p>
 
                     {/* Slider Arrows */}
                     <div className="testimonial-arrows">
                       <button
                         onClick={() => {
-                          const slider = document.getElementById("testimonialSlider");
+                          const slider =
+                            document.getElementById("testimonialSlider");
                           slider.scrollLeft -= 370;
                         }}
                       >
@@ -243,7 +261,8 @@ function Home() {
                       </button>
                       <button
                         onClick={() => {
-                          const slider = document.getElementById("testimonialSlider");
+                          const slider =
+                            document.getElementById("testimonialSlider");
                           slider.scrollLeft += 370;
                         }}
                       >
@@ -254,16 +273,14 @@ function Home() {
 
                   {/* RIGHT SECTION (col-sm-8) */}
                   <div className="col-sm-8">
-
                     {/* SLIDER START */}
                     <div id="testimonialSlider" className="testimonial-slider">
                       <div className="row flex-nowrap">
-
                         {testimonialData?.map((item) => (
-                          <div key={item.id} className="col-sm-3">  {/* ← show 3 cards */}
-
+                          <div key={item.id} className="col-sm-3">
+                            {" "}
+                            {/* ← show 3 cards */}
                             <div className="testimonial-card">
-
                               <div className="stars">
                                 {"★".repeat(item.rating)}
                               </div>
@@ -282,31 +299,19 @@ function Home() {
                                   <small>{item.designation}</small>
                                 </div>
                               </div>
-
                             </div>
-
                           </div>
                         ))}
-
                       </div>
-
                     </div>
                     {/* SLIDER END */}
-
                   </div>
-
-
                 </div>
               </div>
             </div>
-
-
           </div>
         </div>
       </div>
-
-
-
 
       {/* FAQ section */}
       <FAQ />
@@ -319,7 +324,8 @@ function Home() {
                 Our Recent <span>Blogs</span>
               </h2>
               <p className="section-subtext">
-                Stay inspired with our latest travel stories, guides, and destination tips crafted just for you.
+                Stay inspired with our latest travel stories, guides, and
+                destination tips crafted just for you.
               </p>
             </div>
             <div className="col-sm-3 text-end">
@@ -357,11 +363,14 @@ function Home() {
 
                       <div className="d-flex justify-content-between align-items-center mt-3">
                         <h6 className="date">
-                          {new Date(blog.createdAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            day: "numeric",
-                            month: "long",
-                          })}
+                          {new Date(blog.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              day: "numeric",
+                              month: "long",
+                            }
+                          )}
                         </h6>
 
                         <button
@@ -380,7 +389,6 @@ function Home() {
           </div>
         </div>
       </div>
-
 
       {/* newslater */}
       <NewsLater />

@@ -78,17 +78,12 @@ const ContactUs = () => {
               <strong>info@safariX.com</strong>
             </div>
 
-            <div className="mb-3">
-              <i className="bi bi-envelope text-primary"></i>{" "}
-              <strong>no-reply@safarixjourneys.com</strong>
-            </div>
             {/* Address */}
             <div>
               <h5>Safari X</h5>
               <p className="text-muted">
-                <i className="bi bi-geo-alt text-primary"></i> F-347, Ground
-                Floor, Gali No. 23, Sadh Nagar II, Near Palam Village, South
-                West Delhi – 110045
+                <i className="bi bi-geo-alt text-primary"></i> Bhutani Alphathum
+                Sector - 90, Noida Tower-B, Office No- 1439 (201305) U.P
               </p>
             </div>
           </div>

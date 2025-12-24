@@ -4,6 +4,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { flight_getBookingDetails } from "../../../services/flightService";
 import useCancellation from "../../../hooks/useCancellation";
+import { insuranceBookingDetails } from "../../../services/insuranceService";
+import { handleDownloadInvoice } from "../../../utils/invoice";
 
 export default function FlightView({ booking }) {
   const {
@@ -15,6 +17,12 @@ export default function FlightView({ booking }) {
     bookingPayments,
     serviceType,
   } = booking || {};
+
+  const insurance = booking?.insuranceDetails;
+  const insuranceBookingId = insurance?.insuranceBookingId;
+  const policyDocumentUrl = insurance?.policyDocumentUrl;
+  const [insuranceStatusData, setInsuranceStatusData] = useState(null);
+  const [loadingInsurance, setLoadingInsurance] = useState(false);
 
   const {
     isCancelling,
@@ -84,73 +92,87 @@ export default function FlightView({ booking }) {
     }
   };
 
+  const fetchLatestInsurance = async () => {
+    try {
+      setLoadingInsurance(true);
+      const resp = await insuranceBookingDetails({
+        BookingId: insuranceBookingId,
+      });
+      console.log("insurance resp", resp);
+      setInsuranceStatusData(resp.data);
+    } catch (error) {
+      console.error("Error fetching insurance:", error);
+    } finally {
+      setLoadingInsurance(false);
+    }
+  };
+
   useEffect(() => {
     getBookingDetails();
+    fetchLatestInsurance();
   }, []);
 
   // PDF Invoice
-  const handleDownloadInvoice = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("FLIGHT Booking Invoice", 14, 20);
+  // const handleDownloadInvoice = () => {
+  //   const doc = new jsPDF();
+  //   doc.setFontSize(18);
+  //   doc.text("FLIGHT Booking Invoice", 14, 20);
 
-    doc.setFontSize(12);
-    doc.text(`Booking ID: ${bookingId}`, 14, 28);
-    doc.text(`PNR: ${PNR}`, 14, 34);
-    doc.text(`Vendor Booking ID: ${vendorBookingId}`, 14, 40);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 46);
+  //   doc.setFontSize(12);
+  //   // doc.text(`Booking ID: ${bookingId}`, 14, 28);
+  //   doc.text(`PNR: ${PNR}`, 14, 34);
+  //   doc.text(`Vendor Booking ID: ${vendorBookingId}`, 14, 40);
+  //   doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 46);
 
-    autoTable(doc, {
-      startY: 54,
-      head: [["Field", "Value"]],
-      body: [
-        ["PNR", PNR],
-        ["Vendor Booking ID", String(vendorBookingId)],
-        ["Route", `${originCity} → ${destinationCity}`],
-        ["Departure", depTime?.toLocaleString()],
-        ["Arrival", arrTime?.toLocaleString()],
-        [
-          "Airline",
-          airline
-            ? `${airline.AirlineName} (${airline.AirlineCode} ${airline.FlightNumber})`
-            : "N/A",
-        ],
-        ["Total Fare", `${currency} ${totalAmount}`],
-      ],
-    });
+  //   autoTable(doc, {
+  //     startY: 54,
+  //     head: [["Field", "Value"]],
+  //     body: [
+  //       ["PNR", PNR],
+  //       ["Vendor Booking ID", String(vendorBookingId)],
+  //       ["Route", `${originCity} → ${destinationCity}`],
+  //       ["Departure", depTime?.toLocaleString()],
+  //       ["Arrival", arrTime?.toLocaleString()],
+  //       [
+  //         "Airline",
+  //         airline
+  //           ? `${airline.AirlineName} (${airline.AirlineCode} ${airline.FlightNumber})`
+  //           : "N/A",
+  //       ],
+  //       ["Total Fare", `${currency} ${totalAmount}`],
+  //     ],
+  //   });
 
-    if (passengers.length > 0) {
-      autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 10,
-        head: [["Name", "Type", "Gender", "DOB", "Ticket No.", "Status"]],
-        body: passengers.map((p) => [
-          `${p.Title} ${p.FirstName} ${p.LastName}`,
-          p.PaxType === 1 ? "Adult" : p.PaxType === 2 ? "Child" : "Infant",
-          p.Gender === 1 ? "Male" : "Female",
-          p.DateOfBirth ? new Date(p.DateOfBirth).toLocaleDateString() : "-",
-          p.Ticket?.TicketNumber || "-",
-          p.Ticket?.Status || "-",
-        ]),
-      });
-    }
+  //   if (passengers.length > 0) {
+  //     autoTable(doc, {
+  //       startY: doc.lastAutoTable.finalY + 10,
+  //       head: [["Name", "Type", "Gender", "DOB", "Ticket No.", "Status"]],
+  //       body: passengers.map((p) => [
+  //         `${p.Title} ${p.FirstName} ${p.LastName}`,
+  //         p.PaxType === 1 ? "Adult" : p.PaxType === 2 ? "Child" : "Infant",
+  //         p.Gender === 1 ? "Male" : "Female",
+  //         p.DateOfBirth ? new Date(p.DateOfBirth).toLocaleDateString() : "-",
+  //         p.Ticket?.TicketNumber || "-",
+  //         p.Ticket?.Status || "-",
+  //       ]),
+  //     });
+  //   }
 
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
-      head: [["Payment Field", "Value"]],
-      body: [
-        ["Amount", `${currency} ${totalAmount}`],
-        ["Method", paymentInfo.paymentMethod || "N/A"],
-        ["Payment Status", paymentInfo.paymentStatus || "N/A"],
-      ],
-    });
+  //   autoTable(doc, {
+  //     startY: doc.lastAutoTable.finalY + 10,
+  //     head: [["Payment Field", "Value"]],
+  //     body: [
+  //       ["Amount", `${currency} ${totalAmount}`],
+  //       ["Method", paymentInfo.paymentMethod || "N/A"],
+  //       ["Payment Status", paymentInfo.paymentStatus || "N/A"],
+  //     ],
+  //   });
 
-    doc.save(`Invoice_Flight_${bookingId}.pdf`);
-  };
+  //   doc.save(`Invoice_Flight_${bookingId}.pdf`);
+  // };
 
   return (
     <>
-      <h5 className="mb-3">Flight Booking Details</h5>
-
       {/* STATUS UI */}
       {cancelStatus === "processing" && (
         <div className="alert alert-warning mt-3">{cancelMessage}</div>
@@ -170,12 +192,12 @@ export default function FlightView({ booking }) {
       {/* BOOKING TABLE */}
       <table className="table table-bordered mt-3">
         <tbody>
-          <tr>
+          {/* <tr>
             <th>Booking ID</th>
             <td>{bookingId}</td>
-          </tr>
+          </tr> */}
           <tr>
-            <th>Vendor Booking ID</th>
+            <th>Booking ID</th>
             <td>{vendorBookingId}</td>
           </tr>
           <tr>
@@ -215,6 +237,81 @@ export default function FlightView({ booking }) {
           </tr>
         </tbody>
       </table>
+
+      {/* insurance table */}
+      {insurance && (
+        <>
+          <h6 className="mt-4">
+            <strong>🛡 Insurance Details</strong>
+          </h6>
+
+          <table className="table table-bordered">
+            <tbody>
+              <tr>
+                <th>Insurance Booking ID</th>
+                <td>{insurance.insuranceBookingId}</td>
+              </tr>
+
+              <tr>
+                <th>Policy Number</th>
+                <td>{insurance.policyNumber || "Pending"}</td>
+              </tr>
+
+              <tr>
+                <th>Plan Name</th>
+                <td>{insurance.planName}</td>
+              </tr>
+
+              <tr>
+                <th>Premium Amount</th>
+                <td>{insurance.premiumAmount}</td>
+              </tr>
+
+              <tr>
+                <th>Status</th>
+                <td
+                  className={
+                    insurance.status === "confirmed"
+                      ? "text-success"
+                      : "text-danger"
+                  }
+                >
+                  {insurance.status}
+                </td>
+              </tr>
+
+              {/* LATEST STATUS */}
+              {insuranceStatusData?.PolicyStatus && (
+                <tr>
+                  <th>Latest Policy Status</th>
+                  <td>{insuranceStatusData.PolicyStatus}</td>
+                </tr>
+              )}
+
+              {/* 📄 POLICY DOCUMENT LINK — INSIDE TABLE */}
+              {booking.insuranceDetails?.responsePayload?.Response?.Itinerary
+                ?.PaxInfo?.[0]?.DocumentURL && (
+                <tr>
+                  <th>Policy Document</th>
+                  <td>
+                    <a
+                      href={
+                        booking.insuranceDetails.responsePayload.Response
+                          .Itinerary.PaxInfo[0].DocumentURL
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-sm"
+                    >
+                      Download Policy PDF
+                    </a>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </>
+      )}
 
       {/* PASSENGER TABLE */}
       <h6>
@@ -266,7 +363,26 @@ export default function FlightView({ booking }) {
         <>
           <button
             className="btn btn-success mt-3"
-            onClick={handleDownloadInvoice}
+            // onClick={handleDownloadInvoice}
+            onClick={() =>
+              handleDownloadInvoice({
+                serviceType: "flight",
+                payload: {
+                  bookingId,
+                  PNR,
+                  vendorBookingId,
+                  originCity,
+                  destinationCity,
+                  depTime,
+                  arrTime,
+                  airline,
+                  passengers,
+                  currency,
+                  totalAmount,
+                  paymentInfo,
+                },
+              })
+            }
           >
             Download Invoice (PDF)
           </button>
