@@ -411,7 +411,7 @@ function Footer() {
             </div>
 
             <div className="col-sm-6 col-md-3 mb-4">
-              <h5>Safari X Nation</h5>
+              <h4>SAFARIX JOURNEYS PRIVATE LIMITED</h4>
 
               <div className="d-flex gap-2 mb-3">
                 <a
