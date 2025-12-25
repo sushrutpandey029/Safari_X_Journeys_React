@@ -31,19 +31,21 @@ function BusList() {
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [seatPrices, setSeatPrices] = useState({});
   const [traceId, setTraceId] = useState(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [autoLoaded, setAutoLoaded] = useState(false);
 
   const [toggle, setToggle] = useState({
     busType: true,
-    busTypeCategory: true, // नया: AC/Non-AC के लिए
-    seatType: true, // नया: Seat Type के लिए
+    busTypeCategory: true,
+    seatType: true,
     amenities: true,
     operator: true,
   });
 
   const [filters, setFilters] = useState({
     busType: [],
-    busTypeCategory: [], // नया: AC/Non-AC
-    seatType: [], // नया: Sleeper/Seater
+    busTypeCategory: [],
+    seatType: [],
     amenities: [],
     operator: [],
   });
@@ -58,28 +60,26 @@ function BusList() {
   });
 
   const [visibleCount, setVisibleCount] = useState(6);
-  const loadAmount = 6; // हर बार 6 load होंगे
+  const loadAmount = 6;
   const maxLoad = filteredBusData.length;
 
-  // throttle flag
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (isLoading) return; // already loading? don't load again
+      if (isLoading) return;
 
       if (
         window.innerHeight + window.scrollY >=
         document.body.offsetHeight - 200
       ) {
-        // LOAD MORE
         setIsLoading(true);
         setTimeout(() => {
           setVisibleCount((prev) =>
             prev + loadAmount > maxLoad ? maxLoad : prev + loadAmount
           );
           setIsLoading(false);
-        }, 600); // delay to prevent multiple triggers
+        }, 600);
       }
     };
 
@@ -98,23 +98,19 @@ function BusList() {
 
         console.log("🔄 Starting bus authentication...");
 
-        // Step 1: Authenticate and get token
         const authResponse = await Bus_authenticate();
         console.log("✅ Step 1 - Auth Response:", authResponse);
 
-        // Extract token from response
         const token = authResponse?.tokenId || authResponse?.TokenId;
         if (!token) throw new Error("No TokenId found in auth response");
 
         setTokenId(token);
         console.log("✅ Step 2 - Token saved:", token);
 
-        // Step 3: Fetch cities using the same token
         console.log("🔄 Fetching city list...");
         const cityResponse = await Bus_getCityList(token);
         console.log("✅ Step 3 - City Response:", cityResponse);
 
-        // Extract cities from response
         const cityData =
           cityResponse?.resposnse?.BusCities ||
           cityResponse?.BusCities ||
@@ -127,7 +123,6 @@ function BusList() {
           throw new Error("Invalid cities response format");
         }
 
-        // Step 5: Set default date only (no static data)
         const today = new Date().toISOString().split("T")[0];
         setSearchParams((prev) => ({ ...prev, travelDate: today }));
 
@@ -143,10 +138,75 @@ function BusList() {
     initializeApp();
   }, []);
 
+  // FIXED: Auto-load Bangalore to Hyderabad buses when cities are loaded
+  useEffect(() => {
+    const performInitialBusSearch = async () => {
+      if (cities.length > 0 && !autoLoaded) {
+        try {
+          setIsInitialLoading(true);
+          console.log("🔄 Auto-loading Bangalore to Hyderabad buses...");
+
+          // Find Bangalore and Hyderabad cities (exact match)
+          const bangaloreCity = cities.find(city => {
+            const cityName = city.CityName?.trim().toLowerCase();
+            return cityName === "bangalore" || cityName === "bengaluru";
+          });
+          
+          const hyderabadCity = cities.find(city => 
+            city.CityName?.trim().toLowerCase() === "hyderabad"
+          );
+
+          if (!bangaloreCity || !hyderabadCity) {
+            console.warn("⚠️ Could not find Bangalore or Hyderabad in city list");
+            return;
+          }
+
+          console.log("✅ Found cities:", {
+            bangalore: bangaloreCity.CityName,
+            hyderabad: hyderabadCity.CityName,
+            bangaloreId: bangaloreCity.CityId || bangaloreCity.CityCode,
+            hyderabadId: hyderabadCity.CityId || hyderabadCity.CityCode
+          });
+
+          const today = new Date().toISOString().split("T")[0];
+
+          // Update search params with SIMPLE city names
+          setSearchParams(prev => ({
+            ...prev,
+            fromCity: "Bangalore", // Simple single word
+            toCity: "Hyderabad",   // Simple single word
+            fromCityId: bangaloreCity.CityId || bangaloreCity.CityCode,
+            toCityId: hyderabadCity.CityId || hyderabadCity.CityCode,
+            travelDate: today
+          }));
+
+          // Mark as auto-loaded to prevent multiple calls
+          setAutoLoaded(true);
+
+          // Auto-search for Bangalore to Hyderabad
+          console.log("🚀 Auto-initiating search for Bangalore to Hyderabad...");
+          
+          // Call the search function
+          await searchBusesDirect(
+            bangaloreCity.CityId || bangaloreCity.CityCode,
+            hyderabadCity.CityId || hyderabadCity.CityCode,
+            today
+          );
+
+        } catch (err) {
+          console.error("❌ Initial bus search error:", err);
+        } finally {
+          setIsInitialLoading(false);
+        }
+      }
+    };
+
+    performInitialBusSearch();
+  }, [cities]);
+
   // 🧠 AUTHENTICATE USER
   const authenticateUser = async () => {
     try {
-      // If we already have token, use it
       if (tokenId) {
         console.log(
           "🔑 Using existing token:",
@@ -155,7 +215,6 @@ function BusList() {
         return tokenId;
       }
 
-      // Otherwise get new token
       const authResponse = await Bus_authenticate();
       const token = authResponse?.tokenId || authResponse?.TokenId;
 
@@ -178,7 +237,7 @@ function BusList() {
     );
   };
 
-  // 🚌 GET BUS LAYOUT - CORRECTED VERSION
+  // 🚌 GET BUS LAYOUT
   const fetchBusLayout = async (bus) => {
     try {
       setLoadingSeats(true);
@@ -219,7 +278,6 @@ function BusList() {
 
       setSeatLayoutData(layout);
 
-      // Extract seat prices from layout
       extractSeatPrices(layout);
       let seatDetailsRaw =
         layout?.SeatDetails ||
@@ -230,7 +288,6 @@ function BusList() {
 
       console.log("RAW SEAT DETAILS:", seatDetailsRaw);
 
-      // IMPORTANT: Flatten 2D array into flat list of seats
       let seatDetails = Array.isArray(seatDetailsRaw[0])
         ? seatDetailsRaw.flat()
         : seatDetailsRaw;
@@ -248,7 +305,6 @@ function BusList() {
       console.error("❌ Layout Fetch Failed:", err);
       setError("Failed to load seat layout");
 
-      // Fallback mock layout
       const mockLayout = {
         HTMLLayout: `<div class='outerseat'>
           <div class='busSeatlft'><div class='lower'></div></div>
@@ -288,7 +344,6 @@ function BusList() {
       seatDivs.forEach((seatDiv) => {
         const onclickAttr = seatDiv.getAttribute("onclick");
         if (onclickAttr) {
-          // Extract seat number and price from onclick attribute
           const seatMatch = onclickAttr.match(
             /AddRemoveSeat\(['"]([^'"]*)['"],\s*['"]([^'"]*)['"]\)/
           );
@@ -302,7 +357,6 @@ function BusList() {
       });
     }
 
-    // If no prices found in HTML, use bus base price
     if (Object.keys(prices).length === 0 && selectedBus) {
       prices["default"] = selectedBus.price;
     }
@@ -311,14 +365,10 @@ function BusList() {
     console.log("💰 Extracted Seat Prices:", prices);
   };
 
-  // 🚌 DYNAMIC BUS SEARCH - CORRECTED VERSION
-  const searchBuses = async () => {
-    if (
-      !searchParams.fromCityId ||
-      !searchParams.toCityId ||
-      !searchParams.travelDate
-    ) {
-      setError("Please select both source, destination, and travel date");
+  // NEW FUNCTION: Direct bus search for initial load
+  const searchBusesDirect = async (fromCityId, toCityId, travelDate) => {
+    if (!fromCityId || !toCityId || !travelDate) {
+      console.log("❌ Missing parameters for direct search");
       return;
     }
 
@@ -326,33 +376,29 @@ function BusList() {
     setError(null);
 
     try {
-      console.log("🔍 Starting bus search...");
+      console.log("🔍 Direct bus search for initial load...");
 
-      // ✅ Get token
       const token = await authenticateUser();
       if (!token) throw new Error("Authentication failed");
 
-      // 🧾 Prepare payload
       const searchData = {
         TokenId: token,
-        DateOfJourney: searchParams.travelDate,
-        OriginId: searchParams.fromCityId,
-        DestinationId: searchParams.toCityId,
+        DateOfJourney: travelDate,
+        OriginId: fromCityId,
+        DestinationId: toCityId,
         PreferredCurrency: "INR",
       };
 
-      console.log("📦 Bus Search Payload:", {
-        fromCityId: searchParams.fromCityId,
-        toCityId: searchParams.toCityId,
-        travelDate: searchParams.travelDate,
+      console.log("📦 Direct Search Payload:", {
+        fromCityId: fromCityId,
+        toCityId: toCityId,
+        travelDate: travelDate,
         token: token.substring(0, 10) + "...",
       });
 
-      // 🔍 API call
       const searchResponse = await Bus_busSearch(searchData);
-      console.log("📨 Bus Search API Response:", searchResponse);
+      console.log("📨 Direct Search API Response:", searchResponse);
 
-      // 🔥 Fix: works for multiple response formats
       const searchResult =
         searchResponse?.data?.BusSearchResult ||
         searchResponse?.BusSearchResult ||
@@ -370,7 +416,6 @@ function BusList() {
           TokenId: SearchToken,
         } = searchResult;
 
-        // 🟢 SAVE SearchToken and TraceId GLOBALLY
         if (SearchToken) {
           setTokenId(SearchToken);
           localStorage.setItem("Bus_Search_Token", SearchToken);
@@ -383,29 +428,32 @@ function BusList() {
           console.log("🔍 TraceId saved:", TraceId);
         }
 
-        // 🚍 Transform API BUS data
         const transformedBuses = BusResults.map((bus, index) => {
-          // बस के नाम/टाइप से AC/Non-AC पहचानें
           const busName = bus.ServiceName || bus.TravelName || "";
           const busType = bus.BusType || "";
-          const busTypeLower = busName.toLowerCase() + " " + busType.toLowerCase();
-          
-          // Determine if AC or Non-AC
+          const busTypeLower =
+            busName.toLowerCase() + " " + busType.toLowerCase();
+
           let busTypeCategory = "";
-          if (busTypeLower.includes("ac") || busName.includes("AC") || busType.includes("AC")) {
+          if (
+            busTypeLower.includes("ac") ||
+            busName.includes("AC") ||
+            busType.includes("AC")
+          ) {
             busTypeCategory = "AC";
           } else {
             busTypeCategory = "Non-AC";
           }
 
-          // Determine seat type from bus type
           let seatType = "";
           if (busTypeLower.includes("sleeper") || busName.includes("Sleeper")) {
             seatType = "Sleeper";
-          } else if (busTypeLower.includes("seater") || busName.includes("Seater")) {
+          } else if (
+            busTypeLower.includes("seater") ||
+            busName.includes("Seater")
+          ) {
             seatType = "Seater";
           } else {
-            // Default based on bus type
             seatType = busType.includes("SLEEPER") ? "Sleeper" : "Seater";
           }
 
@@ -418,8 +466,8 @@ function BusList() {
             travelName: bus.TravelName,
             operator: bus.TravelName,
             busType: bus.BusType,
-            busTypeCategory: busTypeCategory, // नया: AC/Non-AC
-            seatType: seatType, // नया: Sleeper/Seater
+            busTypeCategory: busTypeCategory,
+            seatType: seatType,
             availableSeats: bus.AvailableSeats,
             maxSeatsPerTicket: bus.MaxSeatsPerTicket,
             idProofRequired: bus.IdProofRequired,
@@ -446,7 +494,170 @@ function BusList() {
             imagePath: `bus${(index % 3) + 1}.jpg`,
             totalSeats: 40,
             apiData: bus,
-            // Ensure TokenId is available for layout API
+            TokenId: SearchToken || token,
+          };
+        });
+
+        setBusData(transformedBuses);
+        setFilteredBusData(transformedBuses);
+
+        console.log("🚌 Direct Search Success:", {
+          origin: Origin,
+          destination: Destination,
+          totalBuses: transformedBuses.length,
+          traceId: TraceId,
+        });
+      } else {
+        console.warn("⚠️ No buses found in direct search API response");
+        setBusData([]);
+        setFilteredBusData([]);
+        setError(
+          "No buses found for this route. Please try different cities or date."
+        );
+      }
+    } catch (error) {
+      console.error("💥 Direct Search Error:", error);
+      setError(error.message || "Failed to search buses");
+      setBusData([]);
+      setFilteredBusData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🚌 DYNAMIC BUS SEARCH - Regular search function
+  const searchBuses = async () => {
+    if (
+      !searchParams.fromCityId ||
+      !searchParams.toCityId ||
+      !searchParams.travelDate
+    ) {
+      setError("Please select both source, destination, and travel date");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("🔍 Starting bus search...");
+
+      const token = await authenticateUser();
+      if (!token) throw new Error("Authentication failed");
+
+      const searchData = {
+        TokenId: token,
+        DateOfJourney: searchParams.travelDate,
+        OriginId: searchParams.fromCityId,
+        DestinationId: searchParams.toCityId,
+        PreferredCurrency: "INR",
+      };
+
+      console.log("📦 Bus Search Payload:", {
+        fromCityId: searchParams.fromCityId,
+        toCityId: searchParams.toCityId,
+        travelDate: searchParams.travelDate,
+        token: token.substring(0, 10) + "...",
+      });
+
+      const searchResponse = await Bus_busSearch(searchData);
+      console.log("📨 Bus Search API Response:", searchResponse);
+
+      const searchResult =
+        searchResponse?.data?.BusSearchResult ||
+        searchResponse?.BusSearchResult ||
+        searchResponse;
+
+      if (
+        searchResult?.ResponseStatus === 1 &&
+        Array.isArray(searchResult?.BusResults)
+      ) {
+        const {
+          Origin,
+          Destination,
+          TraceId,
+          BusResults,
+          TokenId: SearchToken,
+        } = searchResult;
+
+        if (SearchToken) {
+          setTokenId(SearchToken);
+          localStorage.setItem("Bus_Search_Token", SearchToken);
+          console.log("🔑 Token saved:", SearchToken);
+        }
+
+        if (TraceId) {
+          setTraceId(TraceId);
+          localStorage.setItem("Bus_Trace_Id", TraceId);
+          console.log("🔍 TraceId saved:", TraceId);
+        }
+
+        const transformedBuses = BusResults.map((bus, index) => {
+          const busName = bus.ServiceName || bus.TravelName || "";
+          const busType = bus.BusType || "";
+          const busTypeLower =
+            busName.toLowerCase() + " " + busType.toLowerCase();
+
+          let busTypeCategory = "";
+          if (
+            busTypeLower.includes("ac") ||
+            busName.includes("AC") ||
+            busType.includes("AC")
+          ) {
+            busTypeCategory = "AC";
+          } else {
+            busTypeCategory = "Non-AC";
+          }
+
+          let seatType = "";
+          if (busTypeLower.includes("sleeper") || busName.includes("Sleeper")) {
+            seatType = "Sleeper";
+          } else if (
+            busTypeLower.includes("seater") ||
+            busName.includes("Seater")
+          ) {
+            seatType = "Seater";
+          } else {
+            seatType = busType.includes("SLEEPER") ? "Sleeper" : "Seater";
+          }
+
+          return {
+            busId: bus.ResultIndex || index,
+            resultIndex: bus.ResultIndex,
+            routeId: bus.RouteId,
+            operatorId: bus.OperatorId,
+            busName: bus.ServiceName,
+            travelName: bus.TravelName,
+            operator: bus.TravelName,
+            busType: bus.BusType,
+            busTypeCategory: busTypeCategory,
+            seatType: seatType,
+            availableSeats: bus.AvailableSeats,
+            maxSeatsPerTicket: bus.MaxSeatsPerTicket,
+            idProofRequired: bus.IdProofRequired,
+            isDropPointMandatory: bus.IsDropPointMandatory,
+            liveTracking: bus.LiveTrackingAvailable,
+            mTicketEnabled: bus.MTicketEnabled,
+            partialCancellationAllowed: bus.PartialCancellationAllowed,
+            boardingPoints: bus.BoardingPointsDetails || [],
+            departureTime: bus.DepartureTime,
+            arrivalTime: bus.ArrivalTime,
+            origin: Origin,
+            destination: Destination,
+            from: Origin || "Unknown",
+            to: Destination || "Unknown",
+            traceId: TraceId,
+            duration: bus.Duration || "N/A",
+            price:
+              bus.BusPrice?.PublishedPriceRoundedOff ||
+              bus.BusPrice?.PublishedPrice ||
+              0,
+            fare: bus.BusPrice?.PublishedPrice || 0,
+            rating: 4.0 + Math.random() * 1.5,
+            amenities: bus.Amenities || [],
+            imagePath: `bus${(index % 3) + 1}.jpg`,
+            totalSeats: 40,
+            apiData: bus,
             TokenId: SearchToken || token,
           };
         });
@@ -478,11 +689,10 @@ function BusList() {
     }
   };
 
-  // 🪑 MODAL FUNCTIONS - CORRECTED VERSION
+  // 🪑 MODAL FUNCTIONS
   const handleOpenSeats = async (bus) => {
     console.log("🚌 Opening seat selection for bus:", bus);
 
-    // ✅ Validate required parameters
     const TokenId = bus?.TokenId || tokenId;
     const TraceId = bus?.traceId || traceId;
     const ResultIndex = bus?.resultIndex ?? bus?.ResultIndex;
@@ -497,13 +707,11 @@ function BusList() {
       return;
     }
 
-    // ✅ Set selected bus and open modal
     setSelectedBus(bus);
     setSelectedSeats([]);
     setSeatLayoutData(null);
     setShowModal(true);
 
-    // ✅ Fetch seat layout
     await fetchBusLayout(bus);
   };
 
@@ -514,7 +722,6 @@ function BusList() {
     setSeatPrices({});
   };
 
-  // In BusList.js
   const handleSeatSelect = (seat) => {
     setSelectedSeats((prev) => {
       const seatIndex = seat.SeatIndex;
@@ -522,24 +729,20 @@ function BusList() {
 
       const exists = prev.some((s) => s.SeatIndex === seatIndex);
 
-      // If already selected → remove seat
       if (exists) {
         return prev.filter((s) => s.SeatIndex !== seatIndex);
       }
 
-      // ADD THE FULL SEAT OBJECT EXACTLY AS RECEIVED FROM API
       return [...prev, seat];
     });
   };
 
-  // BusList.js - Sirf handleConfirmSeats function correct karo
   const handleConfirmSeats = async () => {
     if (selectedSeats.length === 0) return;
 
     try {
       console.log("🚀 Starting seat confirmation process...");
 
-      // ✅ CRITICAL: Extract ALL parameters from selectedBus
       const TokenId = selectedBus?.TokenId || tokenId;
       const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
       const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
@@ -550,13 +753,11 @@ function BusList() {
         ResultIndex: ResultIndex ?? "MISSING",
       });
 
-      // ✅ Validate we have ALL required parameters
       if (!TokenId || !TraceId || ResultIndex == null) {
         console.error("❌ CRITICAL: Missing API parameters in BusList");
         throw new Error("Required parameters missing for boarding points");
       }
 
-      // ✅ STEP 1: Call Boarding Points API in BusList itself
       console.log("📤 Calling Boarding Points API from BusList...");
       const boardingResponse = await fetchBoardingPoints(
         TokenId,
@@ -565,7 +766,6 @@ function BusList() {
       );
       console.log("📥 Boarding API Response:", boardingResponse);
 
-      // Extract boarding points data
       const boardingData = boardingResponse?.data?.BoardingPointsDetails || [];
       const droppingData = boardingResponse?.data?.DroppingPointsDetails || [];
 
@@ -573,19 +773,15 @@ function BusList() {
         `✅ Boarding Points: ${boardingData.length}, Dropping Points: ${droppingData.length}`
       );
 
-      // ✅ STEP 2: Prepare COMPLETE bus data with ALL parameters
       const completeBusData = {
         ...selectedBus,
-        // ✅ FORCE include all critical parameters
         TokenId: TokenId,
         TraceId: TraceId,
         ResultIndex: ResultIndex,
-        // ✅ Include boarding points data directly
         boardingPoints: boardingData,
         droppingPoints: droppingData,
       };
 
-      // ✅ STEP 3: Save EVERYTHING to localStorage
       localStorage.setItem("selectedBus", JSON.stringify(completeBusData));
       localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
       localStorage.setItem("boardingPoints", JSON.stringify(boardingData));
@@ -596,11 +792,9 @@ function BusList() {
 
       console.log("💾 ALL data saved to localStorage successfully");
 
-      // ✅ STEP 4: Navigate to Checkout with COMPLETE data
       const navigationState = {
         bus: completeBusData,
         seats: selectedSeats,
-        // ✅ Include raw parameters separately too
         tokenId: TokenId,
         traceId: TraceId,
         resultIndex: ResultIndex,
@@ -612,7 +806,6 @@ function BusList() {
     } catch (error) {
       console.error("❌ Error in seat confirmation:", error);
 
-      // ✅ FALLBACK: Still save basic data and navigate
       const fallbackBusData = {
         ...selectedBus,
         TokenId: selectedBus?.TokenId || tokenId,
@@ -631,7 +824,6 @@ function BusList() {
       });
     }
 
-    // Close modal
     handleCloseModal();
   };
 
@@ -686,7 +878,6 @@ function BusList() {
     );
   };
 
-  // Rest of the component remains the same...
   const handleToggle = (section) => {
     setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
   };
@@ -701,18 +892,43 @@ function BusList() {
     }
   };
 
+  // FIXED: Handle city selection properly
   const handleSearchParamChange = async (field, value) => {
     const newSearchParams = {
       ...searchParams,
       [field]: value,
     };
 
-    if (field === "fromCity" && value) {
-      const city = cities.find((c) => c.CityName === value);
-      newSearchParams.fromCityId = city ? city.CityId : "";
-    } else if (field === "toCity" && value) {
-      const city = cities.find((c) => c.CityName === value);
-      newSearchParams.toCityId = city ? city.CityId : "";
+    // Remove any extra text like "Agara, " from city names
+    let cleanValue = value;
+    if (field === "fromCity" || field === "toCity") {
+      // Remove any prefix like "Agara, " from the city name
+      if (value.includes(",")) {
+        const parts = value.split(",");
+        cleanValue = parts[parts.length - 1].trim();
+        newSearchParams[field] = cleanValue;
+      }
+    }
+
+    // Find city and get its ID
+    if (field === "fromCity" && cleanValue) {
+      const city = cities.find(c => {
+        const cityName = c.CityName?.toLowerCase();
+        const searchName = cleanValue.toLowerCase();
+        return cityName === searchName || 
+               cityName?.includes(searchName) || 
+               searchName.includes(cityName);
+      });
+      newSearchParams.fromCityId = city ? (city.CityId || city.CityCode) : "";
+    } else if (field === "toCity" && cleanValue) {
+      const city = cities.find(c => {
+        const cityName = c.CityName?.toLowerCase();
+        const searchName = cleanValue.toLowerCase();
+        return cityName === searchName || 
+               cityName?.includes(searchName) || 
+               searchName.includes(cityName);
+      });
+      newSearchParams.toCityId = city ? (city.CityId || city.CityCode) : "";
     }
 
     setSearchParams(newSearchParams);
@@ -738,8 +954,8 @@ function BusList() {
     const busTypes = [
       ...new Set(busData.map((bus) => bus.busType).filter(Boolean)),
     ];
-    const busTypeCategories = ["AC", "Non-AC"]; // Fixed categories
-    const seatTypes = ["Sleeper", "Seater"]; // Fixed categories
+    const busTypeCategories = ["AC", "Non-AC"];
+    const seatTypes = ["Sleeper", "Seater"];
     const operators = [
       ...new Set(busData.map((bus) => bus.operator).filter(Boolean)),
     ];
@@ -749,46 +965,50 @@ function BusList() {
     return { busTypes, busTypeCategories, seatTypes, operators, amenities };
   };
 
-  const { busTypes, busTypeCategories, seatTypes, operators, amenities } = getDynamicFilterOptions();
+  const { busTypes, busTypeCategories, seatTypes, operators, amenities } =
+    getDynamicFilterOptions();
 
+  // FIXED: Get city options with simple names
   const getCityOptions = () => {
-    const fromCities = cities.map((city) => city.CityName).filter(Boolean);
-    const toCities = cities.map((city) => city.CityName).filter(Boolean);
+    const fromCities = cities.map((city) => {
+      // Extract only the city name (remove "Agara, " prefix)
+      const cityName = city.CityName;
+      if (cityName && cityName.includes(",")) {
+        return cityName.split(",")[1]?.trim() || cityName;
+      }
+      return cityName;
+    }).filter(Boolean);
+    
+    const toCities = [...fromCities]; // Same list for both
+    
     return { fromCities, toCities };
   };
 
   const { fromCities, toCities } = getCityOptions();
-
-
-
 
   useEffect(() => {
     if (!busData || busData.length === 0) return;
 
     let filteredData = [...busData];
 
-    // Apply Bus Type filter
     if (filters.busType.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.busType.includes(bus.busType)
       );
     }
 
-    // Apply Bus Type Category filter (AC/Non-AC)
     if (filters.busTypeCategory.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.busTypeCategory.includes(bus.busTypeCategory)
       );
     }
 
-    // Apply Seat Type filter (Sleeper/Seater)
     if (filters.seatType.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.seatType.includes(bus.seatType)
       );
     }
 
-    // Apply Amenities filter
     if (filters.amenities.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.amenities.every((amenity) =>
@@ -797,7 +1017,6 @@ function BusList() {
       );
     }
 
-    // Apply Operator filter
     if (filters.operator.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.operator.includes(bus.operator)
@@ -828,9 +1047,7 @@ function BusList() {
         style={{ height: "100vh", marginTop: "100px" }}
       >
         <div className="text-center">
-        
           <Loading />
-        
           <p className="mt-2">Loading bus services...</p>
         </div>
       </div>
@@ -861,20 +1078,17 @@ function BusList() {
               )}
 
               <div className="row g-3 align-items-center justify-content-center">
-                {/* From City */}
+                {/* From City - Will show Bangalore by default */}
                 <div className="col-md-3">
                   <label className="text-muted small mb-1">From</label>
                   <div className="position-relative">
                     <input
                       type="text"
-                      className="form-control fw-bold text-capitalize"
+                      className="form-control fw-bold"
                       placeholder="Select City"
                       value={searchParams.fromCity}
                       onChange={(e) => {
-                        const formattedValue =
-                          e.target.value.charAt(0).toUpperCase() +
-                          e.target.value.slice(1);
-                        handleSearchParamChange("fromCity", formattedValue);
+                        handleSearchParamChange("fromCity", e.target.value);
                         setShowFromSuggestions(true);
                       }}
                       onFocus={() => setShowFromSuggestions(true)}
@@ -909,7 +1123,7 @@ function BusList() {
                           return sortedCities.slice(0, 15).map((city) => (
                             <div
                               key={city}
-                              className="p-2 border-bottom hover-bg-light text-capitalize"
+                              className="p-2 border-bottom hover-bg-light"
                               style={{ cursor: "pointer" }}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
@@ -917,39 +1131,26 @@ function BusList() {
                                 setShowFromSuggestions(false);
                               }}
                             >
-                              {city
-                                .split(" ")
-                                .map(
-                                  (word) =>
-                                    word.charAt(0).toUpperCase() +
-                                    word.slice(1).toLowerCase()
-                                )
-                                .join(" ")}
+                              {city}
                             </div>
                           ));
                         })()}
                       </div>
                     )}
                   </div>
-                  {cities.length === 0 && (
-                    <small className="text-warning">Loading cities...</small>
-                  )}
                 </div>
 
-                {/* To City */}
+                {/* To City - Will show Hyderabad by default */}
                 <div className="col-md-3">
                   <label className="text-muted small mb-1">To</label>
                   <div className="position-relative">
                     <input
                       type="text"
-                      className="form-control fw-bold text-capitalize"
+                      className="form-control fw-bold"
                       placeholder="Select City"
                       value={searchParams.toCity}
                       onChange={(e) => {
-                        const formattedValue =
-                          e.target.value.charAt(0).toUpperCase() +
-                          e.target.value.slice(1);
-                        handleSearchParamChange("toCity", formattedValue);
+                        handleSearchParamChange("toCity", e.target.value);
                         setShowToSuggestions(true);
                       }}
                       onFocus={() => setShowToSuggestions(true)}
@@ -984,7 +1185,7 @@ function BusList() {
                           return sortedCities.slice(0, 15).map((city) => (
                             <div
                               key={city}
-                              className="p-2 border-bottom hover-bg-light text-capitalize"
+                              className="p-2 border-bottom hover-bg-light"
                               style={{ cursor: "pointer" }}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
@@ -992,23 +1193,13 @@ function BusList() {
                                 setShowToSuggestions(false);
                               }}
                             >
-                              {city
-                                .split(" ")
-                                .map(
-                                  (word) =>
-                                    word.charAt(0).toUpperCase() +
-                                    word.slice(1).toLowerCase()
-                                )
-                                .join(" ")}
+                              {city}
                             </div>
                           ));
                         })()}
                       </div>
                     )}
                   </div>
-                  {cities.length === 0 && (
-                    <small className="text-warning">Loading cities...</small>
-                  )}
                 </div>
 
                 {/* Travel Date */}
@@ -1034,7 +1225,6 @@ function BusList() {
                   />
                 </div>
 
-             
                 {/* Search Button */}
                 <div className="col-md-2">
                   <button
@@ -1068,6 +1258,13 @@ function BusList() {
                   </button>
                 </div>
               </div>
+              
+              {isInitialLoading && (
+                <div className="mt-3">
+                  <div className="spinner-border spinner-border-sm text-primary me-2"></div>
+                  <small>Loading default buses...</small>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1080,18 +1277,15 @@ function BusList() {
               <a href="/">Home</a>
             </li>
             <li className="breadcrumb-item active" aria-current="page">
-              Buses
+              Buses from {searchParams.fromCity} to {searchParams.toCity}
             </li>
           </ol>
         </nav>
-           <div className="row">
+        <div className="row">
           {/* FILTER COLUMN */}
           <div className="col-sm-3 mb-4">
             <div className="bus-card rounded-4 border shadow-sm p-3">
               <h5 className="mb-3 fw-bold">FILTER</h5>
-
-           
-            
               {/* Bus Type Category Filter (AC/Non-AC) */}
               <div className="filter-group mb-3">
                 <div
@@ -1113,7 +1307,9 @@ function BusList() {
                           type="checkbox"
                           id={`bus-category-${category}`}
                           checked={filters.busTypeCategory.includes(category)}
-                          onChange={() => handleFilterChange("busTypeCategory", category)}
+                          onChange={() =>
+                            handleFilterChange("busTypeCategory", category)
+                          }
                         />
                         <label
                           className="form-check-label"
@@ -1126,7 +1322,6 @@ function BusList() {
                   </div>
                 )}
               </div>
-
               {/* Seat Type Filter (Sleeper/Seater) */}
               <div className="filter-group mb-3">
                 <div
@@ -1161,18 +1356,15 @@ function BusList() {
                   </div>
                 )}
               </div>
-
-             
-
               <button
                 className="btn btn-outline-secondary w-100 mt-3"
                 onClick={() =>
-                  setFilters({ 
-                    
-                    busTypeCategory: [], 
-                    seatType: [], 
-              
-                  
+                  setFilters({
+                    busType: [],
+                    busTypeCategory: [],
+                    seatType: [],
+                    amenities: [],
+                    operator: [],
                   })
                 }
               >
@@ -1180,12 +1372,12 @@ function BusList() {
               </button>
             </div>
           </div>
-
+          
           {/* BUS LIST COLUMN */}
           <div className="col-sm-9">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h5 className="fw-bold mb-0">
-                Available Buses ({filteredBusData.length})
+                Available Buses from {searchParams.fromCity} to {searchParams.toCity} ({filteredBusData.length})
               </h5>
               <div className="d-flex align-items-center">
                 <span className="me-2">Sort by:</span>
@@ -1236,7 +1428,8 @@ function BusList() {
                             </div>
 
                             <p className="mb-2 text-muted small">
-                              {bus.busType} • {bus.operator} • {bus.busTypeCategory} • {bus.seatType}
+                              {bus.busType} • {bus.operator} •{" "}
+                              {bus.busTypeCategory} • {bus.seatType}
                             </p>
                             <p className="mb-2 text-muted small">
                               {bus.amenities?.join(" • ")}
@@ -1260,8 +1453,7 @@ function BusList() {
                                     <strong>Duration:</strong> {bus.duration}
                                   </li>
                                   <li>
-                                    <strong>Route:</strong> {bus.from} →{" "}
-                                    {bus.to}
+                                    <strong>Route:</strong> {searchParams.fromCity} → {searchParams.toCity}
                                   </li>
                                 </ul>
                               </div>
@@ -1313,12 +1505,12 @@ function BusList() {
               ) : (
                 <div className="col-12 text-center py-5">
                   <h5>No buses found</h5>
-                  <p>Try searching for buses between different cities</p>
+                  <p>Try searching for buses between different cities or date</p>
                 </div>
               )}
             </div>
 
-            {/* ⭐ SPINNER OUTSIDE THE MAP (Correct Spot) */}
+            {/* Load More Spinner */}
             {isLoading && visibleCount < filteredBusData.length && (
               <div className="text-center my-3">
                 <div className="spinner-border text-primary"></div>
@@ -1342,10 +1534,10 @@ function BusList() {
                 <div className="bus-info">
                   <strong>{selectedBus?.busName}</strong>
                   <span>
-                    {selectedBus?.from} → {selectedBus?.to}
+                    {searchParams.fromCity} → {searchParams.toCity}
                   </span>
                   <span>
-                    {selectedBus?.departureTime} • {selectedBus?.travelDate}
+                    {selectedBus?.departureTime} • {searchParams.travelDate}
                   </span>
                 </div>
               </div>
