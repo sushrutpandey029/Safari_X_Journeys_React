@@ -125,13 +125,14 @@
 
 }
 .view-price-flight{
- background-color: #ffffff !important;
+background-color: #ffffff !important;
     color: #6369b2 !important;
     border: none !important;
-    padding: 4px 20px !important;
-    border-radius: 16px !important;
-    font-size: 16px !important;
-    cursor: pointer !important;transition: 0.3s;
+    padding: 4px 13px !important;
+    border-radius: 11px !important;
+    font-size: 10px !important;
+    cursor: pointer !important;
+    transition: 0.3s;
     transition: 0.3s ease !important;
     border: 1px solid #6665ae !important;
 }

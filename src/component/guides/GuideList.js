@@ -201,11 +201,11 @@ const GuideList = () => {
 
   return (
     <div
-      className="guide-page py-5"
-      style={{ backgroundColor: "#fff", marginTop: "34px" }}
+      className="guide-page" 
+      style={{ marginTop: "98px" }}
     >
       {/* SEARCH BAR */}
-      <div className="search-section">
+      <div className="guide-section">
         <div className="container">
           <div className="row g-3 align-items-end">
             {/* CITY */}

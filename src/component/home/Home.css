@@ -107,7 +107,6 @@ header .user-icon a {
   width: 100%;
   z-index: 1030;
   background-color: #fff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 .sticky-header .nav-link {
   color: #6665ae;
@@ -162,9 +161,8 @@ header {
 
 .banner-video {
   width: 100%;
-  height: 100%;
   object-fit: cover;
-  max-height: 830px;
+  height:100vh;
 }
 
 .banner-overlay {
@@ -197,6 +195,7 @@ header {
 /************ place-guide*************/
 .top-destination {
   padding: 70px 0px;
+  background-color: #fff;
 }
 .place {
   position: relative;
@@ -243,11 +242,8 @@ header {
   text-align: center;
   z-index: 2;
   margin: 0;
-  background: linear-gradient(
-    to top,
-    rgb(0 0 0 / 63%),
-    /* darker at bottom */ rgb(0 0 0 / 0%) /* lighter at top */
-  );
+ 
+
   width: 100%;
   left: 50%;
   height: 36px;
@@ -327,7 +323,7 @@ ease;
 /************ Modern Best Guide *************/
 .modern-best-guide {
   padding: 70px 0;
-  background: linear-gradient(0deg, rgb(247 247 255), rgb(255 255 255)) !important;
+  background:linear-gradient(0deg, rgb(247 247 255), rgb(255 255 255)) !important;
 
 
 /* Heading */
@@ -565,6 +561,7 @@ ease;
 .why-choose {
 
   padding: 70px 0px;
+  background-color: #fff;
 
   h2 span {
     color: #6369b2;
@@ -583,12 +580,16 @@ ease;
     line-height: 1.5;
     margin-top: 12px;
     width: 70%;
+
+    
   }
 
   .choose-box {
     padding: 15px;
     border-radius: 12px;
     height: 100%;
+
+    img{display: none;}
   }
   
 
@@ -655,6 +656,7 @@ ease;
 
 .modern-blog {
   padding: 70px 0;
+      background: linear-gradient(0deg, rgb(247 247 255), rgb(255 255 255)) !important;
 
 
 h2{
@@ -956,7 +958,7 @@ background: #6369b2;
 }
 /* TESTIMONIAL WRAPPER */
 .Testionials {
-  padding: 0px 0 60px;
+      padding:0px 0px 70px; background-color: #fff;
 }
 
 /* Heading */
@@ -1297,7 +1299,7 @@ footer {
 /****newsletter******/
 /* Background */
 .newsletter-modern {
-  padding:70px 0 110px;
+  padding:30px 0 80px;
   background: #f7f7ff; /* Light grey like screenshot */
 }
 
@@ -1608,3 +1610,147 @@ footer {
     width: 152px;
     font-size: 10px;
   }
+
+
+
+
+
+
+
+
+
+
+
+/* ================= MOBILE VIEW ================= */
+@media (max-width: 991px) {
+  /* Header */
+  header {
+    position: relative;
+    width: 100%;
+    z-index: 999;
+  }
+
+  /* Navbar container */
+  .navbar {
+    padding: 10px 15px;
+  }
+
+  /* Logo */
+  .navbar-brand img {
+    height: 50px; /* mobile me chhota logo */
+  }
+
+  /* Toggle button */
+  .navbar-toggler {
+    border: none;
+    outline: none;
+  }
+
+  /* Collapse menu */
+  .navbar-collapse {
+    background: #fff;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+  }
+
+  /* Nav items */
+  .navbar-nav {
+    text-align: center;
+  }
+
+  .nav-item {
+    margin: 8px 0;
+  }
+
+  .nav-link {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  /* Icons inside menu */
+  .icon-img {
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+  }
+
+  /* Plan button */
+  .plan {
+    width: 100%;
+    margin: 10px 0;
+    text-align: center;
+  }
+
+  .explore-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+  }
+
+  /* User icon */
+  .user-icon {
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .user-icon-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Profile dropdown */
+  .profile-menu {
+    position: static;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: none;
+    border: 1px solid #eee;
+  }
+}
+
+/* ================= SMALL MOBILE ================= */
+@media (max-width: 575px) {
+  .navbar-brand img {
+    height: 45px;
+  }
+
+  .nav-link {
+    font-size: 15px;
+  }
+
+  .explore-btn {
+    font-size: 14px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /**************************responsive**************************/
+@media (max-width: 768px) {
+    .banner-video {
+        height: 60dvh;   /* mobile browser issue fix */
+        width: 100%;
+        object-fit: cover;
+    }
+    .newsletter-title {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: "Georgia", serif;
+    color: #333;
+    margin-bottom: 25px;
+}
+}

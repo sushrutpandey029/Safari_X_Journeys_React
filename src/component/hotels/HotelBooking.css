@@ -304,12 +304,7 @@ body {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
     rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 
-  background: linear-gradient(
-      rgba(0, 0, 0, 0.6),
-      /* top black overlay */ rgba(0, 0, 0, 0.2) /* bottom black overlay */
-    ),
-    url("/public/images/hotel-booking.jpg") no-repeat center center / cover;
-
+ 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -317,13 +312,13 @@ body {
 }
 
 .search-box {
-  background: linear-gradient(
-    135deg,
-    rgb(241 229 229 / 90%),
-    /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */
-  ) !important;
-  padding: 40px;
-
+  border-radius: 0px !important;
+position: relative;
+background-color: #6369b2 !important;
+background-image: linear-gradient(to right, #a8ecff, #f0f1ff) !important;
+padding: 40px;
+width: 100% !important;
+margin-top: 0px !important;
   .explore-btn {
     padding: 10px 15px;
   }

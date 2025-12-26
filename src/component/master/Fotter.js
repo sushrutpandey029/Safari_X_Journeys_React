@@ -457,7 +457,7 @@ function Footer() {
                   <FaLinkedinIn />
                 </a>
               </div>
-              <h5 className="mt-5">Payment Methods</h5>
+              <h5 className="mt-3">Payment Methods</h5>
 
               <div className="d-flex gap-2 flex-wrap">
                 <div className="payment-box p-2 rounded">

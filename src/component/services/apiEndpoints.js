@@ -3,7 +3,7 @@
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.31.33.26:2625";
-export const BASE_URL = "http://192.168.1.12:2625";
+export const BASE_URL = "http://192.168.1.11:2625";
 // export const BASE_URL = "http://192.168.1.8:2625";
 
 export const API = {

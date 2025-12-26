@@ -1,21 +1,28 @@
 .bus-section {
-  background-image: url('/public/images/busbanner.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding: 160px 0;
- height: 500px; 
+
+  
+
 }
 
-
-.search-box {
-  background: white;
-  padding: 20px;
+.search-bus{
+   border-radius: 0px !important;
+position: relative;
+background-color: #6369b2 !important;
+background-image: linear-gradient(to right, #a8ecff, #f0f1ff) !important;
+padding: 40px;
+width: 100% !important;
+margin-top: 0px !important;
 }
 
-.search-box {
-  border-radius: 15px;
-  background-color: #fff;
+.explore-bus-btn{
+  background: #6369b2 !important;
+    color: #fff !important;
+    padding: 10px 24px !important;
+    border-radius: 50px !important;
+    font-size: 15px !important;
+    border: none !important;
+    transition: 0.3s !important;
+    box-shadow: 0px 4px 12px rgba(99, 105, 178, 0.25) !important;
 }
 
 .form-select,

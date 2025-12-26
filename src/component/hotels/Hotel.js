@@ -92,9 +92,10 @@ function Hotel() {
 
   return (
     <div>
-      <div className="tab-section">
-        <div className="container search-box rounded shadow-sm">
-          <div className="row g-3 align-items-end">
+     <div className="hotel-section" style={{ marginTop: 98 }}>
+        <div className="search-box rounded shadow-sm hotel-form">
+         <div className="container">
+           <div className="row g-3 align-items-end">
             {/* City */}
             <div className="col-md-2">
               <label className="form-label">City</label>
@@ -349,6 +350,8 @@ function Hotel() {
               </button>
             </div>
           </div>
+
+         </div>
         </div>
       </div>
        <HotelPopularDestination />

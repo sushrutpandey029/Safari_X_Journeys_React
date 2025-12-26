@@ -112,7 +112,7 @@ function Header() {
           <div className="container-fluid">
             <a className="navbar-brand" href="/">
               <img
-                src="/images/Safarix-Blue-Logo.png"
+                src="/images/black-logo.png"
                 alt="Safarix Logo"
                 height="70"
               />

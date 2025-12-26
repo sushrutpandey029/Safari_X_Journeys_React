@@ -77,7 +77,7 @@ function Home() {
         const res = await getHotelCityByCategory();
         console.log("Hotel categories raw:", res);
         if (res.success) {
-          setCategories(res.data); // store API data
+          setCategories(res.data); // store API 
         }
       } catch (err) {
         console.error("Fetch error hotel category:", err.response?.data || err.message);
@@ -213,17 +213,8 @@ function Home() {
       <div className="Testionials">
         <div className="container">
 
-           <div className="row align-items-center mb-4">
-            <div className="col-sm-9">
-              <h2>
-                Our Recent <span>Testimonials</span>
-              </h2>
-              <p className="section-subtext">
-                Stay inspired with our latest travel stories, guides, and
-                destination tips crafted just for you.
-              </p>
-            </div>
-            <div className="col-sm-3 text-end">
+           <div className="row align-items-center">
+            <div className="col-sm-12 text-end mb-4">
               <Link to={"/testimonials"}>
                 <button className="explore-btn">Explore More</button>
               </Link>
@@ -231,7 +222,6 @@ function Home() {
           </div>
           <div className="row align-items-start">
             {/* LEFT STATIC BOX */}
-            <div className="Testionials">
               <div className="container">
                 <div className="row align-items-start">
                   {/* LEFT SECTION (col-sm-4) */}
@@ -308,7 +298,6 @@ function Home() {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </div>

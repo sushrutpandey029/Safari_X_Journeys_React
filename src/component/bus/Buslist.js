@@ -840,12 +840,11 @@ function BusList() {
   return (
     <div>
       {/* Search Section */}
-      <div className="col-sm-12" style={{ marginTop: "100px" }}>
-        <div className="col-sm-12">
-          <div className="bus-section text-center">
-            <div className="container search-box p-4 rounded shadow-lg bg-white">
-              <h6 className="text-muted mb-3">Bus Ticket Booking</h6>
-
+      <div className="bus-section" style={{ marginTop: "100px" }}>
+        <div className="search-bus">
+        
+            <div className="container">
+          
               {error && (
                 <div
                   className="alert alert-warning alert-dismissible fade show mb-3"
@@ -1038,14 +1037,8 @@ function BusList() {
                 {/* Search Button */}
                 <div className="col-md-2">
                   <button
-                    className="btn btn-primary w-100 fw-bold py-2"
-                    style={{
-                      background: "linear-gradient(to right, #007bff, #0056d2)",
-                      border: "none",
-                      borderRadius: "30px",
-                      letterSpacing: "1px",
-                      cursor: loading ? "not-allowed" : "pointer",
-                    }}
+                    className="explore-bus-btn"
+                    
                     onClick={handleSearch}
                     disabled={
                       loading ||
@@ -1069,7 +1062,7 @@ function BusList() {
                 </div>
               </div>
             </div>
-          </div>
+       
         </div>
       </div>
 

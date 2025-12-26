@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Row, Col } from "react-bootstrap";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+
 import { BASE_URL } from "../services/apiEndpoints";
 import { getBannerData } from "../services/commonService";
 import SearchBox from "../flights/Searchbox";
@@ -22,23 +20,16 @@ function HomeBanner() {
     fetchBannerData();
   }, []);
   return (
-   <div className="banner">
-  {/* ✅ Render banner slides only once */}
+  <div className="banner">
   {bannerData && bannerData.length > 0 && (
-    <div className="banner-slides">
-      {bannerData.slice(0, 1).map((item) => ( // show only first banner
-        <div key={item.id} className="banner-slide">
-          <video
-            src={`${BASE_URL}/banner/images/${item.image}`}
-            className="banner-video"
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
-        </div>
-      ))}
-    </div>
+    <video
+      src={`${BASE_URL}/banner/images/${bannerData[0].image}`}
+      className="banner-video"
+      autoPlay
+      muted
+      loop
+      playsInline
+    />
   )}
 
   {/* 🔹 SearchBox floating over banner */}
@@ -46,6 +37,7 @@ function HomeBanner() {
     {/* your searchbox content */}
   </div>
 </div>
+
 
   );
 }

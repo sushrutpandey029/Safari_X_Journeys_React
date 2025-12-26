@@ -114,14 +114,14 @@ background-color: #4958c9ff;
   transition: background 0.3s ease;
 }
 
-.search-section {
-  background-image: url('/public/images/guidebanner.jpg'); /* apna image path */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding: 30px 0;
-  border-radius: 10px; /* optional */
-  height: 200px; /* adjust as needed */
+.guide-section{
+  border-radius: 0px !important;
+position: relative;
+background-color: #6369b2 !important;
+background-image: linear-gradient(to right, #a8ecff, #f0f1ff) !important;
+padding: 40px;
+width: 100% !important;
+margin-top: 0px !important;
 }
 
 
@@ -209,9 +209,7 @@ background-color: #4958c9ff;
 /* =========================
    PAGE WRAPPER FIX
 ========================= */
-body {
-  background: #f4f6f8;
-}
+
 
 /* =========================
    MAIN CONTENT LAYOUT
@@ -1097,7 +1095,7 @@ body {
 
 .form-label {
   font-weight: 600;
-  color: #333;
+  color: #130202 !important;
   font-size: 13px;
   display: flex;
   align-items: center;
