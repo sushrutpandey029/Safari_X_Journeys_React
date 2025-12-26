@@ -53,9 +53,6 @@ function HotelPopularDestination() {
                 Top Trending <span> Destinations</span>
               </h2>
             </div>
-           
-             
-           
           </div>
 
           {City &&
