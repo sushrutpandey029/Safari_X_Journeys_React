@@ -16,7 +16,15 @@
 .best-flight {
   background: #f9fbff;
 }
-
+.text-primary {
+    --bs-text-opacity: 1;
+    color: rgb(99 105 178) !important;
+}
+.bg-lights {
+    background-color: #e2e3ff;
+    padding: 15px;
+    border-radius: 12px;
+}
 .best-flight .section-title {
   font-size: 2rem;
   font-weight: bold;

@@ -12,12 +12,12 @@ import AuthModal from "../auth/AuthModal";
 import GuideAuth from "../auth/GuideAuth";
 import { getUserData, removeUserData } from "../utils/storage";
 import { userLogout } from "../services/authService";
- 
+
 function Header() {
   const user = getUserData("safarix_user");
   const guide = getUserData("guide");
   const driver = getUserData("driver");
- 
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [showGuideLogin, setShowGuideLogin] = useState(false);
@@ -329,7 +329,7 @@ function Header() {
                 show={showGuideLogin}
                 onClose={() => setShowGuideLogin(false)}
                 setShowGuideLogin={setShowGuideLogin}
-                // setShowDriverGuideLogin={setShowDriverGuideLogin}
+              // setShowDriverGuideLogin={setShowDriverGuideLogin}
               />
             </div>
           </div>

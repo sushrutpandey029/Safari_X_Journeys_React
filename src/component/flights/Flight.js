@@ -145,8 +145,8 @@ const Flight = () => {
       departureTimes: isChecked
         ? [...prev.departureTimes, timeRange]
         : prev.departureTimes.filter(
-            (range) => !(range[0] === timeRange[0] && range[1] === timeRange[1])
-          ),
+          (range) => !(range[0] === timeRange[0] && range[1] === timeRange[1])
+        ),
     }));
   };
 
@@ -433,8 +433,8 @@ const Flight = () => {
     const displayValue = isOpen
       ? searchTerm
       : selectedAirport
-      ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
-      : "";
+        ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
+        : "";
 
     return (
       <div className="position-relative" ref={dropdownRef}>
@@ -470,9 +470,8 @@ const Flight = () => {
               filteredAirports.map((airport) => (
                 <div
                   key={airport.airport_code}
-                  className={`dropdown-item ${
-                    value === airport.airport_code ? "selected" : ""
-                  }`}
+                  className={`dropdown-item ${value === airport.airport_code ? "selected" : ""
+                    }`}
                   onClick={() => handleSelect(airport)}
                 >
                   <div className="airport-option">
@@ -714,15 +713,15 @@ const Flight = () => {
       } else {
         setSearchError(
           searchResponse?.data?.Response?.Error?.ErrorMessage ||
-            "No flights found. Please try different search criteria."
+          "No flights found. Please try different search criteria."
         );
       }
     } catch (error) {
       console.error("Search error:", error);
       setSearchError(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to search flights"
+        error.message ||
+        "Failed to search flights"
       );
     } finally {
       setSearchLoading(false);
@@ -916,7 +915,7 @@ const Flight = () => {
                   </h5>
                   <small className="text-muted">
                     Total {adults} adult{adults > 1 ? "s" : ""}
-</small>
+                  </small>
 
 
                   {savings > 0 && (
@@ -930,8 +929,8 @@ const Flight = () => {
 
                   <br />
                   <Button
-                 
-                    className="view-price-flight"
+
+                    className="view-price-flight mt-3 m-0"
                     onClick={() => onViewPrices(flight)}
                   >
                     VIEW PRICES
@@ -942,7 +941,7 @@ const Flight = () => {
               {/* Baggage Row */}
               <Row className="mt-3">
                 <Col>
-                  <div className="bg-light p-2 rounded-2">
+                  <div className="bg-lights">
                     <small className="text-muted">
                       <strong>Baggage:</strong> {segmentData?.Baggage || "--"}•
                       <strong> Cabin:</strong>{" "}
@@ -1113,8 +1112,8 @@ const Flight = () => {
                         flights[0].returnDate
                           ? new Date(flights[0].returnDate)
                           : flights[0].date
-                          ? new Date(flights[0].date)
-                          : new Date()
+                            ? new Date(flights[0].date)
+                            : new Date()
                       }
                       onChange={(date) => {
                         const newFlights = [...flights];
@@ -1144,7 +1143,7 @@ const Flight = () => {
                       id="travellers-dropdown"
                       variant="light"
                       className="AddClass-toggle form-control"
-                  
+
                     >
                       {adults} Adult{adults > 1 ? "s" : ""},{" "}
                       {travelClass || "Economy"}
@@ -1199,23 +1198,23 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-        <Col md={2}>
-  <Button
-    type="submit"   // 👈 yahan explicitly set karo
-    className="explore-flight-btn w-100"
-    onClick={searchFlights}
-    disabled={searchLoading || loading || isInitialLoading}
-  >
-    {searchLoading ? (
-      <>
-        <Spinner animation="border" size="sm" className="me-2 spinner-white" />
-        Searching...
-      </>
-    ) : (
-      "Search"
-    )}
-  </Button>
-</Col>
+              <Col md={2}>
+                <Button
+                  type="submit"   // 👈 yahan explicitly set karo
+                  className="explore-flight-btn w-100"
+                  onClick={searchFlights}
+                  disabled={searchLoading || loading || isInitialLoading}
+                >
+                  {searchLoading ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2 spinner-white" />
+                      Searching...
+                    </>
+                  ) : (
+                    "Search"
+                  )}
+                </Button>
+              </Col>
 
 
             </Row>
@@ -1266,11 +1265,11 @@ const Flight = () => {
                           const updatedFlights = flights.map((f, i) =>
                             i === index
                               ? {
-                                  ...f,
-                                  date: date
-                                    ? date.toISOString().split("T")[0]
-                                    : null,
-                                }
+                                ...f,
+                                date: date
+                                  ? date.toISOString().split("T")[0]
+                                  : null,
+                              }
                               : f
                           );
                           setFlights(updatedFlights);
@@ -1313,19 +1312,19 @@ const Flight = () => {
           <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
             <fieldset disabled={isInitialLoading || searchLoading}>
               <div className="filter-box p-3 border rounded shadow-sm">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-  <h5 className="fw-bold mb-0">FILTER</h5>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="fw-bold mb-0">FILTER</h5>
 
-  <FaUndoAlt
-    title="Reset Filters"
-    style={{ cursor: "pointer", color: "#d04856ff" }}
-    onClick={clearAllFilters}
-  />
-</div>
+                  <FaUndoAlt
+                    title="Reset Filters"
+                    style={{ cursor: "pointer", color: "#d04856ff" }}
+                    onClick={clearAllFilters}
+                  />
+                </div>
 
-<div className="filter-group mb-3">
- 
-</div>
+                <div className="filter-group mb-3">
+
+                </div>
 
                 {/* Refundable Filter */}
                 <div className="filter-group mb-3">
@@ -1636,7 +1635,7 @@ const Flight = () => {
                 </div>
 
                 {/* Clear Filters Button */}
-               
+
               </div>
             </fieldset>
           </Col>
