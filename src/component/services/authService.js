@@ -20,8 +20,12 @@ export const userLogout = async () => {
 };
 
 export const userVerifyEmailOtp = async (payload) => {
-  console.log("payload in authservice", payload);
-  return await axios.post(API.USER_VERIFY_OTP, payload, {
+   return await axios.post(API.USER_VERIFY_OTP, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const userResendOtp = async (payload) => {
+   return await axios.post(API.USER_RESEND_OTP, payload, {
     headers: { "Content-Type": "application/json" },
   });
 };

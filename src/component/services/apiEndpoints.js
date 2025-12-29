@@ -3,7 +3,7 @@
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.31.33.26:2625";
-export const BASE_URL = "http://192.168.1.12:2625";
+export const BASE_URL = "http://192.168.1.17:2625";
 // export const BASE_URL = "http://192.168.1.8:2625";
 
 export const API = {
@@ -19,6 +19,7 @@ export const API = {
   //user
   REGISTER_OR_LOGIN: `${BASE_URL}/api/user/register-or-login`,
   USER_VERIFY_OTP: `${BASE_URL}/api/user/verify-email-otp`,
+  USER_RESEND_OTP: `${BASE_URL}/api/user/resend-email-otp`,
   USER_LOGOUT: `${BASE_URL}/api/user/logout`,
   BANNER_IMAGE: `${BASE_URL}/api/banner/image`,
   FAQ_LIST: `${BASE_URL}/api/FAQ/list`,
