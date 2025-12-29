@@ -151,6 +151,7 @@ export default function HotelView({ booking }) {
         });
 
         const result = statusResp?.data?.data?.HotelChangeRequestStatusResult;
+        console.log("resp hotel cancel status", result);
         const status = result?.ChangeRequestStatus;
 
         console.log("Cancellation status:", status);
@@ -165,8 +166,9 @@ export default function HotelView({ booking }) {
         if (status === 3) {
           clearInterval(pollInterval);
 
-          const refund = result?.RefundAmount || 0;
-          const charge = result?.CancellationCharge || 0;
+          const refund = result?.RefundedAmount || 0;
+          const charge =
+            result?.CancellationChargeBreakUp?.CancellationFees || 0;
           const creditNote = result?.CreditNoteNo || null;
 
           await confirmBookingCancellation({
