@@ -283,6 +283,11 @@ header {
   transition: 0.3s 
 ease;
   border: 1px solid #6665ae;
+
+}
+.explore-btn image{
+  height: 40px;
+  width: 40px;
 }
 
 .explore-btn:hover {
@@ -1408,8 +1413,18 @@ footer {
   object-fit: cover;    /* keeps image looking clean */
   border-radius: 50%;   /* optional: makes it a circle */
   cursor: pointer;
+  background-color: #fff;
 }
 
+
+.chat-bot-icon{
+   height: 35px;
+  width: 35px;          /* keeps it square */
+  object-fit: cover;    /* keeps image looking clean */
+  border-radius: 50%;   /* optional: makes it a circle */
+  cursor: pointer;
+  background-color: #fff;
+}
 
 /* Profile dropdown */
 
@@ -1530,15 +1545,40 @@ footer {
   font-size: 14px;
 }
 
-.holiday {
-  font-size: 14px;
-  color: #ffffff;
-  background: #6665ae;
-  border-radius: 10px;
-  border: none;
-  line-height: 20px;
-  padding: 8px 16px;
+/* Icon-only button reset */
+.explore-btn-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+  cursor: pointer;
 }
+
+/* Remove focus / active border */
+.explore-btn-icon-btn:focus,
+.explore-btn-icon-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Icon size control */
+.explore-btn-icon-btn img {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+/* Mobile */
+@media (max-width: 991px) {
+  .explore-btn-icon-btn img {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+
 
 
 
@@ -1677,10 +1717,9 @@ footer {
 
   /* Plan button */
   .plan {
-    width: 100%;
-    margin: 10px 0;
-    text-align: center;
+  
   }
+ 
 
   .explore-btn {
     width: 100%;

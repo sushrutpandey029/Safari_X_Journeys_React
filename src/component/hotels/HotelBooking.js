@@ -525,7 +525,7 @@ function HotelBooking() {
       {/* search hotel box filter */}
       <div
         className="search-box listing-search-form"
-        style={{ marginTop: "108px" }}
+        style={{ marginTop: "200px" }}
       >
         <div className="container">
           <div className="row g-3 align-items-end">

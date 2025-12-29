@@ -20,10 +20,6 @@ pnpm-debug.log*
 
 # OS files
 .DS_Store
-<<<<<<< HEAD
-
-*.zip
-=======
 Thumbs.db
 
 # IDE / Editor folders
@@ -51,4 +47,4 @@ coverage/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
->>>>>>> origin/anuj-local-branch
+
