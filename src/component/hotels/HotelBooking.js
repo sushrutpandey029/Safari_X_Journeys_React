@@ -13,6 +13,7 @@ import {
 import { getCityList, getHotelCodeListNew } from "../services/hotelService";
 import { searchHotels } from "../services/hotelService";
 import { useNavigate, useLocation } from "react-router-dom";
+import Loading from "../common/loading";
 
 function HotelBooking() {
   // Location
@@ -1034,9 +1035,9 @@ function HotelBooking() {
           <div className="col-sm-9">
             {isSearching ? (
               <div className="text-center mt-5">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
+               <div>
+                <Loading />
+               </div>
                 <p className="mt-2">
                   Searching hotels in {selectedCityName}...
                 </p>

@@ -1,28 +1,20 @@
 .bus-section {
-
-  
-
+  background-image: url('/public/images/busbanner.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 160px 0;
+ height: 500px; 
 }
 
-.search-bus{
-   border-radius: 0px !important;
-position: relative;
-background-color: #6369b2 !important;
-background-image: linear-gradient(to right, #a8ecff, #f0f1ff) !important;
-padding: 40px;
-width: 100% !important;
-margin-top: 0px !important;
+.search-box {
+  background: white;
+  padding: 20px;
 }
 
-.explore-bus-btn{
-  background: #6369b2 !important;
-    color: #fff !important;
-    padding: 10px 24px !important;
-    border-radius: 50px !important;
-    font-size: 15px !important;
-    border: none !important;
-    transition: 0.3s !important;
-    box-shadow: 0px 4px 12px rgba(99, 105, 178, 0.25) !important;
+.search-box {
+  border-radius: 15px;
+  background-color: #fff;
 }
 
 .form-select,
@@ -105,7 +97,93 @@ label {
   z-index: 1000;
 }
 
-/* .modal-content {
+
+
+/* MAIN LAYOUT */
+.bus-layout-container {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-height: 420px;
+  overflow: hidden; /* 🔥 important */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* DRIVER SECTION */
+.bus-driver-section {
+  flex: 0 0 80px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* DRIVER BOX */
+.driver-cabin {
+  width: 60px;
+  height: 60px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 60px;
+  position: sticky;
+  top: 0;
+}
+
+/* SEAT AREA */
+.seats-section {
+  flex: 1;
+  overflow: auto;
+  max-height: 400px;
+  padding-right: 10px;
+}
+
+/* API SEAT WRAPPER */
+.seats-layout-wrapper {
+  position: relative;
+  min-height: 300px;
+  width: fit-content;
+}
+
+/* API SEAT GRID */
+.bus-layout-api {
+  position: relative;
+  width: max-content;
+  min-width: 300px;
+}
+
+/* Seat style */
+.seat-api {
+  width: 40px;
+  height: 40px;
+  background: #e3f2fd;
+  border: 1px solid #1e88e5;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Selected seat */
+.seat-api.selected {
+  background: #1976d2;
+  color: white;
+}
+
+/* Prevent overflow */
+.make-mytrip-modal {
+  height: 90vh;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+
+.modal-content {
   background: white;
   border-radius: 12px;
   width: 90%;
@@ -113,9 +191,10 @@ label {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-} */
+  margin-top:120px
+}
 
-/* .modal-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -123,7 +202,7 @@ label {
   border-bottom: 1px solid #e0e0e0;
   background: #f8f9fa;
   border-radius: 12px 12px 0 0;
-} */
+}
 
 .modal-header h2 {
   margin: 0;
@@ -1248,21 +1327,25 @@ input[type="checkbox"]:checked + .checkmark::after {
 .bus-layout-container {
   padding: 20px;
   background: #fff;
+ 
 }
 
 .bus-driver-section {
-  text-align: center;
-  margin-bottom: 20px;
+ width: 80px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .driver-cabin {
-  display: inline-block;
+ position: sticky;
+  top: 0;
   background: #333;
   color: white;
-  padding: 8px 20px;
+  padding: 8px 14px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
 }
 
 .seats-layout-wrapper {
@@ -1391,20 +1474,7 @@ input[type="checkbox"]:checked + .checkmark::after {
   cursor: not-allowed;
 }
 
-/* Loading States */
-.loading-seats {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-size: 16px;
-}
 
-.no-seats {
-  text-align: center;
-  padding: 40px;
-  color: #999;
-  font-style: italic;
-}
 
 
 

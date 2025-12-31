@@ -16,83 +16,96 @@ const HotelCheckout = () => {
 
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [price, setPrice] = useState({
-    basePrice: 0,
-    discount: 0,
-    taxes: 0,
-    finalPrice: 0,
-  });
+  
   const [startDate, setStartDate] = useState(payload?.startDate || "");
   const [endDate, setEndDate] = useState(payload?.endDate || "");
   const [city, setCity] = useState(payload?.city || "");
   const [roomsData, setRoomsData] = useState([]); // For dynamic rooms & passengers
 
-  useEffect(() => {
-    if (!payload) return;
+ 
+  const [price, setPrice] = useState({
+    basePrice: 0,
+    tax: 0,
+    totalFare: 0,
+  });
+ useEffect(() => {
+  if (!payload || !payload.serviceDetails) return;
 
-    const details = payload.serviceDetails;
+  const details = payload.serviceDetails;
 
-    setHotel({
-      id: details.hotelCode || "N/A",
-      name: details.hotelName || "Hotel Name",
-      location: details.city || details.Location || "Location",
-      rating: details.hotelRating || 0,
-      rooms: details.NoOfRooms || 1,
-      address: details.hotelAddress || "Address not available",
-      hotelCode: details.hotelCode,
-      bookingCode: details.BookingCode,
-      currency: details.currency || "INR",
-      guestNationality: details.GuestNationality,
-      responseTime: details.ResponseTime,
-      isDetailedResponse: details.IsDetailedResponse,
-    });
+  // HOTEL BASIC INFO
+  setHotel({
+    id: details.hotelCode || "N/A",
+    name: details.hotelName || "Hotel Name",
+    location: details.city || details.Location || "Location",
+    rating: details.hotelRating || 0,
+    rooms: details.NoOfRooms || 0,
+    address: details.hotelAddress || "Address not available",
+    hotelCode: details.hotelCode,
+    bookingCode: details.BookingCode,
+    currency: details.currency || "INR",
+    guestNationality: details.GuestNationality,
+    responseTime: details.ResponseTime,
+    isDetailedResponse: details.IsDetailedResponse,
+  });
 
-    const basePrice = Number(details.totalAmount) || 0;
-    const taxes = 0; // Can be fetched if available
-    const discount = 0;
-    const finalPrice = basePrice + taxes - discount;
-    setPrice({ basePrice, taxes, discount, finalPrice });
+  // ✅ CORRECT PRICE EXTRACTION
+  const basePrice =
+    Number(details?.PriceBreakUp?.[0]?.RoomRate) || 0;
 
-    // Prepare dynamic rooms and passengers
-    const rooms = details.PaxRooms || [];
-    const roomsWithPassengers = rooms.map((room, roomIndex) => {
-      const passengers = [];
+  const tax =
+    Number(details?.TotalTax) || 0;
 
-      // Adults
-      for (let i = 0; i < (room.Adults || 0); i++) {
-        passengers.push({
-          Title: "Mr",
-          FirstName: "",
-          MiddleName: "",
-          LastName: "",
-          Email: "",
-          Age: "",
-          PAN: "",
-          PaxType: 1, // Adult
-          LeadPassenger: i === 0, // First adult is lead
-        });
-      }
+  const totalFare =
+    Number(details?.TotalFare) || 0;
 
-      // Children
-      for (let j = 0; j < (room.Children || 0); j++) {
-        passengers.push({
-          Title: "Master",
-          FirstName: "",
-          MiddleName: "",
-          LastName: "",
-          Email: "",
-          Age: room.ChildrenAges ? room.ChildrenAges[j] || "" : "",
-          PAN: "",
-          PaxType: 2, // Child
-          LeadPassenger: false,
-        });
-      }
+  setPrice({
+    basePrice,
+    tax,
+    totalFare,
+  });
 
-      return { passengers };
-    });
+  // PASSENGERS
+  const rooms = details.PaxRooms || [];
 
-    setRoomsData(roomsWithPassengers);
-  }, [payload]);
+  const roomsWithPassengers = rooms.map((room) => {
+    const passengers = [];
+
+    for (let i = 0; i < (room.Adults || 0); i++) {
+      passengers.push({
+        Title: "Mr",
+        FirstName: "",
+        MiddleName: "",
+        LastName: "",
+        Email: "",
+        Age: "",
+        PAN: "",
+        PaxType: 1,
+        LeadPassenger: i === 0,
+      });
+    }
+
+    for (let j = 0; j < (room.Children || 0); j++) {
+      passengers.push({
+        Title: "Master",
+        FirstName: "",
+        MiddleName: "",
+        LastName: "",
+        Email: "",
+        Age: room.ChildrenAges?.[j] || "",
+        PAN: "",
+        PaxType: 2,
+        LeadPassenger: false,
+      });
+    }
+
+    return { passengers };
+  });
+
+  setRoomsData(roomsWithPassengers);
+
+}, [payload]);
+
 
   const handlePassengerChange = (roomIndex, passengerIndex, field, value) => {
     const updatedRooms = [...roomsData];
@@ -139,6 +152,7 @@ const HotelCheckout = () => {
       }
 
       setPreBookResponse(hotelResult);
+      console.log("hotes results in prebook response", hotelResult);
       setFinalNetAmount(netAmount);
       setShowConfirmModal(true);
     } catch (err) {
@@ -225,26 +239,34 @@ const HotelCheckout = () => {
 
             {/* HOTEL INFO */}
             <div className="card shadow-sm border p-3 mb-3 rounded-3">
-              <h5 className="fw-bold">{hotel?.name}</h5>
-              <p>
-                <b>📍 Location:</b> {hotel?.location}
-              </p>
-              <p>
-                <b>⭐ Rating:</b> {hotel?.rating} Star
-              </p>
-              <p>
-                <b>🏨 Rooms:</b> {hotel?.rooms}
-              </p>
-              <p>
-                <b>👥 Guests:</b>{" "}
-                {roomsData.reduce((acc, r) => acc + r.passengers?.length, 0)}
-              </p>
-              <p>
-                <b>📅 Start Date:</b> {startDate}
-              </p>
-              <p>
-                <b>📅 End Date:</b> {endDate}
-              </p>
+              <h5 className="mb-3">{hotel?.name}</h5>
+
+              <div className="hotel-info-grid">
+                <p>
+                  <b>📍 Location:</b> {hotel?.location}
+                </p>
+
+                <p>
+                  <b>⭐ Rating:</b> {hotel?.rating} Star
+                </p>
+
+                <p>
+                  <b>🏨 Rooms:</b> {hotel?.rooms}
+                </p>
+
+                <p>
+                  <b>👥 Guests:</b>{" "}
+                  {roomsData.reduce((acc, r) => acc + r.passengers?.length, 0)}
+                </p>
+
+                <p>
+                  <b>📅 Start Date:</b> {startDate}
+                </p>
+
+                <p>
+                  <b>📅 End Date:</b> {endDate}
+                </p>
+              </div>
             </div>
 
             {/* DYNAMIC PASSENGER FORMS */}
@@ -409,32 +431,44 @@ const HotelCheckout = () => {
         </div>
 
         {/* RIGHT SIDE: PRICE SUMMARY */}
-        <div className="col-md-4">
-          <div className="card shadow-sm p-3 rounded-4 mb-3">
-            <h5 className="fw-bold text-center">💰 Price Summary</h5>
-            <div className="d-flex justify-content-between mt-3">
-              <span>Base Price</span>
-              <span>₹{price.basePrice}</span>
-            </div>
-            <div className="d-flex justify-content-between mt-2">
-              <span>Taxes</span>
-              <span>₹{price.taxes}</span>
-            </div>
-            <hr />
-            <div className="d-flex justify-content-between fw-bold fs-5 text-primary">
-              <span>Total</span>
-              <span>₹{price.finalPrice}</span>
-            </div>
-          </div>
+      <div className="col-md-4">
+  {/* PRICE CARD */}
+  <div className="card shadow-sm p-4 rounded-4 mb-3 price-card">
+    <h5 className="fw-bold text-center mb-3">💰 Price Summary</h5>
 
-          <div className="card shadow-sm p-3 rounded-4">
-            <h6 className="fw-bold">📝 Cancellation Policy</h6>
-            <p className="text-success mb-0">Free Cancellation Available</p>
-            <small className="text-muted">
-              Cancel anytime before start date
-            </small>
-          </div>
-        </div>
+    <div className="price-row">
+      <span>Base Price</span>
+      <span className="price-value">
+        ₹{(price?.basePrice || 0).toFixed(2)}
+      </span>
+    </div>
+
+    <div className="price-row">
+      <span>Tax</span>
+      <span className="price-value">
+        ₹{(price?.tax || 0).toFixed(2)}
+      </span>
+    </div>
+
+    <hr className="my-3" />
+
+    <div className="price-row total">
+      <span>Total Amount</span>
+      <span>₹{(price?.totalFare || 0).toFixed(2)}</span>
+    </div>
+  </div>
+
+  {/* CANCELLATION CARD */}
+  <div className="card shadow-sm p-3 rounded-4">
+    <h6 className="fw-bold mb-2">📝 Cancellation Policy</h6>
+    <p className="text-success mb-1">✔ Free Cancellation Available</p>
+    <small className="text-muted">
+      Cancel anytime before check-in date.
+    </small>
+  </div>
+</div>
+
+
       </div>
       {showConfirmModal && (
         <div className="modal-overlay">
@@ -444,8 +478,10 @@ const HotelCheckout = () => {
             <p>
               <strong>Hotel:</strong> {hotel?.name}
             </p>
+
             <p>
-              <strong>Room:</strong> {preBookResponse?.Name?.[0]}
+              <strong>Room:</strong>{" "}
+              {preBookResponse?.Rooms?.[0].Name?.[0] || "N/A"}
             </p>
             <p>
               <strong>Check-in:</strong> {startDate}

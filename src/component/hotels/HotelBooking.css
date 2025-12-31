@@ -600,3 +600,139 @@ margin-top: 98px !important;
   margin-top: 6px;
   padding: 8px;
 }
+
+.hotel-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 20px;
+  margin-top: 10px;
+}
+
+.hotel-info-grid p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .hotel-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ===== MODAL BOX ===== */
+.modal-content {
+  background: #ffffff;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  border-radius: 12px;
+  padding: 24px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+/* ===== TITLE ===== */
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  text-align: center; 
+}
+
+/* ===== TEXT ROWS ===== */
+.modal-content p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+/* ===== PRICE ===== */
+.modal-content h4 {
+  margin-top: 16px;
+  font-size: 18px;
+  color: #1e88e5;
+  font-weight: 700;
+ 
+}
+
+/* ===== ACTION BUTTONS ===== */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-button: 10px;
+}
+
+.modal-actions button {
+  background: #6369b2 !important;
+    color: #fff !important;
+    padding: 10px 24px !important;
+    border-radius: 50px !important;
+    font-size: 15px !important;
+    border: none !important;
+    transition: 0.3s !important;
+    box-shadow: 0px 4px 12px rgba(99, 105, 178, 0.25) !important;
+}
+
+
+/* Cancel Button */
+.modal-actions button:first-child {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.modal-actions button:first-child:hover {
+  background: #d5d5d5;
+}
+
+/* Confirm Button */
+.confirm-btn {
+  background: #ff6b00;
+  color: white;
+  font-weight: 600;
+}
+
+.confirm-btn:hover {
+  background: #e55e00;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== MOBILE FIX ===== */
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    padding: 18px;
+  }
+}
+
+
