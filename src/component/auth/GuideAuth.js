@@ -44,6 +44,7 @@ const GuideAuth = ({ show, onClose, setShowGuideLogin }) => {
       }
     } catch (err) {
       console.error("Error in guide login", err.response);
+      alert(err?.response?.data?.message || "Login Failed, please try again.")
     }
   };
 
