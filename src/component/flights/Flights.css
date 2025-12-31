@@ -244,13 +244,14 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   background: #ffffff;
   width: 100% !important;
+  margintop: -8px !important;
 }
 
 /* =======================================================
    HEADER - Like first screenshot
    ======================================================= */
 .modal-header-custom {
-  background-color: #274a62;
+  background-color: #274a62 !important;
   color: #fff;
   border-bottom: none;
   padding: 15px 20px;

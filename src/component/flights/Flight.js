@@ -19,6 +19,7 @@ import axios from "axios";
 import { getIndianAirports, Flight_search } from "../services/flightService";
 import { Modal } from "react-bootstrap";
 import FlightDetail from "./Flghitdetail";
+import Laoding from "../common/loading";
 
 const Flight = () => {
   // Flight segments (multi-city form)
@@ -765,10 +766,7 @@ const Flight = () => {
     if (searchLoading) {
       return (
         <div className="text-center py-5">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Searching flights...</span>
-          </Spinner>
-          <p className="mt-2">Searching for the best flights...</p>
+        < Laoding />
         </div>
       );
     }

@@ -1,51 +1,87 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BASE_URL } from "../services/apiEndpoints";
-import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { FaFacebookF, FaInstagram } from "react-icons/fa";
 
 function Blogdetail() {
   const location = useLocation();
-  const blog  = location.state.blog;
-  console.log("blogg", blog);
-  const [error, setError] = useState("");
+  const blog = location.state.blog;
 
-  
+  const imageRef = useRef(null);
+  const contentRef = useRef(null);
+
+  const [stopSticky, setStopSticky] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!contentRef.current || !imageRef.current) return;
+
+      const contentBottom =
+        contentRef.current.getBoundingClientRect().bottom;
+
+      const imageHeight = imageRef.current.offsetHeight;
+
+      // jab content ka bottom image ke height se upar aa jaye
+      if (contentBottom <= imageHeight + 120) {
+        setStopSticky(true);
+      } else {
+        setStopSticky(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <div className="blog-detail">
-      <div className="blog-detail py-5" style={{marginTop:"50px"}}>
-  <div className="container">
-    
-    {/* Blog Image */}
-    <div className="blog-image-wrapper mb-4">
-      <img
-        src={`${BASE_URL}/blog/images/${blog.image}`}
-        alt={`blog-${blog.id}`}
-        className="blog-image1 rounded shadow-sm"
-      />
-    </div>
+    <div className="blog-detail py-5" style={{ marginTop: "150px" }}>
+      <div className="container">
+        <div className="row align-items-start">
 
-    {/* Blog Content */}
-    <div className="blog-content mx-auto">
-      <h3 className="blog-heading mb-3">{blog.heading}</h3>
+          {/* RIGHT CONTENT */}
+          <div className="col-md-8" ref={contentRef}>
+            <div className="blog-content">
+              <h4 className="heading">{blog.heading}</h4>
+              {blog.title && <h5>{blog.title}</h5>}
 
-      {blog.title && <h5 className="blog-title text-muted mb-3">{blog.title}</h5>}
+              <p className="blog-description">{blog.description}</p>
 
-      <h6 className="text-secondary mb-4">
-        {new Date(blog.createdAt).toLocaleDateString("en-US", {
-          year: "numeric",
-          day: "numeric",
-          month: "long",
-        })}
-      </h6>
+              <h6>
+                {new Date(blog.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </h6>
+            </div>
+          </div>
 
-      <p className="blog-description">{blog.description}</p>
-    </div>
-  </div>
-</div>
+          {/* LEFT IMAGE */}
+          <div className="col-md-4">
+            <div
+              ref={imageRef}
+              className={`blog-image-wrapper ${
+                stopSticky ? "stop-sticky" : "sticky"
+              }`}
+            >
+              <img
+                src={`${BASE_URL}/blog/images/${blog.image}`}
+                alt="blog"
+                className="blog-image1"
+              />
+            </div>
+          </div>
+        </div>
 
-
-     
+        <div className="blog-social-links mt-3">
+          <a className="social-icon facebook">
+            <FaFacebookF />
+          </a>
+          <a className="social-icon instagram">
+            <FaInstagram />
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

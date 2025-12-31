@@ -4,7 +4,7 @@
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.31.33.26:2625";
 // export const BASE_URL = "https://0764024fc8ea.ngrok-free.app";
-export const BASE_URL = "http://192.168.1.15:2625";
+export const BASE_URL = "http://192.168.1.9:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
