@@ -283,7 +283,6 @@ const FlightDetail = ({
     >
       <div className="fare-header">
         <div className="fare-price">
-          <span className="price-emoji">💬</span>
           <span className="price-amount">₹ {fare.price}</span>
           <span className="price-label">per adult</span>
         </div>
@@ -303,7 +302,7 @@ const FlightDetail = ({
       )}
 
       <div className="fare-section">
-        <div className="section-title">Baggage</div>
+        <div className="titles">Baggage</div>
         <div className="section-content">
           <div className="feature-item">
             <span className="feature-emoji">💼</span>
@@ -317,7 +316,7 @@ const FlightDetail = ({
       </div>
 
       <div className="fare-section">
-        <div className="section-title">Flexibility</div>
+        <div className="titles">Flexibility</div>
         <div className="section-content">
           <div className="feature-item">
             <span className="feature-emoji">❌</span>
@@ -331,7 +330,7 @@ const FlightDetail = ({
       </div>
 
       <div className="fare-section">
-        <div className="section-title">Seats, Meals & More</div>
+        <div className="titles">Seats, Meals & More</div>
         <div className="section-content">
           <div className="feature-item">
             <span className="feature-emoji">💺</span>
@@ -523,18 +522,9 @@ const FlightDetail = ({
           </div>
           <div className="footer-actions">
             <Button
-              className="explore-btn book-now-main-btn"
+              className="explore-btn"
               onClick={handleBookNow}
               disabled={!selectedFare}
-              style={{
-                padding: "12px 30px",
-                fontSize: "16px",
-                fontWeight: "bold",
-                background: "linear-gradient(90deg, #2b87da, #1e63b5)",
-                border: "none",
-                borderRadius: "30px",
-                color: "white",
-              }}
             >
               BOOK NOW - ₹{formatPrice(totalPrice)}
             </Button>

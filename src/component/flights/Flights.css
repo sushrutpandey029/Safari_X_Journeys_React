@@ -21,7 +21,7 @@
     color: rgb(99 105 178) !important;
 }
 .bg-lights {
-    background-color: #e2e3ff;
+    background-color: #dbfff3;
     padding: 15px;
     border-radius: 12px;
 }
@@ -259,10 +259,20 @@ background-color: #ffffff !important;
    HEADER - Like first screenshot
    ======================================================= */
 .modal-header-custom {
-  background-color: #274a62;
+  background-color: #6665ae;
   color: #fff;
   border-bottom: none;
   padding: 15px 20px;
+  position: relative;
+
+  .btn-close {
+    background-color: #fff !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    right: 8px !important;
+    top: 8px !important;
+    border-radius: 0px !important;
+}
 }
 
 .modal-main-title {
@@ -362,10 +372,7 @@ background-color: #ffffff !important;
 }
 
 .price-amount {
-  font-size: 24px;
-  font-weight: 800;
-  color: #111827;
-  font-family: 'Segoe UI', sans-serif;
+  font-size: 18px;
 }
 
 .price-label {
@@ -378,17 +385,10 @@ background-color: #ffffff !important;
 .fare-type {
   margin: 0;
 }
-
 .fare-badge {
-  background: #2c3c5e !important;
-  color: white !important;
-  padding: 4px 10px !important;
-  border-radius: 6px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border: none !important;
+    background: #008db8 !important;
+    padding: 4px 10px !important;
+    text-transform: uppercase;
 }
 
 /* =======================================================
@@ -423,12 +423,7 @@ background-color: #ffffff !important;
 }
 
 .section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-size: 18px !important;
 }
 
 .section-content {
@@ -483,7 +478,6 @@ background-color: #ffffff !important;
 .selection-indicator {
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #e5e7eb;
   text-align: center;
 }
 
@@ -516,26 +510,17 @@ background-color: #ffffff !important;
   width: 100% !important;
 }
 
-/* Total price card */
 .total-price-section {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    background: #f3e5f5;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.total-price-card {
-  text-align: center;
-}
 
-.total-price {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
+
+
 
 .total-amount {
   font-size: 28px;
@@ -654,6 +639,11 @@ background-color: #ffffff !important;
 .footer-actions {
   display: flex;
   justify-content: center;
+
+  .explore-btn{        opacity: 1;
+        color: #fff;
+        font-size: 14px;
+        padding: 8px 20px;}
 }
 
 .book-now-main-btn {
@@ -727,7 +717,7 @@ background-color: #ffffff !important;
 /* Flight Checkout Styles */
 
 .fare-summary-header {
-  background: #274a62;
+  background: #6665ae;
   color: white;
 }
 .flight-checkout-container {
@@ -735,7 +725,8 @@ background-color: #ffffff !important;
 }
 
 .airline-info {
-  border-left: 4px solid #007bff;
+    border-left: 4px solid #6665ae;
+    background-color: #ebfaff !important;
 }
 
 .time-display {
