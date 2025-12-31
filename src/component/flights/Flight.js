@@ -675,6 +675,7 @@ const Flight = () => {
         PreferredAirlines: [],
         Segments: segments,
         Sources: ["GDS"],
+        // Sources: ["SG","G8","6E","UK","AI"],
       };
 
       const searchResponse = await Flight_search(searchPayload);
@@ -916,8 +917,7 @@ const Flight = () => {
                   </h5>
                   <small className="text-muted">
                     Total {adults} adult{adults > 1 ? "s" : ""}
-</small>
-
+                  </small>
 
                   {savings > 0 && (
                     <>
@@ -930,7 +930,6 @@ const Flight = () => {
 
                   <br />
                   <Button
-                 
                     className="view-price-flight"
                     onClick={() => onViewPrices(flight)}
                   >
@@ -1144,7 +1143,6 @@ const Flight = () => {
                       id="travellers-dropdown"
                       variant="light"
                       className="AddClass-toggle form-control"
-                  
                     >
                       {adults} Adult{adults > 1 ? "s" : ""},{" "}
                       {travelClass || "Economy"}
@@ -1199,25 +1197,27 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-        <Col md={2}>
-  <Button
-    type="submit"   // 👈 yahan explicitly set karo
-    className="explore-flight-btn w-100"
-    onClick={searchFlights}
-    disabled={searchLoading || loading || isInitialLoading}
-  >
-    {searchLoading ? (
-      <>
-        <Spinner animation="border" size="sm" className="me-2 spinner-white" />
-        Searching...
-      </>
-    ) : (
-      "Search"
-    )}
-  </Button>
-</Col>
-
-
+              <Col md={2}>
+                <Button
+                  type="submit" // 👈 yahan explicitly set karo
+                  className="explore-flight-btn w-100"
+                  onClick={searchFlights}
+                  disabled={searchLoading || loading || isInitialLoading}
+                >
+                  {searchLoading ? (
+                    <>
+                      <Spinner
+                        animation="border"
+                        size="sm"
+                        className="me-2 spinner-white"
+                      />
+                      Searching...
+                    </>
+                  ) : (
+                    "Search"
+                  )}
+                </Button>
+              </Col>
             </Row>
             {tripType === "multi" &&
               flights.map((flight, index) => (
@@ -1313,19 +1313,17 @@ const Flight = () => {
           <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
             <fieldset disabled={isInitialLoading || searchLoading}>
               <div className="filter-box p-3 border rounded shadow-sm">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-  <h5 className="fw-bold mb-0">FILTER</h5>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="fw-bold mb-0">FILTER</h5>
 
-  <FaUndoAlt
-    title="Reset Filters"
-    style={{ cursor: "pointer", color: "#d04856ff" }}
-    onClick={clearAllFilters}
-  />
-</div>
+                  <FaUndoAlt
+                    title="Reset Filters"
+                    style={{ cursor: "pointer", color: "#d04856ff" }}
+                    onClick={clearAllFilters}
+                  />
+                </div>
 
-<div className="filter-group mb-3">
- 
-</div>
+                <div className="filter-group mb-3"></div>
 
                 {/* Refundable Filter */}
                 <div className="filter-group mb-3">
@@ -1339,10 +1337,7 @@ const Flight = () => {
                         handleFilterChange("refundableOnly", e.target.checked)
                       }
                     />
-                    <label
-                      className="form-check-label"
-                      htmlFor="refundable"
-                    >
+                    <label className="form-check-label" htmlFor="refundable">
                       Refundable Only
                     </label>
                   </div>
@@ -1636,7 +1631,6 @@ const Flight = () => {
                 </div>
 
                 {/* Clear Filters Button */}
-               
               </div>
             </fieldset>
           </Col>
