@@ -15,7 +15,6 @@
 
 // const bots = [
 
-
 //   {
 //     icon: "/images/whatsapp.gif",
 //     label: "Call",
@@ -138,7 +137,7 @@
 //                     Guide Careers
 //                   </a>
 //                 </li>
-               
+
 //               </ul>
 //             </div>
 
@@ -155,7 +154,7 @@
 //                     Hotels
 //                   </a>
 //                 </li>
-              
+
 //                 <li>
 //                   <a href="/places" rel="noopener noreferrer">
 //                     Destinations
@@ -290,10 +289,6 @@
 
 // export default Footer;
 
-
-
-
-
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
@@ -387,26 +382,42 @@ function Footer() {
             <div className="col-sm-6 col-md-3 mb-4">
               <h5>Safari X</h5>
               <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/blogs">Blogs</a></li>
+                <li>
+                  <a href="/">Home</a>
+                </li>
+                <li>
+                  <a href="/about">About Us</a>
+                </li>
+                <li>
+                  <a href="/blogs">Blogs</a>
+                </li>
               </ul>
             </div>
 
             <div className="col-sm-6 col-md-3 mb-4">
               <h5>Support</h5>
               <ul>
-                <li><a href="/contact-us">Contact Us</a></li>
-                <li><a href="/guide-careers">Guide Careers</a></li>
+                <li>
+                  <a href="/contact-us">Contact Us</a>
+                </li>
+                <li>
+                  <a href="/guide-careers">Guide Careers</a>
+                </li>
               </ul>
             </div>
 
             <div className="col-sm-6 col-md-3 mb-4">
               <h5>Services</h5>
               <ul>
-                <li><a href="/guides">Guides</a></li>
-                <li><a href="/hotel">Hotels</a></li>
-                <li><a href="/places">Destinations</a></li>
+                <li>
+                  <a href="/guides">Guides</a>
+                </li>
+                <li>
+                  <a href="/hotel">Hotels</a>
+                </li>
+                <li>
+                  <a href="/places">Destinations</a>
+                </li>
               </ul>
             </div>
 
@@ -446,7 +457,18 @@ function Footer() {
                   <FaLinkedinIn />
                 </a>
               </div>
-<h5 className="mt-5">Payment Methods</h5>
+              <div
+                className="chatbot-fixed"
+                onClick={() => (window.location.href = "/bot-modal")}
+              >
+                <img
+                  src="/Safarix-Logo1.png"
+                  alt="Chatbot"
+                  className="chatbot-icon"
+                />
+              </div>
+
+              <h5 className="mt-5">Payment Methods</h5>
 
               <div className="d-flex gap-2 flex-wrap">
                 <div className="payment-box p-2 rounded">
@@ -493,15 +515,7 @@ function Footer() {
                 {showChat && <BotModal toggleChat={toggleChat} />}
               </div>
 
-
               {showChat && <BotModal toggleChat={toggleChat} />}
-
-              <div className="mt-2 d-flex align-items-center">
-                <small className="text-white">
-                  Your payment is protected with{" "}
-                  <strong>256-bit SSL encryption</strong>.
-                </small>
-              </div>
             </div>
           </div>
 
@@ -520,4 +534,3 @@ function Footer() {
 }
 
 export default Footer;
-

@@ -8,6 +8,8 @@ import {
   Dropdown,
   Spinner,
   Alert,
+  Tabs,
+  Tab,
 } from "react-bootstrap";
 import { FaUndoAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -23,7 +25,6 @@ import Laoding from "../common/loading";
 
 const Flight = () => {
   // Flight segments (multi-city form)
-  // const [flights, setFlights] = useState([{ from: "", to: "", date: "" }]);
   const [flights, setFlights] = useState([
     {
       from: "DEL",
@@ -43,18 +44,12 @@ const Flight = () => {
   }, []);
 
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  // Dynamic airports data
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Authentication and search states
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
-
-  // User details
   const [userIP, setUserIP] = useState("");
   const [tripType, setTripType] = useState("oneway");
   const [searchData, setSearchData] = useState(null);
@@ -62,29 +57,16 @@ const Flight = () => {
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
-
   const [TraceId, setTraceId] = useState("");
-
-  // fare rule detail
   const [showModal, setShowModal] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(6);
 
-  const [visibleCount, setVisibleCount] = useState(6); // first 6 cards
+  // ✅ Active tab for multi-city and return OB/IB
+  const [activeTab, setActiveTab] = useState(0);
 
-  // Infinite Scroll Logic
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 100
-      ) {
-        setVisibleCount((prev) => prev + 6); // load next 6
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // Track if flight is domestic
+  const [isDomestic, setIsDomestic] = useState(true);
 
   // ============ FILTER STATES ============
   const [filters, setFilters] = useState({
@@ -103,6 +85,21 @@ const Flight = () => {
     departure: true,
     duration: true,
   });
+
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+      ) {
+        setVisibleCount((prev) => prev + 6);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // ============ FILTER FUNCTIONS ============
   const handleFilterChange = (filterType, value) => {
@@ -171,7 +168,181 @@ const Flight = () => {
     });
   };
 
-  // Filter application function - API data ke according
+  // ✅ COMPLETELY DYNAMIC: No static airports list
+  const checkIfDomestic = (origin, destination) => {
+    // Check if airports data is available
+    if (!airports || airports.length === 0) {
+      console.warn("Airports data not loaded yet");
+      return false; // Default to false until data loads
+    }
+
+    // Normalize airport codes
+    const normalizedOrigin = origin?.toUpperCase().trim();
+    const normalizedDest = destination?.toUpperCase().trim();
+
+    // If same airport, check if it's Indian
+    if (normalizedOrigin === normalizedDest) {
+      const airport = airports.find(a => a.airport_code === normalizedOrigin);
+      return airport && isIndianAirport(airport);
+    }
+
+    // Find origin and destination airports
+    const originAirport = airports.find(a => a.airport_code === normalizedOrigin);
+    const destinationAirport = airports.find(a => a.airport_code === normalizedDest);
+
+    // If either airport not found in our data
+    if (!originAirport || !destinationAirport) {
+      console.warn(`Airport not found in database: ${origin} or ${destination}`);
+      return false;
+    }
+
+    // Check if both are Indian airports
+    const isOriginIndian = isIndianAirport(originAirport);
+    const isDestIndian = isIndianAirport(destinationAirport);
+
+    console.log(`Route check: ${originAirport.city_name || origin} (${originAirport.country_name || 'Unknown'}) → ${destinationAirport.city_name || destination} (${destinationAirport.country_name || 'Unknown'}) = ${isOriginIndian && isDestIndian ? 'Domestic' : 'International'}`);
+    
+    return isOriginIndian && isDestIndian;
+  };
+
+  // ✅ Helper function to check if an airport is Indian
+  const isIndianAirport = (airport) => {
+    if (!airport) return false;
+    
+    // Check by country code
+    if (airport.country_code === "IN") return true;
+    
+    // Check by country name
+    if (airport.country_name && 
+        (airport.country_name.toLowerCase().includes("india") || 
+         airport.country_name.toLowerCase().includes("indian"))) {
+      return true;
+    }
+    
+    // Check by city name (fallback)
+    const indianCityKeywords = ["delhi", "mumbai", "chennai", "bangalore", "kolkata", "hyderabad", "ahmedabad", "pune", "jaipur", "lucknow", "goa", "kochi"];
+    if (airport.city_name && indianCityKeywords.some(keyword => 
+        airport.city_name.toLowerCase().includes(keyword))) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  // ✅ Helper function to get airport code from segment
+  const getAirportCodeFromSegment = (segment, type = "origin") => {
+    if (!segment) return "";
+    
+    const location = type === "origin" ? segment.Origin : segment.Destination;
+    
+    if (typeof location === "string") {
+      return location;
+    }
+    
+    if (location?.Airport?.AirportCode) {
+      return location.Airport.AirportCode;
+    }
+    
+    if (location?.AirportCode) {
+      return location.AirportCode;
+    }
+    
+    return "";
+  };
+
+  // ✅ UPDATED: Get filtered results based on trip type and active tab
+  const getFilteredResultsForDisplay = () => {
+    if (!searchResults || searchResults.length === 0) return [];
+
+    console.log("🔍 Filtering flights for display...");
+    console.log("- Trip type:", tripType);
+    console.log("- Is domestic:", isDomestic);
+    console.log("- Active tab:", activeTab);
+    console.log("- Total search results:", searchResults.length);
+
+    // For domestic return: Filter by route instead of TripIndicator
+    if (tripType === "round" && isDomestic) {
+      console.log("🎯 Processing Domestic Return");
+      
+      const origin = flights[0]?.from;
+      const destination = flights[0]?.to;
+      
+      console.log("- Origin:", origin);
+      console.log("- Destination:", destination);
+      
+      // Filter outbound flights (origin → destination)
+      const obFlights = searchResults.filter((flight) => {
+        // Get the first segment
+        let segment;
+        if (flight.Segments && flight.Segments.length > 0) {
+          if (Array.isArray(flight.Segments[0])) {
+            segment = flight.Segments[0][0];
+          } else {
+            segment = flight.Segments[0];
+          }
+        }
+        
+        if (!segment) return false;
+        
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+        
+        console.log(`  Checking flight: ${segOrigin} → ${segDest} (TripIndicator: ${segment.TripIndicator || 'N/A'})`);
+        
+        return segOrigin === origin && segDest === destination;
+      });
+
+      // Filter inbound flights (destination → origin)
+      const ibFlights = searchResults.filter((flight) => {
+        // Get the first segment
+        let segment;
+        if (flight.Segments && flight.Segments.length > 0) {
+          if (Array.isArray(flight.Segments[0])) {
+            segment = flight.Segments[0][0];
+          } else {
+            segment = flight.Segments[0];
+          }
+        }
+        
+        if (!segment) return false;
+        
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+        
+        console.log(`  Checking flight: ${segOrigin} → ${segDest} (TripIndicator: ${segment.TripIndicator || 'N/A'})`);
+        
+        return segOrigin === destination && segDest === origin;
+      });
+
+      console.log(`✅ Filtered: ${obFlights.length} outbound, ${ibFlights.length} inbound flights`);
+      
+      return activeTab === 0 ? obFlights : ibFlights;
+    }
+
+    // For multi-city: filter by active segment route
+    if (tripType === "multi") {
+      const currentFlight = flights[activeTab];
+      if (!currentFlight) return [];
+      
+      const segmentFlights = searchResults.filter((flight) => {
+        const segment = flight.Segments?.[0]?.[0] || flight.Segments?.[0];
+        if (!segment) return false;
+        
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+        
+        return segOrigin === currentFlight.from && segDest === currentFlight.to;
+      });
+      
+      console.log(`✅ Multi-city: ${segmentFlights.length} flights for ${currentFlight.from} → ${currentFlight.to}`);
+      return segmentFlights;
+    }
+
+    // For one-way: return all
+    console.log(`✅ One-way: ${searchResults.length} flights`);
+    return searchResults;
+  };
+
   const applyFilters = (flights) => {
     if (!flights || flights.length === 0) return [];
 
@@ -181,11 +352,9 @@ const Flight = () => {
         return false;
       }
 
-      // Airline filter - API data structure ke hisab se
+      // Airline filter
       if (filters.airlines.length > 0) {
         let airlineCode = "";
-
-        // Multiple ways to get airline code from API response
         if (flight.Airline && flight.Airline.AirlineCode) {
           airlineCode = flight.Airline.AirlineCode;
         } else if (
@@ -208,11 +377,9 @@ const Flight = () => {
         }
       }
 
-      // Stops filter - API data ke hisab se
+      // Stops filter
       if (filters.stops.length > 0) {
         let stopCount = 0;
-
-        // Calculate stops from segments
         if (flight.Segments && flight.Segments[0]) {
           const firstSegment = Array.isArray(flight.Segments[0])
             ? flight.Segments[0][0]
@@ -237,8 +404,6 @@ const Flight = () => {
       // Departure time filter
       if (filters.departureTimes.length > 0) {
         let departureTime = "";
-
-        // Get departure time from API data
         if (flight.Segments && flight.Segments[0]) {
           const firstSegment = Array.isArray(flight.Segments[0])
             ? flight.Segments[0][0]
@@ -258,8 +423,6 @@ const Flight = () => {
       // Duration filter
       if (filters.durations.length > 0) {
         let duration = 0;
-
-        // Get duration from API data
         if (flight.Segments && flight.Segments[0]) {
           const firstSegment = Array.isArray(flight.Segments[0])
             ? flight.Segments[0][0]
@@ -268,7 +431,6 @@ const Flight = () => {
         }
 
         let matchesDuration = false;
-
         filters.durations.forEach((durLabel) => {
           if (durLabel === "Short (< 2 hours)" && duration < 120)
             matchesDuration = true;
@@ -302,23 +464,39 @@ const Flight = () => {
     oneway: 1,
     round: 2,
     multi: 3,
+    special: 5,
   };
-  // Fetch user IP, authenticate and get airports
+
+  // ✅ DYNAMIC AIRPORTS INITIALIZATION
   useEffect(() => {
     const initializeApp = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        // Step 1: Get user IP
+        
+        // Get user IP
         const ipResponse = await axios.get("https://api.ipify.org?format=json");
         const userIp = ipResponse.data.ip;
         setUserIP(userIp);
 
-        // Step 3: Fetch airports
+        // Fetch airports data dynamically
         const airportsResponse = await getIndianAirports();
-        if (airportsResponse?.data) {
-          setAirports(airportsResponse.data);
+        
+        if (airportsResponse?.data && Array.isArray(airportsResponse.data)) {
+          const airportsData = airportsResponse.data;
+          setAirports(airportsData);
+          
+          // Cache data for better performance
+          localStorage.setItem('airportsCache', JSON.stringify(airportsData));
+          localStorage.setItem('airportsCacheTimestamp', Date.now().toString());
+          
+          console.log(`✅ Loaded ${airportsData.length} airports dynamically`);
+          
+          // Check initial flight route
+          if (flights[0]?.from && flights[0]?.to) {
+            const domesticStatus = checkIfDomestic(flights[0].from, flights[0].to);
+            setIsDomestic(domesticStatus);
+          }
         } else if (Array.isArray(airportsResponse)) {
           setAirports(airportsResponse);
         } else {
@@ -327,6 +505,25 @@ const Flight = () => {
       } catch (error) {
         console.error("Initialization error:", error);
         setError(`Initialization failed: ${error.message}`);
+        
+        // Try to load from cache
+        try {
+          const cachedData = localStorage.getItem('airportsCache');
+          const cachedTimestamp = localStorage.getItem('airportsCacheTimestamp');
+          
+          if (cachedData && cachedTimestamp) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            const cacheAge = Date.now() - parseInt(cachedTimestamp);
+            
+            if (cacheAge < oneDay) { // Cache is less than 1 day old
+              const cachedAirports = JSON.parse(cachedData);
+              setAirports(cachedAirports);
+              console.log(`✅ Loaded ${cachedAirports.length} airports from cache`);
+            }
+          }
+        } catch (cacheError) {
+          console.error("Cache load error:", cacheError);
+        }
       } finally {
         setLoading(false);
       }
@@ -335,7 +532,7 @@ const Flight = () => {
     initializeApp();
   }, []);
 
-  // Custom Airport Dropdown Component - FIXED VERSION
+  // Custom Airport Dropdown Component
   const AirportDropdown = ({
     value,
     onChange,
@@ -348,20 +545,15 @@ const Flight = () => {
     const [filteredAirports, setFilteredAirports] = useState([]);
     const dropdownRef = useRef(null);
 
-    // Get all selected airports from all flights (excluding current value)
     const getAllSelectedAirports = () => {
       const selected = new Set();
-
-      // Add all "from" and "to" airports from all flights
       flights.forEach((flight) => {
         if (flight.from && flight.from !== value) selected.add(flight.from);
         if (flight.to && flight.to !== value) selected.add(flight.to);
       });
-
       return selected;
     };
 
-    // Filter airports based on search term and exclude already selected ones
     useEffect(() => {
       if (searchTerm) {
         const selectedAirports = getAllSelectedAirports();
@@ -369,21 +561,15 @@ const Flight = () => {
           const city = airport.city_name || "";
           const name = airport.airport_name || "";
           const code = airport.airport_code || "";
-
-          // Check if matches search
           const matchesSearch =
             city.toLowerCase().includes(searchTerm.toLowerCase()) ||
             name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             code.toLowerCase().includes(searchTerm.toLowerCase());
-
-          // Check if not already selected (except current value)
           const notSelected = !selectedAirports.has(airport.airport_code);
-
           return matchesSearch && notSelected;
         });
         setFilteredAirports(filtered.slice(0, 10));
       } else {
-        // When no search term, show airports not already selected
         const selectedAirports = getAllSelectedAirports();
         const availableAirports = airports.filter(
           (airport) => !selectedAirports.has(airport.airport_code)
@@ -392,7 +578,6 @@ const Flight = () => {
       }
     }, [searchTerm, airports, flights, value]);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
       const handleClickOutside = (event) => {
         if (
@@ -413,7 +598,6 @@ const Flight = () => {
     useEffect(() => {
       if (showModal && window.history.state?.usr?.searchData) {
         const data = window.history.state.usr.searchData;
-
         setSearchData(data);
         setAdults(data.passengers.adults);
         setChildren(data.passengers.children);
@@ -450,7 +634,6 @@ const Flight = () => {
           onFocus={() => {
             if (disabled) return;
             setIsOpen(true);
-            // On focus, show available airports (not already selected)
             const selectedAirports = getAllSelectedAirports();
             const availableAirports = airports.filter(
               (airport) => !selectedAirports.has(airport.airport_code)
@@ -495,7 +678,6 @@ const Flight = () => {
               </div>
             )}
 
-            {/* Show warning if user has selected same airport elsewhere */}
             {getAllSelectedAirports().size > 0 && (
               <div className="dropdown-footer text-muted small px-3 py-2 border-top">
                 <small>
@@ -542,6 +724,9 @@ const Flight = () => {
     if (flights.length > 1) {
       const newFlights = flights.filter((_, i) => i !== index);
       setFlights(newFlights);
+      if (activeTab >= newFlights.length) {
+        setActiveTab(newFlights.length - 1);
+      }
     }
   };
 
@@ -549,18 +734,38 @@ const Flight = () => {
     const newFlights = [...flights];
     newFlights[index].from = value;
     setFlights(newFlights);
+
+    if (index === 0 && newFlights[0].to) {
+      const domesticStatus = checkIfDomestic(value, newFlights[0].to);
+      setIsDomestic(domesticStatus);
+      
+      if (!domesticStatus && airports.length > 0) {
+        setSearchError("Currently we only support domestic flights");
+      } else {
+        setSearchError(null);
+      }
+    }
   };
 
   const handleToChange = (index, value) => {
     const newFlights = [...flights];
     newFlights[index].to = value;
     setFlights(newFlights);
+
+    if (index === 0 && newFlights[0].from) {
+      const domesticStatus = checkIfDomestic(newFlights[0].from, value);
+      setIsDomestic(domesticStatus);
+      
+      if (!domesticStatus && airports.length > 0) {
+        setSearchError("Currently we only support domestic flights");
+      } else {
+        setSearchError(null);
+      }
+    }
   };
 
   const onViewPrices = (flight) => {
     setSelectedFlight(flight);
-
-    // Create proper search data with passenger information
     const passengerData = {
       passengers: {
         adults,
@@ -574,6 +779,8 @@ const Flight = () => {
       returnDate: flights?.[0]?.returnDate,
       travelClass,
       TraceId,
+      isDomestic,
+      activeTab,
     };
     setSearchData(passengerData);
     setShowModal(true);
@@ -584,28 +791,37 @@ const Flight = () => {
     setSelectedFlight(null);
   };
 
-  // Handle trip type change
   const handleTripTypeChange = (newTripType) => {
     setTripType(newTripType);
     setSearchResults([]);
     setSearchError(null);
+    setActiveTab(0);
 
     if (newTripType === "multi") {
       if (flights.length === 1) {
         setFlights([...flights, { from: "", to: "", date: "" }]);
       }
     } else {
-      const firstFlight = flights[0] || { from: "", to: "", date: "" };
       if (newTripType === "round") {
-        setFlights([{ ...firstFlight, returnDate: "" }]);
+        setFlights([{ ...flights[0], returnDate: "" }]);
       } else {
-        setFlights([firstFlight]);
+        setFlights([flights[0]]);
       }
+    }
+
+    if (flights[0] && flights[0].from && flights[0].to) {
+      const domesticStatus = checkIfDomestic(flights[0].from, flights[0].to);
+      setIsDomestic(domesticStatus);
     }
   };
 
-  // Search flights function
   const searchFlights = async () => {
+    // First check if airports data is loaded
+    if (airports.length === 0) {
+      setSearchError("Please wait, airports data is loading...");
+      return;
+    }
+
     // Validate form
     for (let flight of flights) {
       if (!flight.from || !flight.to || !flight.date) {
@@ -616,6 +832,15 @@ const Flight = () => {
 
     if (tripType === "round" && !flights[0].returnDate) {
       setSearchError("Please select return date for round trip");
+      return;
+    }
+
+    // Check if domestic - DYNAMIC CHECK
+    const domesticCheck = checkIfDomestic(flights[0].from, flights[0].to);
+    setIsDomestic(domesticCheck);
+
+    if (!domesticCheck) {
+      setSearchError("Currently we only support domestic flights");
       return;
     }
 
@@ -630,6 +855,7 @@ const Flight = () => {
 
     try {
       let segments = [];
+      let journeyType = journeyTypeMap[tripType];
 
       if (tripType === "oneway") {
         segments = flights.map((flight) => ({
@@ -672,17 +898,21 @@ const Flight = () => {
         InfantCount: infants,
         DirectFlight: false,
         OneStopFlight: false,
-        JourneyType: journeyTypeMap[tripType],
+        JourneyType: journeyType,
         PreferredAirlines: [],
         Segments: segments,
         Sources: ["GDS"],
       };
 
+      console.log("📤 Sending Search Request:", JSON.stringify(searchPayload, null, 2));
+      
       const searchResponse = await Flight_search(searchPayload);
-      console.log("✅ API Response in Flight_search:", searchResponse);
+      console.log("✅ Raw API Response:", searchResponse);
+
       let foundFlights = [];
 
       if (searchResponse) {
+        // Try different response structures
         if (
           searchResponse.data &&
           searchResponse.data.Response &&
@@ -709,8 +939,28 @@ const Flight = () => {
       }
 
       if (foundFlights.length > 0) {
+        console.log("📊 Found Flights Analysis:");
+        foundFlights.forEach((flight, idx) => {
+          console.log(`Flight ${idx}:`);
+          const segments = flight.Segments || [];
+          if (segments.length > 0) {
+            const firstSegment = segments[0];
+            if (Array.isArray(firstSegment)) {
+              console.log("  - Segment is Array");
+              console.log("  - TripIndicator:", firstSegment[0]?.TripIndicator);
+              console.log("  - Origin:", getAirportCodeFromSegment(firstSegment[0], "origin"));
+              console.log("  - Destination:", getAirportCodeFromSegment(firstSegment[0], "destination"));
+            } else {
+              console.log("  - Segment is Object");
+              console.log("  - TripIndicator:", firstSegment?.TripIndicator);
+              console.log("  - Origin:", getAirportCodeFromSegment(firstSegment, "origin"));
+              console.log("  - Destination:", getAirportCodeFromSegment(firstSegment, "destination"));
+            }
+          }
+        });
+        
         setSearchResults(foundFlights);
-        setTraceId(searchResponse?.data?.Response.TraceId);
+        setTraceId(searchResponse?.data?.Response?.TraceId || "");
         setSearchError(null);
       } else {
         setSearchError(
@@ -740,7 +990,6 @@ const Flight = () => {
   // Format time from ISO string
   const formatTime = (isoString) => {
     if (!isoString) return "--:--";
-
     try {
       const date = new Date(isoString);
       return date.toLocaleTimeString("en-IN", {
@@ -761,12 +1010,143 @@ const Flight = () => {
     return `${hours}h ${mins}m`;
   };
 
-  // Render flight results with filters applied AND infinite scroll
+  // ✅ UPDATED: Render tabs based on trip type
+  const renderTabs = () => {
+    if (searchResults.length === 0) return null;
+
+    if (tripType === "round" && isDomestic) {
+      // Count flights by route instead of TripIndicator
+      const obCount = searchResults.filter((flight) => {
+        const segment = flight.Segments?.[0]?.[0] || flight.Segments?.[0];
+        if (!segment) return false;
+        
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+        
+        return segOrigin === flights[0].from && segDest === flights[0].to;
+      }).length;
+
+      const ibCount = searchResults.filter((flight) => {
+        const segment = flight.Segments?.[0]?.[0] || flight.Segments?.[0];
+        if (!segment) return false;
+        
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+        
+        return segOrigin === flights[0].to && segDest === flights[0].from;
+      }).length;
+
+      console.log(`📊 Tab counts - Outbound: ${obCount}, Inbound: ${ibCount}`);
+
+      return (
+        <div className="mb-4">
+          <Tabs
+            activeKey={activeTab}
+            onSelect={(k) => {
+              console.log("Tab changed to:", k);
+              setActiveTab(Number(k));
+            }}
+            className="mb-3"
+          >
+            <Tab
+              eventKey={0}
+              title={
+                <div className="d-flex align-items-center">
+                  <span>
+                    Departure: {flights[0].from} → {flights[0].to}
+                  </span>
+                  <span className="badge bg-primary ms-2">{obCount}</span>
+                </div>
+              }
+            />
+            <Tab
+              eventKey={1}
+              title={
+                <div className="d-flex align-items-center">
+                  <span>
+                    Return: {flights[0].to} → {flights[0].from}
+                  </span>
+                  <span className="badge bg-primary ms-2">{ibCount}</span>
+                </div>
+              }
+            />
+          </Tabs>
+
+          <div className="alert alert-info py-2">
+            <small>
+              <strong>Domestic Return Flight</strong> - Showing{" "}
+              {activeTab === 0 ? "Outbound (Departure)" : "Inbound (Return)"}{" "}
+              flights
+            </small>
+            <div className="small mt-1">
+              Found {activeTab === 0 ? obCount : ibCount} flights
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (tripType === "multi") {
+      return (
+        <div className="mb-4">
+          <Tabs
+            activeKey={activeTab}
+            onSelect={(k) => setActiveTab(Number(k))}
+            className="mb-3"
+          >
+            {flights.map((flight, index) => {
+              const segmentFlights = searchResults.filter((f) => {
+                const segment = f.Segments?.[0]?.[0] || f.Segments?.[0];
+                if (!segment) return false;
+                
+                const segOrigin = getAirportCodeFromSegment(segment, "origin");
+                const segDest = getAirportCodeFromSegment(segment, "destination");
+                
+                return segOrigin === flight.from && segDest === flight.to;
+              });
+              const flightCount = segmentFlights.length;
+
+              return (
+                <Tab
+                  key={index}
+                  eventKey={index}
+                  title={
+                    <div className="d-flex align-items-center">
+                      <span>
+                        {flight.from} → {flight.to}
+                      </span>
+                      <span className="badge bg-secondary ms-2">
+                        {flightCount}
+                      </span>
+                    </div>
+                  }
+                />
+              );
+            })}
+          </Tabs>
+
+          <div className="alert alert-info py-2">
+            <small>
+              Showing flights for:{" "}
+              <strong>
+                {flights[activeTab]?.from} → {flights[activeTab]?.to}
+              </strong>{" "}
+              on {flights[activeTab]?.date}
+            </small>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Render flight results
   const renderFlightResults = () => {
     if (searchLoading) {
       return (
         <div className="text-center py-5">
-        < Laoding />
+          <Laoding />
         </div>
       );
     }
@@ -779,9 +1159,10 @@ const Flight = () => {
       );
     }
 
-    const filteredResults = applyFilters(searchResults);
+    const currentFlights = getFilteredResultsForDisplay();
+    const filteredResults = applyFilters(currentFlights);
 
-    if (filteredResults.length === 0 && searchResults.length > 0) {
+    if (filteredResults.length === 0 && currentFlights.length > 0) {
       return (
         <div className="text-center py-5 text-muted">
           <h5>No flights found matching your filters</h5>
@@ -802,7 +1183,6 @@ const Flight = () => {
       );
     }
 
-    // Only show the first `visibleCount` flights
     const visibleFlights = filteredResults.slice(0, visibleCount);
 
     return (
@@ -831,8 +1211,36 @@ const Flight = () => {
           const offeredFare = fareInfo.OfferedFare || publishedFare;
           const savings = publishedFare - offeredFare;
 
+          // ✅ Show TripIndicator for return flights
+          const tripIndicator = segmentData.TripIndicator;
+          const tripTypeLabel =
+            tripIndicator === 1
+              ? "Departure"
+              : tripIndicator === 2
+              ? "Return"
+              : "";
+
+          // Debug info
+          const debugOrigin = getAirportCodeFromSegment(segmentData, "origin");
+          const debugDest = getAirportCodeFromSegment(segmentData, "destination");
+
           return (
             <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
+              {/* DEBUG INFO - Temporary */}
+              <div style={{ fontSize: '10px', background: '#fff3cd', padding: '4px', borderRadius: '3px', marginBottom: '5px' }}>
+                <strong>Debug:</strong> 
+                TripIndicator: {segmentData.TripIndicator || 'N/A'} | 
+                Origin: {debugOrigin || 'N/A'} | 
+                Dest: {debugDest || 'N/A'} | 
+                Route: {debugOrigin} → {debugDest}
+              </div>
+              
+              {tripType === "round" && tripTypeLabel && (
+                <div className="mb-2">
+                  <span className="badge bg-info">{tripTypeLabel}</span>
+                </div>
+              )}
+
               <Row className="align-items-center">
                 {/* Airline Info */}
                 <Col md={3} className="d-flex align-items-center">
@@ -914,8 +1322,7 @@ const Flight = () => {
                   </h5>
                   <small className="text-muted">
                     Total {adults} adult{adults > 1 ? "s" : ""}
-</small>
-
+                  </small>
 
                   {savings > 0 && (
                     <>
@@ -928,7 +1335,6 @@ const Flight = () => {
 
                   <br />
                   <Button
-                 
                     className="view-price-flight"
                     onClick={() => onViewPrices(flight)}
                   >
@@ -985,7 +1391,6 @@ const Flight = () => {
             setIsInitialLoading(true);
             await searchFlights();
           } catch (error) {
-            // Handle error if needed
             console.error("Error during initial search:", error);
           } finally {
             setIsInitialLoading(false);
@@ -999,9 +1404,9 @@ const Flight = () => {
 
   const availableAirlines = React.useMemo(() => {
     const map = new Map();
+    const currentFlights = getFilteredResultsForDisplay();
 
-    // Collect unique airlines
-    searchResults.forEach((flight) => {
+    currentFlights.forEach((flight) => {
       const seg = flight?.Segments?.[0]?.[0];
       if (seg?.Airline?.AirlineCode) {
         map.set(seg.Airline.AirlineCode, seg.Airline.AirlineName);
@@ -1010,15 +1415,13 @@ const Flight = () => {
 
     return Array.from(map.entries())
       .map(([code, name]) => {
-        // 🔹 Count flights for this airline
-        const count = searchResults.filter(
+        const count = currentFlights.filter(
           (f) => f?.Segments?.[0]?.[0]?.Airline?.AirlineCode === code
         ).length;
-
         return { code, name, count };
       })
-      .sort((a, b) => a.name.localeCompare(b.name)); // alphabetical
-  }, [searchResults]);
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [searchResults, activeTab, tripType]);
 
   return (
     <div>
@@ -1142,7 +1545,6 @@ const Flight = () => {
                       id="travellers-dropdown"
                       variant="light"
                       className="AddClass-toggle form-control"
-                  
                     >
                       {adults} Adult{adults > 1 ? "s" : ""},{" "}
                       {travelClass || "Economy"}
@@ -1190,33 +1592,42 @@ const Flight = () => {
                               </Button>
                             ))}
                           </div>
+                         
                         </Col>
+                         
                       </Row>
+                      <button>
+                            Done
+                          </button>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Form.Group>
+                
               </Col>
 
-        <Col md={2}>
-  <Button
-    type="submit"   // 👈 yahan explicitly set karo
-    className="explore-flight-btn w-100"
-    onClick={searchFlights}
-    disabled={searchLoading || loading || isInitialLoading}
-  >
-    {searchLoading ? (
-      <>
-        <Spinner animation="border" size="sm" className="me-2 spinner-white" />
-        Searching...
-      </>
-    ) : (
-      "Search"
-    )}
-  </Button>
-</Col>
-
-
+              <Col md={2}>
+                <Button
+                  type="submit"
+                  className="explore-flight-btn w-100"
+                  onClick={searchFlights}
+                  disabled={searchLoading || loading || isInitialLoading}
+                >
+                  {searchLoading ? (
+                    <>
+                      <Spinner
+                        animation="border"
+                        size="sm"
+                        className="me-2 spinner-white"
+                      />
+                      Searching...
+                    </>
+                  ) : (
+                    "Search"
+                  )}
+                </Button>
+              </Col>
             </Row>
+
             {tripType === "multi" &&
               flights.map((flight, index) => (
                 <Row
@@ -1256,8 +1667,6 @@ const Flight = () => {
                       <Form.Label className="fw-semibold small">
                         Depart
                       </Form.Label>
-
-                      {/* 🔥 FINAL FIX - this keeps dates separate for each row */}
                       <DatePicker
                         selected={flight.date ? new Date(flight.date) : null}
                         onChange={(date) => {
@@ -1311,19 +1720,14 @@ const Flight = () => {
           <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
             <fieldset disabled={isInitialLoading || searchLoading}>
               <div className="filter-box p-3 border rounded shadow-sm">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-  <h5 className="fw-bold mb-0">FILTER</h5>
-
-  <FaUndoAlt
-    title="Reset Filters"
-    style={{ cursor: "pointer", color: "#d04856ff" }}
-    onClick={clearAllFilters}
-  />
-</div>
-
-<div className="filter-group mb-3">
- 
-</div>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="fw-bold mb-0">FILTER</h5>
+                  <FaUndoAlt
+                    title="Reset Filters"
+                    style={{ cursor: "pointer", color: "#d04856ff" }}
+                    onClick={clearAllFilters}
+                  />
+                </div>
 
                 {/* Refundable Filter */}
                 <div className="filter-group mb-3">
@@ -1337,10 +1741,7 @@ const Flight = () => {
                         handleFilterChange("refundableOnly", e.target.checked)
                       }
                     />
-                    <label
-                      className="form-check-label"
-                      htmlFor="refundable"
-                    >
+                    <label className="form-check-label" htmlFor="refundable">
                       Refundable Only
                     </label>
                   </div>
@@ -1399,49 +1800,6 @@ const Flight = () => {
                     )}
                   </div>
                 </fieldset>
-
-                {/* <div className="filter-group mb-3">
-                <div
-                  className="filter-title d-flex justify-content-between"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggle("airlines")}
-                >
-                  <span className="fw-semibold">Airlines</span>
-                  <FontAwesomeIcon
-                    icon={toggle.airlines ? faChevronUp : faChevronDown}
-                  />
-                </div>
-                {toggle.airlines && (
-                  <div className="filter-options mt-2">
-                    {[
-                      { name: "IndiGo", code: "6E" },
-                      { name: "Air India", code: "AI" },
-                      { name: "SpiceJet", code: "SG" },
-                      { name: "Vistara", code: "UK" },
-                      { name: "Go First", code: "G8" },
-                      { name: "AirAsia", code: "I5" },
-                    ].map((airline, i) => (
-                      <div className="form-check" key={airline.code}>
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`airline-${airline.code}`}
-                          checked={filters.airlines.includes(airline.code)}
-                          onChange={(e) =>
-                            handleAirlineFilter(airline.code, e.target.checked)
-                          }
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`airline-${airline.code}`}
-                        >
-                          {airline.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div> */}
 
                 {/* Stops Filter */}
                 <div className="filter-group mb-3">
@@ -1632,15 +1990,18 @@ const Flight = () => {
                     </div>
                   )}
                 </div>
-
-                {/* Clear Filters Button */}
-               
               </div>
             </fieldset>
           </Col>
 
           {/* Flight Results Section */}
-          <Col sm={9}>{renderFlightResults()}</Col>
+          <Col sm={9}>
+            {/* Tabs for multi-city and return */}
+            {renderTabs()}
+
+            {/* Flight Results */}
+            {renderFlightResults()}
+          </Col>
         </Row>
       </div>
 

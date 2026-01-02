@@ -544,10 +544,17 @@ const Guidedetail = () => {
               <span className="button-icon">🎯</span>
               Book Now
             </button>
-            <button className="message-button" onClick={handleSendMessage}>
-              <span className="button-icon">💬</span>
-              Send Message
-            </button>
+          <a
+  href="https://wa.me/9821351444?text=Hello%20I%20want%20to%20know%20more"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="message-button"
+>
+  <span className="button-icon">💬</span>
+  WhatsApp
+</a>
+
+
           </div>
         </div>
       </div>
