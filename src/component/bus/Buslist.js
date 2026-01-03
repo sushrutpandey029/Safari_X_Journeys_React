@@ -33,6 +33,7 @@ function BusList() {
   const [traceId, setTraceId] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [autoLoaded, setAutoLoaded] = useState(false);
+  const [pricing, setPricing] = useState(null);
 
   const [toggle, setToggle] = useState({
     busType: true,
@@ -147,17 +148,19 @@ function BusList() {
           console.log("🔄 Auto-loading Bangalore to Hyderabad buses...");
 
           // Find Bangalore and Hyderabad cities (exact match)
-          const bangaloreCity = cities.find(city => {
+          const bangaloreCity = cities.find((city) => {
             const cityName = city.CityName?.trim().toLowerCase();
             return cityName === "bangalore" || cityName === "bengaluru";
           });
-          
-          const hyderabadCity = cities.find(city => 
-            city.CityName?.trim().toLowerCase() === "hyderabad"
+
+          const hyderabadCity = cities.find(
+            (city) => city.CityName?.trim().toLowerCase() === "hyderabad"
           );
 
           if (!bangaloreCity || !hyderabadCity) {
-            console.warn("⚠️ Could not find Bangalore or Hyderabad in city list");
+            console.warn(
+              "⚠️ Could not find Bangalore or Hyderabad in city list"
+            );
             return;
           }
 
@@ -165,34 +168,35 @@ function BusList() {
             bangalore: bangaloreCity.CityName,
             hyderabad: hyderabadCity.CityName,
             bangaloreId: bangaloreCity.CityId || bangaloreCity.CityCode,
-            hyderabadId: hyderabadCity.CityId || hyderabadCity.CityCode
+            hyderabadId: hyderabadCity.CityId || hyderabadCity.CityCode,
           });
 
           const today = new Date().toISOString().split("T")[0];
 
           // Update search params with SIMPLE city names
-          setSearchParams(prev => ({
+          setSearchParams((prev) => ({
             ...prev,
             fromCity: "Bangalore", // Simple single word
-            toCity: "Hyderabad",   // Simple single word
+            toCity: "Hyderabad", // Simple single word
             fromCityId: bangaloreCity.CityId || bangaloreCity.CityCode,
             toCityId: hyderabadCity.CityId || hyderabadCity.CityCode,
-            travelDate: today
+            travelDate: today,
           }));
 
           // Mark as auto-loaded to prevent multiple calls
           setAutoLoaded(true);
 
           // Auto-search for Bangalore to Hyderabad
-          console.log("🚀 Auto-initiating search for Bangalore to Hyderabad...");
-          
+          console.log(
+            "🚀 Auto-initiating search for Bangalore to Hyderabad..."
+          );
+
           // Call the search function
           await searchBusesDirect(
             bangaloreCity.CityId || bangaloreCity.CityCode,
             hyderabadCity.CityId || hyderabadCity.CityCode,
             today
           );
-
         } catch (err) {
           console.error("❌ Initial bus search error:", err);
         } finally {
@@ -593,8 +597,10 @@ function BusList() {
         }
 
         const transformedBuses = BusResults.map((bus, index) => {
+          console.log("bus", bus);
           const busName = bus.ServiceName || bus.TravelName || "";
           const busType = bus.BusType || "";
+          const pricing = bus.Pricing;
           const busTypeLower =
             busName.toLowerCase() + " " + busType.toLowerCase();
 
@@ -627,6 +633,7 @@ function BusList() {
             routeId: bus.RouteId,
             operatorId: bus.OperatorId,
             busName: bus.ServiceName,
+            pricing: pricing,
             travelName: bus.TravelName,
             operator: bus.TravelName,
             busType: bus.BusType,
@@ -723,6 +730,7 @@ function BusList() {
   };
 
   const handleSeatSelect = (seat) => {
+    console.log("seat in handleSeatSelect ", seat);
     setSelectedSeats((prev) => {
       const seatIndex = seat.SeatIndex;
       if (!seatIndex) return prev;
@@ -732,6 +740,7 @@ function BusList() {
       if (exists) {
         return prev.filter((s) => s.SeatIndex !== seatIndex);
       }
+      console.log("selected seats after select", selectedSeats);
 
       return [...prev, seat];
     });
@@ -747,11 +756,28 @@ function BusList() {
       const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
       const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
 
-      console.log("🔍 Extracted Parameters:", {
-        TokenId: TokenId ? TokenId.substring(0, 10) + "..." : "MISSING",
-        TraceId: TraceId ? TraceId.substring(0, 10) + "..." : "MISSING",
-        ResultIndex: ResultIndex ?? "MISSING",
-      });
+      // ✅ Seat-wise pricing
+      const seatCharges = selectedSeats.map((seat) => ({
+        SeatIndex: seat.SeatIndex,
+        SeatName: seat.SeatName,
+        BaseFare: seat.Pricing?.baseFare ?? 0,
+        Tax: seat.Pricing?.taxAmount ?? 0,
+        FinalAmount: seat.Pricing?.finalAmount ?? 0,
+      }));
+
+      // ✅ Total amount
+      const totalPayableAmount = selectedSeats.reduce(
+        (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
+        0
+      );
+
+      // ✅ Pricing summary (like hotelCharges)
+      const pricing = {
+        currency: "INR",
+        seatsCount: selectedSeats.length,
+        seatCharges,
+        totalAmount: totalPayableAmount,
+      };
 
       if (!TokenId || !TraceId || ResultIndex == null) {
         console.error("❌ CRITICAL: Missing API parameters in BusList");
@@ -795,6 +821,7 @@ function BusList() {
       const navigationState = {
         bus: completeBusData,
         seats: selectedSeats,
+        pricing,
         tokenId: TokenId,
         traceId: TraceId,
         resultIndex: ResultIndex,
@@ -831,6 +858,12 @@ function BusList() {
   const calculateTotalPrice = () => {
     return selectedSeats.reduce((total, seat) => total + getSeatFare(seat), 0);
   };
+  const calculateDisplayTotal = () => {
+    return selectedSeats.reduce(
+      (total, seat) => total + (seat.Pricing?.finalAmount ?? 0),
+      0
+    );
+  };
 
   const renderSeatsFromAPI = () => {
     console.log("seatlayout data in renderSeatsFromAPI", seatLayoutData);
@@ -844,7 +877,7 @@ function BusList() {
       [];
 
     if (seats.length === 0) return <div>No seat layout available</div>;
-
+    console.log("seats ", seats);
     return (
       <div
         className="bus-layout-api"
@@ -870,7 +903,8 @@ function BusList() {
               onClick={() => seat.SeatStatus && handleSeatSelect(seat)}
             >
               <div className="seat-icon">{seat.SeatName}</div>
-              <span>₹{getSeatFare(seat)}</span>
+              <span>₹{seat.DisplayPrice}</span>
+              {/* <span>₹{getSeatFare(seat)}</span> */}
             </div>
           );
         })}
@@ -912,23 +946,27 @@ function BusList() {
 
     // Find city and get its ID
     if (field === "fromCity" && cleanValue) {
-      const city = cities.find(c => {
+      const city = cities.find((c) => {
         const cityName = c.CityName?.toLowerCase();
         const searchName = cleanValue.toLowerCase();
-        return cityName === searchName || 
-               cityName?.includes(searchName) || 
-               searchName.includes(cityName);
+        return (
+          cityName === searchName ||
+          cityName?.includes(searchName) ||
+          searchName.includes(cityName)
+        );
       });
-      newSearchParams.fromCityId = city ? (city.CityId || city.CityCode) : "";
+      newSearchParams.fromCityId = city ? city.CityId || city.CityCode : "";
     } else if (field === "toCity" && cleanValue) {
-      const city = cities.find(c => {
+      const city = cities.find((c) => {
         const cityName = c.CityName?.toLowerCase();
         const searchName = cleanValue.toLowerCase();
-        return cityName === searchName || 
-               cityName?.includes(searchName) || 
-               searchName.includes(cityName);
+        return (
+          cityName === searchName ||
+          cityName?.includes(searchName) ||
+          searchName.includes(cityName)
+        );
       });
-      newSearchParams.toCityId = city ? (city.CityId || city.CityCode) : "";
+      newSearchParams.toCityId = city ? city.CityId || city.CityCode : "";
     }
 
     setSearchParams(newSearchParams);
@@ -970,17 +1008,19 @@ function BusList() {
 
   // FIXED: Get city options with simple names
   const getCityOptions = () => {
-    const fromCities = cities.map((city) => {
-      // Extract only the city name (remove "Agara, " prefix)
-      const cityName = city.CityName;
-      if (cityName && cityName.includes(",")) {
-        return cityName.split(",")[1]?.trim() || cityName;
-      }
-      return cityName;
-    }).filter(Boolean);
-    
+    const fromCities = cities
+      .map((city) => {
+        // Extract only the city name (remove "Agara, " prefix)
+        const cityName = city.CityName;
+        if (cityName && cityName.includes(",")) {
+          return cityName.split(",")[1]?.trim() || cityName;
+        }
+        return cityName;
+      })
+      .filter(Boolean);
+
     const toCities = [...fromCities]; // Same list for both
-    
+
     return { fromCities, toCities };
   };
 
@@ -1059,207 +1099,199 @@ function BusList() {
       {/* Search Section */}
       <div className="bus-section" style={{ marginTop: "100px" }}>
         <div className="search-bus">
-        
-            <div className="container">
-          
-              {error && (
-                <div
-                  className="alert alert-warning alert-dismissible fade show mb-3"
-                  role="alert"
-                >
-                  {error}
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setError(null)}
-                  ></button>
-                </div>
-              )}
+          <div className="container">
+            {error && (
+              <div
+                className="alert alert-warning alert-dismissible fade show mb-3"
+                role="alert"
+              >
+                {error}
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setError(null)}
+                ></button>
+              </div>
+            )}
 
-              <div className="row g-3 align-items-center justify-content-center">
-                {/* From City - Will show Bangalore by default */}
-                <div className="col-md-3">
-                  <label className="text-muted small mb-1">From</label>
-                  <div className="position-relative">
-                    <input
-                      type="text"
-                      className="form-control fw-bold"
-                      placeholder="Select City"
-                      value={searchParams.fromCity}
-                      onChange={(e) => {
-                        handleSearchParamChange("fromCity", e.target.value);
-                        setShowFromSuggestions(true);
-                      }}
-                      onFocus={() => setShowFromSuggestions(true)}
-                      disabled={cities.length === 0}
-                    />
-
-                    {showFromSuggestions && (
-                      <div
-                        className="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-3 max-h-200 overflow-auto"
-                        onMouseDown={(e) => e.preventDefault()}
-                      >
-                        {(() => {
-                          const searchText = searchParams.fromCity
-                            .trim()
-                            .toLowerCase();
-
-                          const sortedCities = searchText
-                            ? [
-                                ...fromCities.filter((city) =>
-                                  city.toLowerCase().startsWith(searchText)
-                                ),
-                                ...fromCities.filter(
-                                  (city) =>
-                                    !city
-                                      .toLowerCase()
-                                      .startsWith(searchText) &&
-                                    city.toLowerCase().includes(searchText)
-                                ),
-                              ]
-                            : fromCities;
-
-                          return sortedCities.slice(0, 15).map((city) => (
-                            <div
-                              key={city}
-                              className="p-2 border-bottom hover-bg-light"
-                              style={{ cursor: "pointer" }}
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => {
-                                handleSearchParamChange("fromCity", city);
-                                setShowFromSuggestions(false);
-                              }}
-                            >
-                              {city}
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* To City - Will show Hyderabad by default */}
-                <div className="col-md-3">
-                  <label className="text-muted small mb-1">To</label>
-                  <div className="position-relative">
-                    <input
-                      type="text"
-                      className="form-control fw-bold"
-                      placeholder="Select City"
-                      value={searchParams.toCity}
-                      onChange={(e) => {
-                        handleSearchParamChange("toCity", e.target.value);
-                        setShowToSuggestions(true);
-                      }}
-                      onFocus={() => setShowToSuggestions(true)}
-                      disabled={cities.length === 0}
-                    />
-
-                    {showToSuggestions && (
-                      <div
-                        className="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-3 max-h-200 overflow-auto"
-                        onMouseDown={(e) => e.preventDefault()}
-                      >
-                        {(() => {
-                          const searchText = searchParams.toCity
-                            .trim()
-                            .toLowerCase();
-
-                          const sortedCities = searchText
-                            ? [
-                                ...toCities.filter((city) =>
-                                  city.toLowerCase().startsWith(searchText)
-                                ),
-                                ...toCities.filter(
-                                  (city) =>
-                                    !city
-                                      .toLowerCase()
-                                      .startsWith(searchText) &&
-                                    city.toLowerCase().includes(searchText)
-                                ),
-                              ]
-                            : toCities;
-
-                          return sortedCities.slice(0, 15).map((city) => (
-                            <div
-                              key={city}
-                              className="p-2 border-bottom hover-bg-light"
-                              style={{ cursor: "pointer" }}
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => {
-                                handleSearchParamChange("toCity", city);
-                                setShowToSuggestions(false);
-                              }}
-                            >
-                              {city}
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Travel Date */}
-                <div className="col-md-2">
-                  <label className="text-muted small mb-1">Travel Date</label>
-                  <DatePicker
-                    selected={
-                      searchParams.travelDate
-                        ? new Date(searchParams.travelDate)
-                        : null
-                    }
-                    onChange={(date) => {
-                      const formattedDate = date.toISOString().split("T")[0];
-                      handleSearchParamChange("travelDate", formattedDate);
-                    }}
+            <div className="row g-3 align-items-center justify-content-center">
+              {/* From City - Will show Bangalore by default */}
+              <div className="col-md-3">
+                <label className="text-muted small mb-1">From</label>
+                <div className="position-relative">
+                  <input
+                    type="text"
                     className="form-control fw-bold"
-                    dateFormat="yyyy-MM-dd"
-                    minDate={new Date()}
-                    placeholderText="Select Date"
-                    popperPlacement="bottom"
-                    wrapperClassName="w-100"
-                    style={{ cursor: "pointer" }}
+                    placeholder="Select City"
+                    value={searchParams.fromCity}
+                    onChange={(e) => {
+                      handleSearchParamChange("fromCity", e.target.value);
+                      setShowFromSuggestions(true);
+                    }}
+                    onFocus={() => setShowFromSuggestions(true)}
+                    disabled={cities.length === 0}
                   />
-                </div>
 
-                {/* Search Button */}
-                <div className="col-md-2">
-                  <button
-                    className="explore-bus-btn"
-                    
-                    onClick={handleSearch}
-                    disabled={
-                      loading ||
-                      !searchParams.fromCityId ||
-                      !searchParams.toCityId
-                    }
-                  >
-                    {loading ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        SEARCHING...
-                      </>
-                    ) : (
-                      "SEARCH"
-                    )}
-                  </button>
+                  {showFromSuggestions && (
+                    <div
+                      className="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-3 max-h-200 overflow-auto"
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {(() => {
+                        const searchText = searchParams.fromCity
+                          .trim()
+                          .toLowerCase();
+
+                        const sortedCities = searchText
+                          ? [
+                              ...fromCities.filter((city) =>
+                                city.toLowerCase().startsWith(searchText)
+                              ),
+                              ...fromCities.filter(
+                                (city) =>
+                                  !city.toLowerCase().startsWith(searchText) &&
+                                  city.toLowerCase().includes(searchText)
+                              ),
+                            ]
+                          : fromCities;
+
+                        return sortedCities.slice(0, 15).map((city) => (
+                          <div
+                            key={city}
+                            className="p-2 border-bottom hover-bg-light"
+                            style={{ cursor: "pointer" }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleSearchParamChange("fromCity", city);
+                              setShowFromSuggestions(false);
+                            }}
+                          >
+                            {city}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
                 </div>
               </div>
-              
-              {isInitialLoading && (
-                <div className="mt-3">
-                  <div className="spinner-border spinner-border-sm text-primary me-2"></div>
-                  <small>Loading default buses...</small>
+
+              {/* To City - Will show Hyderabad by default */}
+              <div className="col-md-3">
+                <label className="text-muted small mb-1">To</label>
+                <div className="position-relative">
+                  <input
+                    type="text"
+                    className="form-control fw-bold"
+                    placeholder="Select City"
+                    value={searchParams.toCity}
+                    onChange={(e) => {
+                      handleSearchParamChange("toCity", e.target.value);
+                      setShowToSuggestions(true);
+                    }}
+                    onFocus={() => setShowToSuggestions(true)}
+                    disabled={cities.length === 0}
+                  />
+
+                  {showToSuggestions && (
+                    <div
+                      className="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-3 max-h-200 overflow-auto"
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {(() => {
+                        const searchText = searchParams.toCity
+                          .trim()
+                          .toLowerCase();
+
+                        const sortedCities = searchText
+                          ? [
+                              ...toCities.filter((city) =>
+                                city.toLowerCase().startsWith(searchText)
+                              ),
+                              ...toCities.filter(
+                                (city) =>
+                                  !city.toLowerCase().startsWith(searchText) &&
+                                  city.toLowerCase().includes(searchText)
+                              ),
+                            ]
+                          : toCities;
+
+                        return sortedCities.slice(0, 15).map((city) => (
+                          <div
+                            key={city}
+                            className="p-2 border-bottom hover-bg-light"
+                            style={{ cursor: "pointer" }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleSearchParamChange("toCity", city);
+                              setShowToSuggestions(false);
+                            }}
+                          >
+                            {city}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Travel Date */}
+              <div className="col-md-2">
+                <label className="text-muted small mb-1">Travel Date</label>
+                <DatePicker
+                  selected={
+                    searchParams.travelDate
+                      ? new Date(searchParams.travelDate)
+                      : null
+                  }
+                  onChange={(date) => {
+                    const formattedDate = date.toISOString().split("T")[0];
+                    handleSearchParamChange("travelDate", formattedDate);
+                  }}
+                  className="form-control fw-bold"
+                  dateFormat="yyyy-MM-dd"
+                  minDate={new Date()}
+                  placeholderText="Select Date"
+                  popperPlacement="bottom"
+                  wrapperClassName="w-100"
+                  style={{ cursor: "pointer" }}
+                />
+              </div>
+
+              {/* Search Button */}
+              <div className="col-md-2">
+                <button
+                  className="explore-bus-btn"
+                  onClick={handleSearch}
+                  disabled={
+                    loading ||
+                    !searchParams.fromCityId ||
+                    !searchParams.toCityId
+                  }
+                >
+                  {loading ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      SEARCHING...
+                    </>
+                  ) : (
+                    "SEARCH"
+                  )}
+                </button>
+              </div>
             </div>
-       
+
+            {isInitialLoading && (
+              <div className="mt-3">
+                <div className="spinner-border spinner-border-sm text-primary me-2"></div>
+                <small>Loading default buses...</small>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1365,12 +1397,13 @@ function BusList() {
               </button>
             </div>
           </div>
-          
+
           {/* BUS LIST COLUMN */}
           <div className="col-sm-9">
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h5 className="fw-bold mb-0">
-                Available Buses from {searchParams.fromCity} to {searchParams.toCity} ({filteredBusData.length})
+                Available Buses from {searchParams.fromCity} to{" "}
+                {searchParams.toCity} ({filteredBusData.length})
               </h5>
               <div className="d-flex align-items-center">
                 <span className="me-2">Sort by:</span>
@@ -1446,7 +1479,9 @@ function BusList() {
                                     <strong>Duration:</strong> {bus.duration}
                                   </li>
                                   <li>
-                                    <strong>Route:</strong> {searchParams.fromCity} → {searchParams.toCity}
+                                    <strong>Route:</strong>{" "}
+                                    {searchParams.fromCity} →{" "}
+                                    {searchParams.toCity}
                                   </li>
                                 </ul>
                               </div>
@@ -1466,7 +1501,10 @@ function BusList() {
                                   </small>
                                 </div>
 
-                                <h5 className="fw-bold mb-1">₹{bus.price}</h5>
+                                <h5 className="fw-bold mb-1">
+                                  ₹{bus?.pricing?.finalAmount || 0}
+                                </h5>
+                                {/* <h5 className="fw-bold mb-1">₹{bus.price}</h5> */}
                                 <small className="text-muted">per seat</small>
 
                                 <div className="mt-1">
@@ -1498,7 +1536,9 @@ function BusList() {
               ) : (
                 <div className="col-12 text-center py-5">
                   <h5>No buses found</h5>
-                  <p>Try searching for buses between different cities or date</p>
+                  <p>
+                    Try searching for buses between different cities or date
+                  </p>
                 </div>
               )}
             </div>
@@ -1590,7 +1630,10 @@ function BusList() {
                         <span className="seat-number">
                           Seat {seat.SeatName}
                         </span>
-                        <span className="seat-price">₹{getSeatFare(seat)}</span>
+                        <span className="seat-price">
+                          ₹{seat?.Pricing?.finalAmount || 0}
+                        </span>
+                        {/* <span className="seat-price">₹{getSeatFare(seat)}</span> */}
                       </div>
                     ))}
                   </div>
@@ -1602,7 +1645,7 @@ function BusList() {
               <div className="price-summary">
                 <div className="total-price">
                   <span>Total Amount:</span>
-                  <span className="amount">₹{calculateTotalPrice()}</span>
+                  <span className="amount">₹{calculateDisplayTotal()}</span>
                 </div>
               </div>
             </div>

@@ -660,7 +660,13 @@ const Flightcheckout = () => {
       EndUserIp: "127.0.0.1",
       Passengers,
       InsuranceRequired: !!selectedInsurancePlan,
-      InsuranceData: selectedInsurancePlan || null,
+      InsuranceData: selectedInsurancePlan
+        ? {
+            ...selectedInsurancePlan,
+            insuranceTraceId: insuranceTraceId,
+          }
+        : null,
+      // InsuranceData: selectedInsurancePlan || null,
     };
   };
 

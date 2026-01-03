@@ -11,6 +11,9 @@ const BusCheckout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location?.state || {};
+  console.log("state in buscheckout", state);
+
+  const pricingFromSearch = state?.pricing || null;
 
   const [busDetails, setBusDetails] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -252,6 +255,81 @@ const BusCheckout = () => {
     }
   };
 
+  // const pricingBreakup = pricingFromSearch
+  //   ? {
+  //       currency: pricingFromSearch.currency || "INR",
+  //       seatsCount: pricingFromSearch.seatsCount,
+
+  //       // 💰 FINAL AMOUNT USER PAYS (already correct)
+  //       totalAmount: pricingFromSearch.totalAmount,
+
+  //       // 📦 SEAT LEVEL (from search)
+  //       seatCharges: pricingFromSearch.seatCharges,
+
+  //       // 🧮 OPTIONAL: derive split (for admin / invoice)
+  //       busCharges: Number(
+  //         pricingFromSearch.seatCharges
+  //           .reduce((sum, s) => sum + (s.FinalAmount - (s.Tax || 0)), 0)
+  //           .toFixed(2)
+  //       ),
+
+  //       gstAndServiceFee: Number(
+  //         pricingFromSearch.seatCharges
+  //           .reduce((sum, s) => sum + (s.Tax || 0), 0)
+  //           .toFixed(2)
+  //       ),
+  //     }
+  //   : null;
+
+
+  const pricingBreakup = {
+  currency: "INR",
+  seatsCount: selectedSeats.length,
+
+  // ✅ NET AMOUNT (paid to TBO)
+  busCharges: Number(
+    selectedSeats.reduce(
+      (sum, seat) => sum + (seat.Pricing?.netFare ?? 0),
+      0
+    ).toFixed(2)
+  ),
+
+  // ✅ YOUR COMMISSION
+  serviceFee: Number(
+    selectedSeats.reduce(
+      (sum, seat) => sum + (seat.Pricing?.commissionAmount ?? 0),
+      0
+    ).toFixed(2)
+  ),
+
+  // ✅ GST ON COMMISSION
+  gst: Number(
+    selectedSeats.reduce(
+      (sum, seat) => sum + (seat.Pricing?.gstAmount ?? 0),
+      0
+    ).toFixed(2)
+  ),
+
+  // ✅ FINAL AMOUNT USER PAID
+  totalAmount: Number(
+    selectedSeats.reduce(
+      (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
+      0
+    ).toFixed(2)
+  ),
+
+  // ✅ SEAT LEVEL (for PDF / refund)
+  seatCharges: selectedSeats.map(seat => ({
+    seatIndex: seat.SeatIndex,
+    seatName: seat.SeatName,
+    netFare: seat.Pricing?.netFare ?? 0,
+    commissionAmount: seat.Pricing?.commissionAmount ?? 0,
+    gstAmount: seat.Pricing?.gstAmount ?? 0,
+    finalAmount: seat.Pricing?.finalAmount ?? 0,
+  })),
+};
+
+
   const handleBookNow = async () => {
     try {
       setShowConfirmModal(false);
@@ -279,7 +357,11 @@ const BusCheckout = () => {
         vendorId: null, // ✅ (can be operatorId later)
         startDate: formatFullDate(selectedBoarding?.CityPointTime),
 
-        totalAmount: calculateTotalPrice(),
+        // totalAmount: calculateTotalPrice(),
+        totalAmount: pricingBreakup.totalAmount,
+
+        pricing: pricingBreakup,
+
         insuranceSelected: insurance,
 
         serviceDetails: {
@@ -292,7 +374,8 @@ const BusCheckout = () => {
 
           BoardingPointId: selectedBoarding.CityPointIndex,
           DroppingPointId: selectedDropping.CityPointIndex,
-
+          // ✅ SAVE PRICING AGAIN (SERVICE LEVEL)
+          Pricing: pricingBreakup,
           Passenger: passengers.map((p, i) => ({
             LeadPassenger: i === 0,
             IsPrimary: i === 0,
@@ -353,6 +436,21 @@ const BusCheckout = () => {
       </div>
     );
   }
+
+  const busCharges = selectedSeats.reduce(
+    (sum, seat) => sum + (seat.Pricing?.netFare ?? 0),
+    0
+  );
+
+  const serviceAndGST = selectedSeats.reduce(
+    (sum, seat) =>
+      sum +
+      (seat.Pricing?.commissionAmount ?? 0) +
+      (seat.Pricing?.gstAmount ?? 0),
+    0
+  );
+
+  const totalPayable = busCharges + serviceAndGST;
 
   return (
     <div className="bus-checkout" style={{ marginTop: "100px" }}>
@@ -600,7 +698,7 @@ const BusCheckout = () => {
 
           {/* RIGHT COLUMN */}
           <div className="right-column">
-            <div className="summary-card">
+            {/* <div className="summary-card">
               <h3>Fare Summary</h3>
 
               <div className="fare-item">
@@ -610,20 +708,29 @@ const BusCheckout = () => {
                 </span>
               </div>
 
-              <div className="fare-item">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={insurance}
-                    onChange={(e) => setInsurance(e.target.checked)}
-                  />
-                  Insurance ₹15
-                </label>
-              </div>
-
               <div className="fare-total">
                 <strong>Total</strong>
                 <span>₹{calculateTotalPrice()}</span>
+              </div>
+            </div> */}
+            <div className="summary-card">
+              <h3>Fare Summary</h3>
+
+              <div className="fare-item">
+                <span>Bus Charges</span>
+                <span>₹{Math.ceil(busCharges)}</span>
+              </div>
+
+              <div className="fare-item">
+                <span>GST & Service Fee</span>
+                <span>₹{Math.ceil(serviceAndGST)}</span>
+              </div>
+
+              <hr />
+
+              <div className="fare-total">
+                <strong>Total Amount</strong>
+                <span>₹{Math.ceil(totalPayable)}</span>
               </div>
             </div>
 
@@ -652,7 +759,8 @@ const BusCheckout = () => {
             </p>
 
             <p>
-              <strong>Total Fare:</strong> ₹{calculateTotalPrice()}
+              <strong>Total Fare:</strong> ₹{Math.ceil(totalPayable)}
+              {/* <strong>Total Fare:</strong> ₹{calculateTotalPrice()} */}
             </p>
 
             {blockResponse?.IsPriceChanged && (

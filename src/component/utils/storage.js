@@ -33,3 +33,11 @@ export const removeUserData = (key) => {
     console.log("error in removing data from localstorage.");
   }
 };
+
+export const saveToken = (key, value) => {
+  try {
+    localStorage.setItem(key, value); // ❌ NO JSON.stringify
+  } catch (err) {
+    console.log("error saving token", err);
+  }
+};

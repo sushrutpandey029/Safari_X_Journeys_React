@@ -14,6 +14,7 @@ import ChangePassword from "./user-dashboard-pages/ChangePassword";
 import Profile from "./user-dashboard-pages/Profile";
 import Booking from "./user-dashboard-pages/Booking";
 import { userLogout } from "../services/authService";
+import { clearUserAuth } from "../utils/authStorage";
 
 function UserDashboard() {
   const dispatch = useDispatch();
@@ -22,9 +23,10 @@ function UserDashboard() {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (!confirmed) return;
     await userLogout();
-    localStorage.removeItem("safarix_user");
-    localStorage.removeItem("safarix_token");
-    localStorage.removeItem("safarix_refreshtoken");
+    // localStorage.removeItem("safarix_user");
+    // localStorage.removeItem("safarix_token");
+    // localStorage.removeItem("safarix_refreshtoken");
+    clearUserAuth();
     dispatch(logout());
     window.location.reload(true);
   };

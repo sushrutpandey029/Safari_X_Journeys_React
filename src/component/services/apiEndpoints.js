@@ -2,8 +2,10 @@
 
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
-// export const BASE_URL = "http://10.31.33.26:2625";
-export const BASE_URL = "http://192.168.1.9:2625";
+// export const BASE_URL = "http://10.126.82.26:2625";
+export const BASE_URL = "http://192.168.1.4:2625";
+// export const BASE_URL = "https://safarixjourneys.com/admin";
+
 // export const BASE_URL = "http://192.168.1.8:2625";
 
 export const API = {
@@ -28,6 +30,8 @@ export const API = {
   USER_CHANGE_PASSWORD: (id) => `${BASE_URL}/api/user/change-password/${id}`,
   USER_UPDATE_PROFILE: (id) => `${BASE_URL}/api/user/update-profile/${id}`,
   USER_BOOKING_DETAILS: (id) => `${BASE_URL}/api/user/booking-details/${id}`,
+  USER_DOWNLOAD_INVOICE: (bookingId) =>
+    `${BASE_URL}/api/bookings/${bookingId}/pdf`,
 
   //driver
   DRIVER_UPDATE_PROFILE: (id) => `${BASE_URL}/driver/update/${id}`,

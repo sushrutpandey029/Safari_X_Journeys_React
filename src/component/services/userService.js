@@ -5,7 +5,8 @@ import { getUserData, getUserToken } from "../utils/storage";
 export const userChangePassword = async (payload) => {
   try {
     const user = await getUserData("safarix_user");
-    const token = await getUserToken();
+    const token = await getUserToken("safarix_token");
+    console.log("token in change password", token);
     const resp = await axios.post(API.USER_CHANGE_PASSWORD(user.id), payload, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -45,4 +46,3 @@ export const userBookingDetails = async (id) => {
     throw err;
   }
 };
-

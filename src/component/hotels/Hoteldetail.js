@@ -55,71 +55,69 @@ const HotelDetail = () => {
   }
 
   // ✅ Book hotel and navigate to checkout
- async function handleBook(room) {
-  const userdetails = await getUserData("safarix_user");
-  const ip = await getUserIP();
+  async function handleBook(room) {
+    const userdetails = await getUserData("safarix_user");
+    const ip = await getUserIP();
 
-  const payload = {
-    userId: userdetails?.id,
-    serviceType: "hotel",
-    vendorType: "hotel",
-    vendorId: hotelDetails?.HotelCode,
+    const payload = {
+      userId: userdetails?.id,
+      serviceType: "hotel",
+      vendorType: "hotel",
+      vendorId: hotelDetails?.HotelCode,
 
-    serviceDetails: {
-      hotelCode: hotelDetails?.HotelCode,
-      hotelName: hotelDetails?.HotelName,
-      hotelRating: hotelDetails?.StarRating,
-      hotelAddress: hotelDetails?.Address || "",
+      serviceDetails: {
+        hotelCode: hotelDetails?.HotelCode,
+        hotelName: hotelDetails?.HotelName,
+        hotelRating: hotelDetails?.StarRating,
+        hotelAddress: hotelDetails?.Address || "",
 
-      checkIn: bookingData?.checkIn,
-      checkOut: bookingData?.checkOut,
+        checkIn: bookingData?.checkIn,
+        checkOut: bookingData?.checkOut,
 
-      GuestNationality: bookingData?.guestNationality,
-      NoOfRooms: bookingData?.NoOfRooms,
+        GuestNationality: bookingData?.guestNationality,
+        NoOfRooms: bookingData?.NoOfRooms,
 
-      // ✅ PRICE DETAILS (FROM API)
-      TotalFare: Number(room?.TotalFare || 0),
-      TotalTax: Number(room?.TotalTax || 0),
-      NetAmount: Number(room?.NetAmount || 0),
-      PriceBreakUp: room?.PriceBreakUp || [],
+        // ✅ PRICE DETAILS (FROM API)
+        TotalFare: Number(room?.TotalFare || 0),
+        TotalTax: Number(room?.TotalTax || 0),
+        NetAmount: Number(room?.NetAmount || 0),
+        PriceBreakUp: room?.PriceBreakUp || [],
+        Pricing : room?.Pricing,
+        BookingCode: room?.BookingCode,
+        RoomType: room?.RoomTypeName,
+        RoomCategory: room?.RoomCategory || "",
+        RoomMealPlan: room?.MealType || "",
+        RoomOccupancy: room?.Occupancy || "",
 
-      BookingCode: room?.BookingCode,
-      RoomType: room?.RoomTypeName,
-      RoomCategory: room?.RoomCategory || "",
-      RoomMealPlan: room?.MealType || "",
-      RoomOccupancy: room?.Occupancy || "",
+        currency: "INR",
+        enduserip: ip,
+
+        PaxRooms: bookingData?.PaxRooms,
+        ResponseTime: bookingData?.ResponseTime,
+        IsDetailedResponse: bookingData?.IsDetailedResponse,
+        Filters: bookingData?.Filters,
+      },
+
+      startDate: bookingData?.checkIn,
+      endDate: bookingData?.checkOut,
+
+      // ✅ KEEP PRICE ALSO AT ROOT LEVEL (FOR CHECKOUT PAGE)
+      totalAmount: Number(room?.TotalFare || 0),
+      totalTax: Number(room?.TotalTax || 0),
+      netAmount: Number(room?.NetAmount || 0),
 
       currency: "INR",
-      enduserip: ip,
+    };
 
-      PaxRooms: bookingData?.PaxRooms,
-      ResponseTime: bookingData?.ResponseTime,
-      IsDetailedResponse: bookingData?.IsDetailedResponse,
-      Filters: bookingData?.Filters,
-    },
-
-    startDate: bookingData?.checkIn,
-    endDate: bookingData?.checkOut,
-
-    // ✅ KEEP PRICE ALSO AT ROOT LEVEL (FOR CHECKOUT PAGE)
-    totalAmount: Number(room?.TotalFare || 0),
-    totalTax: Number(room?.TotalTax || 0),
-    netAmount: Number(room?.NetAmount || 0),
-
-    currency: "INR",
-  };
-
-  navigate("/hotel-checkout", {
-    state: {
-      payload,
-      selectedRoom: room,
-      hotelInfo: hotelDetails,
-      searchFilters: bookingData,
-    },
-  });
-}
-
-
+    navigate("/hotel-checkout", {
+      state: {
+        payload,
+        selectedRoom: room,
+        hotelInfo: hotelDetails,
+        searchFilters: bookingData,
+      },
+    });
+  }
 
   // Fetch hotel details + search results
   useEffect(() => {
@@ -396,9 +394,9 @@ const HotelDetail = () => {
                     <tr>
                       <th>Room Type</th>
                       <th>Inclusions</th>
-                      <th>Base Price</th>
+                      {/* <th>Base Price</th> */}
                       <th>Total Fare</th>
-                      <th>Tax</th>
+                      {/* <th>Tax</th> */}
                       <th>Meal Type</th>
                       <th>Cancellation</th>
                       <th>Action</th>
@@ -444,17 +442,17 @@ const HotelDetail = () => {
                               )}
                             </td>
 
-                            <td className="text-success fw-semibold">
+                            {/* <td className="text-success fw-semibold">
                               ₹{basePrice}
-                            </td>
+                            </td> */}
 
                             <td className="text-primary fw-semibold">
-                              ₹{room.TotalFare || "N/A"}
+                              ₹{Math.ceil(room.DisplayPrice) || "N/A"}
                             </td>
 
-                            <td className="text-muted">
+                            {/* <td className="text-muted">
                               ₹{room.TotalTax || "N/A"}
-                            </td>
+                            </td> */}
 
                             <td>
                               <span className="badge bg-info text-dark">

@@ -6,6 +6,7 @@ import { flight_getBookingDetails } from "../../../services/flightService";
 import useCancellation from "../../../hooks/useCancellation";
 import { insuranceBookingDetails } from "../../../services/insuranceService";
 import { handleDownloadInvoice } from "../../../utils/invoice";
+import { downloadBookingPDF } from "../../../services/bookingService";
 
 export default function FlightView({ booking }) {
   const {
@@ -170,6 +171,28 @@ export default function FlightView({ booking }) {
 
   //   doc.save(`Invoice_Flight_${bookingId}.pdf`);
   // };
+
+  const handleDownloadInvoice = async (bookingId) => {
+    try {
+      const pdfBlob = await downloadBookingPDF(bookingId);
+
+      const url = window.URL.createObjectURL(
+        new Blob([pdfBlob], { type: "application/pdf" })
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Booking-${bookingId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download invoice", error);
+      alert("Unable to download invoice. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -361,10 +384,9 @@ export default function FlightView({ booking }) {
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-          <button
+          {/* <button
             className="btn btn-success mt-3"
-            // onClick={handleDownloadInvoice}
-            onClick={() =>
+             onClick={() =>
               handleDownloadInvoice({
                 serviceType: "flight",
                 payload: {
@@ -385,6 +407,12 @@ export default function FlightView({ booking }) {
             }
           >
             Download Invoice (PDF)
+          </button> */}
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => handleDownloadInvoice(booking.bookingId)}
+          >
+            Download Invoice
           </button>
           <button
             className="btn btn-danger mt-3 ms-2"

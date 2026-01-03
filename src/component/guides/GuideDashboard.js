@@ -16,6 +16,7 @@ import ApplyLeave from "./guide-dashboard-pages/ApplyLeave";
 import LeaveHistory from "./guide-dashboard-pages/LeaveHistory";
 import BookingHistory from "./guide-dashboard-pages/BookingHistory";
 import { useNavigate } from "react-router-dom";
+import { clearGuideAuth } from "../utils/authStorage";
 
 function GuideDashboard() {
   const dispatch = useDispatch();
@@ -26,9 +27,7 @@ function GuideDashboard() {
     if (!confirmed) return;
     await GuideLogout();
     dispatch(logout());
-    localStorage.removeItem("guide");
-    localStorage.removeItem("guide_token");
-    localStorage.removeItem("guide_refreshtoken");
+    clearGuideAuth();
     window.location.reload(true);
     navigate("/");
   };

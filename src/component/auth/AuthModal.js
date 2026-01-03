@@ -4,7 +4,7 @@ import { registerOrLogin, userResendOtp } from "../services/authService";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/slices/authSlice";
 import { Modal } from "react-bootstrap";
-import { saveUserData } from "../utils/storage";
+import { saveToken, saveUserData } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -110,29 +110,13 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
     }
   };
 
-  // const handleRegister = async () => {
-  //   try {
-  //     const response = await registerOrLogin(formData);
-
-  //     if (response.data.status === true) {
-  //       console.log("response in register", response);
-  //       saveUserInfo(response);
-  //       setShowUserLogin(false);
-  //       alert(response.data.message);
-  //       window.location.reload(true);
-  //     }
-  //   } catch (err) {
-  //     alert(err.response.data.message);
-  //     console.log("err in register", err.response);
-  //   }
-  // };
-
   const verifyEmailOtp = async () => {
     try {
       setLoading(true);
       const payload = {
         emailid: formData.emailid,
         otp: emailOtp,
+        // password: formData.password,
       };
       console.log("payload before senign api", payload);
       const res = await userVerifyEmailOtp(payload);
@@ -165,9 +149,15 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
   };
 
   const saveUserInfo = (response) => {
+    const now = Date.now();
     saveUserData("safarix_user", response.data.user);
-    saveUserData("safarix_token", response.data.token);
-    saveUserData("safarix_refreshtoken", response.data.refreshToken);
+    // saveUserData("safarix_token", response.data.token);
+    // saveUserData("safarix_refreshtoken", response.data.refreshToken);
+    saveToken("safarix_token", response.data.token);
+    saveToken("safarix_refreshtoken", response.data.refreshToken);
+
+    // ✅ ADD THIS
+    saveUserData("safarix_login_time", now);
     navigate("/user-dashboard");
   };
 

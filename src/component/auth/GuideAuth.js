@@ -39,12 +39,14 @@ const GuideAuth = ({ show, onClose, setShowGuideLogin }) => {
         saveUserData("guide_token", response.token);
         saveUserData("guide_refreshtoken", response.refreshToken);
 
+        saveUserData("guide_login_time", Date.now());
+
         navigate("/guide-dashboard");
         setShowGuideLogin(false);
       }
     } catch (err) {
       console.error("Error in guide login", err.response);
-      alert(err?.response?.data?.message || "Login Failed, please try again.")
+      alert(err?.response?.data?.message || "Login Failed, please try again.");
     }
   };
 
