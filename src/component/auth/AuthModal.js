@@ -53,10 +53,11 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
         return;
       }
     } catch (err) {
+      console.log("error n identifire",err)
       console.log("err in handleIdentifierSubmit", err.response);
-      if (err.response.data.userExists === true) {
+      if (err?.response?.data?.userExists === true) {
         setStep(2);
-      } else if (err.response.data.userExists === false) {
+      } else if (err?.response?.data?.userExists === false) {
         setStep(3);
       } else {
         console.log("error in user login or register");
@@ -99,7 +100,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
       setLoading(true);
       const response = await registerOrLogin(formData);
 
-      if (response.data.status === "otp_required") {
+      if (response?.data?.status === "otp_required") {
         setMessage(response.data.message);
         setStep(4);
       }

@@ -62,6 +62,7 @@ export const getHotelDetail = async (hotelCode) => {
 export const searchHotels = async (payload) => {
   try {
     const resp = await axios.post(API.HOTEL_SEARCH, payload);
+    console.log("data in serch hotels", resp.data);
     // Directly return inner data
     return resp.data?.data;
   } catch (err) {

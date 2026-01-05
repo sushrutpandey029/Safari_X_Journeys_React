@@ -2,9 +2,10 @@
 
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
-// export const BASE_URL = "http://10.126.82.26:2625";
-export const BASE_URL = "http://192.168.1.4:2625";
-// export const BASE_URL = "https://safarixjourneys.com/admin";
+// export const BASE_URL = "http://10.11.140.26:2625";
+export const BASE_URL = "http://192.168.1.5:2625";
+
+// export const BASE_URL = "https://dash.safarixjourneys.com";
 
 // export const BASE_URL = "http://192.168.1.8:2625";
 
