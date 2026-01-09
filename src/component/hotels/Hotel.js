@@ -343,7 +343,7 @@ function Hotel() {
             {/* Search Button */}
             <div className="col-md-2">
               <button
-                className=" form-control explore-btn w-100"
+                className="form-control explore-btnnew w-100"
                 onClick={handleSearch}
               >
                 Search

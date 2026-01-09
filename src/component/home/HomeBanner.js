@@ -23,7 +23,7 @@ function HomeBanner() {
   <div className="banner">
   {bannerData && bannerData.length > 0 && (
     <video
-      src={`${BASE_URL}/banner/images/${bannerData[0].image}`}
+      src={`${BASE_URL}/banner/Images/${bannerData[0].image}`}
       className="banner-video"
       autoPlay
       muted

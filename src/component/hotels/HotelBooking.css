@@ -101,7 +101,7 @@ body {
 
 .filter-title span {
   font-size: 15px;
-  color: #12669b;
+  color: #6665ae;
 }
 
 .filter-title svg {
@@ -330,10 +330,10 @@ margin-top: 98px !important;
     position: relative;
   }
   .hotel-place {
-    color: #498ab5;
+    color: #6665ae;
   }
   .hotel-name {
-    color: #c7681f;
+    color: #000000;
     margin-bottom: 18px;
   }
   .text-muted {
@@ -392,20 +392,13 @@ margin-top: 98px !important;
 }
 
 .hotel-detail-page {
-  margin-top: 108px;
-  background: linear-gradient(
-    135deg,
-    rgb(241 229 229 / 90%),
-    /* halka white */ rgb(212 232 245 / 90%) /* halka blue/sky tint */
-  ) !important;
-  padding: 40px;
+  margin-top: 98px;
 }
 
 .room-detail {
   padding: 70px 0px;
   .card-header.bg-gradient {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    background-color: #4788b9;
+            background-color: #6369b2;
   }
   .table thead th {
     font-weight: 600;
@@ -431,7 +424,7 @@ margin-top: 98px !important;
 
 .right-details {
   h4 {
-    color: #4788b9;
+    color: #6665ae;
     font-size: 20px;
   }
   .small {
@@ -455,13 +448,25 @@ margin-top: 98px !important;
 /* Address Search Styling */
 
 .address-search-container {
-  position: relative;
-  margin-bottom: 20px;
-  padding: 15px;
-  border-radius: 8px;
-  width: 300px;
-  margin-left: auto;
+  width:50%;
+  position:relative;
+  
+.input-group-text {
+    position: absolute;
+        right: 5px;
+        z-index: 1;
+        top: 9px;
+        background: none;
+        border: none;
 }
+}
+
+.address-search-container .form-select, .form-control {
+    border-radius: 58px !important;
+    font-size: 13px;
+  
+  }
+
 
 .address-suggestions-dropdown {
   position: absolute;

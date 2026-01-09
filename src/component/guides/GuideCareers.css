@@ -126,7 +126,7 @@ margin-top: 0px !important;
 
 
 .career-heading {
-    background-color: #274A62; 
+    background-color: #6665ae; 
     color: white;
     padding: 12px 20px;
     border-radius: 8px;
@@ -144,7 +144,7 @@ margin-top: 0px !important;
 
   .form-group label {
   font-weight: 600;
-  color: #274A62;
+  color: #6665ae;
   display: block;
   margin-bottom: 6px;
   font-size: 14px;
@@ -153,7 +153,7 @@ margin-top: 0px !important;
 .form-group input[type="file"] {
   width: 100%;
   padding: 8px;
-  border: 2px dashed #274A62;
+  border: 2px dashed #6665ae;
   border-radius: 8px;
   background-color: #f9f9f9;
   cursor: pointer;
@@ -167,7 +167,7 @@ margin-top: 0px !important;
 }
 
 .form-group input[type="file"]::-webkit-file-upload-button {
-  background-color: #274A62;
+  background-color: #6665ae;
   color: white;
   padding: 6px 12px;
   border: none;
@@ -517,13 +517,8 @@ margin-top: 0px !important;
 
 
 .guidedetail-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  margin-top: 100px;
-  padding: 20px;
-  font-family: 'Arial', sans-serif;
-  background: #f8f9fa;
-  min-height: 100vh;
+    margin-top: 100px;
+    padding-bottom: 40px;
 }
 
 /* Header Section - Simple Design */
@@ -645,7 +640,7 @@ margin-top: 0px !important;
 }
 
 .specialty-item {
-  background: #235376;
+  background: #6665ae;
   color: white;
   padding: 8px 16px;
   border-radius: 5px;
@@ -702,7 +697,7 @@ margin-top: 0px !important;
 }
 
 .tab.active {
-  background: #274a62;
+  background: #6665ae;
   color: white;
 }
 
@@ -831,6 +826,7 @@ margin-top: 0px !important;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width:100%
 }
 
 .calendar-widget,
@@ -1334,6 +1330,10 @@ margin-top: 0px !important;
   margin-top: 8px;
   padding-top: 8px;
   border-top: 2px solid #28a745;
+}
+
+.react-datepicker-wrapper {
+    display: block !important;
 }
 
 /* Responsive Design */

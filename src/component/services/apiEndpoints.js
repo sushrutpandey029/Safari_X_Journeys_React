@@ -1,10 +1,10 @@
 // export const BASE_URL = "https://7183d0378457.ngrok-free.app";
 
 // export const BASE_URL = "http://node.millclient.com:3001";
-// export const BASE_URL = "http://localhost:2625/";
+// export const BASE_URL = "http://localhost:2625";
 // export const BASE_URL = "http://10.31.33.26:2625";
-export const BASE_URL = "http://192.168.1.4:2625";
-// export const BASE_URL = "http://192.168.1.8:2625";
+export const BASE_URL = "https://dash.safarixjourneys.com/";
+// export const BASE_URL = "http://192.168.1.15:2625";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
@@ -15,7 +15,7 @@ export const API = {
   NEWSLATER: `${BASE_URL}/api/news/later`,
   CHATBOT_SUBMIT: `${BASE_URL}/api/chatbot`,
   GET_ALL_CITIES: `${BASE_URL}/api/getCities`,
-
+  
   //user
   REGISTER_OR_LOGIN: `${BASE_URL}/api/user/register-or-login`,
   USER_VERIFY_OTP: `${BASE_URL}/api/user/verify-email-otp`,
@@ -46,8 +46,7 @@ export const API = {
   CREATE_BOOKING_DRAFT: `${BASE_URL}/api/booking/create-draft`,
   INITIATE_PAYMENT: `${BASE_URL}/api/payment/initiate`,
   CHECK_PAYMENT_STATUS: `${BASE_URL}/api/payment/verify`,
-  GET_PAYMENT_STATUS: (orderId) =>
-    `${BASE_URL}/api/payment-status?order_id=${orderId}`,
+  GET_PAYMENT_STATUS: (orderId) =>`${BASE_URL}/api/payment-status?order_id=${orderId}`,
 
   // hotels
   // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
