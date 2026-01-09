@@ -109,23 +109,23 @@ function Header() {
         }
       >
         <nav className="navbar navbar-expand-lg">
-          <div className="container-fluid">
+          <div className="container">
             <a className="navbar-brand" href="/">
               <img
-                src="/images/black-logo.png"
+                src="/Images/black-logo.png"
                 alt="Safarix Logo"
                 height="70"
               />
             </a>
 
-            <button
+            {/* <button
               className="navbar-toggler"
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#navbarSupportedContent"
             >
               <span className="navbar-toggler-icon"></span>
-            </button>
+            </button> */}
 
             <div
               className="collapse navbar-collapse"
@@ -142,7 +142,7 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/aircraft.gif"
+                      src="/Images/aircraft.gif"
                       alt="Safarix Logo" className="icon-img"
                     /> Flight
                   </NavLink>
@@ -157,7 +157,7 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/hotel.gif"
+                      src="/Images/hotel.gif"
                       alt="Safarix Logo" className="icon-img"
                     /> Hotel
                   </NavLink>
@@ -172,7 +172,7 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/tour-guide.gif"
+                      src="/Images/tour-guide.gif"
                       alt="Safarix Logo" className="icon-img"
                     /> Guides
                   </NavLink>
@@ -200,7 +200,7 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/bus-journey.gif"
+                      src="/Images/bus-journey.gif"
                       alt="Safarix Logo" className="icon-img"
                     /> Buses
                   </NavLink>
@@ -208,14 +208,7 @@ function Header() {
               </ul>
             </div>
 
-            <div className="plan" style={{ marginRight: "5px" }}>
-              <button
-                className="explore-btn"
-                onClick={() => navigate("/bot-modal")}
-              >
-                Plan My Holiday 24 x 7
-              </button>
-            </div>
+         
 
             {/* User Icon & Profile Menu */}
             <div className="user-icon position-relative">
@@ -225,7 +218,7 @@ function Header() {
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img
-                    src="images/userprofile.png"
+                    src="Images/userprofile.png"
                     alt="User Icon"
                     className="user-icon-image"
                   />

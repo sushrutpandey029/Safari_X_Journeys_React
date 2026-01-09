@@ -1313,15 +1313,6 @@ const Flight = () => {
               <div className="filter-box p-3 border rounded shadow-sm">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h5 className="fw-bold mb-0">FILTER</h5>
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="fw-bold mb-0">FILTER</h5>
-
-                    <FaUndoAlt
-                      title="Reset Filters"
-                      style={{ cursor: "pointer", color: "#d04856ff" }}
-                      onClick={clearAllFilters}
-                    />
-                  </div>
                   <FaUndoAlt
                     title="Reset Filters"
                     style={{ cursor: "pointer", color: "#d04856ff" }}

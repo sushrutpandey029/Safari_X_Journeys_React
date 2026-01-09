@@ -805,72 +805,16 @@ function HotelBooking() {
       {/* searchbox */}
 
       <div className="container">
-        <div className="address-search-container" ref={searchRef}>
-          <div className="input-group">
-            <span className="input-group-text">
-              <FontAwesomeIcon icon={faSearch} />
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder={`Search hotels by address in ${
-                selectedCityName || "selected city"
-              }...`}
-              value={addressSearch}
-              onChange={handleAddressSearch}
-              onFocus={() => setShowSuggestions(true)}
-              disabled={!selectedCity || hotelList.length === 0}
-            />
-          </div>
 
-          {/* Address Suggestions Dropdown */}
-          {showSuggestions && addressSuggestions.length > 0 && (
-            <div className="address-suggestions-dropdown">
-              <div className="dropdown-header">
-                <small className="text-muted">
-                  <FontAwesomeIcon icon={faLocationDot} className="me-1" />
-                  Address recommendations for {selectedCityName}
-                </small>
-              </div>
-              {addressSuggestions.slice(0, 10).map((address, index) => (
-                <div
-                  key={index}
-                  className="suggestion-item"
-                  onClick={() => handleAddressSelect(address)}
-                >
-                  <FontAwesomeIcon
-                    icon={faLocationDot}
-                    className="text-primary me-2"
-                  />
-                  <span>{address}</span>
-                </div>
-              ))}
-              {addressSuggestions.length > 10 && (
-                <div className="dropdown-header">
-                  <small className="text-muted">
-                    And {addressSuggestions.length - 10} more addresses...
-                  </small>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* No suggestions message */}
-          {showSuggestions &&
-            addressSearch &&
-            addressSuggestions.length === 0 && (
-              <div className="address-suggestions-dropdown">
-                <div className="suggestion-item text-muted">
-                  No addresses found matching "{addressSearch}"
-                </div>
-              </div>
-            )}
-        </div>
       </div>
       {/* Hotel Listing */}
       <div className="container hotel-listing">
-        <div className="row align-items-end pb-3">
-          <div className="col-sm-5">
+
+
+        <div className="row align-items-end pt-5 pb-3 border-bottom mb-4">
+
+          {/* LEFT SIDE → Breadcrumb */}
+          <div className="col-md-5 col-sm-12">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
@@ -882,19 +826,67 @@ function HotelBooking() {
               </ol>
             </nav>
           </div>
-          {/* Display current search info */}
-          {/* <div className="col-sm-7">
-            <div className="d-flex justify-content-end">
 
-          
-              <small className="text-muted">
-                {selectedCityName && `Searching in: ${selectedCityName}`}
-                {addressSearch && ` | Address: ${addressSearch}`}
-                {addressSearch && ` (${filteredHotels.length} hotels found)`}
-              </small>
+          {/* RIGHT SIDE → Hotel Address Search */}
+          <div className="col-md-7 col-sm-12 d-flex justify-content-end">
+            <div
+              className="address-search-container"
+              ref={searchRef}
+            >
+              <div className="input-group">
+                <span className="input-group-text">
+                  <FontAwesomeIcon icon={faSearch} />
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder={`Search hotels by address in ${selectedCityName || "selected city"
+                    }...`}
+                  value={addressSearch}
+                  onChange={handleAddressSearch}
+                  onFocus={() => setShowSuggestions(true)}
+                  disabled={!selectedCity || hotelList.length === 0}
+                />
+              </div>
+
+              {/* Address Suggestions Dropdown */}
+              {showSuggestions && addressSuggestions.length > 0 && (
+                <div className="address-suggestions-dropdown">
+                  <div className="dropdown-header">
+                    <small className="text-muted">
+                      <FontAwesomeIcon icon={faLocationDot} className="me-1" />
+                      Address recommendations for {selectedCityName}
+                    </small>
+                  </div>
+
+                  {addressSuggestions.slice(0, 10).map((address, index) => (
+                    <div
+                      key={index}
+                      className="suggestion-item"
+                      onClick={() => handleAddressSelect(address)}
+                    >
+                      <FontAwesomeIcon
+                        icon={faLocationDot}
+                        className="text-primary me-2"
+                      />
+                      <span>{address}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No Suggestions */}
+              {showSuggestions && addressSearch && addressSuggestions.length === 0 && (
+                <div className="address-suggestions-dropdown">
+                  <div className="suggestion-item text-muted">
+                    No addresses found matching "{addressSearch}"
+                  </div>
+                </div>
+              )}
             </div>
-          </div> */}
+          </div>
         </div>
+
 
         <div className="row">
           <div className="col-sm-3">
@@ -1035,9 +1027,9 @@ function HotelBooking() {
           <div className="col-sm-9">
             {isSearching ? (
               <div className="text-center mt-5">
-               <div>
-                <Loading />
-               </div>
+                <div>
+                  <Loading />
+                </div>
                 <p className="mt-2">
                   Searching hotels in {selectedCityName}...
                 </p>
@@ -1092,20 +1084,20 @@ function HotelBooking() {
                                 hotel.HotelRating === "FiveStar"
                                   ? 5
                                   : hotel.HotelRating === "FourStar"
-                                  ? 4
-                                  : hotel.HotelRating === "ThreeStar"
-                                  ? 3
-                                  : hotel.HotelRating === "TwoStar"
-                                  ? 2
-                                  : hotel.HotelRating === "OneStar"
-                                  ? 1
-                                  : 0;
+                                    ? 4
+                                    : hotel.HotelRating === "ThreeStar"
+                                      ? 3
+                                      : hotel.HotelRating === "TwoStar"
+                                        ? 2
+                                        : hotel.HotelRating === "OneStar"
+                                          ? 1
+                                          : 0;
 
                               return (
                                 <span
                                   key={i}
                                   style={{
-                                    color: i < rating ? "#10669b" : "#ccc",
+                                    color: i < rating ? "#6665ae" : "#ccc",
                                     fontSize: "20px",
                                   }}
                                 >

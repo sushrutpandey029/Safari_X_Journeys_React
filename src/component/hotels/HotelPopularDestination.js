@@ -9,12 +9,12 @@ function HotelPopularDestination() {
 
   const City = [
     { name: "", image: "/Images/Goa.jpg" },
-    { name: "", image: "/Images/himachal Pradesh paragpur.jpg" },
-    { name: "", image: "/Images/Jammu Jammu Kashmir.jpg" },
+    { name: "", image: "/Images/himachal_Pradesh_paragpur.jpg" },
+    { name: "", image: "/Images/Jammu_Jammu_Kashmir.jpg" },
     { name: "", image: "/Images/Ooty.jpg" },
-    { name: "", image: "/Images/Pelling Sikhim.jpg" },
-    { name: "", image: "/Images/Katra Jammu Kashmir.jpg" },
-    { name: "", image: "/Images/khass Nagrota.jpg" },
+    { name: "", image: "/Images/Pelling_Sikhim.jpg" },
+    { name: "", image: "/Images/Katra_Jammu_Kashmir.jpg" },
+    { name: "", image: "/Images/khass_Nagrota.jpg" },
     { name: "", image: "/Images/Ladhak.jpg" },
   ];
   const handleCityClick = (city) => {

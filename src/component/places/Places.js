@@ -8,46 +8,46 @@ const normalizeName = (name) =>
 
 // 🔹 City → Image mapping
 const cityImages = {
-  "shimla, himachal pradesh": "/images/shimla.jpg",
-  "manali, himachal pradesh": "/images/manali.jpg",
-  "srinagar, jammu and kashmir": "/images/srinagar.jpg",
-  "darjeeling, west bengal": "/images/darjeeling.jpg",
-  "munnar, kerala": "/images/munnar.jpg",
-  "ooty, tamil nadu": "/images/ooty.jpg",
-  "mussoorie, uttarakhand": "/images/mussoorie.jpg",
-  "leh, jammu and kashmir": "/images/leh.jpg",
+  "shimla, himachal pradesh": "/Images/shimla.jpg",
+  "manali, himachal pradesh": "/Images/manali.jpg",
+  "srinagar, jammu and kashmir": "/Images/srinagar.jpg",
+  "darjeeling, west bengal": "/Images/darjeeling.jpg",
+  "munnar, kerala": "/Images/munnar.jpg",
+  "ooty, tamil nadu": "/Images/ooty.jpg",
+  "mussoorie, uttarakhand": "/Images/mussoorie.jpg",
+  "leh, jammu and kashmir": "/Images/leh.jpg",
 
-  "varanasi, uttar pradesh": "/images/varanasi.jpg",
-  "srikalahasti": "/images/srikalahasti.jpg",
-  "hampi, karnataka": "/images/hampi.jpg",
-  "prayagraj (formally-allahabad), uttar pradesh": "/images/prayagraj.jpg",
-  "kedarnath, uttarakhand": "/images/kedarnath.jpg",
-  "vrindavan, uttar pradesh": "/images/vrindavan.jpg",
-  "rishikesh, uttarakhand": "/images/rishikesh.jpg",
-  "gokul, mathura": "/images/gokul.jpg",
+  "varanasi, uttar pradesh": "/Images/varanasi.jpg",
+  "srikalahasti": "/Images/srikalahasti.jpg",
+  "hampi, karnataka": "/Images/hampi.jpg",
+  "prayagraj (formally-allahabad), uttar pradesh": "/Images/prayagraj.jpg",
+  "kedarnath, uttarakhand": "/Images/kedarnath.jpg",
+  "vrindavan, uttar pradesh": "/Images/vrindavan.jpg",
+  "rishikesh, uttarakhand": "/Images/rishikesh.jpg",
+  "gokul, mathura": "/Images/gokul.jpg",
 
-  "auli, uttarakhand": "/images/auli.jpg",
-  "gangtok, sikkim": "/images/gangtok.jpg",
-  "alleppey/alappuzha, kerala": "/images/alleppey.jpg",
-  "coorg, karnataka": "/images/coorg.jpg",
-  "gulmarg, jammu and kashmir": "/images/gulmarg.jpg",
-  "dalhousie, himachal pradesh": "/images/dalhousie.jpg",
+  "auli, uttarakhand": "/Images/auli.jpg",
+  "gangtok, sikkim": "/Images/gangtok.jpg",
+  "alleppey/alappuzha, kerala": "/Images/alleppey.jpg",
+  "coorg, karnataka": "/Images/coorg.jpg",
+  "gulmarg, jammu and kashmir": "/Images/gulmarg.jpg",
+  "dalhousie, himachal pradesh": "/Images/dalhousie.jpg",
 
-  "kutch, gujarat": "/images/kutch.jpg",
-  "jaisalmer, rajasthan": "/images/jaisalmer.jpg",
-  "barmer, rajasthan": "/images/barmer.jpg",
-  "wuste thar, rajasthan": "/images/thar.jpg",
-  "jodhpur, rajasthan": "/images/jodhpur.jpg",
-  "khimsar, rajasthan": "/images/khimsar.jpg",
-  "jaipur, rajasthan": "/images/jaipur.jpg",
+  "kutch, gujarat": "/Images/kutch.jpg",
+  "jaisalmer, rajasthan": "/Images/jaisalmer.jpg",
+  "barmer, rajasthan": "/Images/barmer.jpg",
+  "wuste thar, rajasthan": "/Images/thar.jpg",
+  "jodhpur, rajasthan": "/Images/jodhpur.jpg",
+  "khimsar, rajasthan": "/Images/khimsar.jpg",
+  "jaipur, rajasthan": "/Images/jaipur.jpg",
 
-  "dharamshala, himachal pradesh": "/images/dharamshala.jpg",
-  "kasauli, himachal pradesh": "/images/kasauli.jpg",
-  "madikeri, karnataka": "/images/madikeri.jpg",
-  "nainital, uttarakhand": "/images/nainital.jpg",
-  "lonavala, maharashtra": "/images/lonavala.jpg",
-  "matheran, maharashtra": "/images/matheran.jpg",
-  "ranikhet, uttarakhand": "/images/ranikhet.jpg",
+  "dharamshala, himachal pradesh": "/Images/dharamshala.jpg",
+  "kasauli, himachal pradesh": "/Images/kasauli.jpg",
+  "madikeri, karnataka": "/Images/madikeri.jpg",
+  "nainital, uttarakhand": "/Images/nainital.jpg",
+  "lonavala, maharashtra": "/Images/lonavala.jpg",
+  "matheran, maharashtra": "/Images/matheran.jpg",
+  "ranikhet, uttarakhand": "/Images/ranikhet.jpg",
 };
 
 function Places() {
@@ -87,7 +87,7 @@ function Places() {
                 <img
                   src={
                     cityImages[normalizeName(city.name)] ||
-                    "/images/default.jpg"
+                    "/Images/default.jpg"
                   }
                   className="card-img-top rounded-top-4"
                   alt={city.name}

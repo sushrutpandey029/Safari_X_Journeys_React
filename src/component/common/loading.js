@@ -11,7 +11,7 @@ const Loading = ({ text = "Loading..." }) => {
         {/* 🔵 Circle + Logo in Center */}
         <div className="circle-loader">
           <img
-            src="/images/Safarix-Blue-Logo.png"
+            src="/Images/Safarix-Blue-Logo.png"
             alt="loader-logo"
             className="loader-center-logo"
           />

@@ -54,9 +54,9 @@ const Guidedetail = () => {
   const numberOfDays =
     startDate && endDate
       ? Math.ceil(
-          (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-            (1000 * 3600 * 24)
-        ) + 1
+        (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+        (1000 * 3600 * 24)
+      ) + 1
       : 1;
 
   const handleUserFormChange = (e) => {
@@ -131,7 +131,7 @@ const Guidedetail = () => {
       const bookingData = {
         userId: userdetails?.id,
         serviceType: "guide",
-        vendorType:"guide",
+        vendorType: "guide",
         vendorId: guide.guideId,
         serviceDetails: {
           guideId: guide.guideId,
@@ -198,443 +198,223 @@ const Guidedetail = () => {
     );
   };
 
-  return (
-    <div className="guidedetail-container">
-      {/* Header */}
-      <div className="guide-header">
-        <div className="guide-main-info">
-          {/* Guide Profile Image */}
-          <div className="guide-profile-image">
-            <img
-              src={`${BASE_URL}/uploads/guides/${guide.profileImage}`}
-              alt={guide.fullName}
-              className="profile-img"
-              onError={(e) => {
-                e.target.src = "/default-avatar.png";
-                e.target.onerror = null;
-              }}
-            />
-          </div>
+ return (
+  <div className="guidedetail-container">
+    <div className="container">
 
-          <div className="guide-basic-info">
-            <h1 className="guide-name">{guide.fullName}</h1>
-            <div className="location-experience">
-              <span className="location">
-                📍 {guide.city}, {guide.state}
-              </span>
-              {/* <span className="experience">
-                ⭐ {guide.workExperience?.[0]?.years}+ years Experience
-              </span> */}
-            </div>
-          </div>
+      {/* ================= HEADER ================= */}
+      <div className="guide-header mb-4">
+        <div className="row align-items-center">
 
-          <div className="language-rating-section">
-            <div className="primary-language">
-              <h3>
-                🗣️ {guide.languageProficiency?.[0]?.language || "English"}
-              </h3>
-              <div className="rating">
-                <strong>4.8</strong> ⭐ (120 reviews)
+          {/* Left Info */}
+          <div className="col-lg-8 col-md-12">
+            <div className="d-flex flex-wrap gap-3 align-items-center">
+
+              <div className="guide-profile-image">
+                <img
+                  src={`${BASE_URL}/uploads/guides/${guide.profileImage}`}
+                  alt={guide.fullName}
+                  className="profile-img"
+                  onError={(e) => {
+                    e.target.src = "/default-avatar.png";
+                    e.target.onerror = null;
+                  }}
+                />
               </div>
-            </div>
-            <div className="other-languages-table">
-              <table>
-                <tbody>
-                  <tr>
-                    {guide.languageProficiency?.slice(1).map((lang, index) => (
-                      <td key={index}>• {lang.language}</td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+
+              <div className="guide-basic-info">
+                <h1 className="guide-name">{guide.fullName}</h1>
+                <span>📍 {guide.city}, {guide.state}</span>
+              </div>
+
             </div>
           </div>
-        </div>
-        <div className="specialties-section">
-          {guide.typesOfTours?.map((specialty, index) => (
-            <div key={index} className="specialty-item">
-              🎯 {specialty}
-            </div>
-          ))}
+
+          {/* Right Info */}
+          <div className="col-lg-4 col-md-12 text-lg-end mt-3 mt-lg-0">
+            <h5>
+              🗣️ {guide.languageProficiency?.[0]?.language || "English"}
+            </h5>
+            <strong>4.8 ⭐ (120 reviews)</strong>
+          </div>
+
         </div>
 
-        {/* Show selected date range from previous page */}
-        {startDate && endDate && (
-          <div className="selected-date-range">
-            <div className="range-badge">
-              <span className="range-icon">📅</span>
-              Selected Dates: {formatDate(startDate)} to {formatDate(endDate)}
-              <span className="price-breakdown">
-                ({numberOfDays} days × Rs. {guide.chargesPerDay} = Rs.{" "}
-                {totalPrice})
+        {/* Specialties */}
+        <div className="row mt-3">
+          <div className="col-12 d-flex flex-wrap gap-2">
+            {guide.typesOfTours?.map((specialty, index) => (
+              <span key={index} className="specialty-item">
+                🎯 {specialty}
               </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Selected Date */}
+        {startDate && endDate && (
+          <div className="row mt-3">
+            <div className="col-12">
+              📅 {formatDate(startDate)} to {formatDate(endDate)} (
+              {numberOfDays} days × Rs. {guide.chargesPerDay} = Rs. {totalPrice})
             </div>
           </div>
         )}
 
-        {/* Show selected city from previous page */}
+        {/* Selected City */}
         {selectedCity && (
-          <div className="selected-city-badge">
-            <div className="city-badge">
-              <span className="city-icon">📍</span>
-              Selected City: <strong>{selectedCity}</strong>
+          <div className="row mt-2">
+            <div className="col-12">
+              📍 Selected City: <strong>{selectedCity}</strong>
             </div>
           </div>
         )}
       </div>
 
-      {/* Main Content */}
-    <div className="main-content-layout">
-        {/* Left Content */}
-        <div className="content-area">
-          <div className="tabs-navigation">
-            {["about", "tours", "reviews"].map((tab) => (
-              <button
-                key={tab}
-                className={`tab ${activeTab === tab ? "active" : ""}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                <span className="tab-text">
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </span>
-                <span className="tab-indicator"></span>
-              </button>
-            ))}
-          </div>
-          {activeTab === "about" && (
-            <div className="about-content">
-              <h2 className="section-title">About Me</h2>
-              <p className="description">{guide.professionalSummary}</p>
+      {/* ================= MAIN CONTENT ================= */}
+      <div className="row">
 
-              <div className="certifications-section">
-                <h3 className="section-subtitle">Certifications</h3>
-                <div className="certifications-list">
-                  {guide.certifications?.map((cert, index) => (
-                    <div key={index} className="certification-item">
-                      <div className="certification-icon">🏆</div>
-                      <div className="certification-details">
-                        <div className="certification-name">{cert.name}</div>
-                        <div className="certification-org">{cert.year}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* LEFT CONTENT */}
+        <div className="col-lg-8 col-md-12">
+          <div className="content-area">
+
+            {/* Tabs */}
+            <div className="tabs-navigation mb-3">
+              {["about", "tours", "reviews"].map((tab) => (
+                <button
+                  key={tab}
+                  className={`tab ${activeTab === tab ? "active" : ""}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab.toUpperCase()}
+                </button>
+              ))}
             </div>
-          )}
 
-          {activeTab === "tours" && (
-            <div className="tours-content">
-              <h2 className="section-title">Types of Tours</h2>
-              <ul className="tours-list">
-                {guide.typesOfTours?.map((tour, index) => (
-                  <li key={index} className="tour-item">
-                    🗺️ {tour}
-                  </li>
+            {/* About */}
+            {activeTab === "about" && (
+              <>
+                <h4>About Me</h4>
+                <p>{guide.professionalSummary}</p>
+              </>
+            )}
+
+            {/* Tours */}
+            {activeTab === "tours" && (
+              <ul>
+                {guide.typesOfTours?.map((tour, i) => (
+                  <li key={i}>🗺️ {tour}</li>
                 ))}
               </ul>
-            </div>
-          )}
+            )}
 
-          {activeTab === "reviews" && (
-            <div className="reviews-content">
-              <h2 className="section-title">Customer Reviews</h2>
-              <div className="reviews-placeholder">
-                <div className="review-icon">💬</div>
-                <p>No reviews yet.</p>
-                <small>Be the first to share your experience!</small>
-              </div>
-            </div>
-          )}
+            {/* Reviews */}
+            {activeTab === "reviews" && (
+              <p>No reviews yet.</p>
+            )}
 
-          <div className="user-form-section">
-            <div className="user-form-container">
-              <div className="user-form-header">
-                <h2 className="user-form-title">User Detail</h2>
-              </div>
+            {/* User Form */}
+            <div className="user-form-section mt-4">
+              <h4>User Detail</h4>
 
-              <div className="user-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="userName" className="form-label">
-                      <span className="required">*</span> Full Name
-                    </label>
-                    <input
-                      type="text"
-                      id="userName"
-                      name="name"
-                      value={userForm.name}
-                      onChange={handleUserFormChange}
-                      required
-                      placeholder="Enter your full name"
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="userPhone" className="form-label">
-                      <span className="required">*</span> Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="userPhone"
-                      name="phone"
-                      value={userForm.phone}
-                      onChange={handleUserFormChange}
-                      required
-                      placeholder="Enter your phone number"
-                      className="form-input"
-                      maxLength="10"
-                    />
-                  </div>
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <input
+                    type="text"
+                    name="name"
+                    value={userForm.name}
+                    onChange={handleUserFormChange}
+                    className="form-control"
+                    placeholder="Full Name"
+                  />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="userAddress" className="form-label">
-                    <span className="required">*</span> Address
-                  </label>
+                <div className="col-md-6 mb-3">
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={userForm.phone}
+                    onChange={handleUserFormChange}
+                    className="form-control"
+                    placeholder="Phone Number"
+                  />
+                </div>
+
+                <div className="col-12 mb-3">
                   <textarea
-                    id="userAddress"
                     name="address"
                     value={userForm.address}
                     onChange={handleUserFormChange}
-                    required
-                    placeholder="Enter your complete address"
+                    className="form-control"
                     rows="3"
-                    className="form-textarea"
+                    placeholder="Address"
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="userLocation" className="form-label">
-                    Selected Tour Location
-                  </label>
+                <div className="col-12">
                   <input
-                    type="text"
-                    id="userLocation"
-                    name="location"
+                    readOnly
+                    className="form-control"
                     value={
                       selectedCity ||
-                      `${guide?.city}, ${guide?.state}, ${guide?.country}`
+                      `${guide.city}, ${guide.state}, ${guide.country}`
                     }
-                    readOnly
-                    className="form-input location-field"
                   />
-                  <small className="location-note">
-                    City selected from previous page
-                  </small>
-                </div>
-
-                <div className="form-status">
-                  <p className="status-message">
-                    ✅ Your details will be used for booking and messaging
-                  </p>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
-        {/* Right Sidebar */}
-        <div className="booking-sidebar">
-          <div className="date-selection-widget">
-            <h3 className="widget-title">Select Your Dates</h3>
 
-            {/* Simple Date Inputs */}
-            <div className="date-inputs">
-              <div className="date-input-group">
-                <label htmlFor="startDate" className="date-label">
-                  Start Date
-                </label>
+        {/* RIGHT SIDEBAR */}
+        <div className="col-lg-4 col-md-12 mt-4 mt-lg-0">
+          <div className="booking-sidebar">
+
+            <div className="card mb-3">
+              <div className="card-body">
+                <h5>Select Dates</h5>
                 <input
                   type="date"
-                  id="startDate"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="date-input"
-                  min={new Date().toISOString().split("T")[0]}
+                  className="form-control mb-2"
                 />
-              </div>
-
-              <div className="date-input-group">
-                <label htmlFor="endDate" className="date-label">
-                  End Date
-                </label>
                 <input
                   type="date"
-                  id="endDate"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="date-input"
-                  min={startDate || new Date().toISOString().split("T")[0]}
-                  max={endDate}
+                  className="form-control"
                 />
               </div>
             </div>
 
-            {/* Date Summary */}
-            {startDate && endDate && (
-              <div className="date-summary">
-                <div className="summary-item">
-                  <span>Start Date:</span>
-                  <strong>{formatDate(startDate)}</strong>
-                </div>
-                <div className="summary-item">
-                  <span>End Date:</span>
-                  <strong>{formatDate(endDate)}</strong>
-                </div>
-                <div className="summary-item">
-                  <span>Number of Days:</span>
-                  <strong>{numberOfDays}</strong>
-                </div>
-                <div className="summary-item total">
-                  <span>Total Amount:</span>
-                  <strong>Rs. {totalPrice}</strong>
-                </div>
+            <div className="card mb-3">
+              <div className="card-body">
+                <p>📍 {guide.city}, {guide.state}</p>
+                <p>💰 Rs. {guide.chargesPerDay} / day</p>
+                {startDate && endDate && (
+                  <p><b>Total: Rs. {totalPrice}</b></p>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Rest of your sidebar widgets */}
-          <div className="quick-info-widget">
-            <h3 className="widget-title">Quick Info</h3>
-            <ul className="quick-info-list">
-              <li>
-                <span className="info-icon">📅</span>
-                Available Days:{" "}
-                {Array.isArray(guide.availability?.days)
-                  ? guide.availability.days.join(", ")
-                  : "Not available"}
-              </li>
-              <li>
-                <span className="info-icon">👥</span>
-                Group Size: {guide.groupSizesManaged}
-              </li>
-              <li>
-                <span className="info-icon">📍</span>
-                Location: {guide.city}, {guide.state}
-              </li>
-              <li>
-                <span className="info-icon">💰</span>
-                Charges per day: <b>Rs. {guide.chargesPerDay}</b>
-              </li>
-              {startDate && endDate && (
-                <>
-                  <li>
-                    <span className="info-icon">⏱️</span>
-                    Your Dates: {formatDate(startDate)} - {formatDate(endDate)}
-                  </li>
-                  <li>
-                    <span className="info-icon">📊</span>
-                    Total Amount: <b>Rs. {totalPrice}</b>
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-
-          <div className="contact-widget">
-            <h3 className="widget-title">Contact Information</h3>
-            <div className="contact-info">
-              <p>📧 {guide.emailAddress}</p>
-              <p>📞 {guide.phoneNumber}</p>
             </div>
-          </div>
 
-          <div className="action-buttons">
-            <button className="book-now-button" onClick={handleBookNow}>
-              <span className="button-icon">🎯</span>
-              Book Now
+            <button className="btn btn-primary w-100 mb-2" onClick={handleBookNow}>
+              🎯 Book Now
             </button>
-            <button className="message-button" onClick={handleSendMessage}>
-              <span className="button-icon">💬</span>
-              Send Message
+
+            <button className="btn btn-outline-secondary w-100" onClick={handleSendMessage}>
+              💬 Send Message
             </button>
+
           </div>
         </div>
+
       </div>
-
-      {/* Booking Form Modal */}
-      {showBookingForm && (
-        <div className="booking-form-overlay">
-          <div className="booking-form-container">
-            <div className="booking-form-header">
-              <h2>Complete Your Booking</h2>
-              <button
-                className="close-button"
-                onClick={() => setShowBookingForm(false)}
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleFormSubmit} className="booking-form">
-              <div className="booking-summary">
-                <h4>Booking Summary</h4>
-                <div className="summary-item">
-                  <span>Guide:</span>
-                  <span>{guide.fullName}</span>
-                </div>
-                <div className="summary-item">
-                  <span>Date Range:</span>
-                  <span>
-                    {formatDate(startDate)} to {formatDate(endDate)}
-                  </span>
-                </div>
-                <div className="summary-item">
-                  <span>Number of Days:</span>
-                  <span>{numberOfDays}</span>
-                </div>
-                <div className="summary-item">
-                  <span>Start Date:</span>
-                  <span>{startDate}</span>
-                </div>
-                <div className="summary-item">
-                  <span>End Date:</span>
-                  <span>{endDate}</span>
-                </div>
-                <div className="summary-item">
-                  <span>Selected City:</span>
-                  <span>{selectedCity}</span>
-                </div>
-                <div className="summary-item">
-                  <span>Customer:</span>
-                  <span>{userForm.name}</span>
-                </div>
-                <div className="summary-item">
-                  <span>Contact:</span>
-                  <span>{userForm.phone}</span>
-                </div>
-                <div className="summary-item price-breakdown">
-                  <span>Price Breakdown:</span>
-                  <span>
-                    {numberOfDays} days × Rs. {guide.chargesPerDay}
-                  </span>
-                </div>
-                <div className="summary-item total">
-                  <span>Total Amount:</span>
-                  <span>Rs. {totalPrice}</span>
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => setShowBookingForm(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="submit-button">
-                  <span className="button-icon">💳</span>
-                  Proceed to Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
-  );
+  </div>
+);
+
 };
 
 export default Guidedetail;

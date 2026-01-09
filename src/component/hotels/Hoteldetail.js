@@ -222,11 +222,32 @@ const HotelDetail = () => {
   return (
     <div>
       <div className="hotel-detail-page">
+           
+
         <div className="container">
-          <div className="row">
-            <div className="row g-3">
+
+                 <div className="col-sm-12 border-bottom mb-4 pb-3">
+  <nav aria-label="breadcrumb ">
+    <ol className="breadcrumb mb-0">
+      <li className="breadcrumb-item">
+        <a href="/">Home</a>
+      </li>
+
+      <li className="breadcrumb-item">
+        <a href="/hotel-list">Hotels</a>
+      </li>
+
+      <li className="breadcrumb-item active" aria-current="page">
+        Hotel Detail
+      </li>
+    </ol>
+  </nav>
+</div>
+            <div className="row">
+
+                        
               {/* Left - Images */}
-              <div className="col-md-7">
+              <div className="col-md-6">
                 <a
                   href={hotel.images[0]}
                   data-fancybox="gallery"
@@ -303,7 +324,7 @@ const HotelDetail = () => {
               </div>
 
               {/* Right - Details */}
-              <div className="col-md-5">
+              <div className="col-md-6">
                 <div className="right-details">
                   {/* Title & Rating */}
                   <h3 className="fw-bold">{hotel.location}</h3>
@@ -368,7 +389,6 @@ const HotelDetail = () => {
                 </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
 

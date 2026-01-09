@@ -36,7 +36,7 @@ function FAQ() {
             <h2 className="faq-title-left">Frequently <span>Asked</span> <br/> Questions</h2>
   
             <img
-              src="/images/faq.png"  
+              src="/Images/faq.png"  
               alt="faq"
               className="faq-gif"
             />

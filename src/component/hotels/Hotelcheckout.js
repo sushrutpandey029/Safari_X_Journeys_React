@@ -8,6 +8,7 @@ const HotelCheckout = () => {
   const location = useLocation();
   const { payload } = location.state;
   console.log("data from previous page on checkout", payload);
+  console.log("data from previous page on checkout", payload);
   const { startPayment } = useCashfreePayment();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -18,10 +19,12 @@ const HotelCheckout = () => {
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(false);
 
+
   const [startDate, setStartDate] = useState(payload?.startDate || "");
   const [endDate, setEndDate] = useState(payload?.endDate || "");
   const [city, setCity] = useState(payload?.city || "");
   const [roomsData, setRoomsData] = useState([]); // For dynamic rooms & passengers
+
 
   const [price, setPrice] = useState({
     basePrice: 0,
@@ -30,9 +33,25 @@ const HotelCheckout = () => {
   });
   useEffect(() => {
     if (!payload || !payload.serviceDetails) return;
+ 
 
-    const details = payload.serviceDetails;
+     const details = payload.serviceDetails;
 
+    // HOTEL BASIC INFO
+    setHotel({
+      id: details.hotelCode || "N/A",
+      name: details.hotelName || "Hotel Name",
+      location: details.city || details.Location || "Location",
+      rating: details.hotelRating || 0,
+      rooms: details.NoOfRooms || 0,
+      address: details.hotelAddress || "Address not available",
+      hotelCode: details.hotelCode,
+      bookingCode: details.BookingCode,
+      currency: details.currency || "INR",
+      guestNationality: details.GuestNationality,
+      responseTime: details.ResponseTime,
+      isDetailedResponse: details.IsDetailedResponse,
+    });
     // HOTEL BASIC INFO
     setHotel({
       id: details.hotelCode || "N/A",
@@ -51,23 +70,41 @@ const HotelCheckout = () => {
 
     // ✅ CORRECT PRICE EXTRACTION
     const basePrice = Number(details?.PriceBreakUp?.[0]?.RoomRate) || 0;
+ 
 
-    const tax = Number(details?.TotalTax) || 0;
+     const tax = Number(details?.TotalTax) || 0;
 
-    const totalFare = Number(details?.TotalFare) || 0;
+     const totalFare = Number(details?.TotalFare) || 0;
 
     setPrice({
       basePrice,
       tax,
       totalFare,
     });
+  
 
     // PASSENGERS
     const rooms = details.PaxRooms || [];
+  
 
     const roomsWithPassengers = rooms.map((room) => {
       const passengers = [];
+    const roomsWithPassengers = rooms.map((room) => {
+      const passengers = [];
 
+      for (let i = 0; i < (room.Adults || 0); i++) {
+        passengers.push({
+          Title: "Mr",
+          FirstName: "",
+          MiddleName: "",
+          LastName: "",
+          Email: "",
+          Age: "",
+          PAN: "",
+          PaxType: 1,
+          LeadPassenger: i === 0,
+        });
+      }
       for (let i = 0; i < (room.Adults || 0); i++) {
         passengers.push({
           Title: "Mr",
@@ -95,12 +132,28 @@ const HotelCheckout = () => {
           LeadPassenger: false,
         });
       }
+      for (let j = 0; j < (room.Children || 0); j++) {
+        passengers.push({
+          Title: "Master",
+          FirstName: "",
+          MiddleName: "",
+          LastName: "",
+          Email: "",
+          Age: room.ChildrenAges?.[j] || "",
+          PAN: "",
+          PaxType: 2,
+          LeadPassenger: false,
+        });
+      }
 
+      return { passengers };
+    });
       return { passengers };
     });
 
     setRoomsData(roomsWithPassengers);
   }, [payload]);
+  
 
   const handlePassengerChange = (roomIndex, passengerIndex, field, value) => {
     const updatedRooms = [...roomsData];
@@ -187,6 +240,8 @@ const HotelCheckout = () => {
         vendorId: hotel?.hotelCode,
         startDate: startDate,
 
+        // totalAmount: finalNetAmount,
+        totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
         // totalAmount: finalNetAmount,
         totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
 
@@ -417,7 +472,7 @@ const HotelCheckout = () => {
 
               <button
                 type="submit"
-                className="btn btn-primary w-100 py-2 fw-bold"
+                className="explore-btn"
                 disabled={preBookLoading}
               >
                 {preBookLoading ? "Checking Availability..." : "Continue"}
@@ -427,6 +482,10 @@ const HotelCheckout = () => {
         </div>
 
         {/* RIGHT SIDE: PRICE SUMMARY */}
+        <div className="col-md-4">
+          {/* PRICE CARD */}
+          <div className="card shadow-sm p-4 rounded-4 mb-3 price-card">
+            <h5 className="fw-bold text-center mb-3">💰 Price Summary</h5>
         <div className="col-md-4">
           {/* PRICE CARD */}
           <div className="card shadow-sm p-4 rounded-4 mb-3 price-card">
@@ -464,6 +523,15 @@ const HotelCheckout = () => {
 
           </div>
 
+          {/* CANCELLATION CARD */}
+          <div className="card shadow-sm p-3 rounded-4">
+            <h6 className="fw-bold mb-2">📝 Cancellation Policy</h6>
+            <p className="text-success mb-1">✔ Free Cancellation Available</p>
+            <small className="text-muted">
+              Cancel anytime before check-in date.
+            </small>
+          </div>
+        </div>
           {/* CANCELLATION CARD */}
           <div className="card shadow-sm p-3 rounded-4">
             <h6 className="fw-bold mb-2">📝 Cancellation Policy</h6>
@@ -511,6 +579,11 @@ const HotelCheckout = () => {
               {Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount)}
             </h4>
             {/* <h4>Final Price: ₹{finalNetAmount.toFixed()}</h4> */}
+            <h4>
+              Final Price: ₹
+              {Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount)}
+            </h4>
+            {/* <h4>Final Price: ₹{finalNetAmount.toFixed()}</h4> */}
 
             <div className="modal-actions">
               <button onClick={() => setShowConfirmModal(false)}>Cancel</button>
@@ -522,6 +595,7 @@ const HotelCheckout = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

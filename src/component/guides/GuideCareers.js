@@ -1064,9 +1064,10 @@ const GuideCareers = () => {
                 />
               </div>
             </div>
+           
           </div>
         </div>
-
+          <p>*Note: If selected, Guides are required to provide police verification from their local police station.</p>
         <button type="submit" className="explore-btn">
           Submit Application
         </button>

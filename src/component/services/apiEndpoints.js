@@ -18,7 +18,7 @@ export const API = {
   NEWSLATER: `${BASE_URL}/api/news/later`,
   CHATBOT_SUBMIT: `${BASE_URL}/api/chatbot`,
   GET_ALL_CITIES: `${BASE_URL}/api/getCities`,
-
+  
   //user
   REGISTER_OR_LOGIN: `${BASE_URL}/api/user/register-or-login`,
   USER_VERIFY_OTP: `${BASE_URL}/api/user/verify-email-otp`,
@@ -51,8 +51,7 @@ export const API = {
   CREATE_BOOKING_DRAFT: `${BASE_URL}/api/booking/create-draft`,
   INITIATE_PAYMENT: `${BASE_URL}/api/payment/initiate`,
   CHECK_PAYMENT_STATUS: `${BASE_URL}/api/payment/verify`,
-  GET_PAYMENT_STATUS: (orderId) =>
-    `${BASE_URL}/api/payment-status?order_id=${orderId}`,
+  GET_PAYMENT_STATUS: (orderId) =>`${BASE_URL}/api/payment-status?order_id=${orderId}`,
 
   // hotels
   // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
@@ -67,8 +66,7 @@ export const API = {
   HOTEL_CANCEL: `${BASE_URL}/api/hotel/cancel`,
   HOTEL_CANCEL_STATUS: `${BASE_URL}/api/hotel/cancel-status`,
   USER_HOTEL_BOOKING_DETAILS: `${BASE_URL}/api/booking-detail`,
-  HOTEL_BY_CATEGORY: `${BASE_URL}/api/getHotelCityByCategory`,
-
+ 
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
   Flight_authenticate: `${BASE_URL}/flight/authenticate`,
