@@ -10,7 +10,7 @@ import { chatbotSubmit } from "../services/commonService";
 <link
   href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
   rel="stylesheet"
-/>
+/>;
 
 function BotModal() {
   const navigate = useNavigate();
@@ -22,6 +22,8 @@ function BotModal() {
     noOfChildren: "0",
     cabNeed: "Yes",
     purposeType: "Tourism",
+      mood: "",
+
   });
 
   const [errors, setErrors] = useState({});
@@ -72,6 +74,7 @@ function BotModal() {
         noOfAdults: formData.noOfAdults,
         noOfChildren: formData.noOfChildren,
         purposeType: formData.purposeType,
+        mood: formData.mood,
       };
 
       const response = await chatbotSubmit(payload);
@@ -90,136 +93,203 @@ function BotModal() {
   };
 
   return (
-<div className=" trip-container">
-  <div className="trip-hero">
-    <div className="container">
-      <div className="row">
-        <h1>Plan Your Dream Trip</h1>
-    <p>Let AI design a journey tailored just for you</p>
-      </div>
-    </div>
-    
-  </div>
-
-  <div className="container trip-glass-card">
-    <div className="row g-5">
-
-      {/* LEFT */}
-      <div className="col-lg-8">
-        <h4 className="form-title">Travel Details</h4>
-
-        <Form>
-          <Row>
-
-            <Col md={6} className="mb-4">
-              <div className="input-group-modern">
-                <i className="bi bi-geo-alt"></i>
-                <Form.Control
-                  placeholder="From (Delhi)"
-                  name="fromDestination"
-                  value={formData.fromDestination}
-                  onChange={handleChange}
-                />
-              </div>
-            </Col>
-
-            <Col md={6} className="mb-4">
-              <div className="input-group-modern">
-                <i className="bi bi-flag"></i>
-                <Form.Control
-                  placeholder="To (Jaipur)"
-                  name="toDestination"
-                  value={formData.toDestination}
-                  onChange={handleChange}
-                />
-              </div>
-            </Col>
-
-            <Col md={6} className="mb-4">
-              <div className="input-group-modern">
-                <i className="bi bi-person"></i>
-                <Form.Select
-                  name="noOfAdults"
-                  value={formData.noOfAdults}
-                  onChange={handleChange}
-                >
-                  {[1,2,3,4,5].map(n=>(
-                    <option key={n}>{n} Adults</option>
-                  ))}
-                </Form.Select>
-              </div>
-            </Col>
-
-            <Col md={6} className="mb-4">
-              <div className="input-group-modern">
-                <i className="bi bi-people"></i>
-                <Form.Select
-                  name="noOfChildren"
-                  value={formData.noOfChildren}
-                  onChange={handleChange}
-                >
-                  {[0,1,2,3].map(n=>(
-                    <option key={n}>{n} Children</option>
-                  ))}
-                </Form.Select>
-              </div>
-            </Col>
-
-            <Col md={12} className="mb-4">
-              <div className="input-group-modern">
-                <i className="bi bi-bullseye"></i>
-                <Form.Select
-                  name="purposeType"
-                  value={formData.purposeType}
-                  onChange={handleChange}
-                >
-                  <option>Tourism</option>
-                  <option>Business</option>
-                  <option>Honeymoon</option>
-                  <option>Adventure</option>
-                </Form.Select>
-              </div>
-            </Col>
-
-          </Row>
-        </Form>
-
-        <div className="text-end mt-4">
-          <button className="ai-btn" onClick={handleSubmitWithChatbot}>
-            Generate AI Plan
-          </button>
-        </div>
-
-        {chatbotReply && (
-          <div className="ai-response">
-            <h3>Your Personalized Itinerary</h3>
-            <pre>{chatbotReply}</pre>
+    <div className=" trip-container">
+      <div className="trip-hero">
+        <div className="container">
+          <div className="row">
+            <h1>Plan Your Dream Trip</h1>
+            <p>Lets design a journey tailored just for you</p>
           </div>
-        )}
-      </div>
-
-      {/* RIGHT */}
-      <div className="col-lg-4">
-        <div className="assistant-card sticky-top">
-          <h5>AI Travel Assistant</h5>
-          <p>
-            Smart itinerary planning based on your preferences,
-            time and budget.
-          </p>
-
-          <ul>
-            <li><i className="bi bi-check-circle"></i> Smart route planning</li>
-            <li><i className="bi bi-check-circle"></i> Budget friendly</li>
-            <li><i className="bi bi-check-circle"></i> Time optimized</li>
-          </ul>
         </div>
       </div>
 
-    </div>
+      <div className="container trip-glass-card">
+        <div className="row g-5">
+          {/* LEFT */}
+          <div className="col-lg-8">
+            <h4 className="form-title">Travel Details</h4>
+
+            <Form>
+              <Row>
+
+                <Col md={12} className="mb-4">
+  <div className="input-group-modern">
+    <i className="bi bi-emoji-smile"></i>
+    <Form.Select
+      name="mood"
+      value={formData.mood}
+      onChange={handleChange}
+    >
+      <option value="">Select your mood (optional)</option>
+      <option value="Relaxed">Relaxed</option>
+      <option value="Happy">Happy</option>
+      <option value="Adventurous">Adventurous</option>
+      <option value="Romantic">Romantic</option>
+      <option value="Low or Tired">Low or Tired</option>
+      <option value="Spiritual">Spiritual</option>
+    </Form.Select>
   </div>
-</div>
+</Col>
 
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <Form.Control
+                      type="date"
+                      placeholder="Start Date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Col>
 
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <Form.Control
+                      type="date"
+                      placeholder="End Date"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Col>
+
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <i className="bi bi-currency-rupee"></i>
+                    <Form.Control
+                      type="number"
+                      placeholder="Budget (₹)"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Col>
+
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <i className="bi bi-geo-alt"></i>
+                    <Form.Control
+                      placeholder="From (Delhi)"
+                      name="fromDestination"
+                      value={formData.fromDestination}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Col>
+
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <i className="bi bi-flag"></i>
+                    <Form.Control
+                      placeholder="To (Jaipur)"
+                      name="toDestination"
+                      value={formData.toDestination}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </Col>
+
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <i className="bi bi-person"></i>
+                    <Form.Select
+                      name="noOfAdults"
+                      value={formData.noOfAdults}
+                      onChange={handleChange}
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n}>{n} Adults</option>
+                      ))}
+                    </Form.Select>
+                  </div>
+                </Col>
+
+                <Col md={6} className="mb-4">
+                  <div className="input-group-modern">
+                    <i className="bi bi-people"></i>
+                    <Form.Select
+                      name="noOfChildren"
+                      value={formData.noOfChildren}
+                      onChange={handleChange}
+                    >
+                      {[0, 1, 2, 3].map((n) => (
+                        <option key={n}>{n} Children</option>
+                      ))}
+                    </Form.Select>
+                  </div>
+                </Col>
+
+                <Col md={12} className="mb-4">
+                  <div className="input-group-modern">
+                    <i className="bi bi-bullseye"></i>
+                    <Form.Select
+                      name="purposeType"
+                      value={formData.purposeType}
+                      onChange={handleChange}
+                    >
+                      <option>Tourism</option>
+                      <option>Business</option>
+                      <option>Honeymoon</option>
+                      <option>Adventure</option>
+                    </Form.Select>
+                  </div>
+                </Col>
+              </Row>
+            </Form>
+
+            <div className="text-end mt-4">
+              <button className="ai-btn" onClick={handleSubmitWithChatbot}>
+                Ask Arix..
+              </button>
+            </div>
+            {chatbotReply && (
+              <div className="ai-response">
+                <h3>Your Travel Plan</h3>
+                <div
+                  className="ai-response-text"
+                  dangerouslySetInnerHTML={{
+                    __html: chatbotReply
+                      .replace(
+                        /(http:\/\/localhost:3000\/[^\s]+)/g,
+                        '<a href="$1" target="_blank">$1</a>'
+                      )
+                      .replace(/\n/g, "<br/>"),
+                  }}
+                />
+              </div>
+            )}
+
+           
+          </div>
+
+          {/* RIGHT */}
+          <div className="col-lg-4">
+            <div className="assistant-card sticky-top">
+              <h5> Travel Assistant</h5>
+              <p>
+                Smart itinerary planning based on your preferences, time and
+                budget.
+              </p>
+
+              <ul>
+                <li>
+                  <i className="bi bi-check-circle"></i> Smart route planning
+                </li>
+                <li>
+                  <i className="bi bi-check-circle"></i> Budget friendly
+                </li>
+                <li>
+                  <i className="bi bi-check-circle"></i> Time optimized
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 export default BotModal;

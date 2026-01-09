@@ -238,7 +238,7 @@ const GuideCareers = () => {
   };
 
   return (
-    <div className="guide-careers-form" style={{marginTop: "100px"}}>
+    <div className="guide-careers-form" style={{ marginTop: "100px" }}>
       <h2 class="career-heading">Guide Career Application</h2>
       <form onSubmit={handleSubmit}>
         {/* Personal Information Section */}
@@ -410,7 +410,7 @@ const GuideCareers = () => {
 
                 <div className="col-sm-5">
                   <div className="form-group">
-                    <label>Years</label>
+                    <label>Total Years</label>
                     <input
                       type="number"
                       value={exp.years}
@@ -482,7 +482,7 @@ const GuideCareers = () => {
                   <div className="form-group">
                     <label>Year Obtained</label>
                     <input
-                      type="number"
+                      type="date"
                       value={cert.year}
                       onChange={(e) =>
                         handleNestedInputChange(
@@ -628,7 +628,7 @@ const GuideCareers = () => {
                   <div className="form-group">
                     <label>Year</label>
                     <input
-                      type="number"
+                      type="date"
                       value={edu.year}
                       onChange={(e) =>
                         handleNestedInputChange(
@@ -849,52 +849,51 @@ const GuideCareers = () => {
           <h3>Availability & Preferences</h3>
           <div className="row">
             <div className="col-sm-12">
- <div className="form-group">
-  <label>Available Days</label>
+              <div className="form-group">
+                <label>Available Days</label>
 
-  <div className="checkbox-group d-flex flex-wrap gap-4">
+                <div className="checkbox-group d-flex flex-wrap gap-4">
+                  {weekDays.map((day, index) => (
+                    <div
+                      key={index}
+                      className="form-check d-flex align-items-center gap-2"
+                      style={{ marginBottom: "6px" }}
+                    >
+                      <input
+                        className="form-check-input small-checkbox"
+                        type="checkbox"
+                        id={`day-${index}`}
+                        checked={formData.availability.days.includes(day)}
+                        onChange={(e) => {
+                          let updatedDays = [...formData.availability.days];
 
-    {weekDays.map((day, index) => (
-      <div
-        key={index}
-        className="form-check d-flex align-items-center gap-2"
-        style={{ marginBottom: "6px" }}
-      >
-        <input
-          className="form-check-input small-checkbox"
-          type="checkbox"
-          id={`day-${index}`}
-          checked={formData.availability.days.includes(day)}
-          onChange={(e) => {
-            let updatedDays = [...formData.availability.days];
+                          if (e.target.checked) {
+                            updatedDays.push(day);
+                          } else {
+                            updatedDays = updatedDays.filter((d) => d !== day);
+                          }
 
-            if (e.target.checked) {
-              updatedDays.push(day);
-            } else {
-              updatedDays = updatedDays.filter((d) => d !== day);
-            }
+                          setFormData({
+                            ...formData,
+                            availability: {
+                              ...formData.availability,
+                              days: updatedDays,
+                            },
+                          });
+                        }}
+                      />
 
-            setFormData({
-              ...formData,
-              availability: {
-                ...formData.availability,
-                days: updatedDays,
-              },
-            });
-          }}
-        />
-
-        <label className="form-check-label" htmlFor={`day-${index}`}>
-          {day}
-        </label>
-      </div>
-    ))}
-
-  </div>
-</div>
-
-</div>
-
+                      <label
+                        className="form-check-label"
+                        htmlFor={`day-${index}`}
+                      >
+                        {day}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <div className="row">
               <div className="col-sm-6">
@@ -958,7 +957,6 @@ const GuideCareers = () => {
                       e.target.value
                     )
                   }
-                  required
                 />
               </div>
             </div>
@@ -975,7 +973,6 @@ const GuideCareers = () => {
                       e.target.value
                     )
                   }
-                  required
                 />
               </div>
             </div>
@@ -995,7 +992,6 @@ const GuideCareers = () => {
                       e.target.value
                     )
                   }
-                  required
                 />
               </div>
             </div>
@@ -1012,7 +1008,6 @@ const GuideCareers = () => {
                       e.target.value
                     )
                   }
-                  required
                 />
               </div>
             </div>

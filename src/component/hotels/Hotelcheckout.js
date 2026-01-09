@@ -432,11 +432,10 @@ const HotelCheckout = () => {
           <div className="card shadow-sm p-4 rounded-4 mb-3 price-card">
             <h5 className="fw-bold text-center mb-3">💰 Price Summary</h5>
 
-            <div className="price-row">
+            {/* <div className="price-row">
               <span>Price </span>
               <span className="price-value">
                 ₹{Math.ceil(payload?.serviceDetails?.Pricing?.netFare || 0)}
-                {/* ₹{(price?.basePrice || 0).toFixed(2)} */}
               </span>
             </div>
 
@@ -448,19 +447,21 @@ const HotelCheckout = () => {
                   payload?.serviceDetails?.Pricing?.commissionAmount +
                     payload?.serviceDetails?.Pricing?.gstAmount || 0
                 )}
-                {/* ₹{(price?.tax || 0).toFixed(2)} */}
               </span>
-            </div>
+            </div> */}
 
-            <hr className="my-3" />
+            {/* <hr className="my-3" /> */}
 
+           
             <div className="price-row total">
-              <span>Total Amount</span>
-              <span>
-                ₹{Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount || 0)}
-              </span>
-              {/* <span>₹{(price?.totalFare || 0).toFixed(2)}</span> */}
-            </div>
+  <span>
+    Total Amount <small>(incl. all taxes)    : </small>   
+  </span>
+  <span>
+    ₹{Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount || 0).toLocaleString("en-IN")}
+  </span>
+</div>
+
           </div>
 
           {/* CANCELLATION CARD */}
