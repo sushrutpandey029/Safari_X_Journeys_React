@@ -3,7 +3,7 @@
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.11.140.26:2625";
-export const BASE_URL = "http://192.168.1.15:2625";
+export const BASE_URL = "http://192.168.1.5:2625";
 
 // export const BASE_URL = "https://dash.safarixjourneys.com";
 
@@ -18,7 +18,7 @@ export const API = {
   NEWSLATER: `${BASE_URL}/api/news/later`,
   CHATBOT_SUBMIT: `${BASE_URL}/api/chatbot`,
   GET_ALL_CITIES: `${BASE_URL}/api/getCities`,
-  
+
   //user
   REGISTER_OR_LOGIN: `${BASE_URL}/api/user/register-or-login`,
   USER_VERIFY_OTP: `${BASE_URL}/api/user/verify-email-otp`,
@@ -31,8 +31,8 @@ export const API = {
   USER_CHANGE_PASSWORD: (id) => `${BASE_URL}/api/user/change-password/${id}`,
   USER_UPDATE_PROFILE: (id) => `${BASE_URL}/api/user/update-profile/${id}`,
   USER_BOOKING_DETAILS: (id) => `${BASE_URL}/api/user/booking-details/${id}`,
-  USER_DOWNLOAD_INVOICE: (bookingId) =>
-    `${BASE_URL}/api/bookings/${bookingId}/pdf`,
+  USER_DOWNLOAD_INVOICE: (bookingId,vendorBookingId) =>
+    `${BASE_URL}/api/bookings/${bookingId}/pdf/${vendorBookingId}`,
 
   //driver
   DRIVER_UPDATE_PROFILE: (id) => `${BASE_URL}/driver/update/${id}`,
@@ -51,7 +51,8 @@ export const API = {
   CREATE_BOOKING_DRAFT: `${BASE_URL}/api/booking/create-draft`,
   INITIATE_PAYMENT: `${BASE_URL}/api/payment/initiate`,
   CHECK_PAYMENT_STATUS: `${BASE_URL}/api/payment/verify`,
-  GET_PAYMENT_STATUS: (orderId) =>`${BASE_URL}/api/payment-status?order_id=${orderId}`,
+  GET_PAYMENT_STATUS: (orderId) =>
+    `${BASE_URL}/api/payment-status?order_id=${orderId}`,
 
   // hotels
   // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
@@ -66,7 +67,7 @@ export const API = {
   HOTEL_CANCEL: `${BASE_URL}/api/hotel/cancel`,
   HOTEL_CANCEL_STATUS: `${BASE_URL}/api/hotel/cancel-status`,
   USER_HOTEL_BOOKING_DETAILS: `${BASE_URL}/api/booking-detail`,
- 
+
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
   Flight_authenticate: `${BASE_URL}/flight/authenticate`,

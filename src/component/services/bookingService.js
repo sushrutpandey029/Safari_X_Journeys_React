@@ -2,12 +2,10 @@ import axios from "axios";
 import { API } from "./apiEndpoints";
 import { authHeaders } from "../utils/authHeaders";
 
-export const downloadBookingPDF = async (bookingId) => {
-  console.log("Download URL:", API.USER_DOWNLOAD_INVOICE(bookingId));
+export const downloadBookingPDF = async (bookingId,vendorBookingId) => {
   const headers = await authHeaders();
-  console.log("authhaders", headers);
 
-  const response = await axios.get(API.USER_DOWNLOAD_INVOICE(bookingId), {
+  const response = await axios.get(API.USER_DOWNLOAD_INVOICE(bookingId,vendorBookingId), {
     headers,
     responseType: "blob",
   });

@@ -1861,6 +1861,40 @@ position: sticky;
   font-size: 0.8rem;
 }
 
+
+/* dropdown in buscheckout page */
+
+.dropdown-list {
+  position: absolute;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 20;
+  margin-top: 6px;
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.dropdown-empty {
+  padding: 12px;
+  text-align: center;
+  color: #999;
+}
+
+
+
+
 /* Passenger Details */
 .passengers-list {
   display: flex;
@@ -1886,6 +1920,16 @@ position: sticky;
   flex-direction: column;
   gap: 15px;
 }
+
+.seat-badge {
+  margin-left: 10px;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #333;
+}
+
 
 .form-row {
   display: grid;

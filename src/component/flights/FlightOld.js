@@ -73,7 +73,6 @@ const Flight = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
-  const [showTravellerDropdown, setShowTravellerDropdown] = useState(false);
 
   // ✅ Active tab for multi-city and return OB/IB
   const [activeTab, setActiveTab] = useState(0);
@@ -1944,34 +1943,6 @@ const Flight = () => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [searchResults, activeTab, tripType, isDomestic]);
 
-  const buildFlightDetailPayload = () => {
-    if (tripType === "round" && isDomestic) {
-      return {
-        TraceId,
-        tripType,
-        isDomestic,
-        resultIndexes: {
-          outbound: selectedFlights[0]?.ResultIndex,
-          inbound: selectedFlights[1]?.ResultIndex,
-        },
-        pricingBreakdown,
-        passengers: { adults, children, infants },
-        travelClass,
-      };
-    }
-
-    // One-way / Multi-city
-    return {
-      TraceId,
-      tripType,
-      isDomestic,
-      resultIndexes: selectedFlights.map((f) => f?.ResultIndex),
-      pricingBreakdown,
-      passengers: { adults, children, infants },
-      travelClass,
-    };
-  };
-
   return (
     <div>
       {/* Flight Search Form */}
@@ -2092,12 +2063,7 @@ const Flight = () => {
                   <Form.Label className="fw-semibold small">
                     Passengers & Class
                   </Form.Label>
-                  <Dropdown
-                    className="AddClass"
-                    style={{ width: "100%" }}
-                    show={showTravellerDropdown}
-                    onToggle={(isOpen) => setShowTravellerDropdown(isOpen)}
-                  >
+                  <Dropdown className="AddClass" style={{ width: "100%" }}>
                     <Dropdown.Toggle
                       id="travellers-dropdown"
                       variant="light"
@@ -2152,12 +2118,7 @@ const Flight = () => {
                           </div>
                         </Col>
                       </Row>
-                      <button
-                        className="btn btn-primary w-100 mt-3"
-                        onClick={() => setShowTravellerDropdown(false)}
-                      >
-                        Done
-                      </button>
+                      <button>Done</button>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Form.Group>
@@ -2598,9 +2559,13 @@ const Flight = () => {
 
       {/* Flight Detail Modal */}
       <FlightDetail
-        flightContext={buildFlightDetailPayload()}
+        flightData={selectedFlights}
+        totalPrice={totalPrice}
+        travelClass={travelClass}
         showModal={showModal}
         onHide={handleCloseModal}
+        searchData={searchData}
+        pricingBreakdown={pricingBreakdown}
       />
     </div>
   );

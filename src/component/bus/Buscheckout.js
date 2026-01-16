@@ -30,6 +30,13 @@ const BusCheckout = () => {
   const [loading, setLoading] = useState(true);
   const [apiLoading, setApiLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const [boardingSearch, setBoardingSearch] = useState("");
+  const [droppingSearch, setDroppingSearch] = useState("");
+
+  const [showBoardingDropdown, setShowBoardingDropdown] = useState(false);
+  const [showDroppingDropdown, setShowDroppingDropdown] = useState(false);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [blockResponse, setBlockResponse] = useState(null);
@@ -66,21 +73,32 @@ const BusCheckout = () => {
     return `${h}h ${m}m`;
   };
 
+  const filteredBoardingPoints = boardingPoints.filter((p) =>
+    `${p.CityPointName} ${p.CityPointLocation}`
+      .toLowerCase()
+      .includes(boardingSearch.toLowerCase())
+  );
+
+  const filteredDroppingPoints = droppingPoints.filter((p) =>
+    `${p.CityPointName} ${p.CityPointLocation}`
+      .toLowerCase()
+      .includes(droppingSearch.toLowerCase())
+  );
+
   // --------------------------- FETCH BOARDING POINTS ------------------------------
 
   const fetchBoardingPointsData = async (busData) => {
     try {
       setApiLoading(true);
-      const TokenId = busData?.TokenId || state.tokenId;
       const TraceId = busData?.TraceId || state.traceId;
       const ResultIndex = busData?.ResultIndex ?? state.resultIndex;
 
-      if (!TokenId || !TraceId || ResultIndex == null) {
-        setError("Missing TokenId / TraceId / ResultIndex");
+      if (!TraceId || ResultIndex == null) {
+        setError("Missing TraceId / ResultIndex");
         return;
       }
 
-      const response = await fetchBoardingPoints(TokenId, TraceId, ResultIndex);
+      const response = await fetchBoardingPoints(TraceId, ResultIndex);
       console.log("response of fetchboardingpoints", response);
       const boardingData =
         response?.data?.BoardingPointsDetails ||
@@ -169,10 +187,22 @@ const BusCheckout = () => {
     const arr = [...passengers];
     arr[i][f] = v;
     setPassengers(arr);
+
+    setFieldErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[`passengers.${i}.${f}`];
+      return copy;
+    });
   };
 
   const handleContactChange = (f, v) => {
     setContactDetails((s) => ({ ...s, [f]: v }));
+
+    setFieldErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[`contact.${f}`];
+      return copy;
+    });
   };
 
   const calculateTotalPrice = () => {
@@ -191,16 +221,54 @@ const BusCheckout = () => {
 
   // --------------------------- FINAL SUBMIT ------------------------------
 
+  const validateBookingData = () => {
+    const errors = {};
+
+    // Boarding / Dropping
+    if (!selectedBoarding) errors.boarding = "Boarding point required";
+
+    if (!selectedDropping) errors.dropping = "Dropping point required";
+
+    // Contact
+    if (!isValidEmail(contactDetails.email))
+      errors["contact.email"] = "Invalid email";
+
+    if (!isValidMobile(contactDetails.mobile))
+      errors["contact.mobile"] = "Invalid mobile number";
+
+    // Passengers
+    passengers.forEach((p, i) => {
+      if (!isValidName(p.firstName))
+        errors[`passengers.${i}.firstName`] = "Invalid first name";
+
+      if (!isValidName(p.lastName))
+        errors[`passengers.${i}.lastName`] = "Invalid last name";
+
+      if (!isValidAge(p.age)) errors[`passengers.${i}.age`] = "Invalid age";
+
+      if (!isValidGender(p.gender))
+        errors[`passengers.${i}.gender`] = "Gender must be Male or Female";
+
+      // ID (MANDATORY FOR BOOK API)
+      if (!isValidIdType(p.idType))
+        errors[`passengers.${i}.idType`] = "Invalid ID type";
+
+      if (!isValidIdNumber(p.idType, p.idNumber))
+        errors[`passengers.${i}.idNumber`] = "Invalid ID number";
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleFinalSubmit = async () => {
     try {
       if (!selectedBoarding || !selectedDropping)
         return alert("Select boarding & dropping points");
-      if (!contactDetails.email || !contactDetails.mobile)
-        return alert("Enter contact details");
-      if (passengers.some((p) => !p.firstName || !p.lastName))
-        return alert("Enter full name for all passengers");
-      if (passengers.some((p) => !p.idType || !p.idNumber))
-        return alert("Enter ID details");
+      if (!validateBookingData()) {
+        alert("Please fix highlighted errors");
+        return;
+      }
 
       setBlockLoading(true);
 
@@ -255,80 +323,48 @@ const BusCheckout = () => {
     }
   };
 
-  // const pricingBreakup = pricingFromSearch
-  //   ? {
-  //       currency: pricingFromSearch.currency || "INR",
-  //       seatsCount: pricingFromSearch.seatsCount,
-
-  //       // 💰 FINAL AMOUNT USER PAYS (already correct)
-  //       totalAmount: pricingFromSearch.totalAmount,
-
-  //       // 📦 SEAT LEVEL (from search)
-  //       seatCharges: pricingFromSearch.seatCharges,
-
-  //       // 🧮 OPTIONAL: derive split (for admin / invoice)
-  //       busCharges: Number(
-  //         pricingFromSearch.seatCharges
-  //           .reduce((sum, s) => sum + (s.FinalAmount - (s.Tax || 0)), 0)
-  //           .toFixed(2)
-  //       ),
-
-  //       gstAndServiceFee: Number(
-  //         pricingFromSearch.seatCharges
-  //           .reduce((sum, s) => sum + (s.Tax || 0), 0)
-  //           .toFixed(2)
-  //       ),
-  //     }
-  //   : null;
-
-
   const pricingBreakup = {
-  currency: "INR",
-  seatsCount: selectedSeats.length,
+    currency: "INR",
+    seatsCount: selectedSeats.length,
 
-  // ✅ NET AMOUNT (paid to TBO)
-  busCharges: Number(
-    selectedSeats.reduce(
-      (sum, seat) => sum + (seat.Pricing?.netFare ?? 0),
-      0
-    ).toFixed(2)
-  ),
+    // ✅ NET AMOUNT (paid to TBO)
+    busCharges: Number(
+      selectedSeats
+        .reduce((sum, seat) => sum + (seat.Pricing?.netFare ?? 0), 0)
+        .toFixed(2)
+    ),
 
-  // ✅ YOUR COMMISSION
-  serviceFee: Number(
-    selectedSeats.reduce(
-      (sum, seat) => sum + (seat.Pricing?.commissionAmount ?? 0),
-      0
-    ).toFixed(2)
-  ),
+    // ✅ YOUR COMMISSION
+    serviceFee: Number(
+      selectedSeats
+        .reduce((sum, seat) => sum + (seat.Pricing?.commissionAmount ?? 0), 0)
+        .toFixed(2)
+    ),
 
-  // ✅ GST ON COMMISSION
-  gst: Number(
-    selectedSeats.reduce(
-      (sum, seat) => sum + (seat.Pricing?.gstAmount ?? 0),
-      0
-    ).toFixed(2)
-  ),
+    // ✅ GST ON COMMISSION
+    gst: Number(
+      selectedSeats
+        .reduce((sum, seat) => sum + (seat.Pricing?.gstAmount ?? 0), 0)
+        .toFixed(2)
+    ),
 
-  // ✅ FINAL AMOUNT USER PAID
-  totalAmount: Number(
-    selectedSeats.reduce(
-      (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
-      0
-    ).toFixed(2)
-  ),
+    // ✅ FINAL AMOUNT USER PAID
+    totalAmount: Number(
+      selectedSeats
+        .reduce((sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0), 0)
+        .toFixed(2)
+    ),
 
-  // ✅ SEAT LEVEL (for PDF / refund)
-  seatCharges: selectedSeats.map(seat => ({
-    seatIndex: seat.SeatIndex,
-    seatName: seat.SeatName,
-    netFare: seat.Pricing?.netFare ?? 0,
-    commissionAmount: seat.Pricing?.commissionAmount ?? 0,
-    gstAmount: seat.Pricing?.gstAmount ?? 0,
-    finalAmount: seat.Pricing?.finalAmount ?? 0,
-  })),
-};
-
+    // ✅ SEAT LEVEL (for PDF / refund)
+    seatCharges: selectedSeats.map((seat) => ({
+      seatIndex: seat.SeatIndex,
+      seatName: seat.SeatName,
+      netFare: seat.Pricing?.netFare ?? 0,
+      commissionAmount: seat.Pricing?.commissionAmount ?? 0,
+      gstAmount: seat.Pricing?.gstAmount ?? 0,
+      finalAmount: seat.Pricing?.finalAmount ?? 0,
+    })),
+  };
 
   const handleBookNow = async () => {
     try {
@@ -424,6 +460,85 @@ const BusCheckout = () => {
       busDetails?.to || busDetails?.destination
     }`;
 
+  // ---------------------------  validations ------------------------------
+
+  const isValidName = (name) => {
+    if (!name) return false;
+    if (!/^[A-Za-z][A-Za-z ]+$/.test(name)) return false;
+    return name.trim().length >= 2;
+  };
+  const isValidAge = (age) => {
+    const n = Number(age);
+    return Number.isInteger(n) && n > 0 && n <= 120;
+  };
+  const isValidGender = (gender) => {
+    return gender === "Male" || gender === "Female";
+  };
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidMobile = (mobile) => /^[6-9]\d{9}$/.test(mobile);
+
+  const ALLOWED_ID_TYPES = ["PAN", "Passport", "Voter ID"];
+
+  const isValidIdType = (type) => ALLOWED_ID_TYPES.includes(type);
+
+  const isValidIdNumber = (type, value) => {
+    if (!value) return false;
+
+    switch (type) {
+      case "PAN":
+        return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(value.toUpperCase());
+
+      case "Passport":
+        return /^[A-Z0-9]{6,}$/i.test(value);
+
+      case "Voter ID":
+        return /^[A-Z0-9]{6,}$/i.test(value);
+
+      default:
+        return false;
+    }
+  };
+
+  const getSeatLabel = (seat) => {
+    if (!seat) return "";
+
+    const seatNo = seat.SeatName || seat.SeatIndex;
+
+    // SeatType mapping (from TBO docs)
+    const seatTypeMap = {
+      1: "Seat",
+      2: "Sleeper",
+      3: "Seat / Sleeper",
+      4: "Upper Berth",
+      5: "Lower Berth",
+    };
+
+    let type = seatTypeMap[seat.SeatType] || "Seat";
+
+    // Upper / Lower override
+    if (seat.IsUpper) type = "Upper Berth";
+    if (seat.SeatType === 2 && !seat.IsUpper) type = "Lower Berth";
+
+    // Gender restriction
+    let genderTag = "";
+    if (seat.IsLadiesSeat) genderTag = " (Ladies)";
+    if (seat.IsMalesSeat) genderTag = " (Male)";
+
+    return `Seat ${seatNo} • ${type}${genderTag}`;
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".position-relative")) {
+        setShowBoardingDropdown(false);
+        setShowDroppingDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // --------------------------- UI ------------------------------
 
   if (loading) {
@@ -478,76 +593,108 @@ const BusCheckout = () => {
             {/* Boarding */}
             <div className="section-card">
               <h2 className="section-title">Select Boarding Point</h2>
-              <div className="points-list">
-                {boardingPoints.map((p) => (
-                  <div
-                    key={p.CityPointIndex}
-                    className={`point-item ${
-                      selectedBoarding?.CityPointIndex === p.CityPointIndex
-                        ? "selected"
-                        : ""
-                    }`}
-                  >
-                    <label className="point-radio">
-                      <input
-                        type="radio"
-                        name="boarding"
-                        checked={
-                          selectedBoarding?.CityPointIndex === p.CityPointIndex
-                        }
-                        onChange={() => setSelectedBoarding(p)}
-                      />
-                      <span className="radiomark"></span>
-                      <div className="point-content">
-                        <div className="point-time-badge">
-                          {formatTime(p.CityPointTime)}
+
+              <div className="position-relative">
+                <input
+                  className="form-control"
+                  placeholder="Search boarding point"
+                  value={
+                    showBoardingDropdown
+                      ? boardingSearch
+                      : selectedBoarding?.CityPointName || ""
+                  }
+                  onFocus={() => setShowBoardingDropdown(true)}
+                  onChange={(e) => {
+                    setBoardingSearch(e.target.value);
+                    setShowBoardingDropdown(true);
+                  }}
+                />
+
+                {showBoardingDropdown && (
+                  <div className="dropdown-list">
+                    {filteredBoardingPoints.length > 0 ? (
+                      filteredBoardingPoints.map((p) => (
+                        <div
+                          key={p.CityPointIndex}
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSelectedBoarding(p);
+                            setBoardingSearch("");
+                            setShowBoardingDropdown(false);
+                          }}
+                        >
+                          <div className="d-flex justify-content-between">
+                            <strong>{p.CityPointName}</strong>
+                            <span className="badge bg-light text-dark">
+                              {formatTime(p.CityPointTime)}
+                            </span>
+                          </div>
+                          <small className="text-muted">
+                            {p.CityPointLocation}
+                          </small>
                         </div>
-                        <div>
-                          <h4>{p.CityPointName}</h4>
-                          <p>{p.CityPointLocation}</p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="dropdown-empty">
+                        No boarding points found
                       </div>
-                    </label>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
             {/* Dropping */}
             <div className="section-card">
               <h2 className="section-title">Select Dropping Point</h2>
-              <div className="points-list">
-                {droppingPoints.map((p) => (
-                  <div
-                    key={p.CityPointIndex}
-                    className={`point-item ${
-                      selectedDropping?.CityPointIndex === p.CityPointIndex
-                        ? "selected"
-                        : ""
-                    }`}
-                  >
-                    <label className="point-radio">
-                      <input
-                        type="radio"
-                        name="dropping"
-                        checked={
-                          selectedDropping?.CityPointIndex === p.CityPointIndex
-                        }
-                        onChange={() => setSelectedDropping(p)}
-                      />
-                      <span className="radiomark"></span>
-                      <div className="point-content">
-                        <div className="point-time-badge">
-                          {formatTime(p.CityPointTime)}
+
+              <div className="position-relative">
+                <input
+                  className="form-control"
+                  placeholder="Search dropping point"
+                  value={
+                    showDroppingDropdown
+                      ? droppingSearch
+                      : selectedDropping?.CityPointName || ""
+                  }
+                  onFocus={() => setShowDroppingDropdown(true)}
+                  onChange={(e) => {
+                    setDroppingSearch(e.target.value);
+                    setShowDroppingDropdown(true);
+                  }}
+                />
+
+                {showDroppingDropdown && (
+                  <div className="dropdown-list">
+                    {filteredDroppingPoints.length > 0 ? (
+                      filteredDroppingPoints.map((p) => (
+                        <div
+                          key={p.CityPointIndex}
+                          className="dropdown-item"
+                          onClick={() => {
+                            setSelectedDropping(p);
+                            setDroppingSearch("");
+                            setShowDroppingDropdown(false);
+                          }}
+                        >
+                          <div className="d-flex justify-content-between">
+                            <strong>{p.CityPointName}</strong>
+                            <span className="badge bg-light text-dark">
+                              {formatTime(p.CityPointTime)}
+                            </span>
+                          </div>
+                          <small className="text-muted">
+                            {p.CityPointLocation}
+                          </small>
                         </div>
-                        <div>
-                          <h4>{p.CityPointName}</h4>
-                          <p>{p.CityPointLocation}</p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="dropdown-empty">
+                        No dropping points found
                       </div>
-                    </label>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -558,8 +705,11 @@ const BusCheckout = () => {
               {passengers.map((p, i) => (
                 <div key={i} className="passenger-card">
                   <h4>
-                    Passenger {i + 1} — {p.seatNumber}
+                    Passenger {i + 1}
+                    {/* Passenger {i + 1} — {p.seatNumber} */}
                   </h4>
+
+                  
 
                   <div className="passenger-form">
                     {/* First Name */}
@@ -572,6 +722,11 @@ const BusCheckout = () => {
                         }
                         placeholder="Enter first name"
                       />
+                      {fieldErrors[`passengers.${i}.firstName`] && (
+                        <small className="text-danger">
+                          {fieldErrors[`passengers.${i}.firstName`]}
+                        </small>
+                      )}
                     </div>
 
                     {/* Last Name */}
@@ -584,31 +739,12 @@ const BusCheckout = () => {
                         }
                         placeholder="Enter last name"
                       />
+                      {fieldErrors[`passengers.${i}.lastName`] && (
+                        <small className="text-danger">
+                          {fieldErrors[`passengers.${i}.lastName`]}
+                        </small>
+                      )}
                     </div>
-
-                    {/* Name */}
-                    {/* <div className="form-group">
-                      <label>First Name</label>
-                      <input
-                        value={p.name}
-                        onChange={(e) =>
-                          handlePassengerChange(i, "name", e.target.value)
-                        }
-                        placeholder="Enter full name"
-                      />
-                    </div>
-
-                   
-                    <div className="form-group">
-                      <label>Last Name</label>
-                      <input
-                        value={p.name}
-                        onChange={(e) =>
-                          handlePassengerChange(i, "name", e.target.value)
-                        }
-                        placeholder="Enter last name"
-                      />
-                    </div> */}
 
                     {/* Age & Gender */}
                     <div className="form-row">
@@ -621,6 +757,11 @@ const BusCheckout = () => {
                             handlePassengerChange(i, "age", e.target.value)
                           }
                         />
+                        {fieldErrors[`passengers.${i}.age`] && (
+                          <small className="text-danger">
+                            {fieldErrors[`passengers.${i}.age`]}
+                          </small>
+                        )}
                       </div>
 
                       <div className="form-group">
@@ -635,6 +776,11 @@ const BusCheckout = () => {
                           <option>Female</option>
                           <option>Other</option>
                         </select>
+                        {fieldErrors[`passengers.${i}.gender`] && (
+                          <small className="text-danger">
+                            {fieldErrors[`passengers.${i}.gender`]}
+                          </small>
+                        )}
                       </div>
                     </div>
 
@@ -648,11 +794,15 @@ const BusCheckout = () => {
                         }
                       >
                         <option value="">Select ID</option>
-                        <option value="Aadhar">Aadhar</option>
                         <option value="PAN">PAN</option>
                         <option value="Passport">Passport</option>
-                        <option value="Driving License">Driving License</option>
+                        <option value="Voter ID">Voter ID</option>
                       </select>
+                      {fieldErrors[`passengers.${i}.idType`] && (
+                        <small className="text-danger">
+                          {fieldErrors[`passengers.${i}.idType`]}
+                        </small>
+                      )}
                     </div>
 
                     {/* ID Number */}
@@ -665,6 +815,11 @@ const BusCheckout = () => {
                         }
                         placeholder="Enter ID number"
                       />
+                      {fieldErrors[`passengers.${i}.idNumber`] && (
+                        <small className="text-danger">
+                          {fieldErrors[`passengers.${i}.idNumber`]}
+                        </small>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -681,6 +836,11 @@ const BusCheckout = () => {
                   value={contactDetails.email}
                   onChange={(e) => handleContactChange("email", e.target.value)}
                 />
+                {fieldErrors["contact.email"] && (
+                  <small className="text-danger">
+                    {fieldErrors["contact.email"]}
+                  </small>
+                )}
               </div>
 
               <div className="form-group">
@@ -692,6 +852,11 @@ const BusCheckout = () => {
                     handleContactChange("mobile", e.target.value)
                   }
                 />
+                {fieldErrors["contact.mobile"] && (
+                  <small className="text-danger">
+                    {fieldErrors["contact.mobile"]}
+                  </small>
+                )}
               </div>
             </div>
           </div>
