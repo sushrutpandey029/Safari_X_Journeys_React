@@ -117,7 +117,6 @@ const Flightcheckout = () => {
   const [passengers, setPassengers] = useState([]);
   const [contactEmail, setContactEmail] = useState("");
   const [contactMobile, setContactMobile] = useState("");
-  const [contactAddress, setContactAddress] = useState("");
 
   // ✅ Add state for validation errors
   const [fieldErrors, setFieldErrors] = useState({});
@@ -139,7 +138,7 @@ const Flightcheckout = () => {
 
   // ✅ MakeMyTrip-style seat selection
   const seatEligiblePassengers = passengers.filter(
-    (p) => p.paxType === 1 || p.paxType === 2 // Adult + Child
+    (p) => p.paxType === 1 || p.paxType === 2, // Adult + Child
   );
 
   const requiredSeatCount = seatEligiblePassengers.length;
@@ -180,8 +179,8 @@ const Flightcheckout = () => {
       tripType === "round" && isDomestic
         ? [resultIndexes.outbound, resultIndexes.inbound]
         : Array.isArray(resultIndexes)
-        ? resultIndexes
-        : [resultIndexes];
+          ? resultIndexes
+          : [resultIndexes];
 
     // 4️⃣ Build placeholder selectedFlights ONLY with ResultIndex
     const flights = normalizedIndexes.map((ri) => ({
@@ -196,7 +195,7 @@ const Flightcheckout = () => {
         adults: 1,
         children: 0,
         infants: 0,
-      }
+      },
     );
   }, []);
 
@@ -226,7 +225,7 @@ const Flightcheckout = () => {
     if (!flight) return null;
     if (!flight?.Segments && fareDetailsArray.length > 0) {
       flight = fareDetailsArray.find(
-        (f) => f.ResultIndex === flight.ResultIndex
+        (f) => f.ResultIndex === flight.ResultIndex,
       );
     }
 
@@ -464,7 +463,7 @@ const Flightcheckout = () => {
 
       const TravelStartDate = formatDateForInsurance(depTime);
       const TravelEndDate = formatDateForInsurance(
-        lastSegment.Destination.ArrTime
+        lastSegment.Destination.ArrTime,
       );
 
       const passengerCount = getPassengerCount();
@@ -482,7 +481,7 @@ const Flightcheckout = () => {
           return p.paxType === 1 ? "30" : "10";
         });
       const insuredPassengers = passengers.filter(
-        (p) => p.paxType === 1 || p.paxType === 2
+        (p) => p.paxType === 1 || p.paxType === 2,
       );
       const payload = {
         PlanCategory: 1,
@@ -518,9 +517,13 @@ const Flightcheckout = () => {
               plan.Price?.PublishedPrice ||
               plan.Price?.GrossFare ||
               0,
+            // ✅ KEEP BOTH
+            VendorPrice: plan.Price?.OfferedPrice || 0, // for TBO
+            Pricing: plan.Pricing, // OUR pricing
+            DisplayPrice: plan.DisplayPrice,
             Currency: plan.Price?.Currency || "INR",
             CoverageDetails: plan.CoverageDetails || [],
-          })
+          }),
         );
 
         setInsuranceData(processedInsuranceData);
@@ -694,7 +697,7 @@ const Flightcheckout = () => {
         totalBaseFare += Number(fareDetail.Fare.BaseFare || 0);
         totalTax += Number(fareDetail.Fare.Tax || 0);
         totalFare += Number(
-          fareDetail.Fare.PublishedFare || fareDetail.Fare.OfferedFare || 0
+          fareDetail.Fare.PublishedFare || fareDetail.Fare.OfferedFare || 0,
         );
       }
     });
@@ -761,7 +764,9 @@ const Flightcheckout = () => {
     if (selectedInsurancePlan) {
       const passengerCount = getPassengerCount();
       const totalPassengers = passengerCount.adults + passengerCount.children;
-      finalTotal += (selectedInsurancePlan.Premium || 0) * totalPassengers;
+
+      finalTotal +=
+        (selectedInsurancePlan.Pricing?.finalAmount || 0) * totalPassengers;
     }
 
     // ✅ Apply coupon discount
@@ -810,10 +815,6 @@ const Flightcheckout = () => {
 
     if (field === "mobile") {
       setContactMobile(value);
-    }
-
-    if (field === "address") {
-      setContactAddress(value);
     }
   };
 
@@ -918,6 +919,7 @@ const Flightcheckout = () => {
   // ✅ Build complete booking payload for multiple flights
   const buildFlightBookingPayload = async () => {
     const fareBreakdown = calculateTotalFareBreakdown();
+
     const insurancePremium = selectedInsurancePlan
       ? selectedInsurancePlan.Premium *
         (getPassengerCount().adults + getPassengerCount().children)
@@ -941,7 +943,14 @@ const Flightcheckout = () => {
       },
 
       InsuranceRequired: !!selectedInsurancePlan,
-      InsuranceData: selectedInsurancePlan || null,
+      // InsuranceData: selectedInsurancePlan || null,
+      InsuranceData: selectedInsurancePlan
+        ? {
+            ResultIndex: selectedInsurancePlan.ResultIndex,
+            premiumAmount: selectedInsurancePlan.VendorPrice,
+            totalAmount: selectedInsurancePlan.Pricing.finalAmount,
+          }
+        : null,
       InsuranceTraceid: insuranceTraceId || null,
       TripType: state?.tripType || searchData?.tripType || "oneway",
       TravelClass: state?.travelClass || searchData?.travelClass || "Economy",
@@ -1127,8 +1136,9 @@ const Flightcheckout = () => {
     const totalAmount = calculateTotalAmount();
 
     const passengerCount = getPassengerCount();
+
     const insuranceAmount = selectedInsurancePlan
-      ? selectedInsurancePlan.Premium *
+      ? selectedInsurancePlan.Pricing.finalAmount *
         (passengerCount.adults + passengerCount.children)
       : 0;
 
@@ -1348,7 +1358,7 @@ const Flightcheckout = () => {
 
         if (passportExpiryDate <= travelDate) {
           alert(
-            `Passport expiry must be after travel date for ${p.type} ${i + 1}`
+            `Passport expiry must be after travel date for ${p.type} ${i + 1}`,
           );
           return false;
         }
@@ -1390,7 +1400,7 @@ const Flightcheckout = () => {
 
   const seatRows =
     ssrDataArray?.[activeFlightIndex]?.seats?.filter(
-      (row) => row.Seats?.[0]?.Code !== "NoSeat"
+      (row) => row.Seats?.[0]?.Code !== "NoSeat",
     ) || [];
 
   const seatSummaryByFlight = selectedFlights
@@ -1477,7 +1487,7 @@ const Flightcheckout = () => {
               </Card.Header>
               <Card.Body>
                 {selectedFlights.map((flight, index) =>
-                  renderFlightSegment(flight, index)
+                  renderFlightSegment(flight, index),
                 )}
               </Card.Body>
             </Card>
@@ -1534,7 +1544,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "title",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1577,7 +1587,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "firstName",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1595,7 +1605,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "lastName",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1615,7 +1625,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "dateOfBirth",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1631,7 +1641,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "gender",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1656,7 +1666,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "passportNumber",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1674,7 +1684,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "passportExpiry",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1693,7 +1703,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "nationality",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1717,7 +1727,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "contactNo",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1738,7 +1748,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "addressLine1",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1759,7 +1769,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "city",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1775,7 +1785,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "countryCode",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1800,7 +1810,7 @@ const Flightcheckout = () => {
                                   handlePassengerChange(
                                     index,
                                     "email",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 required
@@ -1835,13 +1845,10 @@ const Flightcheckout = () => {
                                 }
                                 required
                               />
-                              <Form.Text className="text-muted">
-                                Booking confirmation will be sent here
-                              </Form.Text>
                             </Form.Group>
                           </Col>
 
-                          <Col md={6}>
+                          {/* <Col md={6}>
                             <Form.Group className="mb-3">
                               <Form.Label>Mobile Number *</Form.Label>
                               <Form.Control
@@ -1857,24 +1864,7 @@ const Flightcheckout = () => {
                                 Important updates will be sent via SMS
                               </Form.Text>
                             </Form.Group>
-                          </Col>
-                        </Row>
-
-                        <Row>
-                          <Col md={12}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Address *</Form.Label>
-                              <Form.Control
-                                type="text"
-                                placeholder="Enter your complete address"
-                                value={contactAddress}
-                                onChange={(e) =>
-                                  handleContactChange("address", e.target.value)
-                                }
-                                required
-                              />
-                            </Form.Group>
-                          </Col>
+                          </Col> */}
                         </Row>
                       </Card.Body>
                     </Card>
@@ -1940,7 +1930,7 @@ const Flightcheckout = () => {
                     selectedBaggageList.length === 0
                   ) {
                     setSelectedBaggageList(
-                      Object.values(selectedBaggage[activeFlightIndex] || {})
+                      Object.values(selectedBaggage[activeFlightIndex] || {}),
                     );
                   }
 
@@ -2005,7 +1995,7 @@ const Flightcheckout = () => {
                           onClick={() => {
                             setActiveFlightIndex(index);
                             setSelectedBaggageList(
-                              Object.values(selectedBaggage[index] || {})
+                              Object.values(selectedBaggage[index] || {}),
                             );
                           }}
                         >
@@ -2050,7 +2040,7 @@ const Flightcheckout = () => {
 
                   {ssrDataArray[activeFlightIndex]?.baggage?.map((bag, i) => {
                     const isSelected = selectedBaggageList.some(
-                      (b) => b.Code === bag.Code
+                      (b) => b.Code === bag.Code,
                     );
 
                     return (
@@ -2063,7 +2053,7 @@ const Flightcheckout = () => {
                         onClick={() => {
                           setSelectedBaggageList((prev) => {
                             const existsIndex = prev.findIndex(
-                              (b) => b.Code === bag.Code
+                              (b) => b.Code === bag.Code,
                             );
 
                             // 🔁 CASE 1: deselect if same clicked again
@@ -2170,7 +2160,7 @@ const Flightcheckout = () => {
                     return;
                   }
                   setSelectedSeatList(
-                    Object.values(selectedSeats[activeFlightIndex] || {})
+                    Object.values(selectedSeats[activeFlightIndex] || {}),
                   );
                   setShowSeatModal(true);
                 }}
@@ -2242,17 +2232,6 @@ const Flightcheckout = () => {
 
                 {fareDetailsArray.length > 0 && (
                   <>
-                    <div className="passenger-count mb-3 p-2 bg-light rounded">
-                      <small className="text-muted">
-                        <strong>Passengers:</strong> {passengerCount.adults}{" "}
-                        Adult(s), {passengerCount.children} Child(s),{" "}
-                        {passengerCount.infants} Infant(s)
-                        <br />
-                        <strong>Flights:</strong> {selectedFlights.length}{" "}
-                        Segment(s)
-                      </small>
-                    </div>
-
                     {renderFareBreakdown({ expanded: false })}
 
                     {/* Insurance Section */}
@@ -2305,7 +2284,10 @@ const Flightcheckout = () => {
                                     </small>
                                   </div>
                                   <strong className="text-primary">
-                                    ₹{plan.Premium.toLocaleString()}
+                                    ₹
+                                    {Math.ceil(
+                                      plan.DisplayPrice.toLocaleString(),
+                                    )}
                                   </strong>
                                 </div>
                               </div>
@@ -2381,7 +2363,7 @@ const Flightcheckout = () => {
                   onClick={() => {
                     setActiveFlightIndex(index);
                     setSelectedSeatList(
-                      Object.values(selectedSeats[index] || {})
+                      Object.values(selectedSeats[index] || {}),
                     );
                   }}
                 >
@@ -2416,7 +2398,7 @@ const Flightcheckout = () => {
                 {(() => {
                   const totalSeatPrice = selectedSeatList.reduce(
                     (sum, s) => sum + (s.Price || 0),
-                    0
+                    0,
                   );
                   return totalSeatPrice > 0 ? (
                     <>
@@ -2541,7 +2523,7 @@ const Flightcheckout = () => {
                     {row.Seats.map((seat, seatIndex) => {
                       const isAvailable = seat.AvailablityType === 1;
                       const isSelected = selectedSeatList.some(
-                        (s) => s.Code === seat.Code
+                        (s) => s.Code === seat.Code,
                       );
 
                       const showAisle = seatIndex === 2;
@@ -2553,12 +2535,12 @@ const Flightcheckout = () => {
                               !isAvailable
                                 ? "seat-occupied"
                                 : isSelected
-                                ? "seat-selected"
-                                : seat.Price === 0
-                                ? "seat-free"
-                                : seat.Price <= 500
-                                ? "seat-200-500"
-                                : "seat-650-2300"
+                                  ? "seat-selected"
+                                  : seat.Price === 0
+                                    ? "seat-free"
+                                    : seat.Price <= 500
+                                      ? "seat-200-500"
+                                      : "seat-650-2300"
                             }`}
                             disabled={!isAvailable}
                             onClick={() => {
@@ -2566,7 +2548,7 @@ const Flightcheckout = () => {
 
                               setSelectedSeatList((prev) => {
                                 const alreadySelectedIndex = prev.findIndex(
-                                  (s) => s.Code === seat.Code
+                                  (s) => s.Code === seat.Code,
                                 );
 
                                 // 🔁 CASE 1: deselect if clicked again
@@ -2621,7 +2603,7 @@ const Flightcheckout = () => {
         <Modal.Footer>
           {(() => {
             const areAllFlightsSeatsComplete = selectedFlights.every(
-              (_, index) => isSeatCompleteForFlight(index)
+              (_, index) => isSeatCompleteForFlight(index),
             );
 
             return (
@@ -2655,7 +2637,7 @@ const Flightcheckout = () => {
                       if (nextFlightIndex < selectedFlights.length) {
                         setActiveFlightIndex(nextFlightIndex);
                         setSelectedSeatList(
-                          Object.values(updated[nextFlightIndex] || {})
+                          Object.values(updated[nextFlightIndex] || {}),
                         );
                       } else {
                         setShowSeatModal(false);
@@ -2670,7 +2652,7 @@ const Flightcheckout = () => {
                     if (nextFlightIndex < selectedFlights.length) {
                       setActiveFlightIndex(nextFlightIndex);
                       setSelectedSeatList(
-                        Object.values(selectedSeats[nextFlightIndex] || {})
+                        Object.values(selectedSeats[nextFlightIndex] || {}),
                       );
                     } else {
                       setShowSeatModal(false);

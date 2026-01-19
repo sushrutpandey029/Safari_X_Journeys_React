@@ -339,7 +339,7 @@ export default function FlightView({ booking }) {
 
               <tr>
                 <th>Premium Amount</th>
-                <td>{insurance.premiumAmount}</td>
+                <td>{insurance.totalAmount}</td>
               </tr>
 
               <tr>
@@ -467,7 +467,7 @@ export default function FlightView({ booking }) {
             Download Invoice
           </button>
           <button
-            className="btn btn-danger mt-3 ms-2"
+            className="btn btn-outline-danger"
             disabled={isCancelling}
             onClick={() =>
               startCancellation({ vendorBookingId: activeBookingId, bookingId })

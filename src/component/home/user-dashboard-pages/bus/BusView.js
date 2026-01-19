@@ -284,7 +284,7 @@ export default function BusView({ booking }) {
           </button>
 
           <button
-            className="btn btn-danger mt-3 ms-2"
+            className="btn btn-outline-danger"
             disabled={isCancelling}
             onClick={() =>
               startCancellation({ vendorBookingId: BusId, bookingId, TraceId })

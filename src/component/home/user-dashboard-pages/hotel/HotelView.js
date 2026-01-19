@@ -219,7 +219,7 @@ export default function HotelView({ booking }) {
         <tbody>
           <tr>
             <th>Booking ID</th>
-            <td>{bookingId}</td>
+            <td>{bookingDetailData?.BookingId}</td>
           </tr>
           <tr>
             <th>Status</th>
@@ -264,7 +264,7 @@ export default function HotelView({ booking }) {
             Download Invoice
           </button>
           <button
-            className="btn btn-danger mt-3 ms-2"
+            className="btn btn-outline-danger"
             disabled={isCancelling}
             onClick={handleCancelBooking}
           >

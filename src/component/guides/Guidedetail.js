@@ -35,10 +35,10 @@ const Guidedetail = () => {
 
   // Use dates from previous page or set defaults
   const [startDate, setStartDate] = useState(
-    prevStartDate ? new Date(prevStartDate).toISOString().split("T")[0] : ""
+    prevStartDate ? new Date(prevStartDate).toISOString().split("T")[0] : "",
   );
   const [endDate, setEndDate] = useState(
-    prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : ""
+    prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : "",
   );
 
   // Calculate total price based on number of days
@@ -57,7 +57,7 @@ const Guidedetail = () => {
     startDate && endDate
       ? Math.ceil(
           (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-            (1000 * 3600 * 24)
+            (1000 * 3600 * 24),
         ) + 1
       : 1;
 
@@ -186,7 +186,7 @@ const Guidedetail = () => {
     }
 
     alert(
-      `Message sent to ${guide.fullName}! We'll contact you at ${userForm.phone} soon.`
+      `Message sent to ${guide.fullName}! We'll contact you at ${userForm.phone} soon.`,
     );
   };
 

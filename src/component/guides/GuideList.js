@@ -21,9 +21,8 @@ const GuideList = () => {
   const [error, setError] = useState(null);
 
   // Delhi selected by default
-  const [selectedCity, setSelectedCity] = useState(() => {
-    return localStorage.getItem("selectedCity") || "Agra";
-  });
+  const [selectedCity, setSelectedCity] = useState("Agra");
+ 
 
   const [cityList, setCityList] = useState([]);
 

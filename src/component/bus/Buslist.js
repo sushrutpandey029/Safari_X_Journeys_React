@@ -71,7 +71,7 @@ function BusList() {
       setIsScrolling(true);
       setTimeout(() => {
         setVisibleCount((prev) =>
-          prev + loadAmount > maxLoad ? maxLoad : prev + loadAmount
+          prev + loadAmount > maxLoad ? maxLoad : prev + loadAmount,
         );
         setIsScrolling(false);
       }, 600);
@@ -136,12 +136,12 @@ function BusList() {
           });
 
           const hyderabadCity = cities.find(
-            (city) => city.CityName?.trim().toLowerCase() === "hyderabad"
+            (city) => city.CityName?.trim().toLowerCase() === "hyderabad",
           );
 
           if (!bangaloreCity || !hyderabadCity) {
             console.warn(
-              "⚠️ Could not find Bangalore or Hyderabad in city list"
+              "⚠️ Could not find Bangalore or Hyderabad in city list",
             );
             return;
           }
@@ -170,13 +170,13 @@ function BusList() {
 
           // Auto-search for Bangalore to Hyderabad using same search logic
           console.log(
-            "🚀 Auto-initiating search for Bangalore to Hyderabad..."
+            "🚀 Auto-initiating search for Bangalore to Hyderabad...",
           );
 
           await performBusSearch(
             bangaloreCity.CityId || bangaloreCity.CityCode,
             hyderabadCity.CityId || hyderabadCity.CityCode,
-            today
+            today,
           );
         } catch (err) {
           console.error("❌ Initial bus search error:", err);
@@ -273,7 +273,7 @@ function BusList() {
                     i * 35
                   }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${
                     selectedBus?.price || 500
-                  }')">S${i + 1}</div>`
+                  }')">S${i + 1}</div>`,
               ).join("")}
             </div></div>
           </div>
@@ -301,7 +301,7 @@ function BusList() {
         const onclickAttr = seatDiv.getAttribute("onclick");
         if (onclickAttr) {
           const seatMatch = onclickAttr.match(
-            /AddRemoveSeat\(['"]([^'"]*)['"],\s*['"]([^'"]*)['"]\)/
+            /AddRemoveSeat\(['"]([^'"]*)['"],\s*['"]([^'"]*)['"]\)/,
           );
 
           if (seatMatch) {
@@ -454,7 +454,7 @@ function BusList() {
         setBusData([]);
         setFilteredBusData([]);
         setError(
-          "No buses found for this route. Please try different cities or date."
+          "No buses found for this route. Please try different cities or date.",
         );
       }
     } catch (error) {
@@ -481,7 +481,7 @@ function BusList() {
     await performBusSearch(
       searchParams.fromCityId,
       searchParams.toCityId,
-      searchParams.travelDate
+      searchParams.travelDate,
     );
   };
 
@@ -554,7 +554,7 @@ function BusList() {
       // ✅ Total amount
       const totalPayableAmount = selectedSeats.reduce(
         (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
-        0
+        0,
       );
 
       // ✅ Pricing summary (like hotelCharges)
@@ -578,7 +578,7 @@ function BusList() {
       const droppingData = boardingResponse?.data?.DroppingPointsDetails || [];
 
       console.log(
-        `✅ Boarding Points: ${boardingData.length}, Dropping Points: ${droppingData.length}`
+        `✅ Boarding Points: ${boardingData.length}, Dropping Points: ${droppingData.length}`,
       );
 
       const completeBusData = {
@@ -637,7 +637,7 @@ function BusList() {
   const calculateDisplayTotal = () => {
     const exactTotal = selectedSeats.reduce(
       (total, seat) => total + (seat.Pricing?.finalAmount ?? 0),
-      0
+      0,
     );
 
     return Math.round(exactTotal); // Rounds to the nearest whole number
@@ -663,7 +663,7 @@ function BusList() {
       >
         {seats.map((seat) => {
           const isSelected = selectedSeats.some(
-            (s) => s.SeatIndex === seat.SeatIndex
+            (s) => s.SeatIndex === seat.SeatIndex,
           );
 
           const row = Number(seat.RowNo) || 0;
@@ -756,7 +756,7 @@ function BusList() {
 
       if (newFilters[filterType].includes(value)) {
         newFilters[filterType] = newFilters[filterType].filter(
-          (item) => item !== value
+          (item) => item !== value,
         );
       } else {
         newFilters[filterType] = [...newFilters[filterType], value];
@@ -811,33 +811,33 @@ function BusList() {
 
     if (filters.busType.length > 0) {
       filteredData = filteredData.filter((bus) =>
-        filters.busType.includes(bus.busType)
+        filters.busType.includes(bus.busType),
       );
     }
 
     if (filters.busTypeCategory.length > 0) {
       filteredData = filteredData.filter((bus) =>
-        filters.busTypeCategory.includes(bus.busTypeCategory)
+        filters.busTypeCategory.includes(bus.busTypeCategory),
       );
     }
 
     if (filters.seatType.length > 0) {
       filteredData = filteredData.filter((bus) =>
-        filters.seatType.includes(bus.seatType)
+        filters.seatType.includes(bus.seatType),
       );
     }
 
     if (filters.amenities.length > 0) {
       filteredData = filteredData.filter((bus) =>
         filters.amenities.every((amenity) =>
-          (bus.amenities || []).includes(amenity)
-        )
+          (bus.amenities || []).includes(amenity),
+        ),
       );
     }
 
     if (filters.operator.length > 0) {
       filteredData = filteredData.filter((bus) =>
-        filters.operator.includes(bus.operator)
+        filters.operator.includes(bus.operator),
       );
     }
 
@@ -925,12 +925,12 @@ function BusList() {
                         const sortedCities = searchText
                           ? [
                               ...fromCities.filter((city) =>
-                                city.toLowerCase().startsWith(searchText)
+                                city.toLowerCase().startsWith(searchText),
                               ),
                               ...fromCities.filter(
                                 (city) =>
                                   !city.toLowerCase().startsWith(searchText) &&
-                                  city.toLowerCase().includes(searchText)
+                                  city.toLowerCase().includes(searchText),
                               ),
                             ]
                           : fromCities;
@@ -985,12 +985,12 @@ function BusList() {
                         const sortedCities = searchText
                           ? [
                               ...toCities.filter((city) =>
-                                city.toLowerCase().startsWith(searchText)
+                                city.toLowerCase().startsWith(searchText),
                               ),
                               ...toCities.filter(
                                 (city) =>
                                   !city.toLowerCase().startsWith(searchText) &&
-                                  city.toLowerCase().includes(searchText)
+                                  city.toLowerCase().includes(searchText),
                               ),
                             ]
                           : toCities;
@@ -1261,9 +1261,6 @@ function BusList() {
                               </div>
                               <div className="col-6">
                                 <ul className="ps-0 mb-0">
-                                  <li>
-                                    <strong>Duration:</strong> {bus.duration}
-                                  </li>
                                   <li>
                                     <strong>Route:</strong>{" "}
                                     {searchParams.fromCity} →{" "}
