@@ -315,12 +315,14 @@ function BusList() {
           <div class='busSeatrgt'>
             <div class='busSeat'><div class='seatcontainer clearfix'>
               ${Array.from(
-          { length: 20 },
-          (_, i) =>
-            `<div class="nseat" style="top:${i * 35
-            }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${selectedBus?.price || 500
-            }')">S${i + 1}</div>`
-        ).join("")}
+                { length: 20 },
+                (_, i) =>
+                  `<div class="nseat" style="top:${
+                    i * 35
+                  }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${
+                    selectedBus?.price || 500
+                  }')">S${i + 1}</div>`
+              ).join("")}
             </div></div>
           </div>
         </div>`,
@@ -727,22 +729,6 @@ function BusList() {
     setSeatPrices({});
   };
 
-
- 
-
-useEffect(() => {
-  if (showModal) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "auto";
-  }
-
-  return () => {
-    document.body.style.overflow = "auto";
-  };
-}, [showModal]);
-
-
   const handleSeatSelect = (seat) => {
     console.log("seat in handleSeatSelect ", seat);
     setSelectedSeats((prev) => {
@@ -895,6 +881,7 @@ useEffect(() => {
     return (
       <div
         className="bus-layout-api"
+        style={{ position: "relative", height: "500px", overflow: "auto" }}
       >
         {seats.map((seat) => {
           const isSelected = selectedSeats.some(
@@ -1110,51 +1097,211 @@ useEffect(() => {
   return (
     <div>
       {/* Search Section */}
-      <div className="search-bus">
-        <div className="container">
-
-          <div className="row g-3 align-items-end flex-nowrap flex-md-wrap">
-
-             <div className="col-md-3 col-12">
-              <label className="text-muted small mb-1">From</label>
-              <input
-                type="text"
-                className="form-control fw-bold"
-                placeholder="Select City"
-              />
-            </div>
-
-             <div className="col-md-3 col-12">
-              <label className="text-muted small mb-1">To</label>
-              <input
-                type="text"
-                className="form-control fw-bold"
-                placeholder="Select City"
-              />
-            </div>
-
-             <div className="col-md-2 col-12">
-              <label className="text-muted small mb-1">Travel Date</label>
-              <DatePicker
-                className="form-control fw-bold"
-                placeholderText="Select Date"
-              />
-            </div>
-
-             <div className="col-md-2 col-12 d-grid">
-              <button
-                className="explore-btn"
-                onClick={handleSearch}
+      <div className="bus-section" style={{ marginTop: "100px" }}>
+        <div className="search-bus">
+          <div className="container">
+            {error && (
+              <div
+                className="alert alert-warning alert-dismissible fade show mb-3"
+                role="alert"
               >
-                SEARCH
-              </button>
+                {error}
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setError(null)}
+                ></button>
+              </div>
+            )}
+
+            <div className="row g-3 align-items-center justify-content-center">
+              {/* From City - Will show Bangalore by default */}
+              <div className="col-md-3">
+                <label className="text-muted small mb-1">From</label>
+                <div className="position-relative">
+                  <input
+                    type="text"
+                    className="form-control fw-bold"
+                    placeholder="Select City"
+                    value={searchParams.fromCity}
+                    onChange={(e) => {
+                      handleSearchParamChange("fromCity", e.target.value);
+                      setShowFromSuggestions(true);
+                    }}
+                    onFocus={() => setShowFromSuggestions(true)}
+                    disabled={cities.length === 0}
+                  />
+
+                  {showFromSuggestions && (
+                    <div
+                      className="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-3 max-h-200 overflow-auto"
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {(() => {
+                        const searchText = searchParams.fromCity
+                          .trim()
+                          .toLowerCase();
+
+                        const sortedCities = searchText
+                          ? [
+                              ...fromCities.filter((city) =>
+                                city.toLowerCase().startsWith(searchText)
+                              ),
+                              ...fromCities.filter(
+                                (city) =>
+                                  !city.toLowerCase().startsWith(searchText) &&
+                                  city.toLowerCase().includes(searchText)
+                              ),
+                            ]
+                          : fromCities;
+
+                        return sortedCities.slice(0, 15).map((city) => (
+                          <div
+                            key={city}
+                            className="p-2 border-bottom hover-bg-light"
+                            style={{ cursor: "pointer" }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleSearchParamChange("fromCity", city);
+                              setShowFromSuggestions(false);
+                            }}
+                          >
+                            {city}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* To City - Will show Hyderabad by default */}
+              <div className="col-md-3">
+                <label className="text-muted small mb-1">To</label>
+                <div className="position-relative">
+                  <input
+                    type="text"
+                    className="form-control fw-bold"
+                    placeholder="Select City"
+                    value={searchParams.toCity}
+                    onChange={(e) => {
+                      handleSearchParamChange("toCity", e.target.value);
+                      setShowToSuggestions(true);
+                    }}
+                    onFocus={() => setShowToSuggestions(true)}
+                    disabled={cities.length === 0}
+                  />
+
+                  {showToSuggestions && (
+                    <div
+                      className="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-3 max-h-200 overflow-auto"
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {(() => {
+                        const searchText = searchParams.toCity
+                          .trim()
+                          .toLowerCase();
+
+                        const sortedCities = searchText
+                          ? [
+                              ...toCities.filter((city) =>
+                                city.toLowerCase().startsWith(searchText)
+                              ),
+                              ...toCities.filter(
+                                (city) =>
+                                  !city.toLowerCase().startsWith(searchText) &&
+                                  city.toLowerCase().includes(searchText)
+                              ),
+                            ]
+                          : toCities;
+
+                        return sortedCities.slice(0, 15).map((city) => (
+                          <div
+                            key={city}
+                            className="p-2 border-bottom hover-bg-light"
+                            style={{ cursor: "pointer" }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              handleSearchParamChange("toCity", city);
+                              setShowToSuggestions(false);
+                            }}
+                          >
+                            {city}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Travel Date */}
+              <div className="col-md-2">
+                <label className="text-muted small mb-1">Travel Date</label>
+                <DatePicker
+                  selected={
+                    searchParams.travelDate
+                      ? new Date(searchParams.travelDate)
+                      : null
+                  }
+                  onChange={(date) => {
+                    const formattedDate = date.toISOString().split("T")[0];
+                    handleSearchParamChange("travelDate", formattedDate);
+                  }}
+                  className="form-control fw-bold"
+                  dateFormat="yyyy-MM-dd"
+                  minDate={new Date()}
+                  placeholderText="Select Date"
+                  popperPlacement="bottom"
+                  wrapperClassName="w-100"
+                  style={{ cursor: "pointer" }}
+                />
+              </div>
+
+              {/* Search Button */}
+              <div className="col-md-2">
+                
+                <button
+                 className="explore-btn"
+                  onClick={handleSearch}
+                  disabled={
+                    loading ||
+                    !searchParams.fromCityId ||
+                    !searchParams.toCityId
+                  }
+                >
+                  {loading ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      SEARCHING...
+                    </>
+                  ) : (
+                    // <div className="col-md-2 col-12 d-grid">
+              // <button
+              //   className="explore-btn"
+              //   onClick={handleSearch}
+              // >
+                "SEARCH"
+              // </button>
+            // </div>
+                  )}
+                </button>
+              </div>
             </div>
 
+            {isInitialLoading && (
+              <div className="mt-3">
+                <div className="spinner-border spinner-border-sm text-primary me-2"></div>
+                <small>Loading default buses...</small>
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-     
 
       <div className="container py-5">
         <nav aria-label="breadcrumb">
@@ -1287,7 +1434,7 @@ useEffect(() => {
                   <div className="col-sm-12 mb-4" key={bus.busId}>
                     <div className="bus-card rounded-4 border shadow-sm overflow-hidden h-100">
                       <div className="bus-body p-3">
-                        <div className="row  align-items-center">
+                        <div className="row align-items-center">
                           {/* ==== Left Image ==== */}
                           <div className="col-sm-2">
                             <img
@@ -1414,121 +1561,120 @@ useEffect(() => {
         </div>
       </div>
 
-   {/* Seat Selection Modal */}
-{showModal && (
-  <div className="modal-overlay make-mytrip-style">
-    <div className="modal-content make-mytrip-modal">
-
-      {/* Modal Header */}
-      <div className="modal-header make-mytrip-header">
-        <div className="header-content">
-          <h2>Select Seats</h2>
-          <div className="bus-info">
-            <strong>{selectedBus?.busName}</strong>
-            <span>
-              {searchParams.fromCity} → {searchParams.toCity}
-            </span>
-            <span>
-              {selectedBus?.departureTime} • {searchParams.travelDate}
-            </span>
-          </div>
-        </div>
-        <button
-          className="close-btn make-mytrip-close"
-          onClick={handleCloseModal}
+      {/* Seat Selection Modal */}
+      {showModal && (
+        <div
+          className="modal-overlay make-mytrip-style"
+          style={{ marginTop: "100px" }}
         >
-          ×
-        </button>
-      </div>
-
-      {/* Seat Type Legend */}
-      <div className="seat-legend make-mytrip-legend">
-        <div className="legend-item">
-          <div className="seat-sample available"></div>
-          <span>Available</span>
-        </div>
-        <div className="legend-item">
-          <div className="seat-sample selected"></div>
-          <span>Selected</span>
-        </div>
-        <div className="legend-item">
-          <div className="seat-sample booked"></div>
-          <span>Booked</span>
-        </div>
-        <div className="legend-item">
-          <div className="seat-sample ladies"></div>
-          <span>Ladies</span>
-        </div>
-      </div>
-
-      {/* Bus Layout Container */}
-      <div className="bus-layout-container">
-        <div className="bus-driver-section">
-          <div className="driver-cabin">Driver Cabin</div>
-        </div>
-
-        <div className="seats-section">
-          {loadingSeats ? (
-            <div className="loading-seats">Loading seat layout...</div>
-          ) : (
-            <div className="seats-layout-wrapper">
-              {renderSeatsFromAPI()}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Selected Seats & Pricing Summary */}
-      <div className="selection-summary make-mytrip-summary">
-        <div className="selected-seats-section">
-          <h4>Selected Seats</h4>
-          {selectedSeats.length > 0 ? (
-            <div className="selected-seats-list">
-              {selectedSeats.map((seat, index) => (
-                <div key={index} className="selected-seat-item">
-                  <span className="seat-number">
-                    Seat {seat.SeatName}
+          <div className="modal-content make-mytrip-modal">
+            {/* Modal Header */}
+            <div className="modal-header make-mytrip-header">
+              <div className="header-content">
+                <h2>Select Seats</h2>
+                <div className="bus-info">
+                  <strong>{selectedBus?.busName}</strong>
+                  <span>
+                    {searchParams.fromCity} → {searchParams.toCity}
                   </span>
-                  <span className="seat-price">
-                    ₹{seat?.Pricing?.finalAmount || 0}
+                  <span>
+                    {selectedBus?.departureTime} • {searchParams.travelDate}
                   </span>
                 </div>
-              ))}
+              </div>
+              <button
+                className="close-btn make-mytrip-close"
+                onClick={handleCloseModal}
+              >
+                ×
+              </button>
             </div>
-          ) : (
-            <p className="no-seats-text">No seats selected</p>
-          )}
-        </div>
 
-        <div className="price-summary">
-          <div className="total-price">
-            <span>Total Amount:</span>
-            <span className="amount">
-              ₹{calculateDisplayTotal()}
-            </span>
+            {/* Seat Type Legend */}
+            <div className="seat-legend make-mytrip-legend">
+              <div className="legend-item">
+                <div className="seat-sample available"></div>
+                <span>Available</span>
+              </div>
+              <div className="legend-item">
+                <div className="seat-sample selected"></div>
+                <span>Selected</span>
+              </div>
+              <div className="legend-item">
+                <div className="seat-sample booked"></div>
+                <span>Booked</span>
+              </div>
+              <div className="legend-item">
+                <div className="seat-sample ladies"></div>
+                <span>Ladies</span>
+              </div>
+            </div>
+
+            {/* Bus Layout Container */}
+            <div className="bus-layout-container">
+              <div className="bus-driver-section">
+                <div className="driver-cabin">Driver Cabin</div>
+              </div>
+
+              <div className="seats-section">
+                {loadingSeats ? (
+                  <div className="loading-seats">Loading seat layout...</div>
+                ) : (
+                  <div className="seats-layout-wrapper">
+                    {renderSeatsFromAPI()}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Selected Seats & Pricing Summary */}
+            <div className="selection-summary make-mytrip-summary">
+              <div className="selected-seats-section">
+                <h4>Selected Seats</h4>
+                {selectedSeats.length > 0 ? (
+                  <div className="selected-seats-list">
+                    {selectedSeats.map((seat, index) => (
+                      <div key={index} className="selected-seat-item">
+                        <span className="seat-number">
+                          Seat {seat.SeatName}
+                        </span>
+                        <span className="seat-price">
+                          ₹{seat?.Pricing?.finalAmount || 0}
+                        </span>
+                        {/* <span className="seat-price">₹{getSeatFare(seat)}</span> */}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="no-seats-text">No seats selected</p>
+                )}
+              </div>
+
+              <div className="price-summary">
+                <div className="total-price">
+                  <span>Total Amount:</span>
+                  <span className="amount">₹{calculateDisplayTotal()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="modal-actions make-mytrip-actions">
+              <button className="cancel-btn" onClick={handleCloseModal}>
+                Cancel
+              </button>
+              <button
+                className="explore-btn"
+                onClick={handleConfirmSeats}
+                disabled={selectedSeats.length === 0}
+              >
+                Proceed to Book ({selectedSeats.length}{" "}
+                {selectedSeats.length === 1 ? "Seat" : "Seats"})
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="modal-actions make-mytrip-actions">
-        <button className="btn-danger" onClick={handleCloseModal}>
-          Cancel
-        </button>
-        <button
-          className="explore-btn"
-          onClick={handleConfirmSeats}
-          disabled={selectedSeats.length === 0}
-        >
-          Proceed to Book ({selectedSeats.length}{" "}
-          {selectedSeats.length === 1 ? "Seat" : "Seats"})
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
-
+      )}
     </div>
   );
 }

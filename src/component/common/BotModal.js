@@ -22,7 +22,7 @@ function BotModal() {
     noOfChildren: "0",
     cabNeed: "Yes",
     purposeType: "Tourism",
-      mood: "",
+    mood: "",
 
   });
 
@@ -83,8 +83,7 @@ function BotModal() {
     } catch (error) {
       console.error("Error generating trip plan:", error);
       setChatbotReply(
-        ` Error: ${
-          error.message || "Failed to generate trip plan. Please try again."
+        ` Error: ${error.message || "Failed to generate trip plan. Please try again."
         }`
       );
     } finally {
@@ -113,23 +112,23 @@ function BotModal() {
               <Row>
 
                 <Col md={12} className="mb-4">
-  <div className="input-group-modern">
-    <i className="bi bi-emoji-smile"></i>
-    <Form.Select
-      name="mood"
-      value={formData.mood}
-      onChange={handleChange}
-    >
-      <option value="">Select your mood (optional)</option>
-      <option value="Relaxed">Relaxed</option>
-      <option value="Happy">Happy</option>
-      <option value="Adventurous">Adventurous</option>
-      <option value="Romantic">Romantic</option>
-      <option value="Low or Tired">Low or Tired</option>
-      <option value="Spiritual">Spiritual</option>
-    </Form.Select>
-  </div>
-</Col>
+                  <div className="input-group-modern">
+                    <i className="bi bi-emoji-smile"></i>
+                    <Form.Select
+                      name="mood"
+                      value={formData.mood}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select your mood (optional)</option>
+                      <option value="Relaxed">Relaxed</option>
+                      <option value="Happy">Happy</option>
+                      <option value="Adventurous">Adventurous</option>
+                      <option value="Romantic">Romantic</option>
+                      <option value="Low or Tired">Low or Tired</option>
+                      <option value="Spiritual">Spiritual</option>
+                    </Form.Select>
+                  </div>
+                </Col>
 
                 <Col md={6} className="mb-4">
                   <div className="input-group-modern">
@@ -262,7 +261,7 @@ function BotModal() {
               </div>
             )}
 
-           
+
           </div>
 
           {/* RIGHT */}

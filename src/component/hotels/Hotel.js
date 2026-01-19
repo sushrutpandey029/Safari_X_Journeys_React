@@ -97,7 +97,7 @@ function Hotel() {
          <div className="container">
            <div className="row g-3 align-items-end">
             {/* City */}
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">City</label>
               <select
                 className="form-control"
@@ -128,7 +128,7 @@ function Hotel() {
             </div>
 
             {/* Check-in */}
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">Check-In</label>
               <DatePicker
                 selected={checkIn ? new Date(checkIn) : null}
@@ -151,7 +151,7 @@ function Hotel() {
             </div>
 
             {/* Check-Out */}
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">Check-Out</label>
               <DatePicker
                 selected={checkOut ? new Date(checkOut) : null}
@@ -167,7 +167,7 @@ function Hotel() {
             </div>
 
             {/* Rooms/Guests */}
-            <div className="col-md-4 position-relative">
+            <div className="col-md-4 col-6 position-relative">
               <label className="form-label">Rooms/Guests</label>
               <div
                 className="form-control d-flex justify-content-between align-items-center"

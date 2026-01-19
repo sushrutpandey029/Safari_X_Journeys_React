@@ -8,8 +8,6 @@ import {
   Dropdown,
   Spinner,
   Alert,
-  Tabs,
-  Tab,
 } from "react-bootstrap";
 import { FaUndoAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -25,6 +23,7 @@ import Laoding from "../common/loading";
 
 const Flight = () => {
   // Flight segments (multi-city form)
+  // const [flights, setFlights] = useState([{ from: "", to: "", date: "" }]);
   const [flights, setFlights] = useState([
     {
       from: "DEL",
@@ -35,18 +34,6 @@ const Flight = () => {
     },
   ]);
 
-  // ✅ STATE FOR SELECTED FLIGHTS AND TOTAL PRICE WITH PRICING DATA
-  const [selectedFlights, setSelectedFlights] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [pricingBreakdown, setPricingBreakdown] = useState({
-    commissionAmount: 0,
-    commissionPercent: 6,
-    finalAmount: 0,
-    gstAmount: 0,
-    gstPercent: 18,
-    netFare: 0,
-  });
-
   useEffect(() => {
     if (!flights[0]?.date) {
       const newFlights = [...flights];
@@ -56,12 +43,18 @@ const Flight = () => {
   }, []);
 
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  // Dynamic airports data
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Authentication and search states
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
+
+  // User details
   const [userIP, setUserIP] = useState("");
   const [tripType, setTripType] = useState("oneway");
   const [searchData, setSearchData] = useState(null);
@@ -69,17 +62,29 @@ const Flight = () => {
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [travelClass, setTravelClass] = useState("Economy");
+
   const [TraceId, setTraceId] = useState("");
+
+  // fare rule detail
   const [showModal, setShowModal] = useState(false);
   const [selectedFlight, setSelectedFlight] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(6);
-  const [showTravellerDropdown, setShowTravellerDropdown] = useState(false);
 
-  // ✅ Active tab for multi-city and return OB/IB
-  const [activeTab, setActiveTab] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(6); // first 6 cards
 
-  // Track if flight is domestic
-  const [isDomestic, setIsDomestic] = useState(true);
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+      ) {
+        setVisibleCount((prev) => prev + 6); // load next 6
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // ============ FILTER STATES ============
   const [filters, setFilters] = useState({
@@ -98,141 +103,6 @@ const Flight = () => {
     departure: true,
     duration: true,
   });
-
-  // ✅ HELPER FUNCTION TO GET DISPLAY PRICE
-  const getDisplayPrice = (flight) => {
-    if (!flight) return 0;
-
-    // First check for DisplayPrice at root level (from your example)
-    if (flight.DisplayPrice !== undefined && flight.DisplayPrice !== null) {
-      return flight.DisplayPrice;
-    }
-
-    // Then check in Fare object
-    if (flight.Fare) {
-      if (
-        flight.Fare.DisplayPrice !== undefined &&
-        flight.Fare.DisplayPrice !== null
-      ) {
-        return flight.Fare.DisplayPrice;
-      }
-      if (
-        flight.Fare.OfferedFare !== undefined &&
-        flight.Fare.OfferedFare !== null
-      ) {
-        return flight.Fare.OfferedFare;
-      }
-      if (
-        flight.Fare.PublishedFare !== undefined &&
-        flight.Fare.PublishedFare !== null
-      ) {
-        return flight.Fare.PublishedFare;
-      }
-    }
-
-    return 0;
-  };
-
-  // ✅ HELPER FUNCTION TO GET PRICING BREAKDOWN FROM FLIGHT DATA
-  const getPricingData = (flight) => {
-    if (!flight) return null;
-
-    // Check if pricing data exists in flight object
-    if (flight.Pricing) {
-      return flight.Pricing;
-    }
-
-    // If pricing data doesn't exist, calculate it based on display price
-    const displayPrice = getDisplayPrice(flight);
-
-    // Use fixed percentages for calculation if not provided
-    const commissionPercent = 6;
-    const gstPercent = 18;
-    const commissionAmount = (displayPrice * commissionPercent) / 100;
-    const gstAmount = (commissionAmount * gstPercent) / 100;
-    const netFare = displayPrice - commissionAmount;
-    const finalAmount = netFare + gstAmount;
-
-    return {
-      commissionAmount,
-      commissionPercent,
-      finalAmount,
-      gstAmount,
-      gstPercent,
-      netFare,
-    };
-  };
-
-  // ✅ CALCULATE TOTAL PRICE AND PRICING BREAKDOWN WHENEVER SELECTED FLIGHTS CHANGE
-  useEffect(() => {
-    const calculateTotalAndPricing = () => {
-      let total = 0;
-      let totalCommission = 0;
-      let totalGST = 0;
-      let totalNetFare = 0;
-      let totalFinalAmount = 0;
-
-      selectedFlights.forEach((flight) => {
-        if (flight) {
-          const price = getDisplayPrice(flight);
-          total += price;
-
-          const pricing = getPricingData(flight);
-          if (pricing) {
-            totalCommission += pricing.commissionAmount || 0;
-            totalGST += pricing.gstAmount || 0;
-            totalNetFare += pricing.netFare || price;
-            totalFinalAmount += pricing.finalAmount || price;
-          } else {
-            // If no pricing data, use default calculation
-            const commissionPercent = 6;
-            const gstPercent = 18;
-            const commissionAmount = (price * commissionPercent) / 100;
-            const gstAmount = (commissionAmount * gstPercent) / 100;
-            const netFare = price - commissionAmount;
-            const finalAmount = netFare + gstAmount;
-
-            totalCommission += commissionAmount;
-            totalGST += gstAmount;
-            totalNetFare += netFare;
-            totalFinalAmount += finalAmount;
-          }
-        }
-      });
-
-      setTotalPrice(total);
-
-      // Calculate averages for percentages
-      const avgCommissionPercent = 6; // Default or calculate from individual flights
-      const avgGSTPercent = 18; // Default or calculate from individual flights
-
-      setPricingBreakdown({
-        commissionAmount: parseFloat(totalCommission.toFixed(2)),
-        commissionPercent: avgCommissionPercent,
-        finalAmount: parseFloat(totalFinalAmount.toFixed(2)),
-        gstAmount: parseFloat(totalGST.toFixed(2)),
-        gstPercent: avgGSTPercent,
-        netFare: parseFloat(totalNetFare.toFixed(2)),
-      });
-    };
-
-    calculateTotalAndPricing();
-  }, [selectedFlights]);
-
-  // Infinite Scroll Logic
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 100
-      ) {
-        setVisibleCount((prev) => prev + 6);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // ============ FILTER FUNCTIONS ============
   const handleFilterChange = (filterType, value) => {
@@ -276,8 +146,8 @@ const Flight = () => {
       departureTimes: isChecked
         ? [...prev.departureTimes, timeRange]
         : prev.departureTimes.filter(
-            (range) => !(range[0] === timeRange[0] && range[1] === timeRange[1])
-          ),
+          (range) => !(range[0] === timeRange[0] && range[1] === timeRange[1])
+        ),
     }));
   };
 
@@ -301,290 +171,7 @@ const Flight = () => {
     });
   };
 
-  // ✅ COMPLETELY DYNAMIC: No static airports list
-  const checkIfDomestic = (origin, destination) => {
-    // Check if airports data is available
-    if (!airports || airports.length === 0) {
-      console.warn("Airports data not loaded yet");
-      return false; // Default to false until data loads
-    }
-
-    // Normalize airport codes
-    const normalizedOrigin = origin?.toUpperCase().trim();
-    const normalizedDest = destination?.toUpperCase().trim();
-
-    // If same airport, check if it's Indian
-    if (normalizedOrigin === normalizedDest) {
-      const airport = airports.find((a) => a.airport_code === normalizedOrigin);
-      return airport && isIndianAirport(airport);
-    }
-
-    // Find origin and destination airports
-    const originAirport = airports.find(
-      (a) => a.airport_code === normalizedOrigin
-    );
-    const destinationAirport = airports.find(
-      (a) => a.airport_code === normalizedDest
-    );
-
-    // If either airport not found in our data
-    if (!originAirport || !destinationAirport) {
-      console.warn(
-        `Airport not found in database: ${origin} or ${destination}`
-      );
-      return false;
-    }
-
-    // Check if both are Indian airports
-    const isOriginIndian = isIndianAirport(originAirport);
-    const isDestIndian = isIndianAirport(destinationAirport);
-
-    console.log(
-      `Route check: ${originAirport.city_name || origin} (${
-        originAirport.country_name || "Unknown"
-      }) → ${destinationAirport.city_name || destination} (${
-        destinationAirport.country_name || "Unknown"
-      }) = ${isOriginIndian && isDestIndian ? "Domestic" : "International"}`
-    );
-
-    return isOriginIndian && isDestIndian;
-  };
-
-  // ✅ Helper function to check if an airport is Indian
-  const isIndianAirport = (airport) => {
-    if (!airport) return false;
-
-    // Check by country code
-    if (airport.country_code === "IN") return true;
-
-    // Check by country name
-    if (
-      airport.country_name &&
-      (airport.country_name.toLowerCase().includes("india") ||
-        airport.country_name.toLowerCase().includes("indian"))
-    ) {
-      return true;
-    }
-
-    // Check by city name (fallback)
-    const indianCityKeywords = [
-      "delhi",
-      "mumbai",
-      "chennai",
-      "bangalore",
-      "kolkata",
-      "hyderabad",
-      "ahmedabad",
-      "pune",
-      "jaipur",
-      "lucknow",
-      "goa",
-      "kochi",
-    ];
-    if (
-      airport.city_name &&
-      indianCityKeywords.some((keyword) =>
-        airport.city_name.toLowerCase().includes(keyword)
-      )
-    ) {
-      return true;
-    }
-
-    return false;
-  };
-
-  // ✅ Helper function to get airport code from segment
-  const getAirportCodeFromSegment = (segment, type = "origin") => {
-    if (!segment) return "";
-
-    const location = type === "origin" ? segment.Origin : segment.Destination;
-
-    if (typeof location === "string") {
-      return location;
-    }
-
-    if (location?.Airport?.AirportCode) {
-      return location.Airport.AirportCode;
-    }
-
-    if (location?.AirportCode) {
-      return location.AirportCode;
-    }
-
-    return "";
-  };
-
-  // ✅ FIXED: Get filtered results based on trip type and active tab - FIXED FOR MULTI-CITY
-  const getFilteredResultsForDisplay = () => {
-    if (!searchResults || searchResults.length === 0) return [];
-
-    console.log("=== DEBUG: getFilteredResultsForDisplay ===");
-    console.log("Total search results:", searchResults.length);
-    console.log(
-      "Search results structure:",
-      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array"
-    );
-
-    // Check if searchResults is an array of arrays (domestic return response)
-    if (
-      Array.isArray(searchResults[0]) &&
-      searchResults[0].length > 0 &&
-      Array.isArray(searchResults[1]) &&
-      searchResults[1].length > 0
-    ) {
-      console.log("✅ Detected array of arrays format for domestic return");
-      console.log("OB flights count:", searchResults[0].length);
-      console.log("IB flights count:", searchResults[1].length);
-
-      // For domestic return with array of arrays structure
-      if (tripType === "round" && isDomestic) {
-        // API returns: searchResults[0] = Outbound, searchResults[1] = Inbound
-        return activeTab === 0 ? searchResults[0] : searchResults[1];
-      }
-
-      // For multi-city with array of arrays structure
-      if (tripType === "multi" && Array.isArray(searchResults[0])) {
-        // Check if we have enough arrays for each segment
-        if (activeTab < searchResults.length) {
-          return searchResults[activeTab] || [];
-        }
-        return [];
-      }
-
-      // For other trip types, flatten the array
-      return searchResults.flat();
-    }
-
-    console.log("⚠️ Using flat array format");
-
-    // For domestic return with flat array (old logic)
-    if (tripType === "round" && isDomestic) {
-      // First check TripIndicator if available
-      const outboundFlights = searchResults.filter(
-        (flight) =>
-          flight.TripIndicator === "OB" ||
-          flight.TripIndicator === "Outbound" ||
-          flight.TripIndicator === "1" // Sometimes numeric
-      );
-
-      const inboundFlights = searchResults.filter(
-        (flight) =>
-          flight.TripIndicator === "IB" ||
-          flight.TripIndicator === "Inbound" ||
-          flight.TripIndicator === "RT" ||
-          flight.TripIndicator === "Return" ||
-          flight.TripIndicator === "2" // Sometimes numeric
-      );
-
-      console.log(
-        "TripIndicator - OB:",
-        outboundFlights.length,
-        "IB:",
-        inboundFlights.length
-      );
-
-      // If TripIndicator worked, use it
-      if (outboundFlights.length > 0 || inboundFlights.length > 0) {
-        return activeTab === 0 ? outboundFlights : inboundFlights;
-      }
-
-      // Fallback to route-based filtering
-      const origin = flights[0]?.from;
-      const destination = flights[0]?.to;
-
-      // Filter outbound flights (origin → destination)
-      const obFlights = searchResults.filter((flight) => {
-        const segments = flight.Segments || [];
-        if (segments.length === 0) return false;
-
-        // Get first segment
-        const firstSegment = segments[0];
-        const segment = Array.isArray(firstSegment)
-          ? firstSegment[0]
-          : firstSegment;
-        if (!segment) return false;
-
-        const segOrigin = getAirportCodeFromSegment(segment, "origin");
-        const segDest = getAirportCodeFromSegment(segment, "destination");
-
-        return segOrigin === origin && segDest === destination;
-      });
-
-      // Filter inbound flights (destination → origin)
-      const ibFlights = searchResults.filter((flight) => {
-        const segments = flight.Segments || [];
-        if (segments.length === 0) return false;
-
-        // Get first segment
-        const firstSegment = segments[0];
-        const segment = Array.isArray(firstSegment)
-          ? firstSegment[0]
-          : firstSegment;
-        if (!segment) return false;
-
-        const segOrigin = getAirportCodeFromSegment(segment, "origin");
-        const segDest = getAirportCodeFromSegment(segment, "destination");
-
-        return segOrigin === destination && segDest === origin;
-      });
-
-      console.log(
-        "Route-based - OB:",
-        obFlights.length,
-        "IB:",
-        ibFlights.length
-      );
-
-      return activeTab === 0 ? obFlights : ibFlights;
-    }
-
-    // ✅ FIXED: For multi-city - filter by active segment route
-    if (tripType === "multi") {
-      const currentFlight = flights[activeTab];
-      if (!currentFlight) return [];
-
-      console.log(
-        `Filtering multi-city segment ${activeTab}: ${currentFlight.from} -> ${currentFlight.to}`
-      );
-
-      const segmentFlights = searchResults.filter((flight) => {
-        const segments = flight.Segments || [];
-        if (segments.length === 0) return false;
-
-        // Get first segment
-        const firstSegment = segments[0];
-        const segment = Array.isArray(firstSegment)
-          ? firstSegment[0]
-          : firstSegment;
-        if (!segment) return false;
-
-        const segOrigin = getAirportCodeFromSegment(segment, "origin");
-        const segDest = getAirportCodeFromSegment(segment, "destination");
-
-        // Also check TripIndicator for multi-city segments
-        const hasMatchingRoute =
-          segOrigin === currentFlight.from && segDest === currentFlight.to;
-
-        // Check if flight has segment index indicator
-        if (flight.SegmentIndex !== undefined) {
-          return flight.SegmentIndex === activeTab;
-        }
-
-        return hasMatchingRoute;
-      });
-
-      console.log(
-        `Multi-city segment ${activeTab} flights:`,
-        segmentFlights.length
-      );
-      return segmentFlights;
-    }
-
-    // For one-way: return all
-    console.log("One-way flights total:", searchResults.length);
-    return searchResults;
-  };
-
+  // Filter application function - API data ke according
   const applyFilters = (flights) => {
     if (!flights || flights.length === 0) return [];
 
@@ -594,9 +181,11 @@ const Flight = () => {
         return false;
       }
 
-      // Airline filter
+      // Airline filter - API data structure ke hisab se
       if (filters.airlines.length > 0) {
         let airlineCode = "";
+
+        // Multiple ways to get airline code from API response
         if (flight.Airline && flight.Airline.AirlineCode) {
           airlineCode = flight.Airline.AirlineCode;
         } else if (
@@ -619,9 +208,11 @@ const Flight = () => {
         }
       }
 
-      // Stops filter
+      // Stops filter - API data ke hisab se
       if (filters.stops.length > 0) {
         let stopCount = 0;
+
+        // Calculate stops from segments
         if (flight.Segments && flight.Segments[0]) {
           const firstSegment = Array.isArray(flight.Segments[0])
             ? flight.Segments[0][0]
@@ -637,15 +228,17 @@ const Flight = () => {
         }
       }
 
-      // Price filter - ✅ FIXED: Use getDisplayPrice helper
-      const price = getDisplayPrice(flight);
-      if (price < filters.priceRange.min || price > filters.priceRange.max) {
+      // Price filter
+      const fare = flight.Fare?.OfferedFare || flight.Fare?.PublishedFare || 0;
+      if (fare < filters.priceRange.min || fare > filters.priceRange.max) {
         return false;
       }
 
       // Departure time filter
       if (filters.departureTimes.length > 0) {
         let departureTime = "";
+
+        // Get departure time from API data
         if (flight.Segments && flight.Segments[0]) {
           const firstSegment = Array.isArray(flight.Segments[0])
             ? flight.Segments[0][0]
@@ -665,6 +258,8 @@ const Flight = () => {
       // Duration filter
       if (filters.durations.length > 0) {
         let duration = 0;
+
+        // Get duration from API data
         if (flight.Segments && flight.Segments[0]) {
           const firstSegment = Array.isArray(flight.Segments[0])
             ? flight.Segments[0][0]
@@ -673,6 +268,7 @@ const Flight = () => {
         }
 
         let matchesDuration = false;
+
         filters.durations.forEach((durLabel) => {
           if (durLabel === "Short (< 2 hours)" && duration < 120)
             matchesDuration = true;
@@ -693,42 +289,6 @@ const Flight = () => {
     });
   };
 
-  // ✅ HANDLE FLIGHT SELECTION WITH PRICING DATA
-  const handleFlightSelect = (flight) => {
-    const newSelectedFlights = [...selectedFlights];
-
-    // Get pricing data for this flight
-    const flightPricing = getPricingData(flight);
-
-    // Add pricing data to flight object
-    const flightWithPricing = {
-      ...flight,
-      Pricing: flightPricing,
-    };
-
-    // Check if this flight is already selected for this segment
-    const existingIndex = newSelectedFlights.findIndex(
-      (f) =>
-        f &&
-        f.Segments &&
-        flight.Segments &&
-        f.Segments[0]?.[0]?.Airline?.FlightNumber ===
-          flight.Segments[0]?.[0]?.Airline?.FlightNumber &&
-        f.Segments[0]?.[0]?.Origin?.DepTime ===
-          flight.Segments[0]?.[0]?.Origin?.DepTime
-    );
-
-    if (existingIndex === activeTab) {
-      // Same flight clicked again, deselect it
-      newSelectedFlights[activeTab] = null;
-    } else {
-      // Select this flight for current active tab
-      newSelectedFlights[activeTab] = flightWithPricing;
-    }
-
-    setSelectedFlights(newSelectedFlights);
-  };
-
   // Cabin class mapping
   const cabinClassMap = {
     Economy: 1,
@@ -742,40 +302,23 @@ const Flight = () => {
     oneway: 1,
     round: 2,
     multi: 3,
-    special: 5,
   };
-
-  // ✅ DYNAMIC AIRPORTS INITIALIZATION
+  // Fetch user IP, authenticate and get airports
   useEffect(() => {
     const initializeApp = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Get user IP
+        // Step 1: Get user IP
         const ipResponse = await axios.get("https://api.ipify.org?format=json");
         const userIp = ipResponse.data.ip;
         setUserIP(userIp);
 
-        // Fetch airports data dynamically
+        // Step 3: Fetch airports
         const airportsResponse = await getIndianAirports();
-
-        if (airportsResponse?.data && Array.isArray(airportsResponse.data)) {
-          const airportsData = airportsResponse.data;
-          setAirports(airportsData);
-
-          // Cache data for better performance
-          localStorage.setItem("airportsCache", JSON.stringify(airportsData));
-          localStorage.setItem("airportsCacheTimestamp", Date.now().toString());
-
-          // Check initial flight route
-          if (flights[0]?.from && flights[0]?.to) {
-            const domesticStatus = checkIfDomestic(
-              flights[0].from,
-              flights[0].to
-            );
-            setIsDomestic(domesticStatus);
-          }
+        if (airportsResponse?.data) {
+          setAirports(airportsResponse.data);
         } else if (Array.isArray(airportsResponse)) {
           setAirports(airportsResponse);
         } else {
@@ -784,27 +327,6 @@ const Flight = () => {
       } catch (error) {
         console.error("Initialization error:", error);
         setError(`Initialization failed: ${error.message}`);
-
-        // Try to load from cache
-        try {
-          const cachedData = localStorage.getItem("airportsCache");
-          const cachedTimestamp = localStorage.getItem(
-            "airportsCacheTimestamp"
-          );
-
-          if (cachedData && cachedTimestamp) {
-            const oneDay = 24 * 60 * 60 * 1000;
-            const cacheAge = Date.now() - parseInt(cachedTimestamp);
-
-            if (cacheAge < oneDay) {
-              // Cache is less than 1 day old
-              const cachedAirports = JSON.parse(cachedData);
-              setAirports(cachedAirports);
-            }
-          }
-        } catch (cacheError) {
-          console.error("Cache load error:", cacheError);
-        }
       } finally {
         setLoading(false);
       }
@@ -813,69 +335,64 @@ const Flight = () => {
     initializeApp();
   }, []);
 
-  // Custom Airport Dropdown Component with FIXES
+  // Custom Airport Dropdown Component - FIXED VERSION
   const AirportDropdown = ({
     value,
     onChange,
     placeholder = "Select Airport",
     disabled = false,
     type = "from",
-    segmentIndex = 0,
   }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredAirports, setFilteredAirports] = useState([]);
     const dropdownRef = useRef(null);
 
-    // ✅ FIXED: Get airports to exclude
-    const getExcludedAirports = () => {
-      const excluded = new Set();
+    // Get all selected airports from all flights (excluding current value)
+    const getAllSelectedAirports = () => {
+      const selected = new Set();
 
-      // Always exclude the opposite field of the same segment
-      const currentFlight = flights[segmentIndex];
-      if (currentFlight) {
-        if (type === "from" && currentFlight.to) {
-          excluded.add(currentFlight.to);
-        } else if (type === "to" && currentFlight.from) {
-          excluded.add(currentFlight.from);
-        }
-      }
+      // Add all "from" and "to" airports from all flights
+      flights.forEach((flight) => {
+        if (flight.from && flight.from !== value) selected.add(flight.from);
+        if (flight.to && flight.to !== value) selected.add(flight.to);
+      });
 
-      return excluded;
+      return selected;
     };
 
+    // Filter airports based on search term and exclude already selected ones
     useEffect(() => {
-      const filterAirports = () => {
-        const excludedAirports = getExcludedAirports();
+      if (searchTerm) {
+        const selectedAirports = getAllSelectedAirports();
+        const filtered = airports.filter((airport) => {
+          const city = airport.city_name || "";
+          const name = airport.airport_name || "";
+          const code = airport.airport_code || "";
 
-        let filtered = airports;
+          // Check if matches search
+          const matchesSearch =
+            city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            code.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // Apply search filter
-        if (searchTerm.trim()) {
-          filtered = airports.filter((airport) => {
-            const city = airport.city_name || "";
-            const name = airport.airport_name || "";
-            const code = airport.airport_code || "";
-            return (
-              city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              code.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-          });
-        }
+          // Check if not already selected (except current value)
+          const notSelected = !selectedAirports.has(airport.airport_code);
 
-        // Apply exclusion filter
-        filtered = filtered.filter(
-          (airport) => !excludedAirports.has(airport.airport_code)
+          return matchesSearch && notSelected;
+        });
+        setFilteredAirports(filtered.slice(0, 10));
+      } else {
+        // When no search term, show airports not already selected
+        const selectedAirports = getAllSelectedAirports();
+        const availableAirports = airports.filter(
+          (airport) => !selectedAirports.has(airport.airport_code)
         );
+        setFilteredAirports(availableAirports.slice(0, 10));
+      }
+    }, [searchTerm, airports, flights, value]);
 
-        return filtered.slice(0, 15);
-      };
-
-      const results = filterAirports();
-      setFilteredAirports(results);
-    }, [searchTerm, airports, flights, segmentIndex, type]);
-
+    // Close dropdown when clicking outside
     useEffect(() => {
       const handleClickOutside = (event) => {
         if (
@@ -896,6 +413,7 @@ const Flight = () => {
     useEffect(() => {
       if (showModal && window.history.state?.usr?.searchData) {
         const data = window.history.state.usr.searchData;
+
         setSearchData(data);
         setAdults(data.passengers.adults);
         setChildren(data.passengers.children);
@@ -916,8 +434,8 @@ const Flight = () => {
     const displayValue = isOpen
       ? searchTerm
       : selectedAirport
-      ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
-      : "";
+        ? `${selectedAirport.city_name} (${selectedAirport.airport_code})`
+        : "";
 
     return (
       <div className="position-relative" ref={dropdownRef}>
@@ -932,11 +450,12 @@ const Flight = () => {
           onFocus={() => {
             if (disabled) return;
             setIsOpen(true);
-            const excludedAirports = getExcludedAirports();
+            // On focus, show available airports (not already selected)
+            const selectedAirports = getAllSelectedAirports();
             const availableAirports = airports.filter(
-              (airport) => !excludedAirports.has(airport.airport_code)
+              (airport) => !selectedAirports.has(airport.airport_code)
             );
-            setFilteredAirports(availableAirports.slice(0, 15));
+            setFilteredAirports(availableAirports.slice(0, 10));
           }}
           className="custom-dropdown-input"
           disabled={disabled}
@@ -952,9 +471,8 @@ const Flight = () => {
               filteredAirports.map((airport) => (
                 <div
                   key={airport.airport_code}
-                  className={`dropdown-item ${
-                    value === airport.airport_code ? "selected" : ""
-                  }`}
+                  className={`dropdown-item ${value === airport.airport_code ? "selected" : ""
+                    }`}
                   onClick={() => handleSelect(airport)}
                 >
                   <div className="airport-option">
@@ -973,6 +491,16 @@ const Flight = () => {
             ) : (
               <div className="dropdown-item text-muted">
                 {loading ? "Loading airports..." : "No airports available"}
+              </div>
+            )}
+
+            {/* Show warning if user has selected same airport elsewhere */}
+            {getAllSelectedAirports().size > 0 && (
+              <div className="dropdown-footer text-muted small px-3 py-2 border-top">
+                <small>
+                  <i className="fas fa-info-circle me-1"></i>
+                  Already selected airports are hidden
+                </small>
               </div>
             )}
           </div>
@@ -1005,40 +533,14 @@ const Flight = () => {
     }));
   };
 
-  // ✅ UPDATED: Add city with auto-fill and max limit of 4
   const addCity = () => {
-    if (flights.length >= 4) {
-      alert("Maximum 4 cities allowed for multi-city trip");
-      return;
-    }
-
-    const lastFlight = flights[flights.length - 1];
-    const newFlight = {
-      from: lastFlight.to || "", // Auto-fill from previous segment's "to"
-      to: "",
-      date: lastFlight.date || new Date().toISOString().split("T")[0],
-    };
-    setFlights([...flights, newFlight]);
-
-    // Initialize selected flights array for new segment
-    const newSelectedFlights = [...selectedFlights, null];
-    setSelectedFlights(newSelectedFlights);
-
-    setActiveTab(flights.length); // Switch to new tab
+    setFlights([...flights, { from: "", to: "", date: "" }]);
   };
 
   const removeCity = (index) => {
     if (flights.length > 1) {
       const newFlights = flights.filter((_, i) => i !== index);
       setFlights(newFlights);
-
-      // Remove corresponding selected flight
-      const newSelectedFlights = selectedFlights.filter((_, i) => i !== index);
-      setSelectedFlights(newSelectedFlights);
-
-      if (activeTab >= newFlights.length) {
-        setActiveTab(newFlights.length - 1);
-      }
     }
   };
 
@@ -1046,65 +548,18 @@ const Flight = () => {
     const newFlights = [...flights];
     newFlights[index].from = value;
     setFlights(newFlights);
-
-    if (index === 0 && newFlights[0].to) {
-      const domesticStatus = checkIfDomestic(value, newFlights[0].to);
-      setIsDomestic(domesticStatus);
-
-      if (!domesticStatus && airports.length > 0) {
-        setSearchError("Currently we only support domestic flights");
-      } else {
-        setSearchError(null);
-      }
-    }
   };
 
   const handleToChange = (index, value) => {
     const newFlights = [...flights];
     newFlights[index].to = value;
     setFlights(newFlights);
-
-    if (index === 0 && newFlights[0].from) {
-      const domesticStatus = checkIfDomestic(newFlights[0].from, value);
-      setIsDomestic(domesticStatus);
-
-      if (!domesticStatus && airports.length > 0) {
-        setSearchError("Currently we only support domestic flights");
-      } else {
-        setSearchError(null);
-      }
-    }
   };
 
-  // ✅ UPDATED: Pass all selected flights, total price, AND PRICING DATA to modal
-  const onViewPrices = () => {
-    // Check if all segments have selected flights
-    const segmentsCount =
-      tripType === "round" ? 2 : tripType === "multi" ? flights.length : 1;
+  const onViewPrices = (flight) => {
+    setSelectedFlight(flight);
 
-    if (tripType === "round" || tripType === "multi") {
-      const missingSelections = [];
-      for (let i = 0; i < segmentsCount; i++) {
-        if (!selectedFlights[i]) {
-          missingSelections.push(i + 1);
-        }
-      }
-
-      if (missingSelections.length > 0) {
-        alert(
-          `Please select flights for all segments. Missing: ${missingSelections.join(
-            ", "
-          )}`
-        );
-        return;
-      }
-    } else {
-      if (!selectedFlights[0]) {
-        alert("Please select a flight");
-        return;
-      }
-    }
-
+    // Create proper search data with passenger information
     const passengerData = {
       passengers: {
         adults,
@@ -1112,71 +567,44 @@ const Flight = () => {
         infants,
       },
       tripType,
-      flights: selectedFlights.filter((f) => f), // Only non-null
-      totalPrice,
-      pricingBreakdown,
       origin: flights?.[0]?.from,
       destination: flights?.[0]?.to,
       departureDate: flights?.[0]?.date,
       returnDate: flights?.[0]?.returnDate,
       travelClass,
       TraceId,
-      isDomestic,
-      activeTab,
     };
-
     setSearchData(passengerData);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setSelectedFlight(null);
   };
 
+  // Handle trip type change
   const handleTripTypeChange = (newTripType) => {
     setTripType(newTripType);
     setSearchResults([]);
     setSearchError(null);
-    setActiveTab(0);
-    setSelectedFlights([]); // Reset selected flights
 
     if (newTripType === "multi") {
       if (flights.length === 1) {
-        // Auto-fill second segment's "from" with first segment's "to"
-        const newFlights = [
-          ...flights,
-          {
-            from: flights[0].to || "", // Auto-fill from first segment's "to"
-            to: "",
-            date: flights[0].date || new Date().toISOString().split("T")[0],
-          },
-        ];
-        setFlights(newFlights);
-        setSelectedFlights([null, null]); // Initialize for 2 segments
+        setFlights([...flights, { from: "", to: "", date: "" }]);
       }
     } else {
+      const firstFlight = flights[0] || { from: "", to: "", date: "" };
       if (newTripType === "round") {
-        setFlights([{ ...flights[0], returnDate: "" }]);
-        setSelectedFlights([null, null]); // For outbound and inbound
+        setFlights([{ ...firstFlight, returnDate: "" }]);
       } else {
-        setFlights([flights[0]]);
-        setSelectedFlights([null]); // For one way
+        setFlights([firstFlight]);
       }
-    }
-
-    if (flights[0] && flights[0].from && flights[0].to) {
-      const domesticStatus = checkIfDomestic(flights[0].from, flights[0].to);
-      setIsDomestic(domesticStatus);
     }
   };
 
+  // Search flights function
   const searchFlights = async () => {
-    // First check if airports data is loaded
-    if (airports.length === 0) {
-      setSearchError("Please wait, airports data is loading...");
-      return;
-    }
-
     // Validate form
     for (let flight of flights) {
       if (!flight.from || !flight.to || !flight.date) {
@@ -1187,15 +615,6 @@ const Flight = () => {
 
     if (tripType === "round" && !flights[0].returnDate) {
       setSearchError("Please select return date for round trip");
-      return;
-    }
-
-    // Check if domestic - DYNAMIC CHECK
-    const domesticCheck = checkIfDomestic(flights[0].from, flights[0].to);
-    setIsDomestic(domesticCheck);
-
-    if (!domesticCheck) {
-      setSearchError("Currently we only support domestic flights");
       return;
     }
 
@@ -1210,7 +629,6 @@ const Flight = () => {
 
     try {
       let segments = [];
-      let journeyType = journeyTypeMap[tripType];
 
       if (tripType === "oneway") {
         segments = flights.map((flight) => ({
@@ -1238,13 +656,12 @@ const Flight = () => {
           },
         ];
       } else if (tripType === "multi") {
-        segments = flights.map((flight, index) => ({
+        segments = flights.map((flight) => ({
           Origin: flight.from,
           Destination: flight.to,
           FlightCabinClass: cabinClassMap[travelClass],
           PreferredDepartureTime: `${flight.date}T00:00:00`,
           PreferredArrivalTime: `${flight.date}T00:00:00`,
-          SegmentIndex: index, // Add segment index for identification
         }));
       }
 
@@ -1254,67 +671,26 @@ const Flight = () => {
         InfantCount: infants,
         DirectFlight: false,
         OneStopFlight: false,
-        JourneyType: journeyType,
+        JourneyType: journeyTypeMap[tripType],
         PreferredAirlines: [],
         Segments: segments,
         Sources: ["GDS"],
+        // Sources: ["SG","G8","6E","UK","AI"],
       };
 
-      console.log("Search payload for multi-city:", searchPayload);
-
       const searchResponse = await Flight_search(searchPayload);
-
+      console.log("✅ API Response in Flight_search:", searchResponse);
       let foundFlights = [];
 
       if (searchResponse) {
-        // Try different response structures
         if (
           searchResponse.data &&
           searchResponse.data.Response &&
           searchResponse.data.Response.Results
         ) {
-          // Check if it's an array of arrays for domestic return or multi-city
-          if ((tripType === "round" && isDomestic) || tripType === "multi") {
-            if (Array.isArray(searchResponse.data.Response.Results)) {
-              // Check if it's an array of arrays
-              if (
-                searchResponse.data.Response.Results.length > 0 &&
-                Array.isArray(searchResponse.data.Response.Results[0])
-              ) {
-                foundFlights = searchResponse.data.Response.Results;
-                console.log("✅ Found array of arrays for", tripType);
-                console.log("Array length:", foundFlights.length);
-                foundFlights.forEach((arr, idx) => {
-                  console.log(`Segment ${idx} has ${arr.length} flights`);
-                });
-              } else {
-                foundFlights = [searchResponse.data.Response.Results]; // Wrap in array for consistency
-              }
-            } else {
-              foundFlights = [searchResponse.data.Response.Results];
-            }
-          } else {
-            foundFlights = searchResponse.data.Response.Results.flat();
-          }
+          foundFlights = searchResponse.data.Response.Results.flat();
         } else if (searchResponse.data && searchResponse.data.Results) {
-          // Check if it's an array of arrays for domestic return or multi-city
-          if ((tripType === "round" && isDomestic) || tripType === "multi") {
-            if (Array.isArray(searchResponse.data.Results)) {
-              if (
-                searchResponse.data.Results.length > 0 &&
-                Array.isArray(searchResponse.data.Results[0])
-              ) {
-                foundFlights = searchResponse.data.Results;
-                console.log("✅ Found array of arrays for", tripType);
-              } else {
-                foundFlights = [searchResponse.data.Results];
-              }
-            } else {
-              foundFlights = [searchResponse.data.Results];
-            }
-          } else {
-            foundFlights = searchResponse.data.Results.flat();
-          }
+          foundFlights = searchResponse.data.Results.flat();
         } else if (searchResponse.data && Array.isArray(searchResponse.data)) {
           foundFlights = searchResponse.data;
         } else if (
@@ -1333,69 +709,38 @@ const Flight = () => {
       }
 
       if (foundFlights.length > 0) {
-        console.log("=== API RESPONSE ANALYSIS ===");
-        console.log("Total flights found:", foundFlights.length);
-        console.log("Trip type:", tripType);
-
-        // For multi-city, ensure we have the right structure
-        if (tripType === "multi") {
-          if (
-            Array.isArray(foundFlights[0]) &&
-            !Array.isArray(foundFlights[0][0])
-          ) {
-            // We have a flat array, need to split by segment
-            console.log("Flat array for multi-city, splitting by segment...");
-
-            const segmentedResults = [];
-            flights.forEach((flight, index) => {
-              const segmentFlights = foundFlights.filter((f) => {
-                const segments = f.Segments || [];
-                if (segments.length === 0) return false;
-
-                const firstSegment = segments[0];
-                const segment = Array.isArray(firstSegment)
-                  ? firstSegment[0]
-                  : firstSegment;
-                if (!segment) return false;
-
-                const segOrigin = getAirportCodeFromSegment(segment, "origin");
-                const segDest = getAirportCodeFromSegment(
-                  segment,
-                  "destination"
-                );
-
-                return segOrigin === flight.from && segDest === flight.to;
-              });
-
-              segmentedResults.push(segmentFlights);
-              console.log(
-                `Segment ${index} (${flight.from} -> ${flight.to}): ${segmentFlights.length} flights`
-              );
-            });
-
-            foundFlights = segmentedResults;
-          }
-        }
-
         setSearchResults(foundFlights);
-        setTraceId(searchResponse?.data?.Response?.TraceId || "");
+        setTraceId(searchResponse?.data?.Response.TraceId);
         setSearchError(null);
+      } else {
+        setSearchError(
+          searchResponse?.data?.Response?.Error?.ErrorMessage ||
+          "No flights found. Please try different search criteria."
+        );
       }
     } catch (error) {
       console.error("Search error:", error);
       setSearchError(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to search flights"
+        error.message ||
+        "Failed to search flights"
       );
     } finally {
       setSearchLoading(false);
     }
   };
 
+  // Format price with commas
+  const formatPrice = (price) => {
+    if (price === null || price === undefined) return "0.00";
+    const fixed = Number(price).toFixed(2);
+    return fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   // Format time from ISO string
   const formatTime = (isoString) => {
     if (!isoString) return "--:--";
+
     try {
       const date = new Date(isoString);
       return date.toLocaleTimeString("en-IN", {
@@ -1416,233 +761,12 @@ const Flight = () => {
     return `${hours}h ${mins}m`;
   };
 
-  // ✅ FIXED: Render tabs based on trip type with accurate counts
-  const renderTabs = () => {
-    if (searchResults.length === 0) return null;
-
-    console.log("=== DEBUG: renderTabs ===");
-    console.log(
-      "Search results type:",
-      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array"
-    );
-
-    if (tripType === "round" && isDomestic) {
-      let obCount, ibCount;
-
-      // Check if we have array of arrays structure
-      if (Array.isArray(searchResults[0]) && Array.isArray(searchResults[1])) {
-        obCount = searchResults[0].length;
-        ibCount = searchResults[1].length;
-        console.log("Array of arrays - OB:", obCount, "IB:", ibCount);
-      } else {
-        // Flat array structure - use filtering logic
-        const outboundFlights = searchResults.filter(
-          (flight) =>
-            flight.TripIndicator === "OB" ||
-            flight.TripIndicator === "Outbound" ||
-            flight.TripIndicator === "1"
-        );
-
-        const inboundFlights = searchResults.filter(
-          (flight) =>
-            flight.TripIndicator === "IB" ||
-            flight.TripIndicator === "Inbound" ||
-            flight.TripIndicator === "RT" ||
-            flight.TripIndicator === "Return" ||
-            flight.TripIndicator === "2"
-        );
-
-        if (outboundFlights.length > 0 || inboundFlights.length > 0) {
-          obCount = outboundFlights.length;
-          ibCount = inboundFlights.length;
-        } else {
-          // Fallback to route filtering
-          const origin = flights[0]?.from;
-          const destination = flights[0]?.to;
-
-          const obByRoute = searchResults.filter((flight) => {
-            const segments = flight.Segments || [];
-            if (segments.length === 0) return false;
-            const firstSegment = segments[0];
-            const segment = Array.isArray(firstSegment)
-              ? firstSegment[0]
-              : firstSegment;
-            if (!segment) return false;
-            const segOrigin = getAirportCodeFromSegment(segment, "origin");
-            const segDest = getAirportCodeFromSegment(segment, "destination");
-            return segOrigin === origin && segDest === destination;
-          }).length;
-
-          const ibByRoute = searchResults.filter((flight) => {
-            const segments = flight.Segments || [];
-            if (segments.length === 0) return false;
-            const firstSegment = segments[0];
-            const segment = Array.isArray(firstSegment)
-              ? firstSegment[0]
-              : firstSegment;
-            if (!segment) return false;
-            const segOrigin = getAirportCodeFromSegment(segment, "origin");
-            const segDest = getAirportCodeFromSegment(segment, "destination");
-            return segOrigin === destination && segDest === origin;
-          }).length;
-
-          obCount = obByRoute;
-          ibCount = ibByRoute;
-        }
-
-        // If still 0, split evenly
-        if (obCount === 0 && ibCount === 0 && searchResults.length > 0) {
-          obCount = Math.floor(searchResults.length / 2);
-          ibCount = searchResults.length - obCount;
-        }
-      }
-
-      return (
-        <div className="mb-4">
-          <Tabs
-            activeKey={activeTab}
-            onSelect={(k) => setActiveTab(Number(k))}
-            className="mb-3"
-          >
-            <Tab
-              eventKey={0}
-              title={
-                <div className="d-flex align-items-center">
-                  <span>
-                    Departure: {flights[0].from} → {flights[0].to}
-                  </span>
-                  <span className="badge bg-primary ms-2">{obCount}</span>
-                </div>
-              }
-            />
-            <Tab
-              eventKey={1}
-              title={
-                <div className="d-flex align-items-center">
-                  <span>
-                    Return: {flights[0].to} → {flights[0].from}
-                  </span>
-                  <span className="badge bg-primary ms-2">{ibCount}</span>
-                </div>
-              }
-            />
-          </Tabs>
-
-          <div className="alert alert-info py-2">
-            <small>
-              <strong>Domestic Return Flight</strong> - Showing{" "}
-              {activeTab === 0 ? "Outbound (Departure)" : "Inbound (Return)"}{" "}
-              flights
-            </small>
-            <div className="small mt-1">
-              Found {activeTab === 0 ? obCount : ibCount} flights out of{" "}
-              {searchResults.length} total
-            </div>
-            <div className="small text-muted">
-              Format:{" "}
-              {Array.isArray(searchResults[0]) ? "Array[OB, IB]" : "Flat Array"}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (tripType === "multi") {
-      return (
-        <div className="mb-4">
-          <Tabs
-            activeKey={activeTab}
-            onSelect={(k) => setActiveTab(Number(k))}
-            className="mb-3"
-          >
-            {flights.map((flight, index) => {
-              // Handle array of arrays structure
-              let flightCount;
-              if (
-                Array.isArray(searchResults[0]) &&
-                searchResults.length > index
-              ) {
-                flightCount = searchResults[index]?.length || 0;
-              } else {
-                // Flat array structure
-                const segmentFlights = searchResults.filter((f) => {
-                  const segments = f.Segments || [];
-                  if (segments.length === 0) return false;
-                  const firstSegment = segments[0];
-                  const segment = Array.isArray(firstSegment)
-                    ? firstSegment[0]
-                    : firstSegment;
-                  if (!segment) return false;
-                  const segOrigin = getAirportCodeFromSegment(
-                    segment,
-                    "origin"
-                  );
-                  const segDest = getAirportCodeFromSegment(
-                    segment,
-                    "destination"
-                  );
-                  return segOrigin === flight.from && segDest === flight.to;
-                });
-                flightCount = segmentFlights.length;
-              }
-
-              return (
-                <Tab
-                  key={index}
-                  eventKey={index}
-                  title={
-                    <div className="d-flex align-items-center">
-                      <span>
-                        {flight.from} → {flight.to}
-                      </span>
-                      <span className="badge bg-secondary ms-2">
-                        {flightCount}
-                      </span>
-                    </div>
-                  }
-                />
-              );
-            })}
-          </Tabs>
-
-          <div className="alert alert-info py-2">
-            <small>
-              Showing flights for:{" "}
-              <strong>
-                {flights[activeTab]?.from} → {flights[activeTab]?.to}
-              </strong>{" "}
-              on {flights[activeTab]?.date}
-            </small>
-            <div className="small text-muted mt-1">
-              Segment {activeTab + 1} of {flights.length}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  // ✅ Check if a flight is selected for current active tab
-  const isFlightSelected = (flight) => {
-    return (
-      selectedFlights[activeTab] &&
-      selectedFlights[activeTab].Segments &&
-      flight.Segments &&
-      selectedFlights[activeTab].Segments[0]?.[0]?.Airline?.FlightNumber ===
-        flight.Segments[0]?.[0]?.Airline?.FlightNumber &&
-      selectedFlights[activeTab].Segments[0]?.[0]?.Origin?.DepTime ===
-        flight.Segments[0]?.[0]?.Origin?.DepTime
-    );
-  };
-
-  // Render flight results
+  // Render flight results with filters applied AND infinite scroll
   const renderFlightResults = () => {
     if (searchLoading) {
       return (
         <div className="text-center py-5">
-          <Laoding />
+        < Laoding />
         </div>
       );
     }
@@ -1655,10 +779,9 @@ const Flight = () => {
       );
     }
 
-    const currentFlights = getFilteredResultsForDisplay();
-    const filteredResults = applyFilters(currentFlights);
+    const filteredResults = applyFilters(searchResults);
 
-    if (filteredResults.length === 0 && currentFlights.length > 0) {
+    if (filteredResults.length === 0 && searchResults.length > 0) {
       return (
         <div className="text-center py-5 text-muted">
           <h5>No flights found matching your filters</h5>
@@ -1679,6 +802,7 @@ const Flight = () => {
       );
     }
 
+    // Only show the first `visibleCount` flights
     const visibleFlights = filteredResults.slice(0, visibleCount);
 
     return (
@@ -1704,27 +828,11 @@ const Flight = () => {
           const destinationAirport = destinationInfo.Airport || {};
 
           const publishedFare = fareInfo.PublishedFare || 0;
-          // ✅ FIXED: Use getDisplayPrice helper
-          const displayPrice = getDisplayPrice(flight);
-          const savings = publishedFare - displayPrice;
-
-          const isSelected = isFlightSelected(flight);
+          const offeredFare = fareInfo.OfferedFare || publishedFare;
+          const savings = publishedFare - offeredFare;
 
           return (
-            <Card
-              key={index}
-              className={`shadow-sm p-3 mb-4 rounded-3 ${
-                isSelected ? "border-primary border-2" : ""
-              }`}
-              onClick={() => handleFlightSelect(flight)}
-              style={{ cursor: "pointer" }}
-            >
-              {isSelected && (
-                <div className="position-absolute top-0 end-0 m-2">
-                  <span className="badge bg-success">Selected</span>
-                </div>
-              )}
-
+            <Card key={index} className="shadow-sm p-3 mb-4 rounded-3">
               <Row className="align-items-center">
                 {/* Airline Info */}
                 <Col md={3} className="d-flex align-items-center">
@@ -1780,6 +888,9 @@ const Flight = () => {
                     {segmentData.StopOver ? "With Stop" : "Non stop"}
                   </small>
                   <br />
+                  <small className="text-muted small">
+                    {segmentData.Craft || "32N"}
+                  </small>
                 </Col>
 
                 {/* Arrival */}
@@ -1796,35 +907,32 @@ const Flight = () => {
                   </small>
                 </Col>
 
-                {/* Price - ✅ FIXED: Use DisplayPrice */}
+                {/* Price */}
                 <Col md={3} className="text-end">
                   <h5 className="fw-bold text-primary">
-                    ₹ {Math.ceil(displayPrice)}
+                    ₹ {formatPrice(offeredFare)}
                   </h5>
                   <small className="text-muted">
                     Total {adults} adult{adults > 1 ? "s" : ""}
                   </small>
 
+
                   {savings > 0 && (
                     <>
                       <br />
                       <small className="text-success small">
-                        Save ₹{savings}
+                        Save ₹{formatPrice(savings)}
                       </small>
                     </>
                   )}
 
                   <br />
                   <Button
-                    className={`view-price-flight ${
-                      isSelected ? "btn-success" : ""
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFlightSelect(flight);
-                    }}
+
+                    className="view-price-flight mt-3 m-0"
+                    onClick={() => onViewPrices(flight)}
                   >
-                    {isSelected ? "SELECTED ✓" : "SELECT FLIGHT"}
+                    VIEW PRICES
                   </Button>
                 </Col>
               </Row>
@@ -1832,7 +940,7 @@ const Flight = () => {
               {/* Baggage Row */}
               <Row className="mt-3">
                 <Col>
-                  <div className="bg-light p-2 rounded-2">
+                  <div className="bg-lights">
                     <small className="text-muted">
                       <strong>Baggage:</strong> {segmentData?.Baggage || "--"}•
                       <strong> Cabin:</strong>{" "}
@@ -1845,41 +953,6 @@ const Flight = () => {
             </Card>
           );
         })}
-
-        {/* ✅ FIXED: SHOW TOTAL PRICE AND VIEW PRICES BUTTON FOR ALL TRIP TYPES */}
-        {selectedFlights.some((f) => f) && (
-          <div className="sticky-bottom bg-white p-3 border-top shadow-sm">
-            <Row className="align-items-center">
-              <Col md={6}>
-                <h5 className="mb-0">Selected Flights:</h5>
-                <small className="text-muted">
-                  {selectedFlights.filter((f) => f).length} of{" "}
-                  {tripType === "round"
-                    ? 2
-                    : tripType === "multi"
-                    ? flights.length
-                    : 1}{" "}
-                  segments selected
-                </small>
-                <div className="mt-2"></div>
-              </Col>
-              <Col md={4} className="text-end">
-                <h4 className="text-primary fw-bold mb-0">
-                  Total: ₹ {Math.ceil(totalPrice)}
-                </h4>
-              </Col>
-              <Col md={2}>
-                <Button
-                  variant="primary"
-                  className="w-100"
-                  onClick={onViewPrices}
-                >
-                  VIEW PRICES
-                </Button>
-              </Col>
-            </Row>
-          </div>
-        )}
 
         {/* Show loading indicator if more flights are loading */}
         {visibleCount < filteredResults.length && (
@@ -1912,6 +985,7 @@ const Flight = () => {
             setIsInitialLoading(true);
             await searchFlights();
           } catch (error) {
+            // Handle error if needed
             console.error("Error during initial search:", error);
           } finally {
             setIsInitialLoading(false);
@@ -1925,9 +999,9 @@ const Flight = () => {
 
   const availableAirlines = React.useMemo(() => {
     const map = new Map();
-    const currentFlights = getFilteredResultsForDisplay();
 
-    currentFlights.forEach((flight) => {
+    // Collect unique airlines
+    searchResults.forEach((flight) => {
       const seg = flight?.Segments?.[0]?.[0];
       if (seg?.Airline?.AirlineCode) {
         map.set(seg.Airline.AirlineCode, seg.Airline.AirlineName);
@@ -1936,41 +1010,15 @@ const Flight = () => {
 
     return Array.from(map.entries())
       .map(([code, name]) => {
-        const count = currentFlights.filter(
+        // 🔹 Count flights for this airline
+        const count = searchResults.filter(
           (f) => f?.Segments?.[0]?.[0]?.Airline?.AirlineCode === code
         ).length;
+
         return { code, name, count };
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [searchResults, activeTab, tripType, isDomestic]);
-
-  const buildFlightDetailPayload = () => {
-    if (tripType === "round" && isDomestic) {
-      return {
-        TraceId,
-        tripType,
-        isDomestic,
-        resultIndexes: {
-          outbound: selectedFlights[0]?.ResultIndex,
-          inbound: selectedFlights[1]?.ResultIndex,
-        },
-        pricingBreakdown,
-        passengers: { adults, children, infants },
-        travelClass,
-      };
-    }
-
-    // One-way / Multi-city
-    return {
-      TraceId,
-      tripType,
-      isDomestic,
-      resultIndexes: selectedFlights.map((f) => f?.ResultIndex),
-      pricingBreakdown,
-      passengers: { adults, children, infants },
-      travelClass,
-    };
-  };
+      .sort((a, b) => a.name.localeCompare(b.name)); // alphabetical
+  }, [searchResults]);
 
   return (
     <div>
@@ -2014,7 +1062,6 @@ const Flight = () => {
                     onChange={(value) => handleFromChange(0, value)}
                     placeholder="From City"
                     type="from"
-                    segmentIndex={0}
                     disabled={isInitialLoading || searchLoading}
                   />
                 </Form.Group>
@@ -2028,7 +1075,6 @@ const Flight = () => {
                     onChange={(value) => handleToChange(0, value)}
                     placeholder="To City"
                     type="to"
-                    segmentIndex={0}
                     disabled={isInitialLoading || searchLoading}
                   />
                 </Form.Group>
@@ -2065,8 +1111,8 @@ const Flight = () => {
                         flights[0].returnDate
                           ? new Date(flights[0].returnDate)
                           : flights[0].date
-                          ? new Date(flights[0].date)
-                          : new Date()
+                            ? new Date(flights[0].date)
+                            : new Date()
                       }
                       onChange={(date) => {
                         const newFlights = [...flights];
@@ -2081,7 +1127,6 @@ const Flight = () => {
                       dateFormat="EEE, MMM d, yyyy"
                       className="form-control"
                       placeholderText="Select Return"
-                      disabled={isInitialLoading || searchLoading}
                     />
                   </Form.Group>
                 </Col>
@@ -2092,17 +1137,12 @@ const Flight = () => {
                   <Form.Label className="fw-semibold small">
                     Passengers & Class
                   </Form.Label>
-                  <Dropdown
-                    className="AddClass"
-                    style={{ width: "100%" }}
-                    show={showTravellerDropdown}
-                    onToggle={(isOpen) => setShowTravellerDropdown(isOpen)}
-                  >
+                  <Dropdown className="AddClass" style={{ width: "100%" }}>
                     <Dropdown.Toggle
                       id="travellers-dropdown"
                       variant="light"
                       className="AddClass-toggle form-control"
-                      disabled={isInitialLoading || searchLoading}
+
                     >
                       {adults} Adult{adults > 1 ? "s" : ""},{" "}
                       {travelClass || "Economy"}
@@ -2152,12 +1192,6 @@ const Flight = () => {
                           </div>
                         </Col>
                       </Row>
-                      <button
-                        className="btn btn-primary w-100 mt-3"
-                        onClick={() => setShowTravellerDropdown(false)}
-                      >
-                        Done
-                      </button>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Form.Group>
@@ -2165,18 +1199,14 @@ const Flight = () => {
 
               <Col md={2}>
                 <Button
-                  type="submit"
+                  type="submit"   // 👈 yahan explicitly set karo
                   className="explore-flight-btn w-100"
                   onClick={searchFlights}
                   disabled={searchLoading || loading || isInitialLoading}
                 >
                   {searchLoading ? (
                     <>
-                      <Spinner
-                        animation="border"
-                        size="sm"
-                        className="me-2 spinner-white"
-                      />
+                      <Spinner animation="border" size="sm" className="me-2 spinner-white" />
                       Searching...
                     </>
                   ) : (
@@ -2184,123 +1214,93 @@ const Flight = () => {
                   )}
                 </Button>
               </Col>
+
+
             </Row>
-
             {tripType === "multi" &&
-              flights.slice(1).map((flight, index) => {
-                const actualIndex = index + 1;
+              flights.map((flight, index) => (
+                <Row
+                  key={index}
+                  className="align-items-end g-2 mb-3 travellers"
+                >
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">
+                        From
+                      </Form.Label>
+                      <AirportDropdown
+                        value={flight.from}
+                        onChange={(value) => handleFromChange(index, value)}
+                        placeholder="From City"
+                        type="from"
+                        disabled={isInitialLoading || searchLoading}
+                      />
+                    </Form.Group>
+                  </Col>
 
-                return (
-                  <Row
-                    key={flight.id || actualIndex}
-                    className="align-items-end g-2 mb-3 travellers"
-                  >
-                    {/* FROM */}
-                    <Col md={2}>
-                      <Form.Group>
-                        <Form.Label className="fw-semibold small">
-                          From
-                        </Form.Label>
-                        <AirportDropdown
-                          value={flight.from}
-                          onChange={(value) => {
-                            const updatedFlights = [...flights];
-                            updatedFlights[actualIndex] = {
-                              ...updatedFlights[actualIndex],
-                              from: value,
-                            };
-                            setFlights(updatedFlights);
-                          }}
-                          placeholder="From City"
-                          type="from"
-                          segmentIndex={actualIndex}
-                          disabled={isInitialLoading || searchLoading}
-                        />
-                      </Form.Group>
-                    </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">To</Form.Label>
+                      <AirportDropdown
+                        value={flight.to}
+                        onChange={(value) => handleToChange(index, value)}
+                        placeholder="To City"
+                        type="to"
+                        disabled={isInitialLoading || searchLoading}
+                      />
+                    </Form.Group>
+                  </Col>
 
-                    {/* TO */}
-                    <Col md={2}>
-                      <Form.Group>
-                        <Form.Label className="fw-semibold small">
-                          To
-                        </Form.Label>
-                        <AirportDropdown
-                          value={flight.to}
-                          onChange={(value) => {
-                            const updatedFlights = [...flights];
-                            updatedFlights[actualIndex] = {
-                              ...updatedFlights[actualIndex],
-                              to: value,
-                            };
-                            setFlights(updatedFlights);
-                          }}
-                          placeholder="To City"
-                          type="to"
-                          segmentIndex={actualIndex}
-                          disabled={isInitialLoading || searchLoading}
-                        />
-                      </Form.Group>
-                    </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold small">
+                        Depart
+                      </Form.Label>
 
-                    {/* DATE */}
-                    <Col md={2}>
-                      <Form.Group>
-                        <Form.Label className="fw-semibold small">
-                          Depart
-                        </Form.Label>
-                        <DatePicker
-                          selected={flight.date ? new Date(flight.date) : null}
-                          onChange={(date) => {
-                            const updatedFlights = [...flights];
-                            updatedFlights[actualIndex] = {
-                              ...updatedFlights[actualIndex],
-                              date: date
-                                ? date.toISOString().split("T")[0]
-                                : null,
-                            };
-                            setFlights(updatedFlights);
-                          }}
-                          minDate={
-                            flights[actualIndex - 1]?.date
-                              ? new Date(flights[actualIndex - 1].date)
-                              : new Date()
-                          }
-                          dateFormat="EEE, MMM d, yyyy"
-                          className="form-control"
-                          disabled={isInitialLoading || searchLoading}
-                        />
-                      </Form.Group>
-                    </Col>
+                      {/* 🔥 FINAL FIX - this keeps dates separate for each row */}
+                      <DatePicker
+                        selected={flight.date ? new Date(flight.date) : null}
+                        onChange={(date) => {
+                          const updatedFlights = flights.map((f, i) =>
+                            i === index
+                              ? {
+                                ...f,
+                                date: date
+                                  ? date.toISOString().split("T")[0]
+                                  : null,
+                              }
+                              : f
+                          );
+                          setFlights(updatedFlights);
+                        }}
+                        minDate={new Date()}
+                        dateFormat="EEE, MMM d, yyyy"
+                        className="form-control"
+                      />
+                    </Form.Group>
+                  </Col>
 
-                    {/* ACTION BUTTONS */}
-                    <Col md={2} className="d-flex align-items-center gap-2">
-                      {/* Remove Button (first row ke alawa) */}
-                      {actualIndex > 0 && (
-                        <Button
-                          variant="outline-danger"
-                          className="rounded-pill"
-                          onClick={() => removeCity(actualIndex)}
-                        >
-                          Remove
-                        </Button>
-                      )}
-
-                      {/* Add City Button (sirf last row me) */}
-                      {actualIndex === flights.length - 1 &&
-                        flights.length < 4 && (
-                          <Button
-                            variant="outline-primary"
-                            className="rounded-pill"
-                            onClick={addCity}
-                          >
-                            + Add City
-                          </Button>
-                        )}
-                    </Col>
-                  </Row>
-                );
-              })}
+                  <Col md={2} className="d-flex gap-2">
+                    {index === flights.length - 1 ? (
+                      <Button
+                        variant="outline-primary"
+                        className="rounded-pill"
+                        onClick={addCity}
+                      >
+                        + Add City
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline-danger"
+                        className="rounded-pill"
+                        onClick={() => removeCity(index)}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </Col>
+                </Row>
+              ))}
           </div>
         </div>
       </div>
@@ -2318,6 +1318,10 @@ const Flight = () => {
                     style={{ cursor: "pointer", color: "#d04856ff" }}
                     onClick={clearAllFilters}
                   />
+                </div>
+
+                <div className="filter-group mb-3">
+
                 </div>
 
                 {/* Refundable Filter */}
@@ -2391,6 +1395,49 @@ const Flight = () => {
                     )}
                   </div>
                 </fieldset>
+
+                {/* <div className="filter-group mb-3">
+                <div
+                  className="filter-title d-flex justify-content-between"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleToggle("airlines")}
+                >
+                  <span className="fw-semibold">Airlines</span>
+                  <FontAwesomeIcon
+                    icon={toggle.airlines ? faChevronUp : faChevronDown}
+                  />
+                </div>
+                {toggle.airlines && (
+                  <div className="filter-options mt-2">
+                    {[
+                      { name: "IndiGo", code: "6E" },
+                      { name: "Air India", code: "AI" },
+                      { name: "SpiceJet", code: "SG" },
+                      { name: "Vistara", code: "UK" },
+                      { name: "Go First", code: "G8" },
+                      { name: "AirAsia", code: "I5" },
+                    ].map((airline, i) => (
+                      <div className="form-check" key={airline.code}>
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`airline-${airline.code}`}
+                          checked={filters.airlines.includes(airline.code)}
+                          onChange={(e) =>
+                            handleAirlineFilter(airline.code, e.target.checked)
+                          }
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`airline-${airline.code}`}
+                        >
+                          {airline.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div> */}
 
                 {/* Stops Filter */}
                 <div className="filter-group mb-3">
@@ -2581,26 +1628,25 @@ const Flight = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Clear Filters Button */}
+
               </div>
             </fieldset>
           </Col>
 
           {/* Flight Results Section */}
-          <Col sm={9}>
-            {/* Tabs for multi-city and return */}
-            {renderTabs()}
-
-            {/* Flight Results */}
-            {renderFlightResults()}
-          </Col>
+          <Col sm={9}>{renderFlightResults()}</Col>
         </Row>
       </div>
 
       {/* Flight Detail Modal */}
       <FlightDetail
-        flightContext={buildFlightDetailPayload()}
+        flightData={selectedFlight}
+        travelClass={travelClass}
         showModal={showModal}
         onHide={handleCloseModal}
+        searchData={searchData}
       />
     </div>
   );

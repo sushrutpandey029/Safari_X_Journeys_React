@@ -531,7 +531,7 @@ function HotelBooking() {
         <div className="container">
           <div className="row g-3 align-items-end">
             {/* City */}
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">City</label>
               <select
                 className="form-control"
@@ -568,7 +568,7 @@ function HotelBooking() {
               </select>
             </div>
 
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">Check-In</label>
               <DatePicker
                 selected={checkIn ? new Date(checkIn) : null}
@@ -591,7 +591,7 @@ function HotelBooking() {
             </div>
 
             {/* Check-Out */}
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">Check-Out</label>
               <DatePicker
                 selected={checkOut ? new Date(checkOut) : null}
@@ -607,7 +607,7 @@ function HotelBooking() {
             </div>
 
             {/* Rooms Dropdown */}
-            <div className="col-md-4 position-relative">
+            <div className="col-md-4 col-6 position-relative">
               {/* Dropdown Trigger */}
               <label className="form-label">Rooms/Guests</label>
               <div
@@ -814,7 +814,7 @@ function HotelBooking() {
         <div className="row align-items-end pt-5 pb-3 border-bottom mb-4">
 
           {/* LEFT SIDE → Breadcrumb */}
-          <div className="col-md-5 col-sm-12">
+          <div className="col-md-5 col-4">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
@@ -828,7 +828,7 @@ function HotelBooking() {
           </div>
 
           {/* RIGHT SIDE → Hotel Address Search */}
-          <div className="col-md-7 col-sm-12 d-flex justify-content-end">
+          <div className="col-md-7 col-12 d-flex justify-content-end">
             <div
               className="address-search-container"
               ref={searchRef}

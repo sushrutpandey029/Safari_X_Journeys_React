@@ -226,7 +226,7 @@ function Header() {
 
                 {showProfileMenu && (
                   <div className="profile-menu">
-                    <div className="profile-heading">Profile</div>
+                    <div className="profile-heading">Dashboard</div>
                     <ul>
                       {!user && !guide && !driver && (
                         <>
@@ -255,7 +255,7 @@ function Header() {
                             navigate("/user-dashboard");
                           }}
                         >
-                          My Profile
+                          User Dashboard
                         </li>
                       )}
                       {guide && !user && !driver && (
@@ -265,7 +265,7 @@ function Header() {
                             navigate("/guide-dashboard");
                           }}
                         >
-                          My Profile
+                          Guide Dashboard
                         </li>
                       )}
                       {driver && !guide && !user && (

@@ -111,6 +111,8 @@ header .user-icon a {
   color: #6665ae;
   ;
   cursor: pointer;
+  float: right;
+
 }
 
 .sticky-header {
@@ -215,6 +217,25 @@ header {
 .top-destination {
   padding: 70px 0px;
   background-color: #fff;
+
+  h3 {
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #6665ae;
+  }
+
+  ul {
+    margin: 20px;
+    padding: 0;
+    margin-bottom: 40px;
+  }
+
+  span {
+    color: #6369b2;
+  }
+
 }
 
 .place {
@@ -299,7 +320,7 @@ header {
   margin-top: 25px;
 }
 
-.explore-btnnew{
+.explore-btnnew {
 
   background-color: #ffffff;
   color: #6369b2;
@@ -312,7 +333,7 @@ header {
   transition: 0.3s ease;
   border: 1px solid #6665ae;
   margin-top: 25px;
-  
+
 }
 
 .explore-btn image {
@@ -872,6 +893,28 @@ header {
   color: #dc2626;
 }
 
+.testimonial-slider {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.testimonial-row {
+  gap: 16px;
+}
+
+.testimonial-col {
+  flex-shrink: 0;
+}
+
+/* Card Styling (optional enhancement) */
+.testimonial-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  height: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .faq-title-left {
@@ -1372,7 +1415,7 @@ footer {
   background: none;
   border-radius: 16px;
   border: none;
-z-index: 111;
+  z-index: 111;
   animation: chatbotJump 1.5s infinite ease-in-out;
 
   span {
@@ -1891,6 +1934,9 @@ z-index: 111;
     margin-top: 10px;
     box-shadow: none;
     border: 1px solid #eee;
+    float: right;
+    border-radius: 20px;
+
   }
 }
 
@@ -1906,10 +1952,78 @@ z-index: 111;
 
   .explore-btn {
     font-size: 14px;
+    margin-top: 0px;
+    width:50%
   }
+  .Testionials h2 {
+    font-size: 22px;
+}
+.testimonial-card {
+    width: 90%;
+    margin-right: 0px;
+}
+.testimonial-arrows {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.Testionials {
+    padding: 0px 0px 30px;
+}
+.modern-faq-section {
+    padding: 30px 0;
+}
+    .faq-title-left {
+        font-size: 22px;
+
+}
+.modern-blog {
+    padding: 30px 0;
+}
+
+.modern-blog {
+    h2 {
+        font-size: 22px;
+    }
+}
+.modern-blog {
+    .section-subtext {
+        width: 100%;
+    }
+}
+
+.foot {
+    .chatbot-box {
+        padding: 0px 6px;
+        margin: 0px 0px 0px 4px;
+    }
+        .chatbot-box img {
+        height: 35px;
+        width: 35px;
+    }
+    .chatbot-box {
+        p {
+            margin-bottom: 0;
+            line-height: 32px;
+            padding-left: 3px;
+        }
+    }
+}
+
+footer {
+    padding: 40px 0px 30px;
+
+        h5 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+        a {
+        font-size: 14px;
+        line-height: 21px;
+    }
 }
 
 
+}
 
 
 
@@ -1926,6 +2040,14 @@ z-index: 111;
 
 /**************************responsive**************************/
 @media (max-width: 768px) {
+  h2 {
+    font-size: 22px;
+  }
+
+  p {
+    font-size: 13px !important;
+  }
+
   .banner-video {
     height: 60dvh;
     /* mobile browser issue fix */
@@ -1940,4 +2062,106 @@ z-index: 111;
     color: #333;
     margin-bottom: 25px;
   }
+
+  .testimonial-col {
+    max-width: 20%;
+  }
+
+  .testimonial-row {
+    gap: 38px;
+  }
+
+  .place img {
+    height: 180px;
+  }
+
+  .top-destination {
+    padding: 30px 0px;
+  }
+
+  .book-hotel {
+    padding: 30px 0px;
+
+    h2 {
+      margin-bottom: 30px;
+    }
+  }
+
+  .modern-best-guide {
+    padding: 30px 0px;
+
+    .title-modern {
+      font-size: 22px;
+    }
+
+    .perra-modern {
+      width: 100%;
+    }
+
+    .box img {
+      padding: 10px;
+      height: 162px;
+    }
+
+    .box .details {
+      padding: 7px;
+    }
+
+    .details h4 {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .details p {
+      font-size: 11px !important;
+      margin-bottom: 8px;
+    }
+
+    .label {
+      font-size: 12px;
+    }
+
+    .box .details .rating {
+      top: 7px;
+      right: 9px;
+      font-size: 11px !important;
+    }
+
+    .stars {
+      color: #ffcc00;
+      font-size: 12px;
+    }
+
+    .explore-btn-modern {
+      padding: 6px 18px;
+      font-size: 13px;
+    }
+  }
+
+  .why-choose {
+    padding: 30px 0px 0px;
+
+    .whychose {
+      width: 100%;
+      margin-bottom: 0;
+    }
+
+    .mb-5 {
+      margin-bottom: 1.5rem !important;
+    }
+
+    .text-end {
+      text-align: center !important;
+    }
+
+    .explore-btn {
+      font-size: 14px;
+      margin-top: 0;
+      width: 50%;
+    }
+  }
+
+
+
+
 }

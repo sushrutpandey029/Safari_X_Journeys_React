@@ -132,9 +132,26 @@ function Home() {
       <HomeBanner />
         <div className="top-destination">
           <div className="container">
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
+
+        <div class="row">
+            <div class="col-sm-12">
+              <h2 class="title-modern">About <span>India</span></h2>
+              <ul>
+                <li><p>
+                  India is a big country in Asia, known for its rich culture and diverse landscapes.</p></li>
+                <li><p>
+                  The word "India" originates from the Greek Mythology referred to the land of "Indoi", or people living near the Indus River</p></li>
+                <li><p>
+                  It's the 7th largest country in the world, covering 2.4% of the Earth's surface.</p></li>
+                <li><p>
+                  India is home to ancient civilizations and has been called by many names, including Aryavarta ( The land of the Aryan race), Bharat, and Hindustan ( The Land beyond the river Sindhu)</p></li>
+              </ul>
+            </div>
+          </div>
+
+            <div className="row justify-content-center row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
               {categories.map((item, index) => (
-                <div className="col" key={index}>
+                <div className="col col-6" key={index}>
                   {/* Category Card */}
                   <div
                     className="place-card-link place"
@@ -263,36 +280,38 @@ function Home() {
                   {/* RIGHT SECTION (col-sm-8) */}
                   <div className="col-sm-8">
                     {/* SLIDER START */}
-                    <div id="testimonialSlider" className="testimonial-slider">
-                      <div className="row flex-nowrap">
-                        {testimonialData?.map((item) => (
-                          <div key={item.id} className="col-sm-3">
-                            {" "}
-                            {/* ← show 3 cards */}
-                            <div className="testimonial-card">
-                              <div className="stars">
-                                {"★".repeat(item.rating)}
-                              </div>
+                   <div id="testimonialSlider" className="testimonial-slider">
+  <div className="row flex-nowrap testimonial-row">
+    {testimonialData?.map((item) => (
+      <div
+        key={item.id}
+        className="col-10 col-sm-6 col-md-4 col-lg-3 testimonial-col"
+      >
+        <div className="testimonial-card">
+          <div className="stars">
+            {"★".repeat(item.rating)}
+          </div>
 
-                              <p className="review-text">
-                                {item.description?.substring(0, 110)}...
-                              </p>
+          <p className="review-text">
+            {item.description?.substring(0, 110)}...
+          </p>
 
-                              <div className="review-user">
-                                <img
-                                  src={`${BASE_URL}/testimonial/images/${item.image}`}
-                                  alt={item.name}
-                                />
-                                <div>
-                                  <h4>{item.name}</h4>
-                                  <small>{item.designation}</small>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+          <div className="review-user">
+            <img
+              src={`${BASE_URL}/testimonial/images/${item.image}`}
+              alt={item.name}
+            />
+            <div>
+              <h4>{item.name}</h4>
+              <small>{item.designation}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
                     {/* SLIDER END */}
                   </div>
                 </div>

@@ -28,7 +28,6 @@ const Flightcheckout = () => {
   const [activeFlightIndex, setActiveFlightIndex] = useState(0);
 
   const [passengerConfirmed, setPassengerConfirmed] = useState(false);
-  const isPassengerLocked = !passengerConfirmed;
 
   // ✅ Updated for multiple flights
   const [selectedFlights, setSelectedFlights] = useState([]);
@@ -58,11 +57,6 @@ const Flightcheckout = () => {
     meal: false,
     seat: false,
   });
-
-  const isUserLoggedIn = async () => {
-    const user = await getUserData("safarix_user");
-    return !!user?.id;
-  };
 
   const toggleSSR = (key) => {
     // ✅ SAVE MEALS when closing meal card
@@ -343,45 +337,59 @@ const Flightcheckout = () => {
     }
   };
   const recheckFareBeforePayment = async () => {
-    let priceChangedByAirline = false;
-    let updatedBaseFare = 0;
-    const responses = [];
+    try {
+      setLoading(true);
 
-    for (let i = 0; i < selectedFlights.length; i++) {
-      const payload = {
-        TraceId: state.TraceId,
-        ResultIndex: selectedFlights[i].ResultIndex,
-      };
+      let priceChangedByAirline = false;
+      let updatedBaseFare = 0;
+      const responses = [];
 
-      const res = await fare_quote(payload);
-      const response = res?.data?.Response;
+      for (let i = 0; i < selectedFlights.length; i++) {
+        const payload = {
+          TraceId: state.TraceId,
+          ResultIndex: selectedFlights[i].ResultIndex,
+        };
 
-      if (!response || response.ResponseStatus !== 1) {
-        throw new Error("Fare recheck failed");
+        const res = await fare_quote(payload);
+        const response = res?.data?.Response;
+
+        if (!response || response.ResponseStatus !== 1) {
+          throw new Error("Fare recheck failed");
+        }
+
+        if (response.IsPriceChanged === true) {
+          priceChangedByAirline = true;
+        }
+
+        const result = Array.isArray(response.Results)
+          ? response.Results[0]
+          : response.Results;
+
+        responses.push(result);
+        updatedBaseFare += Number(result?.Fare?.BaseFare || 0);
       }
 
-      if (response.IsPriceChanged === true) {
-        priceChangedByAirline = true;
+      // update latest fare
+      setFareDetailsArray(responses);
+
+      if (priceChangedByAirline) {
+        const diff = updatedBaseFare - oldBaseFare;
+
+        setNewBaseFare(updatedBaseFare);
+        setFareDiff(diff);
+        setPriceChanged(true);
+        setShowConfirmModal(true);
+        return;
       }
 
-      const result = Array.isArray(response.Results)
-        ? response.Results[0]
-        : response.Results;
-
-      responses.push(result);
-      updatedBaseFare += Number(result?.Fare?.BaseFare || 0);
-    }
-
-    // 🔁 update fare data
-    setFareDetailsArray(responses);
-
-    if (priceChangedByAirline) {
-      const diff = updatedBaseFare - oldBaseFare;
-      setNewBaseFare(updatedBaseFare);
-      setFareDiff(diff);
-      setPriceChanged(true);
-    } else {
+      // ✅ price NOT changed
       setPriceChanged(false);
+      setShowConfirmModal(true);
+    } catch (err) {
+      console.error(err);
+      alert("Unable to recheck fare. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -508,7 +516,6 @@ const Flightcheckout = () => {
 
         const processedInsuranceData = insuranceResponse.Results.map(
           (plan) => ({
-            ResultIndex: plan.ResultIndex,
             PlanCode: plan.PlanCode,
             PlanName: plan.PlanName,
             SumInsured: plan.SumInsured,
@@ -806,14 +813,25 @@ const Flightcheckout = () => {
   const handleContactChange = (field, value) => {
     if (field === "email") {
       setContactEmail(value);
-    }
-
-    if (field === "mobile") {
+      const updatedPassengers = passengers.map((passenger) => ({
+        ...passenger,
+        email: value,
+      }));
+      setPassengers(updatedPassengers);
+    } else if (field === "mobile") {
       setContactMobile(value);
-    }
-
-    if (field === "address") {
+      const updatedPassengers = passengers.map((passenger) => ({
+        ...passenger,
+        contactNo: value,
+      }));
+      setPassengers(updatedPassengers);
+    } else if (field === "address") {
       setContactAddress(value);
+      const updatedPassengers = passengers.map((passenger) => ({
+        ...passenger,
+        addressLine1: value,
+      }));
+      setPassengers(updatedPassengers);
     }
   };
 
@@ -926,10 +944,7 @@ const Flightcheckout = () => {
     return {
       EndUserIp: "127.0.0.1",
       TraceId: searchData?.TraceId,
-      Contact: {
-        Email: contactEmail,
-        Mobile: contactMobile,
-      },
+
       // 🔥 NEW STRUCTURE
       journeys: buildJourneysPayload(),
 
@@ -942,7 +957,7 @@ const Flightcheckout = () => {
 
       InsuranceRequired: !!selectedInsurancePlan,
       InsuranceData: selectedInsurancePlan || null,
-      InsuranceTraceid: insuranceTraceId || null,
+
       TripType: state?.tripType || searchData?.tripType || "oneway",
       TravelClass: state?.travelClass || searchData?.travelClass || "Economy",
 
@@ -955,18 +970,8 @@ const Flightcheckout = () => {
   };
 
   // ✅ Handle confirm passengers
-  const handleConfirmPassengers = async () => {
+  const handleConfirmPassengers = () => {
     setConfirmingPassengers(true);
-
-    // 🔐 LOGIN CHECK (NEW)
-    const loggedIn = await isUserLoggedIn();
-    if (!loggedIn) {
-      setConfirmingPassengers(false);
-
-      alert("Please login to continue booking");
-
-      return;
-    }
 
     const isValid = validatePassengers();
     if (!isValid) {
@@ -979,18 +984,72 @@ const Flightcheckout = () => {
   };
 
   const handleProceedToPayment = async () => {
-    // 🚫 passenger confirmation already enforced by button disable
+    // ===============================
+    // 1️⃣ Validate passengers (UNCHANGED)
+    // ===============================
+    const requiredFields = [
+      "title",
+      "firstName",
+      "lastName",
+      "dateOfBirth",
+      "gender",
+    ];
 
-    setShowConfirmModal(true);
-    setLoading(true); // this loading is NOW modal-loading
+    for (const passenger of passengers) {
+      for (const field of requiredFields) {
+        if (!passenger[field]) {
+          alert(`Please fill all required fields for ${passenger.type}`);
+          return;
+        }
+      }
+    }
 
+    // ===============================
+    // 2️⃣ Validate contact (UNCHANGED)
+    // ===============================
+    if (!contactEmail || !contactMobile) {
+      alert("Please fill contact details");
+      return;
+    }
+
+    // ===============================
+    // 3️⃣ Validate fares confirmed (UNCHANGED)
+    // ===============================
+    if (fareDetailsArray.length !== selectedFlights.length) {
+      alert("Please confirm fares for all flights");
+      return;
+    }
+
+    // ===============================
+    // 4️⃣ FINAL FARE RECHECK (NEW)
+    // ===============================
     try {
+      setLoading(true);
       console.log("🔁 Rechecking fare before payment...");
-      await recheckFareBeforePayment();
+
+      const latestTotal = calculateTotalAmount();
+
+      // ===============================
+      // 5️⃣ Compare price
+      // ===============================
+      if (latestTotal !== oldTotal) {
+        console.warn("⚠️ Fare changed:", oldTotal, "→", latestTotal);
+
+        setNewTotal(latestTotal);
+        setPriceChanged(true);
+        setShowConfirmModal(true);
+        return;
+      }
+
+      // ===============================
+      // 6️⃣ No price change
+      // ===============================
+      setNewTotal(latestTotal);
+      setPriceChanged(false);
+      setShowConfirmModal(true);
     } catch (error) {
-      console.error(error);
-      alert("Unable to recheck fare. Please try again.");
-      setShowConfirmModal(false);
+      console.error("Fare recheck failed:", error);
+      alert("Unable to re-verify fare. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -1006,6 +1065,7 @@ const Flightcheckout = () => {
       const flightBookingPayload = await buildFlightBookingPayload();
       const startDate =
         fareDetailsArray?.[0]?.Segments?.[0]?.[0]?.Origin?.DepTime || null;
+      // Build final booking object
       const bookingDetails = {
         userId: userdetails?.id,
         serviceType: "flight",
@@ -1256,17 +1316,6 @@ const Flightcheckout = () => {
     return "";
   };
 
-  const getLastTravelDate = () => {
-    if (!fareDetailsArray || fareDetailsArray.length === 0) return null;
-
-    const lastFare = fareDetailsArray[fareDetailsArray.length - 1];
-    const lastSegment = lastFare?.Segments?.[0]?.slice(-1)?.[0];
-
-    return lastSegment?.Destination?.ArrTime
-      ? new Date(lastSegment.Destination.ArrTime)
-      : null;
-  };
-
   // ✅ Updated validation function with only NDC and SpiceJet rules
   const validatePassengers = () => {
     const airlineCode = getAirlineCodeFromSelectedFlight();
@@ -1291,13 +1340,6 @@ const Flightcheckout = () => {
 
     const isTrueJet = airlineCode === "TR" || airlineCode === "TRUEJET";
 
-    const travelDate = getLastTravelDate();
-
-    if (!travelDate) {
-      alert("Unable to verify travel date. Please try again.");
-      return false;
-    }
-
     for (let i = 0; i < passengers.length; i++) {
       const p = passengers[i];
 
@@ -1314,14 +1356,15 @@ const Flightcheckout = () => {
         !p.contactNo ||
         !p.addressLine1 ||
         !p.city ||
-        !p.countryCode
+        !p.countryCode ||
+        !p.email
       ) {
         alert(`Please fill all required details for ${p.type} ${i + 1}`);
         return false;
       }
 
-      // ✅ Email validation (ONLY IF PROVIDED)
-      if (p.email && !/^\S+@\S+\.\S+$/.test(p.email)) {
+      // ✅ Email & mobile
+      if (!/^\S+@\S+\.\S+$/.test(p.email)) {
         alert(`Invalid email for ${p.type} ${i + 1}`);
         return false;
       }
@@ -1340,18 +1383,6 @@ const Flightcheckout = () => {
       if (!/^[A-Za-z]+( [A-Za-z]+)*$/.test(p.lastName.trim())) {
         alert(`Invalid last name for ${p.type} ${i + 1}`);
         return false;
-      }
-
-      // ✅ Passport expiry vs travel date validation
-      if (p.passportExpiry) {
-        const passportExpiryDate = new Date(p.passportExpiry);
-
-        if (passportExpiryDate <= travelDate) {
-          alert(
-            `Passport expiry must be after travel date for ${p.type} ${i + 1}`
-          );
-          return false;
-        }
       }
 
       // ✅ Title validation (WITH DEFAULT CASE)
@@ -1393,6 +1424,16 @@ const Flightcheckout = () => {
       (row) => row.Seats?.[0]?.Code !== "NoSeat"
     ) || [];
 
+  const seatSummaryText = selectedSeats[activeFlightIndex]
+    ? seatEligiblePassengers
+        .map((pax, i) => {
+          const seat = selectedSeats[activeFlightIndex]?.[i];
+          if (!seat) return null;
+          return `${pax.type} ${i + 1} → ${seat.Code}`;
+        })
+        .filter(Boolean)
+        .join(", ")
+    : "";
   const seatSummaryByFlight = selectedFlights
     .map((_, flightIndex) => {
       const flightSeats = selectedSeats[flightIndex];
@@ -1918,10 +1959,6 @@ const Flightcheckout = () => {
             <Card className="mb-3">
               <Card.Header
                 onClick={() => {
-                  if (isPassengerLocked) {
-                    alert("Please confirm passenger details first");
-                    return;
-                  }
                   // 🔥 ensure save before close
                   if (expandedSSR.baggage) {
                     const baggageMap = {};
@@ -2111,10 +2148,6 @@ const Flightcheckout = () => {
             <Card className="mb-3">
               <Card.Header
                 onClick={() => {
-                  if (isPassengerLocked) {
-                    alert("Please confirm passenger details first");
-                    return;
-                  }
                   setSelectedMealList([]);
                   toggleSSR("meal");
                 }}
@@ -2165,10 +2198,6 @@ const Flightcheckout = () => {
             <Card className="mb-3">
               <Card.Header
                 onClick={() => {
-                  if (isPassengerLocked) {
-                    alert("Please confirm passenger details first");
-                    return;
-                  }
                   setSelectedSeatList(
                     Object.values(selectedSeats[activeFlightIndex] || {})
                   );
@@ -2340,16 +2369,33 @@ const Flightcheckout = () => {
                       size="lg"
                       className="w-100 mt-3"
                       onClick={handleProceedToPayment}
-                      disabled={
-                        !passengerConfirmed || fareSource !== "fareQuote"
-                      }
+                      disabled={loading || fareSource !== "fareQuote"}
                     >
-                      <div className="small text-light opacity-75">
-                        <span className="text-warning text-decoration-underline">
-                          Total Payment: ₹ {formatPrice(totalAmount)}
-                        </span>
-                        <div className="small text-light">Click to proceed</div>
-                      </div>
+                      {loading ? (
+                        <>
+                          <Spinner
+                            as="span"
+                            animation="border"
+                            size="sm"
+                            className="me-2"
+                          />
+                          PROCESSING...
+                        </>
+                      ) : (
+                        <>
+                          <div
+                            className="small text-light opacity-75 cursor-pointer"
+                            onClick={recheckFareBeforePayment}
+                          >
+                            <span className="text-warning text-decoration-underline">
+                              Total Payment: ₹ {formatPrice(totalAmount)}
+                            </span>
+                            <div className="small text-light">
+                              Click to recheck fare
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </Button>
                   </>
                 )}
@@ -2696,42 +2742,42 @@ const Flightcheckout = () => {
         </Modal.Header>
 
         <Modal.Body>
-          {loading ? (
-            <div className="text-center py-4">
-              <Spinner animation="border" />
-              <div className="mt-2 text-muted">
-                Checking latest fare from airline…
-              </div>
-            </div>
-          ) : (
-            <>
-              <Alert variant="info">
-                <strong>Booking Summary</strong>
-                <ul className="mb-0 mt-2">
-                  <li>{selectedFlights.length} Flight(s)</li>
-                  <li>
-                    {passengerCount.adults} Adult(s), {passengerCount.children}{" "}
-                    Child(s), {passengerCount.infants} Infant(s)
-                  </li>
-                  <li>Trip Type: {state?.tripType || "One-way"}</li>
-                  <li>Class: {state?.travelClass || "Economy"}</li>
-                </ul>
-              </Alert>
+          <Alert variant="info">
+            <strong>Booking Summary</strong>
+            <ul className="mb-0 mt-2">
+              <li>{selectedFlights.length} Flight(s)</li>
+              <li>
+                {passengerCount.adults} Adult(s), {passengerCount.children}{" "}
+                Child(s), {passengerCount.infants} Infant(s)
+              </li>
+              <li>Trip Type: {state?.tripType || "One-way"}</li>
+              <li>Class: {state?.travelClass || "Economy"}</li>
+            </ul>
+          </Alert>
 
-              {priceChanged && (
-                <Alert variant="warning">
-                  Fare increased by ₹ {formatPrice(fareDiff)}. Please confirm.
-                </Alert>
-              )}
-
-              <div className="payment-summary p-3 bg-light rounded">
-                <div className="d-flex justify-content-between fw-bold fs-5">
-                  <span>Total Amount</span>
-                  <span>₹ {formatPrice(totalAmount)}</span>
-                </div>
+          {priceChanged && (
+            <Alert variant="warning">
+              <strong>Fare Updated by Airline</strong>
+              <div className="mt-2">
+                Fare has increased by <strong>₹ {formatPrice(fareDiff)}</strong>
+                .
               </div>
-            </>
+              <div className="mt-1">
+                Please confirm to proceed with booking.
+              </div>
+            </Alert>
           )}
+
+          <div className="payment-summary p-3 bg-light rounded">
+            <div className="d-flex justify-content-between fw-bold fs-5">
+              <span>Total Amount</span>
+              <span>₹ {formatPrice(totalAmount)}</span>
+            </div>
+
+            <small className="text-muted d-block text-center mt-2">
+              This is the final amount payable
+            </small>
+          </div>
         </Modal.Body>
 
         <Modal.Footer>
@@ -2742,13 +2788,8 @@ const Flightcheckout = () => {
             Review Booking
           </Button>
 
-          <Button
-            variant="primary"
-            disabled={loading}
-            onClick={handleConfirmAndPay}
-          >
-            Confirm & Pay
-            {/* Confirm & Pay ₹ {formatPrice(totalAmount)} */}
+          <Button variant="primary" onClick={handleConfirmAndPay}>
+            Confirm & Pay ₹ {formatPrice(totalAmount)}
           </Button>
         </Modal.Footer>
       </Modal>

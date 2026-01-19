@@ -3,7 +3,7 @@ import { BASE_URL } from "../services/apiEndpoints";
 
 function GuideCard({ guide }) {
   return (
-    <div className="col-sm-3 mb-4">
+    <div className="col-sm-3 col-6 mb-4">
       <div className="box">
         <img
           src={`${BASE_URL}/uploads/guides/${guide.profileImage}`}

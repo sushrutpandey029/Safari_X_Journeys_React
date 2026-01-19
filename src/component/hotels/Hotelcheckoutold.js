@@ -28,80 +28,16 @@ const HotelCheckout = () => {
     tax: 0,
     totalFare: 0,
   });
-
-  const validatePassengers = (roomsData) => {
-    const nameRegex = /^(?![._-])[A-Za-z ]{2,50}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9]{7,15}$/;
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-
-    for (let r = 0; r < roomsData.length; r++) {
-      const room = roomsData[r];
-      const leadAdults = room.passengers.filter(
-        (p) => p.PaxType === 1 && p.LeadPassenger
-      );
-
-      if (leadAdults.length !== 1) {
-        return `Room ${r + 1}: Exactly one adult must be lead passenger`;
-      }
-
-      for (let p = 0; p < room.passengers.length; p++) {
-        const pax = room.passengers[p];
-
-        // Title
-        if (!["Mr", "Mrs", "Miss", "Ms"].includes(pax.Title)) {
-          return `Invalid title in Room ${r + 1}`;
-        }
-
-        // Names
-        if (!nameRegex.test(pax.FirstName)) {
-          return `Invalid first name in Room ${r + 1}`;
-        }
-
-        if (!nameRegex.test(pax.LastName)) {
-          return `Invalid last name in Room ${r + 1}`;
-        }
-
-        // Lead passenger rules
-        if (pax.LeadPassenger) {
-          if (!emailRegex.test(pax.Email)) {
-            return `Invalid email for lead passenger (Room ${r + 1})`;
-          }
-
-          if (!phoneRegex.test(pax.PhoneNo || "")) {
-            return `Invalid phone number for lead passenger (Room ${r + 1})`;
-          }
-        }
-
-        // Child age
-        // Child age
-        if (pax.PaxType === 2) {
-          if (pax.Age === "" || pax.Age < 1 || pax.Age > 12) {
-            return `Invalid child age in Room ${r + 1}`;
-          }
-        }
-
-        // PAN (optional)
-        if (pax.PAN && !panRegex.test(pax.PAN)) {
-          return `Invalid PAN in Room ${r + 1}`;
-        }
-      }
-    }
-
-    return null;
-  };
-
   useEffect(() => {
     if (!payload || !payload.serviceDetails) return;
 
     const details = payload.serviceDetails;
-    console.log("details", details);
 
     // HOTEL BASIC INFO
     setHotel({
       id: details.hotelCode || "N/A",
-      name: details.hotelName || "N/A",
-      location: details.hotelAddress || "N/A",
+      name: details.hotelName || "Hotel Name",
+      location: details.city || details.Location || "Location",
       rating: details.hotelRating || 0,
       rooms: details.NoOfRooms || 0,
       address: details.hotelAddress || "Address not available",
@@ -140,7 +76,6 @@ const HotelCheckout = () => {
           LastName: "",
           Email: "",
           Age: "",
-          PhoneNo: "",
           PAN: "",
           PaxType: 1,
           LeadPassenger: i === 0,
@@ -149,13 +84,12 @@ const HotelCheckout = () => {
 
       for (let j = 0; j < (room.Children || 0); j++) {
         passengers.push({
-          Title: "Mrs",
+          Title: "Master",
           FirstName: "",
           MiddleName: "",
           LastName: "",
           Email: "",
           Age: room.ChildrenAges?.[j] || "",
-          PhoneNo: "",
           PAN: "",
           PaxType: 2,
           LeadPassenger: false,
@@ -176,11 +110,6 @@ const HotelCheckout = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationError = validatePassengers(roomsData);
-    if (validationError) {
-      alert(validationError);
-      return;
-    }
 
     try {
       setPreBookLoading(true);
@@ -204,21 +133,6 @@ const HotelCheckout = () => {
 
       const hotelResult = preBookData?.HotelResult?.[0];
       console.log("hotelresult", JSON.stringify(hotelResult, null, 2));
-      if (!hotelResult) {
-        alert("Server error, please try again.");
-        return;
-      }
-      if (
-        hotelResult.IsPriceChanged ||
-        hotelResult.IsCancellationPolicyChanged
-      ) {
-        alert(
-          "Price or cancellation policy changed. Please review and continue."
-        );
-        setFinalNetAmount(hotelResult.Rooms[0].NetAmount);
-        setShowConfirmModal(true);
-        return;
-      }
 
       if (!hotelResult) {
         alert("Invalid PreBook response");
@@ -255,13 +169,12 @@ const HotelCheckout = () => {
       const hotelRoomsDetails = roomsData.map((room) => ({
         HotelPassenger: room.passengers.map((pax) => ({
           Title: pax.Title,
-          FirstName: pax.FirstName.trim(),
-          MiddleName: pax.MiddleName || "",
-          LastName: pax.LastName.trim(),
+          FirstName: pax.FirstName,
+          MiddleName: pax.MiddleName,
+          LastName: pax.LastName,
           Email: pax.Email,
-          Phoneno: pax.PhoneNo,
           Age: pax.Age,
-          PAN: pax.PAN || undefined,
+          PAN: pax.PAN,
           PaxType: pax.PaxType,
           LeadPassenger: pax.LeadPassenger,
         })),
@@ -380,10 +293,10 @@ const HotelCheckout = () => {
                               )
                             }
                           >
-                            <option value="Mr">Mr</option>
-                            <option value="Mrs">Mrs</option>
-                            <option value="Miss">Miss</option>
-                            <option value="Ms">Ms</option>
+                            <option>Mr</option>
+                            <option>Mrs</option>
+                            <option>Ms</option>
+                            <option>Master</option>
                           </select>
                         </div>
                         <div className="col-md-4">
@@ -441,7 +354,23 @@ const HotelCheckout = () => {
                               required
                             />
                           </div>
-
+                          <div className="mb-2">
+                            <label className="form-label">Age</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={pax.Age}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  roomIndex,
+                                  paxIndex,
+                                  "Age",
+                                  e.target.value
+                                )
+                              }
+                              required
+                            />
+                          </div>
                           <div className="mb-2">
                             <label className="form-label">PAN</label>
                             <input
@@ -456,19 +385,18 @@ const HotelCheckout = () => {
                                   e.target.value
                                 )
                               }
+                              required
                             />
                           </div>
                         </>
                       )}
 
-                      {pax.PaxType === 2 && (
+                      {!pax.LeadPassenger && (
                         <div className="mb-2">
                           <label className="form-label">Age</label>
                           <input
                             type="number"
                             className="form-control"
-                            min={1}
-                            max={12}
                             value={pax.Age}
                             onChange={(e) =>
                               handlePassengerChange(
@@ -478,29 +406,7 @@ const HotelCheckout = () => {
                                 e.target.value
                               )
                             }
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {pax.LeadPassenger && (
-                        <div className="mb-2">
-                          <label className="form-label">Phone Number</label>
-                          <input
-                            type="tel"
-                            className="form-control"
-                            placeholder="Enter mobile number"
-                            value={pax.PhoneNo || ""}
-                            onChange={(e) =>
-                              handlePassengerChange(
-                                roomIndex,
-                                paxIndex,
-                                "PhoneNo",
-                                e.target.value.replace(/\D/g, "")
-                              )
-                            }
-                            maxLength={15}
-                            required
+                            readOnly={pax.PaxType === 2}
                           />
                         </div>
                       )}
@@ -589,12 +495,12 @@ const HotelCheckout = () => {
 
             <p>
               <strong>Refundable:</strong>{" "}
-              {preBookResponse?.Rooms[0]?.IsRefundable ? "Yes" : "No"}
+              {preBookResponse?.IsRefundable ? "Yes" : "No"}
             </p>
 
             <p>
-              <strong>Last Cancellation Date:</strong>{" "}
-              {preBookResponse?.Rooms[0]?.LastCancellationDeadline}
+              <strong>Last Cancellation:</strong>{" "}
+              {preBookResponse?.LastCancellationDeadline}
             </p>
 
             <hr />

@@ -16,7 +16,15 @@
 .best-flight {
   background: #f9fbff;
 }
-
+.text-primary {
+    --bs-text-opacity: 1;
+    color: rgb(99 105 178) !important;
+}
+.bg-lights {
+    background-color: #dbfff3;
+    padding: 15px;
+    border-radius: 12px;
+}
 .best-flight .section-title {
   font-size: 2rem;
   font-weight: bold;
@@ -48,162 +56,11 @@
   }
 }
 
-/* Flight Card Styles */
 .flight-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.flight-card-header {
-  background: linear-gradient(90deg, #f8f9fa, #e9ecef);
-  border-bottom: 2px solid #2b87da;
-  padding: 12px 15px;
-}
-
-.flight-details-small {
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 5px;
-}
-
-/* Flight Timing Section */
-.flight-timing-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.time-display {
-  text-align: center;
-}
-
-.time-large {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.airport-code {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #2b87da;
-  margin: 5px 0;
-}
-
-.city-name {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.duration-section {
-  flex-grow: 1;
-  text-align: center;
-  padding: 0 20px;
-  position: relative;
-}
-
-.duration-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 5px;
-  position: relative;
-}
-
-.duration-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #2b87da;
-}
-
-.duration-dot.start {
-  background: #28a745;
-}
-
-.duration-dot.end {
-  background: #dc3545;
-}
-
-.duration-line-middle {
-  height: 2px;
-  background: #2b87da;
-  flex-grow: 1;
-  margin: 0 10px;
-}
-
-.duration-text {
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 5px;
-}
-
-.stops-info {
-  font-size: 0.8rem;
-  color: #ff9800;
-  margin-top: 3px;
-}
-
-/* Price Summary */
-.total-price-summary {
-  background: linear-gradient(90deg, #f8f9fa, #e9ecef);
-  border: 2px solid #dee2e6;
-}
-
-.price-breakdown {
-  margin-top: 15px;
-}
-
-.breakdown-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed #ddd;
-}
-
-.breakdown-item.total {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-  border-bottom: none;
-}
-
-.total-amount {
-  color: #28a745;
-  font-size: 1.3rem;
-}
-
-.booking-info {
-  padding: 20px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .flight-timing-section {
-    flex-direction: column;
-    padding: 15px;
-  }
-
-  .duration-section {
-    padding: 10px 0;
-    margin: 10px 0;
-  }
-
-  .duration-line {
-    width: 100%;
-  }
-
-  .time-large {
-    font-size: 1.3rem;
-  }
-
-  .airport-code {
-    font-size: 1rem;
-  }
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  border-radius: 20px;
+  border: 1px solid #eaeaea;
 }
 
 .flight-card:hover {
@@ -264,35 +121,37 @@
 
   font-weight: bold;
 }
-.explore-flight-btn {
+.explore-flight-btn{
   background: #6369b2 !important;
-  color: #fff !important;
-  padding: 10px 24px !important;
-  border-radius: 50px !important;
-  font-size: 15px !important;
-  border: none !important;
-  transition: 0.3s !important;
-  box-shadow: 0px 4px 12px rgba(99, 105, 178, 0.25) !important;
+        color: #fff!important;
+        padding: 10px 24px !important;
+        border-radius: 50px !important;
+        font-size: 15px !important;
+        border: none !important;
+        transition: 0.3s !important;
+        box-shadow: 0px 4px 12px rgba(99, 105, 178, 0.25) !important;
+
 }
-.view-price-flight {
-  background-color: #ffffff !important;
-  color: #6369b2 !important;
-  border: none !important;
-  padding: 4px 20px !important;
-  border-radius: 16px !important;
-  font-size: 16px !important;
-  cursor: pointer !important;
-  transition: 0.3s;
-  transition: 0.3s ease !important;
-  border: 1px solid #6665ae !important;
+.view-price-flight{
+background-color: #ffffff !important;
+    color: #6369b2 !important;
+    border: none !important;
+    padding: 4px 13px !important;
+    border-radius: 11px !important;
+    font-size: 10px !important;
+    cursor: pointer !important;
+    transition: 0.3s;
+    transition: 0.3s ease !important;
+    border: 1px solid #6665ae !important;
 }
-.view-price-flight:hover {
-  background-color: #6369b2 !important;
-  color: #fff !important;
+.view-price-flight:hover{
+    background-color: #6369b2!important;
+    color: #fff !important;
 }
-.flight-heading {
-  color: #6665ae !important;
+.flight-heading{
+  color: #6665ae!important;
 }
+
 
 /* src/components/Flights.css */
 
@@ -372,153 +231,509 @@
   font-size: 14px;
 }
 
-=
-
 /* Flight Detail Modal Styles */
+/* =======================================================
+   PERFECT CENTERED MODAL (React-Bootstrap Compatible)
+   ======================================================= */
 
- 
-/* ================= MODAL ================= */
-/* Flight Detail Modal - Screenshot Style */
-
-/* ================= MODAL HEADER ================= */
-
-.modal-header-flight {
-  background: linear-gradient(90deg, #6665ae, #6665ae) !important;
-  color: #fff !important;
-  border-radius: 12px 12px 0 0 !important;
-  padding: 20px !important;
+/* =======================================================
+   MODAL CONTAINER - SINGLE COLUMN LAYOUT
+   ======================================================= */
+.flight-detail-modal .modal-dialog {
+  max-width: 600px !important;
+  width: 100% !important;
+  margin: 1.75rem auto !important;
+  min-height: auto !important;
 }
 
-/* Center container */
-.modal-header-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+.flight-detail-modal .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 100% !important;
+    margin-top: 0;
+    padding: 0;
+
+
 }
 
-/* Title */
-.modal-main-title {
-  font-weight: 700;
-  font-size: 22px;
+/* =======================================================
+   HEADER - Like first screenshot
+   ======================================================= */
+.modal-header-custom {
+  background-color: #6665ae !important;
   color: #fff;
+  border-bottom: none;
+  padding: 15px 20px !important;
+  position: relative;
+
+  .btn-close {
+    background-color: #fff !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    right: 8px !important;
+    top: 8px !important;
+    border-radius: 0px !important;
+}
 }
 
-/* Summary row */
-.flight-segments-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+.modal-main-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: white;
 }
 
-.total-price-text {
-  font-size: 14px;
+.flight-route {
+  font-size: 15px;
   font-weight: 600;
-  color: #e6efff;
+  margin-bottom: 4px;
+  color: #e0e7ff;
 }
 
-/* Passenger text */
-.passenger-count-display small {
-  color: #e6efff;
+.flight-details {
   font-size: 13px;
+  color: #d1d5db;
+  margin-bottom: 0;
 }
 
-/* Close button (X) */
-.modal-header-custom .btn-close {
-  filter: invert(1);
-  opacity: 0.9;
+/* =======================================================
+   BODY - Single fare card
+   ======================================================= */
+.modal-body-custom {
+  padding: 20px !important;
+  background: #f8fafc;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
-.modal-header-custom .btn-close:hover {
-  opacity: 1;
+/* Single column layout */
+.fare-options-grid {
+  display: block !important;
+  margin-bottom: 25px;
 }
 
-/* ================= TWO CARD LAYOUT ================= */
-
-/* column fix */
-.fare-col {
-  display: flex;
+.fare-option-column {
+  width: 100% !important;
+  margin-bottom: 15px;
 }
 
-/* card container */
+/* =======================================================
+   FARE CARD - Clean single card
+   ======================================================= */
 .fare-option-card {
-  width: 100%;
   background: #ffffff;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
   padding: 20px;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.25s ease;
-}
-
-/* clickable area */
-.clickable-fare {
+  display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  width: 100%;
+  position: relative;
   cursor: pointer;
 }
 
-/* hover */
-.clickable-fare:hover {
-  border-color: #1a73e8;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+.fare-option-card:hover {
+  border-color: #2c3c5e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* selected state (existing logic ke saath kaam karega) */
-.fare-option-card.active,
 .fare-option-card.selected {
-  border-color: #1a73e8;
-  background: #f3f8ff;
+    border: 1px solid #dddddd;
+    background-color: #fffbee;
 }
 
-/* ================= DETAILS VISIBILITY ================= */
-
-/* ensure no collapse */
-.fare-option-card * {
-  white-space: normal;
+/* Remove all pseudo-elements */
+.fare-option-card::before,
+.fare-option-card::after {
+  content: none !important;
 }
 
-/* fare details list */
-.fare-option-card ul,
-.fare-option-card .fare-details {
-  margin-top: 12px;
+/* =======================================================
+   PRICE SECTION - Top section
+   ======================================================= */
+.fare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.fare-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.price-emoji {
+  font-size: 18px;
+  margin-right: 4px;
+}
+
+.price-amount {
+  font-size: 18px;
+}
+
+.price-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+.fare-type {
+  margin: 0;
+}
+.fare-badge {
+    background: #008db8 !important;
+    padding: 4px 10px !important;
+    text-transform: uppercase;
+}
+
+/* =======================================================
+   NON-REFUNDABLE BANNER
+   ======================================================= */
+.non-refundable-banner {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* =======================================================
+   FEATURE SECTIONS - Vertical stack
+   ======================================================= */
+.fare-section {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.fare-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.section-title {
+  font-size: 18px !important;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.feature-emoji {
   font-size: 14px;
-  line-height: 1.6;
+  min-width: 16px;
 }
 
-/* rules / text */
-.fare-option-card p,
-.fare-option-card span {
-  display: block;
+/* =======================================================
+   BENEFITS SECTION
+   ======================================================= */
+.fare-benefits {
+  background: #f0f9ff;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 15px 0;
+  border-left: 3px solid #2c3c5e;
 }
 
-/* ================= RESPONSIVE ================= */
-@media (max-width: 992px) {
-  .fare-col {
-    margin-bottom: 15px;
+.benefits-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2c3c5e;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.benefits-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* =======================================================
+   SELECTION INDICATOR
+   ======================================================= */
+.selection-indicator {
+  margin-top: 15px;
+  padding-top: 15px;
+  text-align: center;
+}
+
+.selected-tick {
+  color: #2c3c5e;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.select-prompt {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* =======================================================
+   PRICE AND RULES - Vertical layout
+   ======================================================= */
+.price-rules-50 {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.price-50, .rules-50 {
+  width: 100% !important;
+}
+
+.total-price-section {
+    background: #f3e5f5;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+
+
+
+
+.total-amount {
+  font-size: 28px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.total-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+  max-width: 300px;
+  line-height: 1.4;
+}
+
+.passenger-breakdown {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.breakdown-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+/* Fare rules section */
+.fare-rules-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  margin-top: 0;
+}
+
+.fare-rules-section .section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 15px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.fare-rules-content {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.loading-rules {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.no-rules {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* =======================================================
+   FOOTER - Clean footer
+   ======================================================= */
+.modal-footer-custom {
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  padding: 15px 20px;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.selected-fare-info {
+  text-align: center;
+}
+
+.selected-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  background: #f0f9ff;
+  padding: 8px 15px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.refundable-badge.non-refundable {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.no-selection {
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+}
+
+.footer-actions {
+  display: flex;
+  justify-content: center;
+
+  .explore-btn{        opacity: 1;
+        color: #fff;
+        font-size: 14px;
+        padding: 8px 20px;}
+}
+
+.book-now-main-btn {
+  padding: 12px 30px !important;
+  font-size: 15px !important;
+  font-weight: bold !important;
+  border-radius: 25px !important;
+  background: linear-gradient(90deg, #2c3c5e, #1e293b) !important;
+  border: none !important;
+  min-width: 200px;
+}
+
+.footer-note {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.non-refundable-note {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* =======================================================
+   RESPONSIVE
+   ======================================================= */
+@media (max-width: 768px) {
+  .flight-detail-modal .modal-dialog {
+    margin: 0.5rem auto !important;
+    max-width: 95% !important;
+  }
+  
+  .modal-body-custom {
+    padding: 15px !important;
+  }
+  
+  .fare-option-card {
+    padding: 15px;
+  }
+  
+  .price-amount {
+    font-size: 20px;
+  }
+  
+  .fare-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .total-amount {
+    font-size: 24px;
+  }
+  
+  .total-label {
+    font-size: 13px;
+  }
+  
+  .book-now-main-btn {
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    min-width: 180px;
   }
 }
+
 
 /* checkout */
 
 /* Flight Checkout Styles */
 
 .fare-summary-header {
-  background: #274a62;
+  background: #6665ae;
   color: white;
 }
 .flight-checkout-container {
-  max-width: 1200px;
+    margin-top: 98px;
 }
 
 .airline-info {
-  border-left: 4px solid #007bff;
+    border-left: 4px solid #6665ae;
+    background-color: #ebfaff !important;
 }
 
 .time-display {
-  font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
 }
 
 .flight-timeline .flight-path {
@@ -587,11 +802,11 @@
     flex-direction: column;
     text-align: center;
   }
-
+  
   .flight-timeline .flight-duration {
     margin: 15px 0;
   }
-
+  
   .baggage-info .col-md-6 {
     margin-bottom: 10px;
   }
@@ -610,13 +825,11 @@
   justify-content: flex-start;
 }
 
-.modal-footer-custom {
-  height: 100px;
-}
 
-.flight-detail-modal {
-  margin-top: -80px !important;
-}
+
+
+
+
 
 /* Seat Modal Styles */
 .seat-modal-overlay {
@@ -630,7 +843,7 @@
   z-index: 1050;
 }
 
-/* .seat-modal-container {
+.seat-modal-container {
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -638,7 +851,7 @@
   width: 100%;
   max-height: 90vh;
   overflow: auto;
-} */
+}
 
 .seat-modal-header {
   position: sticky;
@@ -652,10 +865,10 @@
   z-index: 10;
 }
 
-/* .seat-modal-body {
+.seat-modal-body {
   padding: 1.5rem;
   background: linear-gradient(to bottom, #bae6fd, #7dd3fc);
-} */
+}
 
 .airplane-layout {
   position: relative;
@@ -820,6 +1033,14 @@
   z-index: 1060;
 }
 
+
+
+
+
+
+
+
+
 .seat-selection-modal .modal-dialog {
   max-width: 900px;
 }
@@ -831,15 +1052,8 @@
 }
 
 .seat-selection-modal .modal-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: white;
-}
-
-.seat-selection-modal .modal-body {
-  max-height: 75vh;
-  overflow-y: auto;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .seat-legend {
@@ -1089,27 +1303,11 @@
   pointer-events: none;
   z-index: 0;
 }
-.seat-grid-wrapper {
-  position: relative;
-  overflow: visible;
-}
-/* optional */
-.seat-summary {
-  max-width: 260px;
-  line-height: 1.3;
-}
-
-
 
 .wing {
   position: absolute;
   height: 60px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    #adb5bd 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, #adb5bd 50%, transparent 100%);
   opacity: 0.3;
 }
 
@@ -1125,20 +1323,21 @@
   border-radius: 0 30px 30px 0;
 }
 
-@media (max-width: 768px) .airplane-container {
-  padding: 10px;
-}
-
-.seat-button {
-  width: 40px;
-  height: 40px;
-  font-size: 10px;
-}
-
-.column-letter {
-  width: 40px;
-}
-
-.aisle {
-  width: 30px;
-}
+@media (max-width: 768px) 
+  .airplane-container {
+    padding: 10px;
+  }
+  
+  .seat-button {
+    width: 40px;
+    height: 40px;
+    font-size: 10px;
+  }
+  
+  .column-letter {
+    width: 40px;
+  }
+  
+  .aisle {
+    width: 30px;
+  }
