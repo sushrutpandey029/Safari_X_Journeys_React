@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { bus_getBookingDetails } from "../../../services/busservice";
 import useCancellation from "../../../hooks/useCancellation";
+import { downloadBookingPDF } from "../../../services/bookingService";
 
 export default function BusView({ booking }) {
   const {
@@ -29,7 +30,7 @@ export default function BusView({ booking }) {
 
   // Extract from DB serviceDetails
   const { TokenId, TraceId, EndUserIp } = serviceDetails || {};
-  console.log("traceid in busview",TraceId)
+  console.log("traceid in busview", TraceId);
 
   // LIVE DATA STATE
   const [liveData, setLiveData] = useState(null);
@@ -100,53 +101,27 @@ export default function BusView({ booking }) {
   } = itinerary;
 
   // PDF Invoice
-  const handleDownloadInvoice = () => {
-    const doc = new jsPDF();
 
-    doc.setFontSize(18);
-    doc.text("BUS Booking Invoice", 14, 20);
+  const handleDownloadInvoice = async (bookingId) => {
+    try {
+      const pdfBlob = await downloadBookingPDF(bookingId);
 
-    doc.setFontSize(12);
-    doc.text(`Booking ID: ${bookingId}`, 14, 30);
-    doc.text(`PNR: ${bookResult?.TravelOperatorPNR}`, 14, 36);
-    doc.text(`Bus ID: ${BusId}`, 14, 42);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 48);
+      const url = window.URL.createObjectURL(
+        new Blob([pdfBlob], { type: "application/pdf" })
+      );
 
-    autoTable(doc, {
-      startY: 56,
-      head: [["Field", "Value"]],
-      body: [
-        ["Route", `${Origin} → ${Destination}`],
-        ["Travel Operator", TravelName],
-        ["Bus Type", BusType],
-        ["Departure", new Date(DepartureTime).toLocaleString()],
-        ["Arrival", new Date(ArrivalTime).toLocaleString()],
-        ["Total Fare", `${currency} ${totalAmount}`],
-      ],
-    });
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Booking-${bookingId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
 
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
-      head: [["Passenger", "Gender", "Seat", "Fare"]],
-      body: Passenger.map((p) => [
-        `${p.Title} ${p.FirstName} ${p.LastName}`,
-        p.Gender === 1 ? "Male" : "Female",
-        `${p.Seat?.SeatName} (${p.Seat?.SeatType === 1 ? "Sleeper" : "Seat"})`,
-        p.Seat?.Price?.BasePrice,
-      ]),
-    });
-
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
-      head: [["Payment Field", "Value"]],
-      body: [
-        ["Amount", `${currency} ${totalAmount}`],
-        ["Method", paymentInfo.paymentMethod || "N/A"],
-        ["Payment Status", paymentInfo.paymentStatus || "N/A"],
-      ],
-    });
-
-    doc.save(`Invoice_Bus_${bookingId}.pdf`);
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download invoice", error);
+      alert("Unable to download invoice. Please try again.");
+    }
   };
 
   return (
@@ -249,8 +224,8 @@ export default function BusView({ booking }) {
           <tr>
             <th>Name</th>
             <th>Gender</th>
-            <th>Seat</th>
-            <th>Fare</th>
+            <th>Seat Name</th>
+            {/* <th>Fare</th> */}
           </tr>
         </thead>
         <tbody>
@@ -261,9 +236,13 @@ export default function BusView({ booking }) {
               </td>
               <td>{p.Gender === 1 ? "Male" : "Female"}</td>
               <td>
+                {p.Seat?.SeatName} 
+              </td>
+              {/* <td>₹{p.Seat?.Price?.BasePrice}</td> */}
+              {/* <td>
                 {p.Seat?.SeatName} (₹{p.Seat?.Price?.BasePrice})
               </td>
-              <td>₹{p.Seat?.Price?.BasePrice}</td>
+              <td>₹{p.Seat?.Price?.BasePrice}</td> */}
             </tr>
           ))}
         </tbody>
@@ -298,17 +277,17 @@ export default function BusView({ booking }) {
       {status === "confirmed" && (
         <>
           <button
-            className="btn btn-success mt-3"
-            onClick={handleDownloadInvoice}
+            className="btn btn-outline-primary"
+            onClick={() => handleDownloadInvoice(booking.bookingId)}
           >
-            Download Invoice (PDF)
+            Download Invoice
           </button>
 
           <button
-            className="btn btn-danger mt-3 ms-2"
+            className="btn btn-outline-danger"
             disabled={isCancelling}
             onClick={() =>
-              startCancellation({ vendorBookingId: BusId, bookingId ,TraceId})
+              startCancellation({ vendorBookingId: BusId, bookingId, TraceId })
             }
           >
             {isCancelling ? "Processing..." : "Cancel Booking"}

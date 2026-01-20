@@ -116,7 +116,7 @@ function Footer() {
               <ul className="list-unstyled">
                 <li><a href="/flight">Flight</a></li>
                 <li><a href="/hotel">Hotels</a></li>
-                <li><a href="/guides">Guides</a></li>
+                <li><a href="/guides">Guide</a></li>
                 <li><a href="/Bus-list">Bus</a></li>
               </ul>
             </div>

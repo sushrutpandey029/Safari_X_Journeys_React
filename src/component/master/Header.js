@@ -174,7 +174,7 @@ function Header() {
                     <img
                       src="/Images/tour-guide.gif"
                       alt="Safarix Logo" className="icon-img"
-                    /> Guides
+                    /> Guide
                   </NavLink>
                 </li>
 
@@ -202,7 +202,7 @@ function Header() {
                     <img
                       src="/Images/bus-journey.gif"
                       alt="Safarix Logo" className="icon-img"
-                    /> Buses
+                    /> Bus
                   </NavLink>
                 </li>
               </ul>

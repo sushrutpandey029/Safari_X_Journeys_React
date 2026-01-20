@@ -10,6 +10,8 @@ const Guidedetail = () => {
   const { guideId } = useParams();
   const guide = location.state?.guideData;
 
+  const userdetails = getUserData("safarix_user");
+
   // Get data from previous page (GuideList)
   const prevStartDate = location.state?.startDate;
   const prevEndDate = location.state?.endDate;
@@ -33,10 +35,10 @@ const Guidedetail = () => {
 
   // Use dates from previous page or set defaults
   const [startDate, setStartDate] = useState(
-    prevStartDate ? new Date(prevStartDate).toISOString().split("T")[0] : ""
+    prevStartDate ? new Date(prevStartDate).toISOString().split("T")[0] : "",
   );
   const [endDate, setEndDate] = useState(
-    prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : ""
+    prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : "",
   );
 
   // Calculate total price based on number of days
@@ -54,9 +56,9 @@ const Guidedetail = () => {
   const numberOfDays =
     startDate && endDate
       ? Math.ceil(
-        (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-        (1000 * 3600 * 24)
-      ) + 1
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+            (1000 * 3600 * 24),
+        ) + 1
       : 1;
 
   const handleUserFormChange = (e) => {
@@ -112,11 +114,17 @@ const Guidedetail = () => {
   };
 
   const handleBookNow = async () => {
+    if (!userdetails) {
+      alert("Please login first...");
+      return;
+    }
+    console.log("before validate");
     // First validate and submit user form
     const isFormValid = handleUserFormSubmit();
     if (!isFormValid) {
       return;
     }
+    console.log("after validate");
 
     // If form is valid, show booking confirmation
     setShowBookingForm(true);
@@ -124,8 +132,6 @@ const Guidedetail = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-
-    const userdetails = await getUserData("safarix_user");
 
     try {
       const bookingData = {
@@ -163,22 +169,8 @@ const Guidedetail = () => {
 
       console.log("Booking Data with User Form", bookingData);
       const result = await startPayment(bookingData);
-      // console.log("payment res", result);
+      console.log("payment res", result);
 
-      // Show success message
-      // alert(
-      //   `Booking confirmed! Thank you ${userForm.name}. Payment processing started.`
-      // );
-
-      // Reset form after successful booking
-      // setUserForm({
-      //   name: "",
-      //   phone: "",
-      //   address: "",
-      //   location: selectedCity || `${guide?.city}, ${guide?.state}, ${guide?.country}` || "",
-      // });
-      // setStartDate("");
-      // setEndDate("");
       setShowBookingForm(false);
     } catch (err) {
       console.error(err);
@@ -194,227 +186,306 @@ const Guidedetail = () => {
     }
 
     alert(
-      `Message sent to ${guide.fullName}! We'll contact you at ${userForm.phone} soon.`
+      `Message sent to ${guide.fullName}! We'll contact you at ${userForm.phone} soon.`,
     );
   };
 
- return (
-  <div className="guidedetail-container">
-    <div className="container">
+  return (
+    <div className="guidedetail-container">
+      <div className="container">
+        {/* ================= HEADER ================= */}
+        <div className="guide-header mb-4">
+          <div className="row align-items-center">
+            {/* Left Info */}
+            <div className="col-lg-8 col-md-12">
+              <div className="d-flex flex-wrap gap-3 align-items-center">
+                <div className="guide-profile-image">
+                  <img
+                    src={`${BASE_URL}/uploads/guides/${guide.profileImage}`}
+                    alt={guide.fullName}
+                    className="profile-img"
+                    onError={(e) => {
+                      e.target.src = "/default-avatar.png";
+                      e.target.onerror = null;
+                    }}
+                  />
+                </div>
 
-      {/* ================= HEADER ================= */}
-      <div className="guide-header mb-4">
-        <div className="row align-items-center">
-
-          {/* Left Info */}
-          <div className="col-lg-8 col-md-12">
-            <div className="d-flex flex-wrap gap-3 align-items-center">
-
-              <div className="guide-profile-image">
-                <img
-                  src={`${BASE_URL}/uploads/guides/${guide.profileImage}`}
-                  alt={guide.fullName}
-                  className="profile-img"
-                  onError={(e) => {
-                    e.target.src = "/default-avatar.png";
-                    e.target.onerror = null;
-                  }}
-                />
+                <div className="guide-basic-info">
+                  <h1 className="guide-name">{guide.fullName}</h1>
+                  <span>
+                    📍 {guide.city}, {guide.state}
+                  </span>
+                </div>
               </div>
+            </div>
 
-              <div className="guide-basic-info">
-                <h1 className="guide-name">{guide.fullName}</h1>
-                <span>📍 {guide.city}, {guide.state}</span>
-              </div>
-
+            {/* Right Info */}
+            <div className="col-lg-4 col-md-12 text-lg-end mt-3 mt-lg-0">
+              <h5>
+                🗣️ {guide.languageProficiency?.[0]?.language || "English"}
+              </h5>
+              <strong>4.8 ⭐ (120 reviews)</strong>
             </div>
           </div>
 
-          {/* Right Info */}
-          <div className="col-lg-4 col-md-12 text-lg-end mt-3 mt-lg-0">
-            <h5>
-              🗣️ {guide.languageProficiency?.[0]?.language || "English"}
-            </h5>
-            <strong>4.8 ⭐ (120 reviews)</strong>
-          </div>
-
-        </div>
-
-        {/* Specialties */}
-        <div className="row mt-3">
-          <div className="col-12 d-flex flex-wrap gap-2">
-            {guide.typesOfTours?.map((specialty, index) => (
-              <span key={index} className="specialty-item">
-                🎯 {specialty}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Selected Date */}
-        {startDate && endDate && (
+          {/* Specialties */}
           <div className="row mt-3">
-            <div className="col-12">
-              📅 {formatDate(startDate)} to {formatDate(endDate)} (
-              {numberOfDays} days × Rs. {guide.chargesPerDay} = Rs. {totalPrice})
-            </div>
-          </div>
-        )}
-
-        {/* Selected City */}
-        {selectedCity && (
-          <div className="row mt-2">
-            <div className="col-12">
-              📍 Selected City: <strong>{selectedCity}</strong>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ================= MAIN CONTENT ================= */}
-      <div className="row">
-
-        {/* LEFT CONTENT */}
-        <div className="col-lg-8 col-md-12">
-          <div className="content-area">
-
-            {/* Tabs */}
-            <div className="tabs-navigation mb-3">
-              {["about", "tours", "reviews"].map((tab) => (
-                <button
-                  key={tab}
-                  className={`tab ${activeTab === tab ? "active" : ""}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab.toUpperCase()}
-                </button>
+            <div className="col-12 d-flex flex-wrap gap-2">
+              {guide.typesOfTours?.map((specialty, index) => (
+                <span key={index} className="specialty-item">
+                  🎯 {specialty}
+                </span>
               ))}
             </div>
+          </div>
 
-            {/* About */}
-            {activeTab === "about" && (
-              <>
-                <h4>About Me</h4>
-                <p>{guide.professionalSummary}</p>
-              </>
-            )}
+          {/* Selected Date */}
+          {startDate && endDate && (
+            <div className="row mt-3">
+              <div className="col-12">
+                📅 {formatDate(startDate)} to {formatDate(endDate)} (
+                {numberOfDays} days × Rs. {guide.chargesPerDay} = Rs.{" "}
+                {totalPrice})
+              </div>
+            </div>
+          )}
 
-            {/* Tours */}
-            {activeTab === "tours" && (
-              <ul>
-                {guide.typesOfTours?.map((tour, i) => (
-                  <li key={i}>🗺️ {tour}</li>
+          {/* Selected City */}
+          {selectedCity && (
+            <div className="row mt-2">
+              <div className="col-12">
+                📍 Selected City: <strong>{selectedCity}</strong>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ================= MAIN CONTENT ================= */}
+        <div className="row">
+          {/* LEFT CONTENT */}
+          <div className="col-lg-8 col-md-12">
+            <div className="content-area">
+              {/* Tabs */}
+              <div className="tabs-navigation mb-3">
+                {["about", "tours", "reviews"].map((tab) => (
+                  <button
+                    key={tab}
+                    className={`tab ${activeTab === tab ? "active" : ""}`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab.toUpperCase()}
+                  </button>
                 ))}
-              </ul>
-            )}
+              </div>
 
-            {/* Reviews */}
-            {activeTab === "reviews" && (
-              <p>No reviews yet.</p>
-            )}
+              {/* About */}
+              {activeTab === "about" && (
+                <>
+                  <h4>About Me</h4>
+                  <p>{guide.professionalSummary}</p>
+                </>
+              )}
 
-            {/* User Form */}
-            <div className="user-form-section mt-4">
-              <h4>User Detail</h4>
+              {/* Tours */}
+              {activeTab === "tours" && (
+                <ul>
+                  {guide.typesOfTours?.map((tour, i) => (
+                    <li key={i}>🗺️ {tour}</li>
+                  ))}
+                </ul>
+              )}
 
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <input
-                    type="text"
-                    name="name"
-                    value={userForm.name}
-                    onChange={handleUserFormChange}
-                    className="form-control"
-                    placeholder="Full Name"
-                  />
-                </div>
+              {/* Reviews */}
+              {activeTab === "reviews" && <p>No reviews yet.</p>}
 
-                <div className="col-md-6 mb-3">
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={userForm.phone}
-                    onChange={handleUserFormChange}
-                    className="form-control"
-                    placeholder="Phone Number"
-                  />
-                </div>
+              {/* User Form */}
+              <div className="user-form-section mt-4">
+                <h4>User Detail</h4>
 
-                <div className="col-12 mb-3">
-                  <textarea
-                    name="address"
-                    value={userForm.address}
-                    onChange={handleUserFormChange}
-                    className="form-control"
-                    rows="3"
-                    placeholder="Address"
-                  />
-                </div>
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <input
+                      type="text"
+                      name="name"
+                      value={userForm.name}
+                      onChange={handleUserFormChange}
+                      className="form-control"
+                      placeholder="Full Name"
+                    />
+                  </div>
 
-                <div className="col-12">
-                  <input
-                    readOnly
-                    className="form-control"
-                    value={
-                      selectedCity ||
-                      `${guide.city}, ${guide.state}, ${guide.country}`
-                    }
-                  />
+                  <div className="col-md-6 mb-3">
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={userForm.phone}
+                      onChange={handleUserFormChange}
+                      className="form-control"
+                      placeholder="Phone Number"
+                    />
+                  </div>
+
+                  <div className="col-12 mb-3">
+                    <textarea
+                      name="address"
+                      value={userForm.address}
+                      onChange={handleUserFormChange}
+                      className="form-control"
+                      rows="3"
+                      placeholder="Address"
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <input
+                      readOnly
+                      className="form-control"
+                      value={
+                        selectedCity ||
+                        `${guide.city}, ${guide.state}, ${guide.country}`
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
+          {/* RIGHT SIDEBAR */}
+          <div className="col-lg-4 col-md-12 mt-4 mt-lg-0">
+            <div className="booking-sidebar">
+              <div className="card mb-3">
+                <div className="card-body">
+                  <h5>Select Dates</h5>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="form-control mb-2"
+                  />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="form-control"
+                  />
+                </div>
+              </div>
+
+              <div className="card mb-3">
+                <div className="card-body">
+                  <p>
+                    📍 {guide.city}, {guide.state}
+                  </p>
+                  <p>💰 Rs. {guide.chargesPerDay} / day</p>
+                  {startDate && endDate && (
+                    <p>
+                      <b>Total: Rs. {totalPrice}</b>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <button
+                className="btn btn-primary w-100 mb-2"
+                onClick={handleBookNow}
+              >
+                🎯 Book Now
+              </button>
+
+              <button
+                className="btn btn-outline-secondary w-100"
+                onClick={handleSendMessage}
+              >
+                💬 Send Message
+              </button>
+            </div>
           </div>
         </div>
-
-        {/* RIGHT SIDEBAR */}
-        <div className="col-lg-4 col-md-12 mt-4 mt-lg-0">
-          <div className="booking-sidebar">
-
-            <div className="card mb-3">
-              <div className="card-body">
-                <h5>Select Dates</h5>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="form-control mb-2"
-                />
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="form-control"
-                />
-              </div>
-            </div>
-
-            <div className="card mb-3">
-              <div className="card-body">
-                <p>📍 {guide.city}, {guide.state}</p>
-                <p>💰 Rs. {guide.chargesPerDay} / day</p>
-                {startDate && endDate && (
-                  <p><b>Total: Rs. {totalPrice}</b></p>
-                )}
-              </div>
-            </div>
-
-            <button className="btn btn-primary w-100 mb-2" onClick={handleBookNow}>
-              🎯 Book Now
-            </button>
-
-            <button className="btn btn-outline-secondary w-100" onClick={handleSendMessage}>
-              💬 Send Message
-            </button>
-
-          </div>
-        </div>
-
       </div>
-    </div>
-  </div>
-);
+      {/* Booking Form Modal */}
+      {showBookingForm && (
+        <div className="booking-form-overlay">
+          <div className="booking-form-container">
+            <div className="booking-form-header">
+              <h2>Complete Your Booking</h2>
+              <button
+                className="close-button"
+                onClick={() => setShowBookingForm(false)}
+              >
+                ✕
+              </button>
+            </div>
 
+            <form onSubmit={handleFormSubmit} className="booking-form">
+              <div className="booking-summary">
+                <h4>Booking Summary</h4>
+                <div className="summary-item">
+                  <span>Guide:</span>
+                  <span>{guide.fullName}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Date Range:</span>
+                  <span>
+                    {formatDate(startDate)} to {formatDate(endDate)}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span>Number of Days:</span>
+                  <span>{numberOfDays}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Start Date:</span>
+                  <span>{startDate}</span>
+                </div>
+                <div className="summary-item">
+                  <span>End Date:</span>
+                  <span>{endDate}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Selected City:</span>
+                  <span>{selectedCity}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Customer:</span>
+                  <span>{userForm.name}</span>
+                </div>
+                <div className="summary-item">
+                  <span>Contact:</span>
+                  <span>{userForm.phone}</span>
+                </div>
+                <div className="summary-item price-breakdown">
+                  <span>Price Breakdown:</span>
+                  <span>
+                    {numberOfDays} days × Rs. {guide.chargesPerDay}
+                  </span>
+                </div>
+                <div className="summary-item total">
+                  <span>Total Amount:</span>
+                  <span>Rs. {totalPrice}</span>
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setShowBookingForm(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="submit-button">
+                  <span className="button-icon">💳</span>
+                  Proceed to Payment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Guidedetail;

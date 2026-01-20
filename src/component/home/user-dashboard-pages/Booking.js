@@ -45,10 +45,10 @@ function Booking() {
   const currentBookings = bookings.slice(firstIndex, lastIndex);
   const totalPages = Math.ceil(bookings.length / itemsPerPage);
 
-   const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = date.toLocaleString("en-US", { month: "short" });
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };

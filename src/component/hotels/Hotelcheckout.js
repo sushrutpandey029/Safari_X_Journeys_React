@@ -8,6 +8,8 @@ const HotelCheckout = () => {
   const location = useLocation();
   const { payload } = location.state;
   console.log("data from previous page on checkout", payload);
+  const userdetails = getUserData("safarix_user");
+  console.log("userdetails on hotel checkout", userdetails);
   const { startPayment } = useCashfreePayment();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -82,8 +84,12 @@ const HotelCheckout = () => {
         }
 
         // PAN (optional)
-        if (pax.PAN && !panRegex.test(pax.PAN)) {
-          return `Invalid PAN in Room ${r + 1}`;
+       
+        if (pax.PAN) {
+          const pan = pax.PAN.toUpperCase();
+          if (!panRegex.test(pan)) {
+            return `Invalid PAN in Room ${r + 1}`;
+          }
         }
       }
     }
@@ -175,6 +181,10 @@ const HotelCheckout = () => {
   };
 
   const handleSubmit = async (e) => {
+    if (!userdetails) {
+      alert("Please login first...");
+      return;
+    }
     e.preventDefault();
     const validationError = validatePassengers(roomsData);
     if (validationError) {
@@ -246,7 +256,6 @@ const HotelCheckout = () => {
 
   const handleBookNow = async () => {
     try {
-      const userdetails = await getUserData("safarix_user");
       if (!userdetails?.id) {
         alert("User not logged in");
         return;

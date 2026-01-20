@@ -8,6 +8,7 @@ import {
 } from "../../../services/hotelService";
 import { confirmBookingCancellation } from "../../../services/commonService";
 import { useNavigate } from "react-router-dom";
+import { downloadBookingPDF } from "../../../services/bookingService";
 
 export default function HotelView({ booking }) {
   const {
@@ -66,53 +67,27 @@ export default function HotelView({ booking }) {
   }, []);
 
   // ================= Invoice PDF ==================
-  const handleDownloadInvoice = () => {
-    if (!bookingDetailData) return;
 
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("HOTEL BOOKING INVOICE", 14, 20);
+  const handleDownloadInvoice = async (bookingId) => {
+    try {
+      const pdfBlob = await downloadBookingPDF(bookingId);
 
-    doc.setFontSize(12);
-    doc.text(`Booking ID: ${bookingId}`, 14, 28);
-    doc.text(`Hotel: ${bookingDetailData?.HotelName}`, 14, 34);
-    doc.text(`City: ${bookingDetailData?.City}`, 14, 40);
-    doc.text(`Check-In: ${bookingDetailData?.CheckInDate}`, 14, 46);
-    doc.text(`Check-Out: ${bookingDetailData?.CheckOutDate}`, 14, 52);
+      const url = window.URL.createObjectURL(
+        new Blob([pdfBlob], { type: "application/pdf" })
+      );
 
-    autoTable(doc, {
-      startY: 60,
-      head: [["Field", "Value"]],
-      body: [
-        ["Hotel Name", bookingDetailData?.HotelName],
-        ["Address", bookingDetailData?.AddressLine1],
-        ["Booking Status", bookingDetailData?.HotelBookingStatus],
-        ["Check-in", bookingDetailData?.CheckInDate],
-        ["Check-out", bookingDetailData?.CheckOutDate],
-        ["Total Fare", `${currency} ${totalAmount}`],
-        ["Guests", `${bookingDetailData?.Rooms?.[0]?.AdultCount} Adult(s)`],
-      ],
-    });
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Booking-${bookingId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
 
-    autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 10,
-      head: [["Guest Name", "Age", "Phone"]],
-      body:
-        HotelRoomsDetails?.flatMap((room) =>
-          room.HotelPassenger?.map((p) => [
-            `${p.FirstName} ${p.LastName}`,
-            p.Age,
-            p.Phoneno,
-          ])
-        ) || [],
-    });
-
-    doc.text(
-      "Thank you for choosing our platform!",
-      14,
-      doc.lastAutoTable.finalY + 20
-    );
-    doc.save(`Invoice_Hotel_${bookingId}.pdf`);
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download invoice", error);
+      alert("Unable to download invoice. Please try again.");
+    }
   };
 
   // ================= Cancel Booking ==================
@@ -244,7 +219,7 @@ export default function HotelView({ booking }) {
         <tbody>
           <tr>
             <th>Booking ID</th>
-            <td>{bookingId}</td>
+            <td>{bookingDetailData?.BookingId}</td>
           </tr>
           <tr>
             <th>Status</th>
@@ -283,14 +258,13 @@ export default function HotelView({ booking }) {
       {status === "confirmed" && (
         <>
           <button
-            className="btn btn-success mt-3"
-            onClick={handleDownloadInvoice}
+            className="btn btn-outline-primary"
+            onClick={() => handleDownloadInvoice(booking.bookingId)}
           >
             Download Invoice
           </button>
-
           <button
-            className="btn btn-danger mt-3 ms-2"
+            className="btn btn-outline-danger"
             disabled={isCancelling}
             onClick={handleCancelBooking}
           >
