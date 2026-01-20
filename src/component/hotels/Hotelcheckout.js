@@ -31,7 +31,17 @@ const HotelCheckout = () => {
     totalFare: 0,
   });
 
-  const validatePassengers = (roomsData) => {
+  // PreBook on load data
+  const [preBookInfo, setPreBookInfo] = useState(null);
+  const [validationInfo, setValidationInfo] = useState(null);
+  const [initialPreBookLoading, setInitialPreBookLoading] = useState(false);
+  const decodeHtml = (html) => {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  };
+
+  const validatePassengers = (roomsData, validationInfo) => {
     const nameRegex = /^(?![._-])[A-Za-z ]{2,50}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{7,15}$/;
@@ -40,7 +50,7 @@ const HotelCheckout = () => {
     for (let r = 0; r < roomsData.length; r++) {
       const room = roomsData[r];
       const leadAdults = room.passengers.filter(
-        (p) => p.PaxType === 1 && p.LeadPassenger
+        (p) => p.PaxType === 1 && p.LeadPassenger,
       );
 
       if (leadAdults.length !== 1) {
@@ -84,11 +94,22 @@ const HotelCheckout = () => {
         }
 
         // PAN (optional)
-       
-        if (pax.PAN) {
+
+        const isPanMandatory = validationInfo?.PanMandatory;
+        const panCountRequired = validationInfo?.PanCountRequired || 0;
+
+        let panCount = 0;
+
+        if (pax.PAN) panCount++;
+
+        if (isPanMandatory && pax.LeadPassenger) {
+          if (!pax.PAN) {
+            return `PAN is mandatory as per hotel rules (Room ${r + 1})`;
+          }
+
           const pan = pax.PAN.toUpperCase();
           if (!panRegex.test(pan)) {
-            return `Invalid PAN in Room ${r + 1}`;
+            return `Invalid PAN format (Room ${r + 1})`;
           }
         }
       }
@@ -185,8 +206,13 @@ const HotelCheckout = () => {
       alert("Please login first...");
       return;
     }
+    if (!preBookInfo || !validationInfo) {
+      alert("Please wait, validating booking rules...");
+      return;
+    }
+
     e.preventDefault();
-    const validationError = validatePassengers(roomsData);
+    const validationError = validatePassengers(roomsData, validationInfo);
     if (validationError) {
       alert(validationError);
       return;
@@ -223,7 +249,7 @@ const HotelCheckout = () => {
         hotelResult.IsCancellationPolicyChanged
       ) {
         alert(
-          "Price or cancellation policy changed. Please review and continue."
+          "Price or cancellation policy changed. Please review and continue.",
         );
         setFinalNetAmount(hotelResult.Rooms[0].NetAmount);
         setShowConfirmModal(true);
@@ -310,6 +336,42 @@ const HotelCheckout = () => {
     }
   };
 
+  useEffect(() => {
+    if (!hotel?.bookingCode) return;
+
+    const fetchPreBookInfo = async () => {
+      try {
+        setInitialPreBookLoading(true);
+
+        const res = await hotel_prebook({
+          BookingCode: hotel.bookingCode,
+        });
+
+        if (!res?.data?.success) {
+          console.error("Initial PreBook failed");
+          return;
+        }
+
+        const data = res.data.data;
+        const hotelResult = data?.HotelResult?.[0];
+
+        if (!hotelResult) return;
+
+        setPreBookInfo(hotelResult);
+        setValidationInfo(data?.ValidationInfo || null);
+
+        console.log("✅ Initial PreBook Data:", hotelResult);
+        console.log("✅ Validation Info:", data?.ValidationInfo);
+      } catch (err) {
+        console.error("❌ Initial PreBook error:", err);
+      } finally {
+        setInitialPreBookLoading(false);
+      }
+    };
+
+    fetchPreBookInfo();
+  }, [hotel?.bookingCode]);
+
   if (!payload) {
     return (
       <div className="container" style={{ marginTop: "110px" }}>
@@ -385,7 +447,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "Title",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           >
@@ -406,7 +468,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "FirstName",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             required
@@ -423,7 +485,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "LastName",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             required
@@ -444,7 +506,7 @@ const HotelCheckout = () => {
                                   roomIndex,
                                   paxIndex,
                                   "Email",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               required
@@ -452,7 +514,12 @@ const HotelCheckout = () => {
                           </div>
 
                           <div className="mb-2">
-                            <label className="form-label">PAN</label>
+                            <label className="form-label">
+                              PAN{" "}
+                              {hotel?.guestNationality !== "IN" && (
+                                <span className="text-danger">*</span>
+                              )}
+                            </label>
                             <input
                               type="text"
                               className="form-control"
@@ -462,9 +529,10 @@ const HotelCheckout = () => {
                                   roomIndex,
                                   paxIndex,
                                   "PAN",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
+                              required
                             />
                           </div>
                         </>
@@ -484,7 +552,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "Age",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             required
@@ -505,7 +573,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "PhoneNo",
-                                e.target.value.replace(/\D/g, "")
+                                e.target.value.replace(/\D/g, ""),
                               )
                             }
                             maxLength={15}
@@ -549,7 +617,7 @@ const HotelCheckout = () => {
                 ₹
                 {Math.ceil(
                   payload?.serviceDetails?.Pricing?.commissionAmount +
-                    payload?.serviceDetails?.Pricing?.gstAmount || 0
+                    payload?.serviceDetails?.Pricing?.gstAmount || 0,
                 )}
                 {/* ₹{(price?.tax || 0).toFixed(2)} */}
               </span>
@@ -567,13 +635,67 @@ const HotelCheckout = () => {
           </div>
 
           {/* CANCELLATION CARD */}
-          <div className="card shadow-sm p-3 rounded-4">
-            <h6 className="fw-bold mb-2">📝 Cancellation Policy</h6>
-            <p className="text-success mb-1">✔ Free Cancellation Available</p>
-            <small className="text-muted">
-              Cancel anytime before check-in date.
-            </small>
-          </div>
+
+          {preBookInfo && (
+            <div className="card shadow-sm border p-3 mb-3 rounded-3">
+              <h5 className="fw-bold mb-2">ℹ️ Room Details</h5>
+
+              {/* 🔹 Room Promotion */}
+              {preBookInfo.Rooms?.[0]?.RoomPromotion?.length > 0 && (
+                <div className="alert alert-success py-2">
+                  🎉 <strong>Offer:</strong>{" "}
+                  {preBookInfo.Rooms[0].RoomPromotion.join(", ")}
+                </div>
+              )}
+
+              {/* 🔹 Cancellation Policy */}
+              <h6 className="fw-bold mt-3">Cancellation Policy</h6>
+              {preBookInfo.Rooms?.[0]?.CancelPolicies?.map((c, idx) => (
+                <p key={idx} className="small mb-1">
+                  <strong>From:</strong> {c.FromDate} →{" "}
+                  <strong>{c.ChargeType}</strong> {c.CancellationCharge}
+                </p>
+              ))}
+
+              {preBookInfo.Rooms?.[0]?.LastCancellationDeadline && (
+                <p className="text-danger small mt-1">
+                  <strong>Last Free Cancellation:</strong>{" "}
+                  {preBookInfo.Rooms[0].LastCancellationDeadline}
+                </p>
+              )}
+
+              {/* 🔹 Amenities */}
+              {preBookInfo.Rooms?.[0]?.Amenities?.length > 0 && (
+                <>
+                  <h6 className="fw-bold mt-3">Amenities</h6>
+                  <ul className="small mb-2">
+                    {preBookInfo.Rooms[0].Amenities.slice(0, 8).map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              {/* 🔹 Rate Conditions (NEW) */}
+              {preBookInfo.RateConditions?.length > 0 && (
+                <>
+                  <h6 className="fw-bold mt-3">Hotel Policies & Conditions</h6>
+
+                  <div className="small">
+                    {preBookInfo.RateConditions.map((rule, idx) => (
+                      <div
+                        key={idx}
+                        className="mb-2"
+                        dangerouslySetInnerHTML={{
+                          __html: decodeHtml(rule),
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {showConfirmModal && (

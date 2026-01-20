@@ -3,7 +3,7 @@
 // export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.11.140.26:2625";
-export const BASE_URL = "http://192.168.1.12:2625";
+export const BASE_URL = "http://192.168.1.11:2625";
 
 // export const BASE_URL = "https://dash.safarixjourneys.com";
 
@@ -55,7 +55,7 @@ export const API = {
     `${BASE_URL}/api/payment-status?order_id=${orderId}`,
 
   // hotels
-  // COUNTRY_LIST: `${BASE_URL}/api/country-list`,
+  COUNTRY_LIST: `${BASE_URL}/api/country-list`,
   CITY_LIST: `${BASE_URL}/api/citylist`,
   HOTEL_CODE_LIST: `${BASE_URL}/api/hotel-code-list`,
   HOTEL_CODE_LIST_NEW: `${BASE_URL}/api/search-list-new`,

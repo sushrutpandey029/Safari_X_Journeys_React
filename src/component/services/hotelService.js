@@ -1,19 +1,19 @@
 import { API } from "./apiEndpoints";
 import axios from "axios";
 
-// export const getCountryList = async () => {
-//   try {
-//     const resp = await axios.get(API.COUNTRY_LIST);
-//     return resp.data?.data?.CountryList || [];
-//   } catch (err) {
-//     throw err;
-//   }
-// };
+export const getCountryList = async () => {
+  try {
+    const resp = await axios.get(API.COUNTRY_LIST);
+    return resp.data?.data?.CountryList || [];
+  } catch (err) {
+    throw err;
+  }
+};
 
 export const getCityList = async (countryCode) => {
   try {
     const resp = await axios.post(API.CITY_LIST, {
-      CountryCode: countryCode, // ✅ dynamic country
+      CountryCode: countryCode, 
     });
     return resp.data?.data?.CityList || [];
   } catch (err) {

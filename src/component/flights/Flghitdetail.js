@@ -145,7 +145,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
           </div>
 
           <div className="passenger-count-display mt-2">
-            <small>Please select any one plan to continue</small>
+            <small style={{color:"black"}}>Please select any one plan to continue</small>
           </div>
         </Modal.Title>
       </Modal.Header>
