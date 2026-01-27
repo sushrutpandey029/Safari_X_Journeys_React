@@ -229,101 +229,109 @@ function HotelBooking() {
   //   }
   // };
 
- const handleSearch = async () => {
-  setIsSearching(true);
-  setVisibleCount(9);
-  setAddressSearch("");
-  setAddressSuggestions([]);
+  const handleSearch = async () => {
+    setIsSearching(true);
+    setVisibleCount(9);
+    setAddressSearch("");
+    setAddressSuggestions([]);
 
-  try {
-    // 🔹 STEP 1: Get hotel codes
-    const data = await getHotelCodeListNew(selectedCountry, selectedCity);
+    try {
+      // 🔹 STEP 1: Get hotel codes
+      const data = await getHotelCodeListNew(selectedCountry, selectedCity);
+      console.log("daa of getHotelCodeListNew", data);
+      let hotels = [];
 
-    let hotels = [];
-    if (Array.isArray(data?.data)) hotels = data.data;
-    else if (Array.isArray(data)) hotels = data;
-    else if (Array.isArray(data?.Hotels)) hotels = data.Hotels;
+      if (Array.isArray(data?.data)) {
+        hotels = data.data;
+      } else if (Array.isArray(data)) {
+        hotels = data;
+      } else if (Array.isArray(data?.Hotels)) {
+        hotels = data.Hotels;
+      }
 
-    setHotelList(hotels);
+      setHotelList(hotels);
 
-    const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
-    if (!hotelCodes.length) {
-      setSearchResults([]);
-      return;
-    }
+      const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
+      if (!hotelCodes.length) {
+        setSearchResults([]);
+        return;
+      }
+      console.log("hotels", hotels);
+      const mergedHotelList = hotels.map((hotel) => {
+        const code = hotel.HotelCode || hotel.Code;
+        return {
+          ...hotel,
+          MinPrice: priceMap[code]?.MinPrice ?? null,
+          Currency: priceMap[code]?.Currency ?? "INR",
+          Rooms: priceMap[code]?.Rooms ?? [],
+        };
+      });
 
-    // 🔹 STEP 2: Chunk hotel codes (100 max)
-    const hotelCodeChunks = chunkArray(hotelCodes, 100).slice(0, 5);
+      // 🔹 STEP 2: Split hotel codes into chunks (100 max)
+      const hotelCodeChunks = chunkArray(hotelCodes, 100);
+      console.log("hotelcodechunks", hotelCodeChunks);
+      const safeChunks = hotelCodeChunks.slice(0, 5);
+      console.log("safechunk", safeChunks);
 
-    // 🔹 STEP 3: Base payload
-    const basePayload = {
-      CheckIn: checkIn,
-      CheckOut: checkOut,
-      GuestNationality: guestNationality,
-      PaxRooms: paxRooms.map((p) => ({
-        Adults: p.Adults,
-        Children: p.Children,
-        ChildrenAges: p.ChildrenAges,
-      })),
-      ResponseTime: responseTime,
-      IsDetailedResponse: isDetailedResponse,
-      Filters: {
-        Refundable: isRefundable,
-        MealType: mealType,
-      },
-    };
+      // 🔹 STEP 3: Base payload (common)
+      const basePayload = {
+        CheckIn: checkIn,
+        CheckOut: checkOut,
+        GuestNationality: guestNationality,
+        PaxRooms: paxRooms.map((p) => ({
+          Adults: p.Adults,
+          Children: p.Children,
+          ChildrenAges: p.ChildrenAges,
+        })),
+        ResponseTime: responseTime,
+        IsDetailedResponse: isDetailedResponse,
+        Filters: {
+          Refundable: isRefundable,
+          MealType: mealType,
+        },
+      };
 
-    // 🔹 STEP 4: Parallel search calls
-    const responses = await Promise.all(
-      hotelCodeChunks.map((codes) =>
-        searchHotels({ ...basePayload, HotelCodes: codes }),
-      ),
-    );
-
-    // 🔹 STEP 5: Merge search results
-    const mergedResults = responses.flatMap(
-      (res) => res?.data?.data?.HotelResult || [],
-    );
-
-    // 🔹 STEP 6: Create price map
-    const priceMap = {};
-
-    mergedResults.forEach((item) => {
-      if (!item?.HotelCode || !item?.Rooms?.length) return;
-
-      const minRoomPrice = Math.min(
-        ...item.Rooms.map(
-          (r) => r.TotalFare ?? r.DisplayPrice ?? Infinity,
-        ),
+      // 🔹 STEP 4: Parallel search calls
+      const searchPromises = safeChunks.map((codes) =>
+        searchHotels({
+          ...basePayload,
+          HotelCodes: codes,
+        }),
       );
 
-      priceMap[item.HotelCode] = {
-        MinPrice: minRoomPrice,
-        Currency: item.Currency,
-        Rooms: item.Rooms,
-      };
-    });
+      const responses = await Promise.all(searchPromises);
+      console.log("response of parallel search", responses);
 
-    // 🔹 STEP 7: Merge hotel list + price map
-    const mergedHotelList = hotels.map((hotel) => {
-      const code = hotel.HotelCode || hotel.Code;
-      return {
-        ...hotel,
-        MinPrice: priceMap[code]?.MinPrice ?? null,
-        Currency: priceMap[code]?.Currency ?? "INR",
-        Rooms: priceMap[code]?.Rooms ?? [],
-      };
-    });
+      // 🔹 STEP 5: Merge all results
+      const mergedResults = responses.flatMap(
+        (res) => res?.data?.data?.HotelResult || [],
+      );
+      // STEP 6: Create price map (HotelCode → MinPrice)
+      const priceMap = {};
 
-    setSearchResults(mergedHotelList);
-  } catch (err) {
-    console.error("❌ Parallel search failed:", err);
-    setSearchResults([]);
-  } finally {
-    setIsSearching(false);
-  }
-};
+      mergedResults.forEach((item) => {
+        if (!item?.HotelCode || !item?.Rooms?.length) return;
 
+        const minRoomPrice = Math.min(
+          ...item.Rooms.map((r) => r.TotalFare || r.DisplayPrice || Infinity),
+        );
+
+        priceMap[item.HotelCode] = {
+          MinPrice: minRoomPrice,
+          Currency: item.Currency,
+          Rooms: item.Rooms,
+        };
+      });
+
+      // setSearchResults(mergedResults);
+      setSearchResults(mergedHotelList);
+    } catch (err) {
+      console.error("❌ Parallel search failed:", err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     if (!selectedCountry) return;
@@ -713,7 +721,7 @@ function HotelBooking() {
               </select>
             </div>
 
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">Check-In</label>
               <DatePicker
                 selected={checkIn ? new Date(checkIn) : null}
@@ -736,7 +744,7 @@ function HotelBooking() {
             </div>
 
             {/* Check-Out */}
-            <div className="col-md-2">
+            <div className="col-md-2 col-6">
               <label className="form-label">Check-Out</label>
               <DatePicker
                 selected={checkOut ? new Date(checkOut) : null}
@@ -752,7 +760,7 @@ function HotelBooking() {
             </div>
 
             {/* Rooms Dropdown */}
-            <div className="col-md-4 position-relative">
+            <div className="col-md-4 col-6 position-relative">
               {/* Dropdown Trigger */}
               <label className="form-label">Rooms/Guests</label>
               <div
@@ -954,7 +962,7 @@ function HotelBooking() {
       <div className="container hotel-listing">
         <div className="row align-items-end pt-5 pb-3 border-bottom mb-4">
           {/* LEFT SIDE → Breadcrumb */}
-          <div className="col-md-5 col-sm-12">
+          <div className="col-md-5 col-4">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
