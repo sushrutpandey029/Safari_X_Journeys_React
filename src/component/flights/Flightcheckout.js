@@ -17,6 +17,7 @@ import { fare_quote, flight_fetchSSR } from "../services/flightService";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { searchInsurance } from "../services/insuranceService";
+// 07ABCDE1234F1Z5
 
 const Flightcheckout = () => {
   const location = useLocation();
@@ -26,6 +27,8 @@ const Flightcheckout = () => {
   const [showSeatModal, setShowSeatModal] = useState(false);
   const [activeSeatPaxIndex, setActiveSeatPaxIndex] = useState(null);
   const [activeFlightIndex, setActiveFlightIndex] = useState(0);
+  const [fareRules, setFareRules] = useState(null);
+  const [fareExpired, setFareExpired] = useState(false);
 
   const [passengerConfirmed, setPassengerConfirmed] = useState(false);
   const isPassengerLocked = !passengerConfirmed;
@@ -57,6 +60,12 @@ const Flightcheckout = () => {
     baggage: false,
     meal: false,
     seat: false,
+  });
+  const [gstDetails, setGstDetails] = useState({
+    gstNumber: "",
+    companyName: "",
+    companyAddress: "",
+    companyEmail: "",
   });
 
   const isUserLoggedIn = async () => {
@@ -128,7 +137,6 @@ const Flightcheckout = () => {
   const [fareDiff, setFareDiff] = useState(0);
 
   const state = location?.state;
-  console.log("✅ Checkout received state:", state);
 
   const [fareSource, setFareSource] = useState("search");
 
@@ -176,7 +184,7 @@ const Flightcheckout = () => {
 
     // 3️⃣ Normalize resultIndexes → array
     const normalizedIndexes =
-      tripType === "round" && isDomestic
+      tripType === "round"
         ? [resultIndexes.outbound, resultIndexes.inbound]
         : Array.isArray(resultIndexes)
           ? resultIndexes
@@ -308,17 +316,62 @@ const Flightcheckout = () => {
           ResultIndex: flight.ResultIndex,
         };
 
-        console.log(`Fetching fare quote for flight ${i + 1}:`, payload);
         const res = await fare_quote(payload);
         console.log(`Fare quote response for flight ${i + 1}:`, res.data);
-
-        if (res?.data?.Response?.Results) {
-          const result = Array.isArray(res.data.Response.Results)
-            ? res.data.Response.Results[0]
-            : res.data.Response.Results;
-
-          responses.push(result);
+        const response = res?.data?.Response;
+        if (
+          !response ||
+          response.ResponseStatus !== 1 ||
+          response.Error?.ErrorCode !== 0
+        ) {
+          alert("Fare validation failed. Please search again.");
+          return;
         }
+        // if (res?.data?.Response?.Results) {
+        const result = Array.isArray(res.data.Response.Results)
+          ? res.data.Response.Results[0]
+          : res.data.Response.Results;
+
+        responses.push(result);
+
+        // ✅ extract fare rules ONLY ONCE (first flight is enough)
+        if (i === 0) {
+          setFareRules({
+            isLCC: result.IsLCC,
+
+            gst: {
+              allowed: result.GSTAllowed,
+              mandatory: result.IsGSTMandatory,
+            },
+
+            passport: {
+              requiredAtBook: result.IsPassportRequiredAtBook,
+              requiredAtTicket: result.IsPassportRequiredAtTicket,
+              fullDetailRequired: result.IsPassportFullDetailRequiredAtBook,
+            },
+
+            pan: {
+              requiredAtBook: result.IsPanRequiredAtBook,
+              requiredAtTicket: result.IsPanRequiredAtTicket,
+            },
+
+            fare: {
+              refundable: result.IsRefundable,
+              lastTicketDate: result.LastTicketDate,
+            },
+          });
+
+          // ⏳ session expiry check
+          if (
+            result.LastTicketDate &&
+            result.LastTicketDate !== "0001-01-01T00:00:00"
+          ) {
+            if (new Date() > new Date(result.LastTicketDate)) {
+              setFareExpired(true);
+            }
+          }
+        }
+        // }
       }
 
       setFareDetailsArray(responses);
@@ -355,8 +408,13 @@ const Flightcheckout = () => {
       const res = await fare_quote(payload);
       const response = res?.data?.Response;
 
-      if (!response || response.ResponseStatus !== 1) {
-        throw new Error("Fare recheck failed");
+      if (
+        !response ||
+        response.ResponseStatus !== 1 ||
+        response.Error?.ErrorCode !== 0
+      ) {
+        alert("Fare validation failed. Please search again.");
+        return;
       }
 
       if (response.IsPriceChanged === true) {
@@ -833,7 +891,9 @@ const Flightcheckout = () => {
 
     return passengers.map((pax) => {
       const fare = paxFareList.find((f) => f.PaxType === pax.paxType);
-
+      const isLead = pax.isLeadPax === true;
+      const shouldSendGST =
+        isLead && fieldRequirements.gst && gstDetails?.gstNumber;
       return {
         Title: pax.title,
         FirstName: pax.firstName,
@@ -854,13 +914,20 @@ const Flightcheckout = () => {
         Nationality: pax.nationality,
         Email: pax.email,
         IsLeadPax: pax.isLeadPax,
-
-        // ✅ TBO-COMPLIANT
         Fare: {
           Currency: "INR",
           BaseFare: Number(fare?.BaseFare?.toFixed(2) || 0),
           Tax: Number(fare?.Tax?.toFixed(2) || 0),
         },
+        ...(shouldSendGST
+          ? {
+              GSTNumber: gstDetails.gstNumber,
+              GSTCompanyName: gstDetails.companyName,
+              GSTCompanyAddress: gstDetails.companyAddress,
+              GSTCompanyEmail: gstDetails.companyEmail,
+              GSTCompanyContactNumber: pax.contactNo,
+            }
+          : {}),
       };
     });
   };
@@ -870,7 +937,9 @@ const Flightcheckout = () => {
       const fareDetail = fareDetailsArray[index];
 
       return {
-        journeyType: index === 0 ? "OB" : "IB", // optional but helpful
+        // journeyType: index === 0 ? "OB" : "IB",
+        journeyType:
+          state?.tripType === "round" ? (index === 0 ? "OB" : "IB") : "MC",
         ResultIndex: flight.ResultIndex,
         Passengers: buildPassengersForJourney(fareDetail),
       };
@@ -932,15 +1001,13 @@ const Flightcheckout = () => {
         Email: contactEmail,
         Mobile: contactMobile,
       },
-      // 🔥 NEW STRUCTURE
       journeys: buildJourneysPayload(),
-
-      // SSR kept grouped
       SSR: {
         Meal: selectedMeals,
         Baggage: selectedBaggage,
         Seat: selectedSeats,
       },
+      isLCC: fareRules?.isLCC,
 
       InsuranceRequired: !!selectedInsurancePlan,
       // InsuranceData: selectedInsurancePlan || null,
@@ -1025,11 +1092,9 @@ const Flightcheckout = () => {
         insuranceSelected: !!selectedInsurancePlan,
         insurancePlan: selectedInsurancePlan || null,
       };
-
       console.log("✅ FINAL BOOKING DETAILS FOR PAYMENT:", bookingDetails);
       console.log("✅ ACTUAL PAYMENT AMOUNT (INCLUDES EVERYTHING):", newTotal);
 
-      // Start payment
       await startPayment(bookingDetails);
     } catch (error) {
       console.error("Confirm & Pay failed", error);
@@ -1318,9 +1383,6 @@ const Flightcheckout = () => {
         !p.lastName ||
         !p.dateOfBirth ||
         !p.gender ||
-        !p.passportNumber ||
-        !p.passportExpiry ||
-        !p.nationality ||
         !p.contactNo ||
         !p.addressLine1 ||
         !p.city ||
@@ -1352,14 +1414,19 @@ const Flightcheckout = () => {
         return false;
       }
 
-      // ✅ Passport expiry vs travel date validation
-      if (p.passportExpiry) {
-        const passportExpiryDate = new Date(p.passportExpiry);
+      if (!p.firstName && p.lastName) {
+        p.firstName = p.lastName;
+      }
 
-        if (passportExpiryDate <= travelDate) {
-          alert(
-            `Passport expiry must be after travel date for ${p.type} ${i + 1}`,
-          );
+      if (fieldRequirements.passport) {
+        if (!p.passportNumber || !p.passportExpiry) {
+          alert(`Passport required for ${p.type} ${i + 1}`);
+          return false;
+        }
+
+        const expiry = new Date(p.passportExpiry);
+        if (expiry <= travelDate) {
+          alert(`Passport expired for ${p.type} ${i + 1}`);
           return false;
         }
       }
@@ -1387,6 +1454,34 @@ const Flightcheckout = () => {
 
       if (!isValidTitle) {
         alert(`Invalid title for ${p.type} ${i + 1}`);
+        return false;
+      }
+      const age = calculateAge(p.dateOfBirth);
+      if (p.paxType === 3 && age >= 2) {
+        alert("Infant age must be below 2 years");
+        return false;
+      }
+
+      if (p.paxType === 2 && (age < 2 || age >= 12)) {
+        alert("Child age must be between 2 and 12 years");
+        return false;
+      }
+    }
+    if (fieldRequirements.gst.allowed && fieldRequirements.gst.mandatory) {
+      if (
+        !gstDetails.gstNumber ||
+        !gstDetails.companyName ||
+        !gstDetails.companyAddress
+      ) {
+        alert("GST details are mandatory for this booking");
+        return false;
+      }
+
+      if (
+        gstDetails.companyEmail &&
+        !/^\S+@\S+\.\S+$/.test(gstDetails.companyEmail)
+      ) {
+        alert("Invalid GST company email");
         return false;
       }
     }
@@ -1460,6 +1555,32 @@ const Flightcheckout = () => {
     })
     .filter(Boolean);
 
+  const fieldRequirements = {
+    passport: Boolean(
+      fareRules?.passport?.requiredAtBook ||
+      fareRules?.passport?.requiredAtTicket,
+    ),
+
+    passportExpiry: Boolean(
+      fareRules?.passport?.requiredAtBook ||
+      fareRules?.passport?.requiredAtTicket,
+    ),
+
+    nationality: Boolean(
+      fareRules?.passport?.fullDetailRequired ||
+      fareRules?.passport?.requiredAtTicket,
+    ),
+
+    pan: Boolean(
+      fareRules?.pan?.requiredAtBook || fareRules?.pan?.requiredAtTicket,
+    ),
+
+    gst: {
+      allowed: Boolean(fareRules?.gst?.allowed),
+      mandatory: Boolean(fareRules?.gst?.mandatory),
+    },
+  };
+
   return (
     <>
       {loading && (
@@ -1479,11 +1600,6 @@ const Flightcheckout = () => {
             <Card className="mb-4 shadow-sm">
               <Card.Header>
                 <h4 className="mb-0">Trip Summary</h4>
-                <small className="text-muted">
-                  {selectedFlights.length} Flight(s) • {passengerCount.adults}{" "}
-                  Adult(s), {passengerCount.children} Child(s),{" "}
-                  {passengerCount.infants} Infant(s)
-                </small>
               </Card.Header>
               <Card.Body>
                 {selectedFlights.map((flight, index) =>
@@ -1656,66 +1772,73 @@ const Flightcheckout = () => {
 
                         <Row>
                           <Col md={6}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Passport Number *</Form.Label>
-                              <Form.Control
-                                type="text"
-                                placeholder="Enter passport number"
-                                value={passenger.passportNumber}
-                                onChange={(e) =>
-                                  handlePassengerChange(
-                                    index,
-                                    "passportNumber",
-                                    e.target.value,
-                                  )
-                                }
-                                required
-                              />
-                            </Form.Group>
+                            {fieldRequirements.passport && (
+                              <Form.Group className="mb-3">
+                                <Form.Label>Passport Number *</Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  placeholder="Enter passport number"
+                                  value={passenger.passportNumber}
+                                  onChange={(e) =>
+                                    handlePassengerChange(
+                                      index,
+                                      "passportNumber",
+                                      e.target.value,
+                                    )
+                                  }
+                                  required
+                                />
+                              </Form.Group>
+                            )}
                           </Col>
                           <Col md={6}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Passport Expiry Date *</Form.Label>
-                              <Form.Control
-                                type="date"
-                                value={passenger.passportExpiry}
-                                min={new Date().toISOString().split("T")[0]}
-                                onChange={(e) =>
-                                  handlePassengerChange(
-                                    index,
-                                    "passportExpiry",
-                                    e.target.value,
-                                  )
-                                }
-                                required
-                              />
-                            </Form.Group>
+                            {fieldRequirements.passportExpiry && (
+                              <Form.Group className="mb-3">
+                                <Form.Label>Passport Expiry Date *</Form.Label>
+                                <Form.Control
+                                  type="date"
+                                  value={passenger.passportExpiry}
+                                  min={new Date().toISOString().split("T")[0]}
+                                  onChange={(e) =>
+                                    handlePassengerChange(
+                                      index,
+                                      "passportExpiry",
+                                      e.target.value,
+                                    )
+                                  }
+                                  required
+                                />
+                              </Form.Group>
+                            )}
                           </Col>
                         </Row>
 
                         <Row>
-                          <Col md={6}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Nationality *</Form.Label>
-                              <Form.Select
-                                value={passenger.nationality}
-                                onChange={(e) =>
-                                  handlePassengerChange(
-                                    index,
-                                    "nationality",
-                                    e.target.value,
-                                  )
-                                }
-                                required
-                              >
-                                <option value="IN">India</option>
-                                <option value="US">United States</option>
-                                <option value="UK">United Kingdom</option>
-                                <option value="AE">UAE</option>
-                                <option value="SG">Singapore</option>
-                              </Form.Select>
-                            </Form.Group>
-                          </Col>
+                          {fieldRequirements.nationality && (
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Nationality *</Form.Label>
+                                <Form.Select
+                                  value={passenger.nationality}
+                                  onChange={(e) =>
+                                    handlePassengerChange(
+                                      index,
+                                      "nationality",
+                                      e.target.value,
+                                    )
+                                  }
+                                  required
+                                >
+                                  <option value="IN">India</option>
+                                  <option value="US">United States</option>
+                                  <option value="UK">United Kingdom</option>
+                                  <option value="AE">UAE</option>
+                                  <option value="SG">Singapore</option>
+                                </Form.Select>
+                              </Form.Group>
+                            </Col>
+                          )}
+
                           <Col md={6}>
                             <Form.Group className="mb-3">
                               <Form.Label>Contact Number *</Form.Label>
@@ -1868,6 +1991,91 @@ const Flightcheckout = () => {
                         </Row>
                       </Card.Body>
                     </Card>
+                    {fieldRequirements.gst.allowed && (
+                      <Card className="mt-4 shadow-sm">
+                        <Card.Header>
+                          <h5 className="mb-0">
+                            GST Details{" "}
+                            {!fieldRequirements.gst.mandatory && (
+                              <small className="text-muted">(Optional)</small>
+                            )}
+                          </h5>
+                        </Card.Header>
+
+                        <Card.Body>
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>
+                                  GST Number{" "}
+                                  {fieldRequirements.gst.mandatory && "*"}
+                                </Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  value={gstDetails.gstNumber}
+                                  onChange={(e) =>
+                                    setGstDetails({
+                                      ...gstDetails,
+                                      gstNumber: e.target.value,
+                                    })
+                                  }
+                                />
+                              </Form.Group>
+                            </Col>
+
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Company Name</Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  value={gstDetails.companyName}
+                                  onChange={(e) =>
+                                    setGstDetails({
+                                      ...gstDetails,
+                                      companyName: e.target.value,
+                                    })
+                                  }
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+
+                          <Row>
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Company Email</Form.Label>
+                                <Form.Control
+                                  type="email"
+                                  value={gstDetails.companyEmail}
+                                  onChange={(e) =>
+                                    setGstDetails({
+                                      ...gstDetails,
+                                      companyEmail: e.target.value,
+                                    })
+                                  }
+                                />
+                              </Form.Group>
+                            </Col>
+
+                            <Col md={6}>
+                              <Form.Group className="mb-3">
+                                <Form.Label>Company Address</Form.Label>
+                                <Form.Control
+                                  type="text"
+                                  value={gstDetails.companyAddress}
+                                  onChange={(e) =>
+                                    setGstDetails({
+                                      ...gstDetails,
+                                      companyAddress: e.target.value,
+                                    })
+                                  }
+                                />
+                              </Form.Group>
+                            </Col>
+                          </Row>
+                        </Card.Body>
+                      </Card>
+                    )}
                     <div className="text-end mt-3">
                       <Button
                         variant="primary"
@@ -2730,8 +2938,7 @@ const Flightcheckout = () => {
             onClick={handleConfirmAndPay}
           >
             Confirm & Pay
-            {/* Confirm & Pay ₹ {formatPrice(totalAmount)} */}
-          </Button>
+           </Button>
         </Modal.Footer>
       </Modal>
     </>
