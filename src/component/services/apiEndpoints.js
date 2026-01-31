@@ -1,9 +1,9 @@
 // export const BASE_URL = "https://7183d0378457.ngrok-free.app";
 
 // export const BASE_URL = "http://node.millclient.com:3001";
-// export const BASE_URL = "http://localhost:2625/";
+// export const BASE_URL = "http://localhost:2625";
 // export const BASE_URL = "http://10.31.33.26:2625";
-// export const BASE_URL = "https://0764024fc8ea.ngrok-free.app";
+// export const BASE_URL = "https://ee32c55e2c34.ngrok-free.app";
 export const BASE_URL = "http://192.168.1.12:2625";
 
 export const API = {

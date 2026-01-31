@@ -79,7 +79,7 @@ export default function FlightView({ booking }) {
   // Fetch booking details (Live Data)
   const getBookingDetails = async () => {
     try {
-      let payload = { EndUserIp: "192.168.1.11" };
+      let payload = { EndUserIp: "0.0.0.0" };
 
       if (vendorBookingId !== "N/A") payload.BookingId = vendorBookingId;
       else if (PNR !== "N/A") payload.PNR = PNR;
