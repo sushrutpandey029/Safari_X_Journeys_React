@@ -131,7 +131,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
       className="flight-detail-modal"
     >
       {/* ================= HEADER ================= */}
-      <Modal.Header closeButton className="modal-header-custom">
+      <Modal.Header closeButton className="modal-header-custom" style={{color:"#000"}}>
         <Modal.Title className="w-100">
           <div className="modal-main-title">
             Flight Details and Fare Options

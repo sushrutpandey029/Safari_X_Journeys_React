@@ -76,13 +76,13 @@ const BusCheckout = () => {
   const filteredBoardingPoints = boardingPoints.filter((p) =>
     `${p.CityPointName} ${p.CityPointLocation}`
       .toLowerCase()
-      .includes(boardingSearch.toLowerCase())
+      .includes(boardingSearch.toLowerCase()),
   );
 
   const filteredDroppingPoints = droppingPoints.filter((p) =>
     `${p.CityPointName} ${p.CityPointLocation}`
       .toLowerCase()
-      .includes(droppingSearch.toLowerCase())
+      .includes(droppingSearch.toLowerCase()),
   );
 
   // --------------------------- FETCH BOARDING POINTS ------------------------------
@@ -331,28 +331,28 @@ const BusCheckout = () => {
     busCharges: Number(
       selectedSeats
         .reduce((sum, seat) => sum + (seat.Pricing?.netFare ?? 0), 0)
-        .toFixed(2)
+        .toFixed(2),
     ),
 
     // ✅ YOUR COMMISSION
     serviceFee: Number(
       selectedSeats
         .reduce((sum, seat) => sum + (seat.Pricing?.commissionAmount ?? 0), 0)
-        .toFixed(2)
+        .toFixed(2),
     ),
 
     // ✅ GST ON COMMISSION
     gst: Number(
       selectedSeats
         .reduce((sum, seat) => sum + (seat.Pricing?.gstAmount ?? 0), 0)
-        .toFixed(2)
+        .toFixed(2),
     ),
 
     // ✅ FINAL AMOUNT USER PAID
     totalAmount: Number(
       selectedSeats
         .reduce((sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0), 0)
-        .toFixed(2)
+        .toFixed(2),
     ),
 
     // ✅ SEAT LEVEL (for PDF / refund)
@@ -554,7 +554,7 @@ const BusCheckout = () => {
 
   const busCharges = selectedSeats.reduce(
     (sum, seat) => sum + (seat.Pricing?.netFare ?? 0),
-    0
+    0,
   );
 
   const serviceAndGST = selectedSeats.reduce(
@@ -562,7 +562,7 @@ const BusCheckout = () => {
       sum +
       (seat.Pricing?.commissionAmount ?? 0) +
       (seat.Pricing?.gstAmount ?? 0),
-    0
+    0,
   );
 
   const totalPayable = busCharges + serviceAndGST;
@@ -708,8 +708,6 @@ const BusCheckout = () => {
                     Passenger {i + 1}
                     {/* Passenger {i + 1} — {p.seatNumber} */}
                   </h4>
-
-                  
 
                   <div className="passenger-form">
                     {/* First Name */}

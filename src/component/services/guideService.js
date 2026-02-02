@@ -27,7 +27,7 @@ export const guideUpdateProfile = async (payload) => {
 
     const resp = await axios.put(
       API.GUIDE_UPDATE_PROFILE(guide.guideId),
-      payload
+      payload,
     );
     return resp.data;
   } catch (err) {
@@ -46,7 +46,7 @@ export const guideChangePassword = async (payload) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return resp.data;
   } catch (err) {
@@ -92,7 +92,19 @@ export const guideLeaveHistory = async (id) => {
 };
 
 export const guideBookingHistory = async (id) => {
-   return await axios.get(API.GUIDE_BOOKING_HISTORY(id), {
+  return await axios.get(API.GUIDE_BOOKING_HISTORY(id), {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const guideEarnings = async (id) => {
+  return await axios.get(API.GUIDE_EARNING(id), {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const guidePayouts = async (id) => {
+  return await axios.get(API.GUIDE_PAYOUT(id), {
     headers: { "Content-Type": "application/json" },
   });
 };

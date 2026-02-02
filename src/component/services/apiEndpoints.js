@@ -1,9 +1,6 @@
-// export const BASE_URL = "https://7183d0378457.ngrok-free.app";
-
-// export const BASE_URL = "http://node.millclient.com:3001";
 // export const BASE_URL = "http://localhost:2625/";
-// export const BASE_URL = "http://10.11.140.26:2625";
-export const BASE_URL = "http://192.168.1.12:2625";
+// export const BASE_URL = "http://10.52.152.26:2625";
+export const BASE_URL = "http://192.168.1.5:2625";
 
 // export const BASE_URL = "https://dash.safarixjourneys.com";
 
@@ -44,6 +41,8 @@ export const API = {
   GUIDE_MARK_LEAVE: (id) => `${BASE_URL}/guide/unavailable/${id}`,
   GUIDE_LEAVE_HISTORY: (id) => `${BASE_URL}/guide/leave-history/${id}`,
   GUIDE_BOOKING_HISTORY: (id) => `${BASE_URL}/guide/booking-history/${id}`,
+  GUIDE_EARNING: (id) => `${BASE_URL}/guide/earnings/${id}`,
+  GUIDE_PAYOUT: (id) => `${BASE_URL}/guide/payouts/${id}`,
 
   // Booking + Payment
   CREATE_BOOKING_DRAFT: `${BASE_URL}/api/booking/create-draft`,

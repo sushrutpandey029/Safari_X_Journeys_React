@@ -436,30 +436,7 @@ export default function FlightView({ booking }) {
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-          {/* <button
-            className="btn btn-success mt-3"
-             onClick={() =>
-              handleDownloadInvoice({
-                serviceType: "flight",
-                payload: {
-                  bookingId,
-                  PNR,
-                  vendorBookingId,
-                  originCity,
-                  destinationCity,
-                  depTime,
-                  arrTime,
-                  airline,
-                  passengers,
-                  currency,
-                  totalAmount,
-                  paymentInfo,
-                },
-              })
-            }
-          >
-            Download Invoice (PDF)
-          </button> */}
+        
           <button
             className="btn btn-outline-primary"
             onClick={() => handleDownloadInvoice(booking.bookingId,vendorBookingId)}

@@ -27,7 +27,7 @@ function HotelBooking() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
 
-  const [rooms, setRooms] = useState(0);
+  const [rooms, setRooms] = useState(1);
   const [paxRooms, setPaxRooms] = useState([
     { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
@@ -56,7 +56,6 @@ function HotelBooking() {
   const [selectedStarRatings, setSelectedStarRatings] = useState([]);
   const [selectedUserRatings, setSelectedUserRatings] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [priceRange, setPriceRange] = useState([0, 50000]);
 
   const [showProperties, setShowProperties] = useState({
     bookWithZero: false,
@@ -64,9 +63,11 @@ function HotelBooking() {
     freeBreakfast: false,
     refundable: false,
   });
+
   const countryOptions = [
     { label: "India", code: "IN" },
     { label: "UAE", code: "AE" },
+    { label: "France", code: "FR" },
   ];
 
   // Infinite scroll states
@@ -229,101 +230,98 @@ function HotelBooking() {
   //   }
   // };
 
- const handleSearch = async () => {
-  setIsSearching(true);
-  setVisibleCount(9);
-  setAddressSearch("");
-  setAddressSuggestions([]);
+  const handleSearch = async () => {
+    setIsSearching(true);
+    setVisibleCount(9);
+    setAddressSearch("");
+    setAddressSuggestions([]);
 
-  try {
-    // 🔹 STEP 1: Get hotel codes
-    const data = await getHotelCodeListNew(selectedCountry, selectedCity);
+    try {
+      // 🔹 STEP 1: Get hotel codes
+      const data = await getHotelCodeListNew(selectedCountry, selectedCity);
 
-    let hotels = [];
-    if (Array.isArray(data?.data)) hotels = data.data;
-    else if (Array.isArray(data)) hotels = data;
-    else if (Array.isArray(data?.Hotels)) hotels = data.Hotels;
+      let hotels = [];
+      if (Array.isArray(data?.data)) hotels = data.data;
+      else if (Array.isArray(data)) hotels = data;
+      else if (Array.isArray(data?.Hotels)) hotels = data.Hotels;
 
-    setHotelList(hotels);
+      setHotelList(hotels);
 
-    const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
-    if (!hotelCodes.length) {
-      setSearchResults([]);
-      return;
-    }
+      const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
+      if (!hotelCodes.length) {
+        setSearchResults([]);
+        return;
+      }
 
-    // 🔹 STEP 2: Chunk hotel codes (100 max)
-    const hotelCodeChunks = chunkArray(hotelCodes, 100).slice(0, 5);
+      // 🔹 STEP 2: Chunk hotel codes (100 max)
+      const hotelCodeChunks = chunkArray(hotelCodes, 100).slice(0, 5);
 
-    // 🔹 STEP 3: Base payload
-    const basePayload = {
-      CheckIn: checkIn,
-      CheckOut: checkOut,
-      GuestNationality: guestNationality,
-      PaxRooms: paxRooms.map((p) => ({
-        Adults: p.Adults,
-        Children: p.Children,
-        ChildrenAges: p.ChildrenAges,
-      })),
-      ResponseTime: responseTime,
-      IsDetailedResponse: isDetailedResponse,
-      Filters: {
-        Refundable: isRefundable,
-        MealType: mealType,
-      },
-    };
+      // 🔹 STEP 3: Base payload
+      const basePayload = {
+        CheckIn: checkIn,
+        CheckOut: checkOut,
+        GuestNationality: guestNationality,
+        PaxRooms: paxRooms.map((p) => ({
+          Adults: p.Adults,
+          Children: p.Children,
+          ChildrenAges: p.ChildrenAges,
+        })),
+        ResponseTime: responseTime,
+        IsDetailedResponse: isDetailedResponse,
+        Filters: {
+          Refundable: isRefundable,
+          MealType: mealType,
+        },
+      };
 
-    // 🔹 STEP 4: Parallel search calls
-    const responses = await Promise.all(
-      hotelCodeChunks.map((codes) =>
-        searchHotels({ ...basePayload, HotelCodes: codes }),
-      ),
-    );
-
-    // 🔹 STEP 5: Merge search results
-    const mergedResults = responses.flatMap(
-      (res) => res?.data?.data?.HotelResult || [],
-    );
-
-    // 🔹 STEP 6: Create price map
-    const priceMap = {};
-
-    mergedResults.forEach((item) => {
-      if (!item?.HotelCode || !item?.Rooms?.length) return;
-
-      const minRoomPrice = Math.min(
-        ...item.Rooms.map(
-          (r) => r.TotalFare ?? r.DisplayPrice ?? Infinity,
+      // 🔹 STEP 4: Parallel search calls
+      const responses = await Promise.all(
+        hotelCodeChunks.map((codes) =>
+          searchHotels({ ...basePayload, HotelCodes: codes }),
         ),
       );
 
-      priceMap[item.HotelCode] = {
-        MinPrice: minRoomPrice,
-        Currency: item.Currency,
-        Rooms: item.Rooms,
-      };
-    });
+      // 🔹 STEP 5: Merge search results
+      const mergedResults = responses.flatMap(
+        (res) => res?.data?.data?.HotelResult || [],
+      );
 
-    // 🔹 STEP 7: Merge hotel list + price map
-    const mergedHotelList = hotels.map((hotel) => {
-      const code = hotel.HotelCode || hotel.Code;
-      return {
-        ...hotel,
-        MinPrice: priceMap[code]?.MinPrice ?? null,
-        Currency: priceMap[code]?.Currency ?? "INR",
-        Rooms: priceMap[code]?.Rooms ?? [],
-      };
-    });
+      // 🔹 STEP 6: Create price map
+      const priceMap = {};
 
-    setSearchResults(mergedHotelList);
-  } catch (err) {
-    console.error("❌ Parallel search failed:", err);
-    setSearchResults([]);
-  } finally {
-    setIsSearching(false);
-  }
-};
+      mergedResults.forEach((item) => {
+        if (!item?.HotelCode || !item?.Rooms?.length) return;
 
+        const minRoomPrice = Math.min(
+          ...item.Rooms.map((r) => r.TotalFare ?? r.DisplayPrice ?? Infinity),
+        );
+
+        priceMap[item.HotelCode] = {
+          MinPrice: minRoomPrice,
+          Currency: item.Currency,
+          Rooms: item.Rooms,
+        };
+      });
+
+      // 🔹 STEP 7: Merge hotel list + price map
+      const mergedHotelList = hotels.map((hotel) => {
+        const code = hotel.HotelCode || hotel.Code;
+        return {
+          ...hotel,
+          MinPrice: priceMap[code]?.MinPrice ?? null,
+          Currency: priceMap[code]?.Currency ?? "INR",
+          Rooms: priceMap[code]?.Rooms ?? [],
+        };
+      });
+
+      setSearchResults(mergedHotelList);
+    } catch (err) {
+      console.error("❌ Parallel search failed:", err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     if (!selectedCountry) return;
@@ -1308,7 +1306,7 @@ function HotelBooking() {
                     </div>
                   )}
               </div>
-             )} 
+            )}
           </div>
         </div>
       </div>

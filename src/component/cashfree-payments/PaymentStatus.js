@@ -1,113 +1,9 @@
-// import React, { useEffect, useState } from "react";
-// import { useSearchParams, useNavigate } from "react-router-dom";
-// import { getPaymentStatus } from "../services/paymentService";
-
-// export default function PaymentStatus() {
-//   const [searchParams] = useSearchParams();
-//   const navigate = useNavigate();
-
-//   const [status, setStatus] = useState("loading");
-//   const [message, setMessage] = useState("");
-//   const [bookingId, setBookingId] = useState(null);
-
-//   const orderId = searchParams.get("order_id");
-
-//   useEffect(() => {
-//     if (!orderId) {
-//       setStatus("error");
-//       setMessage("Invalid payment link");
-//       return;
-//     }
-
-//     const fetchStatus = async () => {
-//       try {
-//         const res = await getPaymentStatus(orderId);
-//         console.log("resp of payment status", res);
-
-//         if (res.data.success) {
-//           setStatus(res.data.status?.toLowerCase());
-//           setMessage(res.data.message || "Payment processed successfully");
-//           setBookingId(res.data.booking?.bookingId || res.data.bookingId);
-//         } else {
-//           setStatus("error");
-//           setMessage(res.data.message || "Unable to fetch payment status");
-//         }
-//       } catch {
-//         setStatus("error");
-//         setMessage("Something went wrong while fetching payment status");
-//       }
-//     };
-
-//     fetchStatus();
-//   }, [orderId]);
-
-//   const renderContent = () => {
-//     if (status === "loading")
-//       return <p className="text-gray-600">Checking your payment status...</p>;
-
-//     if (status === "success")
-//       return (
-//         <div className="text-green-600">
-//           <h2 className="text-2xl font-bold mb-2">Payment Successful ✅</h2>
-//           <p>{message}</p>
-//           {bookingId && (
-//             <p className="mt-2">
-//               Booking ID: <strong>{bookingId}</strong>
-//             </p>
-//           )}
-//         </div>
-//       );
-
-//     if (status === "pending")
-//       return (
-//         <div className="text-yellow-600">
-//           <h2 className="text-2xl font-bold mb-2">Payment Pending ⏳</h2>
-//           <p>{message}</p>
-//         </div>
-//       );
-
-//     if (status === "failed")
-//       return (
-//         <div className="text-red-600">
-//           <h2 className="text-2xl font-bold mb-2">Payment Failed ❌</h2>
-//           <p>{message}</p>
-//         </div>
-//       );
-
-//     if (status === "error")
-//       return (
-//         <div className="text-orange-600">
-//           <h2 className="text-2xl font-bold mb-2">Error</h2>
-//           <p>{message}</p>
-//         </div>
-//       );
-//   };
-
-//   return (
-//     <div
-//       className="flex flex-col items-center justify-center min-h-screen px-4"
-//       style={{ marginTop: "100px" }}
-//     >
-//       <div className="p-6 rounded-xl shadow-lg w-full max-w-md text-center">
-//         {renderContent()}
-
-//         <button
-//           onClick={() => navigate("/")}
-//           className="mt-6 mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-//         >
-//           Go to Home
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
 
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getPaymentStatus } from "../services/paymentService";
 import { flight_getBookingDetails } from "../services/flightService";
-import { handleDownloadInvoice } from "../utils/invoice";
-
+ 
 const POLL_INTERVAL = 4000;
 const MAX_RETRIES = 20;
 
@@ -344,75 +240,12 @@ export default function PaymentStatus() {
             )}
           </div>
 
-          {serviceType === "flight" && (
-            <button
-              onClick={() => {
-                const payload = buildInvoicePayload();
-                if (!payload) return alert("Invoice data not ready");
-
-                handleDownloadInvoice({
-                  serviceType,
-                  payload,
-                });
-              }}
-              className="btn btn-primary btn-sm"
-            >
-              Download Invoice
-            </button>
-          )}
+         
         </div>
       );
     }
 
-    // if (bookingStatus === "confirmed" && bookingDetails) {
-    //   const { bookingStatus, pnr, invoiceNo } = getSummaryData();
-
-    //   return (
-    //     <div className="space-y-4 text-left">
-    //       <h2 className="text-2xl font-bold text-green-600">
-    //         Booking Confirmed 🎉
-    //       </h2>
-
-    //       <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
-    //         <p>
-    //           <strong>Status:</strong>{" "}
-    //           <span className="text-green-700">{bookingStatus}</span>
-    //         </p>
-
-    //         <p>
-    //           <strong>Booking ID:</strong> {bookingId}
-    //         </p>
-
-    //         {pnr && (
-    //           <p>
-    //             <strong>PNR:</strong> {pnr}
-    //           </p>
-    //         )}
-
-    //         {invoiceNo && (
-    //           <p>
-    //             <strong>Invoice No:</strong> {invoiceNo}
-    //           </p>
-    //         )}
-    //       </div>
-
-    //       <button
-    //         onClick={() => {
-    //           const payload = buildInvoicePayload();
-    //           if (!payload) return alert("Invoice data not ready");
-
-    //           handleDownloadInvoice({
-    //             serviceType,
-    //             payload,
-    //           });
-    //         }}
-    //         className="btn btn-primary btn-sm "
-    //       >
-    //         Download Invoice
-    //       </button>
-    //     </div>
-    //   );
-    // }
+   
 
     return null;
   };

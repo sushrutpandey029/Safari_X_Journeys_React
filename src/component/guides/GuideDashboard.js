@@ -17,6 +17,7 @@ import LeaveHistory from "./guide-dashboard-pages/LeaveHistory";
 import BookingHistory from "./guide-dashboard-pages/BookingHistory";
 import { useNavigate } from "react-router-dom";
 import { clearGuideAuth } from "../utils/authStorage";
+import GuideEarnings from "./guide-dashboard-pages/GuideEarnings";
 
 function GuideDashboard() {
   const dispatch = useDispatch();
@@ -48,95 +49,7 @@ function GuideDashboard() {
         <div class="row dashboard-wrapper shadow rounded">
           <div class="col-md-3 bg-light dashboard-sidebar">
             <h5 class="text-center py-3 border-bottom">Guide Panel</h5>
-            {/* <ul
-              class="nav flex-column nav-pills"
-              id="v-pills-tab"
-              role="tablist"
-              aria-orientation="vertical"
-            >
-              <li class="nav-item">
-                <button
-                  class="nav-link active"
-                  id="booking-history-tab"
-                  data-bs-toggle="pill"
-                  data-bs-target="#bookingHistory"
-                  type="button"
-                  role="tab"
-                >
-                  <FontAwesomeIcon icon={faUser} className="me-2" />
-                  Booking History
-                </button>
-              </li>
-              <li class="nav-item">
-                <button
-                  class="nav-link active"
-                  id="apply-leave-tab"
-                  data-bs-toggle="pill"
-                  data-bs-target="#applyLeave"
-                  type="button"
-                  role="tab"
-                >
-                  <FontAwesomeIcon icon={faUser} className="me-2" />
-                  Apply Leave
-                </button>
-              </li>
-              <li class="nav-item">
-                <button
-                  class="nav-link active"
-                  id="leave-history-tab"
-                  data-bs-toggle="pill"
-                  data-bs-target="#leaveHistory"
-                  type="button"
-                  role="tab"
-                >
-                  <FontAwesomeIcon icon={faUser} className="me-2" />
-                  Leave History
-                </button>
-              </li>
-              <li class="nav-item">
-                <button
-                  class="nav-link active"
-                  id="profile-tab"
-                  data-bs-toggle="pill"
-                  data-bs-target="#profile"
-                  type="button"
-                  role="tab"
-                >
-                  <FontAwesomeIcon icon={faUser} className="me-2" /> Change
-                  Profile
-                </button>
-              </li>
 
-              <li class="nav-item">
-                <button
-                  class="nav-link"
-                  id="settings-tab"
-                  data-bs-toggle="pill"
-                  data-bs-target="#settings"
-                  type="button"
-                  role="tab"
-                >
-                  {" "}
-                  <FontAwesomeIcon icon={faLock} className="me-2" /> Change
-                  Password
-                </button>
-              </li>
-
-              <li class="nav-item">
-                <button
-                  class="nav-link"
-                  id="logout-tab"
-                  data-bs-toggle="pill"
-                  // data-bs-target="#logout"
-                  type="button"
-                  role="tab"
-                  onClick={handleLogout}
-                >
-                  <FontAwesomeIcon icon={faRightFromBracket} className="me-2" />{" "}
-                  Logout
-                </button>
-              </li>
-            </ul> */}
             <ul className="nav flex-column nav-pills" role="tablist">
               <li className="nav-item">
                 <button
@@ -197,6 +110,18 @@ function GuideDashboard() {
                   Change Password
                 </button>
               </li>
+              <li className="nav-item">
+                <button
+                  className="nav-link"
+                  data-bs-toggle="pill"
+                  data-bs-target="#earnings"
+                  type="button"
+                >
+                  {" "}
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Earnings
+                </button>
+              </li>
 
               <li className="nav-item">
                 <button className="nav-link" onClick={handleLogout}>
@@ -207,14 +132,6 @@ function GuideDashboard() {
           </div>
 
           <div class="col-md-9 tab-content p-4" id="v-pills-tabContent">
-            {/* <div class="tab-pane fade show active" id="profile" role="tabpanel">
-              <h4>Change Profile</h4>
-              <Profile />
-            </div>
-            <div class="tab-pane fade" id="settings" role="tabpanel">
-              <h4>Change Password</h4>
-              <ChangePassword />
-            </div> */}
             <div className="tab-pane fade show active" id="profile">
               <h4>Profile</h4>
               <Profile />
@@ -238,6 +155,11 @@ function GuideDashboard() {
             <div className="tab-pane fade" id="settings">
               <h4>Change Password</h4>
               <ChangePassword />
+            </div>
+
+            <div className="tab-pane fade" id="earnings">
+              <h4>Earnings</h4>
+              <GuideEarnings />
             </div>
           </div>
         </div>

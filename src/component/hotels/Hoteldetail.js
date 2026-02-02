@@ -221,10 +221,10 @@ const HotelDetail = () => {
   const shortDesc = words.slice(0, 50).join(" ") + "...";
 
   return (
-    <div>
-      <div className="hotel-detail-page">
+    <div className="hotel-detail-page">
+      <div>
         <div className="container">
-          <div className="col-sm-12 border-bottom mb-4 pb-3">
+          {/* <div className="col-sm-12 border-bottom mb-4 pb-3">
             <nav aria-label="breadcrumb ">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
@@ -240,7 +240,7 @@ const HotelDetail = () => {
                 </li>
               </ol>
             </nav>
-          </div>
+          </div> */}
           <div className="row">
             {/* Left - Images */}
             <div className="col-md-6">
@@ -443,7 +443,7 @@ const HotelDetail = () => {
                                       >
                                         {item.trim()}
                                       </span>
-                                    )
+                                    ),
                                   )}
                                 </div>
                               ) : (
@@ -461,7 +461,6 @@ const HotelDetail = () => {
                               ₹{Math.ceil(room.DisplayPrice) || "N/A"}
                             </td>
 
-                           
                             <td>
                               <span className="badge bg-info text-dark">
                                 {room.MealType || "N/A"}

@@ -12,6 +12,8 @@ const HotelCheckout = () => {
   console.log("userdetails on hotel checkout", userdetails);
   const { startPayment } = useCashfreePayment();
 
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [preBookResponse, setPreBookResponse] = useState(null);
   const [finalNetAmount, setFinalNetAmount] = useState(0);
@@ -308,22 +310,18 @@ const HotelCheckout = () => {
         vendorType: "hotel",
         vendorId: hotel?.hotelCode,
         startDate: startDate,
-
-        // totalAmount: finalNetAmount,
         totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
-
         BookingCode: hotel?.bookingCode,
         IsVoucherBooking: true,
         GuestNationality: hotel?.guestNationality || "IN",
-
         serviceDetails: {
           ...payload.serviceDetails,
           startDate,
           endDate,
           city,
           NetAmount: finalNetAmount,
+          
         },
-
         HotelRoomsDetails: hotelRoomsDetails,
       };
 
@@ -648,6 +646,15 @@ const HotelCheckout = () => {
                 </div>
               )}
 
+              {/* 🔹 Supplements */}
+              <h6 className="fw-bold mt-3">Supplements</h6>
+              {preBookInfo.Rooms?.[0]?.Supplements?.flat()?.map((s, idx) => (
+                <p key={idx} className="small mb-1">
+                  <strong>{s.Description}</strong> – {s.Price} {s.Currency}
+                  <span className="text-muted"> ({s.Type})</span>
+                </p>
+              ))}
+
               {/* 🔹 Cancellation Policy */}
               <h6 className="fw-bold mt-3">Cancellation Policy</h6>
               {preBookInfo.Rooms?.[0]?.CancelPolicies?.map((c, idx) => (
@@ -668,11 +675,26 @@ const HotelCheckout = () => {
               {preBookInfo.Rooms?.[0]?.Amenities?.length > 0 && (
                 <>
                   <h6 className="fw-bold mt-3">Amenities</h6>
+
                   <ul className="small mb-2">
-                    {preBookInfo.Rooms[0].Amenities.slice(0, 8).map((a, i) => (
+                    {(showAllAmenities
+                      ? preBookInfo.Rooms[0].Amenities
+                      : preBookInfo.Rooms[0].Amenities.slice(0, 8)
+                    ).map((a, i) => (
                       <li key={i}>{a}</li>
                     ))}
                   </ul>
+
+                  {preBookInfo.Rooms[0].Amenities.length > 8 && (
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 small"
+                      onClick={() => setShowAllAmenities((prev) => !prev)}
+                      style={{ color: "blue" }}
+                    >
+                      {showAllAmenities ? "Show less" : "Read more"}
+                    </button>
+                  )}
                 </>
               )}
 
