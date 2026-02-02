@@ -1034,7 +1034,6 @@ const Flightcheckout = () => {
   const handleConfirmPassengers = async () => {
     setConfirmingPassengers(true);
 
-    // 🔐 LOGIN CHECK (NEW)
     const loggedIn = await isUserLoggedIn();
     if (!loggedIn) {
       setConfirmingPassengers(false);
@@ -2938,7 +2937,7 @@ const Flightcheckout = () => {
             onClick={handleConfirmAndPay}
           >
             Confirm & Pay
-           </Button>
+          </Button>
         </Modal.Footer>
       </Modal>
     </>
