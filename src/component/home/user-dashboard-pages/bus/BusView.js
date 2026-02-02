@@ -27,11 +27,14 @@ export default function BusView({ booking }) {
     bookResult?.BookingId ||
     bookResult?.BusBookingId ||
     null;
+    console.log("bus id",BusId)
 
   // Extract from DB serviceDetails
-  const { TokenId, TraceId, EndUserIp } = serviceDetails || {};
+  const {  TraceId, EndUserIp } = serviceDetails || {};
+  // const { TokenId, TraceId, EndUserIp } = serviceDetails || {};
+  console.log("service detials",serviceDetails)
   console.log("traceid in busview", TraceId);
-
+ 
   // LIVE DATA STATE
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -52,11 +55,12 @@ export default function BusView({ booking }) {
 
       const payload = {
         EndUserIp: booking.serviceDetails.EndUserIp,
-        TokenId: booking.serviceDetails.TokenId,
+        // TokenId: booking.serviceDetails.TokenId,
         TraceId: booking.serviceDetails.TraceId,
         BusId: booking.vendorResponse?.BookResult?.BusId, // IMPORTANT
         IsBaseCurrencyRequired: false,
       };
+      console.log("payload before bus booking detail", payload);
 
       const response = await bus_getBookingDetails(payload);
 
@@ -79,8 +83,13 @@ export default function BusView({ booking }) {
   };
 
   useEffect(() => {
-    if (TokenId && TraceId && BusId) fetchBusBookingDetails();
-  }, [TokenId, TraceId, BusId]);
+
+    if ( TraceId && BusId) fetchBusBookingDetails();
+  }, [ TraceId, BusId]);
+  // useEffect(() => {
+
+  //   if (TokenId && TraceId && BusId) fetchBusBookingDetails();
+  // }, [TokenId, TraceId, BusId]);
 
   if (!liveData) return <div>Loading...</div>;
 
@@ -107,7 +116,7 @@ export default function BusView({ booking }) {
       const pdfBlob = await downloadBookingPDF(bookingId);
 
       const url = window.URL.createObjectURL(
-        new Blob([pdfBlob], { type: "application/pdf" })
+        new Blob([pdfBlob], { type: "application/pdf" }),
       );
 
       const link = document.createElement("a");
@@ -235,9 +244,7 @@ export default function BusView({ booking }) {
                 {p.Title} {p.FirstName} {p.LastName}
               </td>
               <td>{p.Gender === 1 ? "Male" : "Female"}</td>
-              <td>
-                {p.Seat?.SeatName} 
-              </td>
+              <td>{p.Seat?.SeatName}</td>
               {/* <td>₹{p.Seat?.Price?.BasePrice}</td> */}
               {/* <td>
                 {p.Seat?.SeatName} (₹{p.Seat?.Price?.BasePrice})
