@@ -1456,6 +1456,12 @@ const Flightcheckout = () => {
         return false;
       }
       const age = calculateAge(p.dateOfBirth);
+
+      // ✅ ADULT: 12 years and above  🔥 MISSING FIX
+      if (p.paxType === 1 && age < 12) {
+        alert("Adult age must be 12 years or above");
+        return false;
+      }
       if (p.paxType === 3 && age >= 2) {
         alert("Infant age must be below 2 years");
         return false;
