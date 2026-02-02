@@ -267,14 +267,12 @@ function BusList() {
           <div class='busSeatrgt'>
             <div class='busSeat'><div class='seatcontainer clearfix'>
               ${Array.from(
-                { length: 20 },
-                (_, i) =>
-                  `<div class="nseat" style="top:${
-                    i * 35
-                  }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${
-                    selectedBus?.price || 500
-                  }')">S${i + 1}</div>`,
-              ).join("")}
+          { length: 20 },
+          (_, i) =>
+            `<div class="nseat" style="top:${i * 35
+            }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${selectedBus?.price || 500
+            }')">S${i + 1}</div>`,
+        ).join("")}
             </div></div>
           </div>
         </div>`,
@@ -924,15 +922,15 @@ function BusList() {
 
                         const sortedCities = searchText
                           ? [
-                              ...fromCities.filter((city) =>
-                                city.toLowerCase().startsWith(searchText),
-                              ),
-                              ...fromCities.filter(
-                                (city) =>
-                                  !city.toLowerCase().startsWith(searchText) &&
-                                  city.toLowerCase().includes(searchText),
-                              ),
-                            ]
+                            ...fromCities.filter((city) =>
+                              city.toLowerCase().startsWith(searchText),
+                            ),
+                            ...fromCities.filter(
+                              (city) =>
+                                !city.toLowerCase().startsWith(searchText) &&
+                                city.toLowerCase().includes(searchText),
+                            ),
+                          ]
                           : fromCities;
 
                         return sortedCities.slice(0, 15).map((city) => (
@@ -984,15 +982,15 @@ function BusList() {
 
                         const sortedCities = searchText
                           ? [
-                              ...toCities.filter((city) =>
-                                city.toLowerCase().startsWith(searchText),
-                              ),
-                              ...toCities.filter(
-                                (city) =>
-                                  !city.toLowerCase().startsWith(searchText) &&
-                                  city.toLowerCase().includes(searchText),
-                              ),
-                            ]
+                            ...toCities.filter((city) =>
+                              city.toLowerCase().startsWith(searchText),
+                            ),
+                            ...toCities.filter(
+                              (city) =>
+                                !city.toLowerCase().startsWith(searchText) &&
+                                city.toLowerCase().includes(searchText),
+                            ),
+                          ]
                           : toCities;
 
                         return sortedCities.slice(0, 15).map((city) => (
@@ -1041,7 +1039,7 @@ function BusList() {
               {/* Search Button */}
               <div className="col-md-2">
                 <button
-                  className="explore-bus-btn"
+                  className="explore-btn"
                   onClick={handleSearch}
                   disabled={
                     isSearchingBuses ||
@@ -1180,11 +1178,11 @@ function BusList() {
           {/* BUS LIST COLUMN */}
           <div className="col-sm-9">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h5 className="fw-bold mb-0">
+              <h4 className=" mb-0">
                 {isBusListLoading
                   ? "Searching available buses..."
                   : `Available Buses from ${searchParams.fromCity} to ${searchParams.toCity} (${filteredBusData.length})`}
-              </h5>
+              </h4>
 
               <div className="d-flex align-items-center">
                 <span className="me-2">Sort by:</span>

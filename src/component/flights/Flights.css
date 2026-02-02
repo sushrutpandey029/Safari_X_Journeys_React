@@ -323,6 +323,7 @@
   overflow-y: auto;
   z-index: 1000;
   margin-top: 2px;
+  width: 20rem;
 }
 
 .dropdown-header {
@@ -401,8 +402,7 @@
 .modal-main-title {
   font-weight: 700;
   font-size: 22px;
-  color: #fff;
-}
+ }
 
 /* Summary row */
 .flight-segments-summary {
