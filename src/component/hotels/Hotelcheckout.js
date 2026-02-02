@@ -7,6 +7,9 @@ import { hotel_prebook } from "../services/hotelService";
 const HotelCheckout = () => {
   const location = useLocation();
   const { payload } = location.state;
+  console.log("data from previous page on checkout", payload);
+  const userdetails = getUserData("safarix_user");
+  console.log("userdetails on hotel checkout", userdetails);
   const { startPayment } = useCashfreePayment();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -16,28 +19,118 @@ const HotelCheckout = () => {
 
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [price, setPrice] = useState({
-    basePrice: 0,
-    discount: 0,
-    taxes: 0,
-    finalPrice: 0,
-  });
+
   const [startDate, setStartDate] = useState(payload?.startDate || "");
   const [endDate, setEndDate] = useState(payload?.endDate || "");
   const [city, setCity] = useState(payload?.city || "");
   const [roomsData, setRoomsData] = useState([]); // For dynamic rooms & passengers
 
+  const [price, setPrice] = useState({
+    basePrice: 0,
+    tax: 0,
+    totalFare: 0,
+  });
+
+  // PreBook on load data
+  const [preBookInfo, setPreBookInfo] = useState(null);
+  const [validationInfo, setValidationInfo] = useState(null);
+  const [initialPreBookLoading, setInitialPreBookLoading] = useState(false);
+  const decodeHtml = (html) => {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+  };
+
+  const validatePassengers = (roomsData, validationInfo) => {
+    const nameRegex = /^(?![._-])[A-Za-z ]{2,50}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{7,15}$/;
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+    for (let r = 0; r < roomsData.length; r++) {
+      const room = roomsData[r];
+      const leadAdults = room.passengers.filter(
+        (p) => p.PaxType === 1 && p.LeadPassenger,
+      );
+
+      if (leadAdults.length !== 1) {
+        return `Room ${r + 1}: Exactly one adult must be lead passenger`;
+      }
+
+      for (let p = 0; p < room.passengers.length; p++) {
+        const pax = room.passengers[p];
+
+        // Title
+        if (!["Mr", "Mrs", "Miss", "Ms"].includes(pax.Title)) {
+          return `Invalid title in Room ${r + 1}`;
+        }
+
+        // Names
+        if (!nameRegex.test(pax.FirstName)) {
+          return `Invalid first name in Room ${r + 1}`;
+        }
+
+        if (!nameRegex.test(pax.LastName)) {
+          return `Invalid last name in Room ${r + 1}`;
+        }
+
+        // Lead passenger rules
+        if (pax.LeadPassenger) {
+          if (!emailRegex.test(pax.Email)) {
+            return `Invalid email for lead passenger (Room ${r + 1})`;
+          }
+
+          if (!phoneRegex.test(pax.PhoneNo || "")) {
+            return `Invalid phone number for lead passenger (Room ${r + 1})`;
+          }
+        }
+
+        // Child age
+        // Child age
+        if (pax.PaxType === 2) {
+          if (pax.Age === "" || pax.Age < 1 || pax.Age > 12) {
+            return `Invalid child age in Room ${r + 1}`;
+          }
+        }
+
+        // PAN (optional)
+
+        const isPanMandatory = validationInfo?.PanMandatory;
+        const panCountRequired = validationInfo?.PanCountRequired || 0;
+
+        let panCount = 0;
+
+        if (pax.PAN) panCount++;
+
+        if (isPanMandatory && pax.LeadPassenger) {
+          if (!pax.PAN) {
+            return `PAN is mandatory as per hotel rules (Room ${r + 1})`;
+          }
+
+          const pan = pax.PAN.toUpperCase();
+          if (!panRegex.test(pan)) {
+            return `Invalid PAN format (Room ${r + 1})`;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
   useEffect(() => {
-    if (!payload) return;
+    if (!payload || !payload.serviceDetails) return;
 
     const details = payload.serviceDetails;
+    console.log("details", details);
 
+    // HOTEL BASIC INFO
     setHotel({
       id: details.hotelCode || "N/A",
-      name: details.hotelName || "Hotel Name",
-      location: details.city || details.Location || "Location",
+      name: details.hotelName || "N/A",
+      location: details.hotelAddress || "N/A",
       rating: details.hotelRating || 0,
-      rooms: details.NoOfRooms || 1,
+      rooms: details.NoOfRooms || 0,
       address: details.hotelAddress || "Address not available",
       hotelCode: details.hotelCode,
       bookingCode: details.BookingCode,
@@ -47,18 +140,25 @@ const HotelCheckout = () => {
       isDetailedResponse: details.IsDetailedResponse,
     });
 
-    const basePrice = Number(details.totalAmount) || 0;
-    const taxes = 0; // Can be fetched if available
-    const discount = 0;
-    const finalPrice = basePrice + taxes - discount;
-    setPrice({ basePrice, taxes, discount, finalPrice });
+    // ✅ CORRECT PRICE EXTRACTION
+    const basePrice = Number(details?.PriceBreakUp?.[0]?.RoomRate) || 0;
 
-    // Prepare dynamic rooms and passengers
+    const tax = Number(details?.TotalTax) || 0;
+
+    const totalFare = Number(details?.TotalFare) || 0;
+
+    setPrice({
+      basePrice,
+      tax,
+      totalFare,
+    });
+
+    // PASSENGERS
     const rooms = details.PaxRooms || [];
-    const roomsWithPassengers = rooms.map((room, roomIndex) => {
+
+    const roomsWithPassengers = rooms.map((room) => {
       const passengers = [];
 
-      // Adults
       for (let i = 0; i < (room.Adults || 0); i++) {
         passengers.push({
           Title: "Mr",
@@ -67,23 +167,24 @@ const HotelCheckout = () => {
           LastName: "",
           Email: "",
           Age: "",
+          PhoneNo: "",
           PAN: "",
-          PaxType: 1, // Adult
-          LeadPassenger: i === 0, // First adult is lead
+          PaxType: 1,
+          LeadPassenger: i === 0,
         });
       }
 
-      // Children
       for (let j = 0; j < (room.Children || 0); j++) {
         passengers.push({
-          Title: "Master",
+          Title: "Mrs",
           FirstName: "",
           MiddleName: "",
           LastName: "",
           Email: "",
-          Age: room.ChildrenAges ? room.ChildrenAges[j] || "" : "",
+          Age: room.ChildrenAges?.[j] || "",
+          PhoneNo: "",
           PAN: "",
-          PaxType: 2, // Child
+          PaxType: 2,
           LeadPassenger: false,
         });
       }
@@ -101,7 +202,21 @@ const HotelCheckout = () => {
   };
 
   const handleSubmit = async (e) => {
+    if (!userdetails) {
+      alert("Please login first...");
+      return;
+    }
+    if (!preBookInfo || !validationInfo) {
+      alert("Please wait, validating booking rules...");
+      return;
+    }
+
     e.preventDefault();
+    const validationError = validatePassengers(roomsData, validationInfo);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
 
     try {
       setPreBookLoading(true);
@@ -125,6 +240,21 @@ const HotelCheckout = () => {
 
       const hotelResult = preBookData?.HotelResult?.[0];
       console.log("hotelresult", JSON.stringify(hotelResult, null, 2));
+      if (!hotelResult) {
+        alert("Server error, please try again.");
+        return;
+      }
+      if (
+        hotelResult.IsPriceChanged ||
+        hotelResult.IsCancellationPolicyChanged
+      ) {
+        alert(
+          "Price or cancellation policy changed. Please review and continue.",
+        );
+        setFinalNetAmount(hotelResult.Rooms[0].NetAmount);
+        setShowConfirmModal(true);
+        return;
+      }
 
       if (!hotelResult) {
         alert("Invalid PreBook response");
@@ -139,6 +269,7 @@ const HotelCheckout = () => {
       }
 
       setPreBookResponse(hotelResult);
+      console.log("hotes results in prebook response", hotelResult);
       setFinalNetAmount(netAmount);
       setShowConfirmModal(true);
     } catch (err) {
@@ -151,7 +282,6 @@ const HotelCheckout = () => {
 
   const handleBookNow = async () => {
     try {
-      const userdetails = await getUserData("safarix_user");
       if (!userdetails?.id) {
         alert("User not logged in");
         return;
@@ -160,12 +290,13 @@ const HotelCheckout = () => {
       const hotelRoomsDetails = roomsData.map((room) => ({
         HotelPassenger: room.passengers.map((pax) => ({
           Title: pax.Title,
-          FirstName: pax.FirstName,
-          MiddleName: pax.MiddleName,
-          LastName: pax.LastName,
+          FirstName: pax.FirstName.trim(),
+          MiddleName: pax.MiddleName || "",
+          LastName: pax.LastName.trim(),
           Email: pax.Email,
+          Phoneno: pax.PhoneNo,
           Age: pax.Age,
-          PAN: pax.PAN,
+          PAN: pax.PAN || undefined,
           PaxType: pax.PaxType,
           LeadPassenger: pax.LeadPassenger,
         })),
@@ -178,7 +309,8 @@ const HotelCheckout = () => {
         vendorId: hotel?.hotelCode,
         startDate: startDate,
 
-        totalAmount: finalNetAmount,
+        // totalAmount: finalNetAmount,
+        totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
 
         BookingCode: hotel?.bookingCode,
         IsVoucherBooking: true,
@@ -204,6 +336,42 @@ const HotelCheckout = () => {
     }
   };
 
+  useEffect(() => {
+    if (!hotel?.bookingCode) return;
+
+    const fetchPreBookInfo = async () => {
+      try {
+        setInitialPreBookLoading(true);
+
+        const res = await hotel_prebook({
+          BookingCode: hotel.bookingCode,
+        });
+
+        if (!res?.data?.success) {
+          console.error("Initial PreBook failed");
+          return;
+        }
+
+        const data = res.data.data;
+        const hotelResult = data?.HotelResult?.[0];
+
+        if (!hotelResult) return;
+
+        setPreBookInfo(hotelResult);
+        setValidationInfo(data?.ValidationInfo || null);
+
+        console.log("✅ Initial PreBook Data:", hotelResult);
+        console.log("✅ Validation Info:", data?.ValidationInfo);
+      } catch (err) {
+        console.error("❌ Initial PreBook error:", err);
+      } finally {
+        setInitialPreBookLoading(false);
+      }
+    };
+
+    fetchPreBookInfo();
+  }, [hotel?.bookingCode]);
+
   if (!payload) {
     return (
       <div className="container" style={{ marginTop: "110px" }}>
@@ -225,26 +393,34 @@ const HotelCheckout = () => {
 
             {/* HOTEL INFO */}
             <div className="card shadow-sm border p-3 mb-3 rounded-3">
-              <h5 className="fw-bold">{hotel?.name}</h5>
-              <p>
-                <b>📍 Location:</b> {hotel?.location}
-              </p>
-              <p>
-                <b>⭐ Rating:</b> {hotel?.rating} Star
-              </p>
-              <p>
-                <b>🏨 Rooms:</b> {hotel?.rooms}
-              </p>
-              <p>
-                <b>👥 Guests:</b>{" "}
-                {roomsData.reduce((acc, r) => acc + r.passengers?.length, 0)}
-              </p>
-              <p>
-                <b>📅 Start Date:</b> {startDate}
-              </p>
-              <p>
-                <b>📅 End Date:</b> {endDate}
-              </p>
+              <h5 className="mb-3">{hotel?.name}</h5>
+
+              <div className="hotel-info-grid">
+                <p>
+                  <b>📍 Location:</b> {hotel?.location}
+                </p>
+
+                <p>
+                  <b>⭐ Rating:</b> {hotel?.rating} Star
+                </p>
+
+                <p>
+                  <b>🏨 Rooms:</b> {hotel?.rooms}
+                </p>
+
+                <p>
+                  <b>👥 Guests:</b>{" "}
+                  {roomsData.reduce((acc, r) => acc + r.passengers?.length, 0)}
+                </p>
+
+                <p>
+                  <b>📅 Start Date:</b> {startDate}
+                </p>
+
+                <p>
+                  <b>📅 End Date:</b> {endDate}
+                </p>
+              </div>
             </div>
 
             {/* DYNAMIC PASSENGER FORMS */}
@@ -271,14 +447,14 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "Title",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           >
-                            <option>Mr</option>
-                            <option>Mrs</option>
-                            <option>Ms</option>
-                            <option>Master</option>
+                            <option value="Mr">Mr</option>
+                            <option value="Mrs">Mrs</option>
+                            <option value="Miss">Miss</option>
+                            <option value="Ms">Ms</option>
                           </select>
                         </div>
                         <div className="col-md-4">
@@ -292,7 +468,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "FirstName",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             required
@@ -309,7 +485,7 @@ const HotelCheckout = () => {
                                 roomIndex,
                                 paxIndex,
                                 "LastName",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             required
@@ -330,31 +506,20 @@ const HotelCheckout = () => {
                                   roomIndex,
                                   paxIndex,
                                   "Email",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               required
                             />
                           </div>
+
                           <div className="mb-2">
-                            <label className="form-label">Age</label>
-                            <input
-                              type="number"
-                              className="form-control"
-                              value={pax.Age}
-                              onChange={(e) =>
-                                handlePassengerChange(
-                                  roomIndex,
-                                  paxIndex,
-                                  "Age",
-                                  e.target.value
-                                )
-                              }
-                              required
-                            />
-                          </div>
-                          <div className="mb-2">
-                            <label className="form-label">PAN</label>
+                            <label className="form-label">
+                              PAN{" "}
+                              {hotel?.guestNationality !== "IN" && (
+                                <span className="text-danger">*</span>
+                              )}
+                            </label>
                             <input
                               type="text"
                               className="form-control"
@@ -364,7 +529,7 @@ const HotelCheckout = () => {
                                   roomIndex,
                                   paxIndex,
                                   "PAN",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               required
@@ -373,22 +538,46 @@ const HotelCheckout = () => {
                         </>
                       )}
 
-                      {!pax.LeadPassenger && (
+                      {pax.PaxType === 2 && (
                         <div className="mb-2">
                           <label className="form-label">Age</label>
                           <input
                             type="number"
                             className="form-control"
+                            min={1}
+                            max={12}
                             value={pax.Age}
                             onChange={(e) =>
                               handlePassengerChange(
                                 roomIndex,
                                 paxIndex,
                                 "Age",
-                                e.target.value
+                                e.target.value,
                               )
                             }
-                            readOnly={pax.PaxType === 2}
+                            required
+                          />
+                        </div>
+                      )}
+
+                      {pax.LeadPassenger && (
+                        <div className="mb-2">
+                          <label className="form-label">Phone Number</label>
+                          <input
+                            type="tel"
+                            className="form-control"
+                            placeholder="Enter mobile number"
+                            value={pax.PhoneNo || ""}
+                            onChange={(e) =>
+                              handlePassengerChange(
+                                roomIndex,
+                                paxIndex,
+                                "PhoneNo",
+                                e.target.value.replace(/\D/g, ""),
+                              )
+                            }
+                            maxLength={15}
+                            required
                           />
                         </div>
                       )}
@@ -399,7 +588,7 @@ const HotelCheckout = () => {
 
               <button
                 type="submit"
-                className="btn btn-primary w-100 py-2 fw-bold"
+                className="explore-btn"
                 disabled={preBookLoading}
               >
                 {preBookLoading ? "Checking Availability..." : "Continue"}
@@ -410,30 +599,103 @@ const HotelCheckout = () => {
 
         {/* RIGHT SIDE: PRICE SUMMARY */}
         <div className="col-md-4">
-          <div className="card shadow-sm p-3 rounded-4 mb-3">
-            <h5 className="fw-bold text-center">💰 Price Summary</h5>
-            <div className="d-flex justify-content-between mt-3">
-              <span>Base Price</span>
-              <span>₹{price.basePrice}</span>
+          {/* PRICE CARD */}
+          <div className="card shadow-sm p-4 rounded-4 mb-3 price-card">
+            <h5 className="fw-bold text-center mb-3">💰 Price Summary</h5>
+
+            <div className="price-row">
+              <span>Price </span>
+              <span className="price-value">
+                ₹{Math.ceil(payload?.serviceDetails?.Pricing?.netFare || 0)}
+                {/* ₹{(price?.basePrice || 0).toFixed(2)} */}
+              </span>
             </div>
-            <div className="d-flex justify-content-between mt-2">
-              <span>Taxes</span>
-              <span>₹{price.taxes}</span>
+
+            <div className="price-row">
+              <span>Tax + Service Fees </span>
+              <span className="price-value">
+                ₹
+                {Math.ceil(
+                  payload?.serviceDetails?.Pricing?.commissionAmount +
+                    payload?.serviceDetails?.Pricing?.gstAmount || 0,
+                )}
+                {/* ₹{(price?.tax || 0).toFixed(2)} */}
+              </span>
             </div>
-            <hr />
-            <div className="d-flex justify-content-between fw-bold fs-5 text-primary">
-              <span>Total</span>
-              <span>₹{price.finalPrice}</span>
+
+            <hr className="my-3" />
+
+            <div className="price-row total">
+              <span>Total Amount</span>
+              <span>
+                ₹{Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount || 0)}
+              </span>
+              {/* <span>₹{(price?.totalFare || 0).toFixed(2)}</span> */}
             </div>
           </div>
 
-          <div className="card shadow-sm p-3 rounded-4">
-            <h6 className="fw-bold">📝 Cancellation Policy</h6>
-            <p className="text-success mb-0">Free Cancellation Available</p>
-            <small className="text-muted">
-              Cancel anytime before start date
-            </small>
-          </div>
+          {/* CANCELLATION CARD */}
+
+          {preBookInfo && (
+            <div className="card shadow-sm border p-3 mb-3 rounded-3">
+              <h5 className="fw-bold mb-2">ℹ️ Room Details</h5>
+
+              {/* 🔹 Room Promotion */}
+              {preBookInfo.Rooms?.[0]?.RoomPromotion?.length > 0 && (
+                <div className="alert alert-success py-2">
+                  🎉 <strong>Offer:</strong>{" "}
+                  {preBookInfo.Rooms[0].RoomPromotion.join(", ")}
+                </div>
+              )}
+
+              {/* 🔹 Cancellation Policy */}
+              <h6 className="fw-bold mt-3">Cancellation Policy</h6>
+              {preBookInfo.Rooms?.[0]?.CancelPolicies?.map((c, idx) => (
+                <p key={idx} className="small mb-1">
+                  <strong>From:</strong> {c.FromDate} →{" "}
+                  <strong>{c.ChargeType}</strong> {c.CancellationCharge}
+                </p>
+              ))}
+
+              {preBookInfo.Rooms?.[0]?.LastCancellationDeadline && (
+                <p className="text-danger small mt-1">
+                  <strong>Last Free Cancellation:</strong>{" "}
+                  {preBookInfo.Rooms[0].LastCancellationDeadline}
+                </p>
+              )}
+
+              {/* 🔹 Amenities */}
+              {preBookInfo.Rooms?.[0]?.Amenities?.length > 0 && (
+                <>
+                  <h6 className="fw-bold mt-3">Amenities</h6>
+                  <ul className="small mb-2">
+                    {preBookInfo.Rooms[0].Amenities.slice(0, 8).map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              {/* 🔹 Rate Conditions (NEW) */}
+              {preBookInfo.RateConditions?.length > 0 && (
+                <>
+                  <h6 className="fw-bold mt-3">Hotel Policies & Conditions</h6>
+
+                  <div className="small">
+                    {preBookInfo.RateConditions.map((rule, idx) => (
+                      <div
+                        key={idx}
+                        className="mb-2"
+                        dangerouslySetInnerHTML={{
+                          __html: decodeHtml(rule),
+                        }}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {showConfirmModal && (
@@ -444,8 +706,10 @@ const HotelCheckout = () => {
             <p>
               <strong>Hotel:</strong> {hotel?.name}
             </p>
+
             <p>
-              <strong>Room:</strong> {preBookResponse?.Name?.[0]}
+              <strong>Room:</strong>{" "}
+              {preBookResponse?.Rooms?.[0].Name?.[0] || "N/A"}
             </p>
             <p>
               <strong>Check-in:</strong> {startDate}
@@ -456,17 +720,21 @@ const HotelCheckout = () => {
 
             <p>
               <strong>Refundable:</strong>{" "}
-              {preBookResponse?.IsRefundable ? "Yes" : "No"}
+              {preBookResponse?.Rooms[0]?.IsRefundable ? "Yes" : "No"}
             </p>
 
             <p>
-              <strong>Last Cancellation:</strong>{" "}
-              {preBookResponse?.LastCancellationDeadline}
+              <strong>Last Cancellation Date:</strong>{" "}
+              {preBookResponse?.Rooms[0]?.LastCancellationDeadline}
             </p>
 
             <hr />
 
-            <h4>Final Price: ₹{finalNetAmount.toFixed()}</h4>
+            <h4>
+              Final Price: ₹
+              {Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount)}
+            </h4>
+            {/* <h4>Final Price: ₹{finalNetAmount.toFixed()}</h4> */}
 
             <div className="modal-actions">
               <button onClick={() => setShowConfirmModal(false)}>Cancel</button>

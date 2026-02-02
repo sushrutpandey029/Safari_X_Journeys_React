@@ -21,9 +21,8 @@ const GuideList = () => {
   const [error, setError] = useState(null);
 
   // Delhi selected by default
-  const [selectedCity, setSelectedCity] = useState(() => {
-    return localStorage.getItem("selectedCity") || "Delhi";
-  });
+  const [selectedCity, setSelectedCity] = useState("Agra");
+ 
 
   const [cityList, setCityList] = useState([]);
 
@@ -80,40 +79,42 @@ const GuideList = () => {
   // -----------------------------------------
   // FETCH ALL GUIDES - DELHI BY DEFAULT
   // -----------------------------------------
-  useEffect(() => {
-    loadGuides();
-  }, []);
+
 
   const loadGuides = async (filters = null) => {
     try {
       setLoading(true);
-      setVisibleCount(6); // Reset to 6 cards on new search
-      console.log("filters data", filters);
-      
-      // If no filters provided, load Delhi by default
+      setVisibleCount(6);
+
       if (!filters) {
         filters = {
-          city: "Delhi",
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          city: selectedCity || "Agra",
+          startDate: startDate,
+          endDate: endDate,
         };
       }
-      
+
       const response = await getAllGuides(filters);
-      console.log("guide resp", response);
       const list = response?.data?.filter((g) => g.profileImage) || [];
-      console.log("guide list", list);
 
       setGuides(list);
       setFilteredGuides(list);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching guides:", err);
       setError(err.message);
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadGuides({
+      city: selectedCity || "Agra",
+      startDate,
+      endDate,
+    });
+  }, []);
+
+  
   // Infinite Scroll Logic
   useEffect(() => {
     const handleScroll = () => {
@@ -201,11 +202,11 @@ const GuideList = () => {
 
   return (
     <div
-      className="guide-page py-5"
-      style={{ backgroundColor: "#fff", marginTop: "34px" }}
+      className="guide-page"
+      style={{ marginTop: "98px" }}
     >
       {/* SEARCH BAR */}
-      <div className="search-section">
+      <div className="guide-section">
         <div className="container">
           <div className="row g-3 align-items-end">
             {/* CITY */}
@@ -461,7 +462,7 @@ const GuideList = () => {
             </div>
           </div>
 
-         
+
           {/* RIGHT SIDE – GUIDE LIST        */}
           {/* ============================= */}
           <div className="col-md-9 px-4">

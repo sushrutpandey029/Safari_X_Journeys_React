@@ -142,7 +142,7 @@ export default function PaymentStatus() {
     const fetchStatus = async () => {
       try {
         const res = await getPaymentStatus(orderId);
-
+        console.log("payment data", JSON.stringify(res.data, null, 2));
         if (!res.data.success) {
           setStatus("error");
           setMessage(res.data.message || "Unable to fetch payment status");
@@ -201,6 +201,7 @@ export default function PaymentStatus() {
           BookingId: vendorBookingId,
         });
         setBookingDetails(resp.data);
+        console.log("resp payment", resp.data);
       }
       // Future: bus / hotel / cab
     } catch (err) {
@@ -304,9 +305,15 @@ export default function PaymentStatus() {
         </p>
       );
     }
-
-    if (bookingStatus === "confirmed" && bookingDetails) {
-      const { bookingStatus, pnr, invoiceNo } = getSummaryData();
+    if (bookingStatus === "confirmed") {
+      const summary =
+        serviceType === "flight" && bookingDetails
+          ? getSummaryData()
+          : {
+              bookingStatus: "Confirmed",
+              pnr: null,
+              invoiceNo: null,
+            };
 
       return (
         <div className="space-y-4 text-left">
@@ -317,43 +324,95 @@ export default function PaymentStatus() {
           <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
             <p>
               <strong>Status:</strong>{" "}
-              <span className="text-green-700">{bookingStatus}</span>
+              <span className="text-green-700">{summary.bookingStatus}</span>
             </p>
 
             <p>
               <strong>Booking ID:</strong> {bookingId}
             </p>
 
-            {pnr && (
+            {summary.pnr && (
               <p>
-                <strong>PNR:</strong> {pnr}
+                <strong>PNR:</strong> {summary.pnr}
               </p>
             )}
 
-            {invoiceNo && (
+            {summary.invoiceNo && (
               <p>
-                <strong>Invoice No:</strong> {invoiceNo}
+                <strong>Invoice No:</strong> {summary.invoiceNo}
               </p>
             )}
           </div>
 
-          <button
-            onClick={() => {
-              const payload = buildInvoicePayload();
-              if (!payload) return alert("Invoice data not ready");
+          {serviceType === "flight" && (
+            <button
+              onClick={() => {
+                const payload = buildInvoicePayload();
+                if (!payload) return alert("Invoice data not ready");
 
-              handleDownloadInvoice({
-                serviceType,
-                payload,
-              });
-            }}
-            className="btn btn-primary btn-sm "
-          >
-            Download Invoice
-          </button>
+                handleDownloadInvoice({
+                  serviceType,
+                  payload,
+                });
+              }}
+              className="btn btn-primary btn-sm"
+            >
+              Download Invoice
+            </button>
+          )}
         </div>
       );
     }
+
+    // if (bookingStatus === "confirmed" && bookingDetails) {
+    //   const { bookingStatus, pnr, invoiceNo } = getSummaryData();
+
+    //   return (
+    //     <div className="space-y-4 text-left">
+    //       <h2 className="text-2xl font-bold text-green-600">
+    //         Booking Confirmed 🎉
+    //       </h2>
+
+    //       <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+    //         <p>
+    //           <strong>Status:</strong>{" "}
+    //           <span className="text-green-700">{bookingStatus}</span>
+    //         </p>
+
+    //         <p>
+    //           <strong>Booking ID:</strong> {bookingId}
+    //         </p>
+
+    //         {pnr && (
+    //           <p>
+    //             <strong>PNR:</strong> {pnr}
+    //           </p>
+    //         )}
+
+    //         {invoiceNo && (
+    //           <p>
+    //             <strong>Invoice No:</strong> {invoiceNo}
+    //           </p>
+    //         )}
+    //       </div>
+
+    //       <button
+    //         onClick={() => {
+    //           const payload = buildInvoicePayload();
+    //           if (!payload) return alert("Invoice data not ready");
+
+    //           handleDownloadInvoice({
+    //             serviceType,
+    //             payload,
+    //           });
+    //         }}
+    //         className="btn btn-primary btn-sm "
+    //       >
+    //         Download Invoice
+    //       </button>
+    //     </div>
+    //   );
+    // }
 
     return null;
   };

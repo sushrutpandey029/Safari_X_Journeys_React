@@ -1,17 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../home/Home.css";
-import { registerOrLogin } from "../services/authService";
+import { registerOrLogin, userResendOtp } from "../services/authService";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/slices/authSlice";
 import { Modal } from "react-bootstrap";
-import { saveUserData } from "../utils/storage";
+import { saveToken, saveUserData } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { userVerifyEmailOtp } from "../services/authService";
 
 function AuthModal({ show, onClose, setShowUserLogin }) {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [resendTimer, setResendTimer] = useState(120); // 2 minutes
+  const [resending, setResending] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -36,29 +43,43 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
   };
 
   const handleIdentifierSubmit = async () => {
-    const payload = { emailid: formData.emailid };
     try {
+      setLoading(true);
+      const payload = { emailid: formData.emailid };
       const response = await registerOrLogin(payload);
       console.log("identifire response", response);
+      if (response.data.status === "otp_required") {
+        setStep(4);
+        return;
+      }
     } catch (err) {
+      console.log("error n identifire",err)
       console.log("err in handleIdentifierSubmit", err.response);
-      if (err.response.data.userExists === true) {
+      if (err?.response?.data?.userExists === true) {
         setStep(2);
-      } else if (err.response.data.userExists === false) {
+      } else if (err?.response?.data?.userExists === false) {
         setStep(3);
       } else {
         console.log("error in user login or register");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogin = async () => {
-    const payload = {
-      emailid: formData.emailid,
-      password: formData.password,
-    };
     try {
+      setLoading(true);
+      const payload = {
+        emailid: formData.emailid,
+        password: formData.password,
+      };
       const response = await registerOrLogin(payload);
+
+      if (response.data.status === "otp_required") {
+        setStep(4);
+        return;
+      }
       if (response.data.status === true) {
         dispatch(
           loginSuccess({ user: response.data.user, token: response.data.token })
@@ -69,57 +90,95 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
     } catch (err) {
       alert(err.response.data.message);
       console.log("err in login", err.response);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleRegister = async () => {
     try {
+      setLoading(true);
       const response = await registerOrLogin(formData);
 
-      if (response.data.status === true) {
-        console.log("response in register", response);
-        saveUserInfo(response);
-        setShowUserLogin(false);
-        alert(response.data.message);
-        window.location.reload(true);
+      if (response?.data?.status === "otp_required") {
+        setMessage(response.data.message);
+        setStep(4);
       }
     } catch (err) {
       alert(err.response.data.message);
-      console.log("err in register", err.response);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSuccess = async (credentialResponse) => {
+  const verifyEmailOtp = async () => {
     try {
-      const token = credentialResponse.credential;
-      const decoded = jwtDecode(token);
-      console.log("decoded data", decoded);
-
+      setLoading(true);
       const payload = {
-        emailid: decoded.email,
-        fullname: decoded.name,
-        uuid: decoded.sub,
+        emailid: formData.emailid,
+        otp: emailOtp,
+        // password: formData.password,
       };
+      console.log("payload before senign api", payload);
+      const res = await userVerifyEmailOtp(payload);
 
-      const response = await registerOrLogin(payload);
-      if (response.data.status === true) {
-        dispatch(
-          loginSuccess({ user: response.data.user, token: response.data.token })
-        );
-        saveUserInfo(response);
+      if (res.data.status === true) {
+        dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
+        saveUserInfo(res);
         setShowUserLogin(false);
       }
     } catch (err) {
-      console.log("error in login with google", err.response);
+      console.log("error in verify otp", err.response);
+      alert(err.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      setResending(true);
+      await userResendOtp({ emailid: formData.emailid });
+
+      setResendTimer(120); // reset timer
+      alert("OTP resent successfully");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to resend OTP");
+    } finally {
+      setResending(false);
     }
   };
 
   const saveUserInfo = (response) => {
+    const now = Date.now();
     saveUserData("safarix_user", response.data.user);
-    saveUserData("safarix_token", response.data.token);
-    saveUserData("safarix_refreshtoken", response.data.refreshToken);
+    // saveUserData("safarix_token", response.data.token);
+    // saveUserData("safarix_refreshtoken", response.data.refreshToken);
+    saveToken("safarix_token", response.data.token);
+    saveToken("safarix_refreshtoken", response.data.refreshToken);
+
+    // ✅ ADD THIS
+    saveUserData("safarix_login_time", now);
     navigate("/user-dashboard");
   };
+
+  useEffect(() => {
+    if (step === 4) {
+      setResendTimer(120);
+
+      const interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [step]);
 
   return (
     <>
@@ -135,6 +194,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
           {step === 1 && <Modal.Title>Login or Signup</Modal.Title>}
           {step === 2 && <Modal.Title>Login</Modal.Title>}
           {step === 3 && <Modal.Title>Create an account</Modal.Title>}
+          {step === 4 && <Modal.Title>Verify OTP</Modal.Title>}
         </Modal.Header>
 
         {/* Modal Body */}
@@ -142,11 +202,11 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
           {step === 1 && (
             <>
               <p className="text-center text-muted mb-3">
-                Plan your trip, book your tickets, and access everything with  
-                 <strong> SafariX</strong>
+                Plan your trip, book your tickets, and access everything with
+                <strong> SafariX</strong>
               </p>
 
-            {/* social logins */}
+              {/* social logins */}
               {/* <div className="d-flex justify-content-between gap-2 mb-3">
                 <GoogleOAuthProvider clientId="625734741238-62mdgmg6rrsuvgbef8vpq59p4gh9uli9.apps.googleusercontent.com">
                   <GoogleLogin
@@ -185,10 +245,10 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                       ? "btn-primary text-white"
                       : "btn-light text-muted"
                   }`}
-                  disabled={!isValidEmail(formData.emailid)}
+                  disabled={!isValidEmail(formData.emailid) || loading}
                   onClick={() => handleIdentifierSubmit()}
                 >
-                  Continue with email
+                  {loading ? "processing..." : "Continue with email"}
                 </button>
               </div>
             </>
@@ -241,10 +301,10 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                       ? "btn-primary text-white"
                       : "btn-light text-muted"
                   }`}
-                  disabled={!formData.password}
+                  disabled={!formData.password || loading}
                   onClick={() => handleLogin()}
                 >
-                  Login
+                  {loading ? "processing..." : "Login"}
                 </button>
               </div>
             </>
@@ -321,8 +381,57 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                   }
                   onClick={() => handleRegister()}
                 >
-                  Create an account
+                  {loading ? "processing..." : "Create an account"}
                 </button>
+              </div>
+            </>
+          )}
+
+          {step === 4 && (
+            <>
+              <h5 className="text-center mb-2">Verify your email</h5>
+              <p className="text-muted text-center">
+                {message
+                  ? `${message}`
+                  : `We’ve sent a verification code to ${formData.emailid}`}
+              </p>
+
+              <input
+                type="text"
+                className="form-control mb-3"
+                placeholder="Enter 6-digit OTP"
+                value={emailOtp}
+                onChange={(e) => setEmailOtp(e.target.value)}
+              />
+
+              <button
+                className={`explore-btn ${
+                  emailOtp.length === 6
+                    ? "btn-primary text-white"
+                    : "btn-light text-muted"
+                }`}
+                disabled={emailOtp.length !== 6}
+                onClick={verifyEmailOtp}
+              >
+                {loading ? "processing..." : "Verify"}
+              </button>
+
+              {/* 🔁 Resend OTP */}
+              <div className="text-center mt-3">
+                {resendTimer > 0 ? (
+                  <small className="text-muted">
+                    Resend OTP in {Math.floor(resendTimer / 60)}:
+                    {String(resendTimer % 60).padStart(2, "0")}
+                  </small>
+                ) : (
+                  <button
+                    className="btn btn-link p-0"
+                    disabled={resending}
+                    onClick={handleResendOtp}
+                  >
+                    {resending ? "Resending..." : "Resend OTP"}
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -332,11 +441,11 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
         <Modal.Footer className="flex-column">
           <p className="text-center small text-muted mb-0">
             By signing in or creating an account, you accept our{" "}
-            <a href="#">
+            <a href="/terms-conditions">
               <strong className="fs-6">Terms and Conditions</strong>
-            </a>{" "}
-            and{" "}
-            <a href="#">
+            </a>
+            and
+            <a href="/privacy-policy">
               <strong className="fs-6">Privacy Policy</strong>
             </a>
             .

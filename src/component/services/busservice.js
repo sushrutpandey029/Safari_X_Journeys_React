@@ -2,29 +2,10 @@
 import axios from "axios";
 import { API } from "./apiEndpoints";
 
-// 🧠 AUTHENTICATE BUS API
-export const Bus_authenticate = async () => {
-  try {
-    const body = {
-      ClientId: "ApiIntegrationNew",
-      UserName: "SAFARIX",
-      Password: "SAFARIX@123",
-    };
-
-    const response = await axios.post(API.Bus_Authenticate, body);
-    console.log("✅ Bus_Authenticate Response:", response.data);
-    return response.data;
-  } catch (err) {
-    console.error("❌ Error in Bus_Authenticate:", err);
-    return { status: false };
-  }
-};
-
 // 🏙️ FETCH BUS CITY LIST
-export const Bus_getCityList = async (tokenId) => {
+export const Bus_getCityList = async () => {
   try {
     const body = {
-      TokenId: tokenId,
       ClientId: "ApiIntegrationNew",
     };
 
@@ -41,7 +22,6 @@ export const Bus_getCityList = async (tokenId) => {
 export const Bus_busSearch = async (searchData) => {
   try {
     const body = {
-      TokenId: searchData.TokenId,
       DateOfJourney: searchData.DateOfJourney,
       OriginId: searchData.OriginId,
       DestinationId: searchData.DestinationId,
@@ -59,17 +39,12 @@ export const Bus_busSearch = async (searchData) => {
 
 export const Bus_busLayout = async (layoutData) => {
   try {
-    if (
-      !layoutData?.TokenId ||
-      !layoutData?.TraceId ||
-      layoutData?.ResultIndex === undefined
-    ) {
+    if (!layoutData?.TraceId || layoutData?.ResultIndex === undefined) {
       console.log("❌ INVALID LAYOUT REQUEST DATA:", layoutData);
       return { status: false };
     }
 
     const body = {
-      TokenId: layoutData.TokenId,
       TraceId: layoutData.TraceId,
       ResultIndex: layoutData.ResultIndex,
     };
@@ -87,9 +62,8 @@ export const Bus_busLayout = async (layoutData) => {
 };
 
 // services/busservice.js
-export const fetchBoardingPoints = async (TokenId, TraceId, ResultIndex) => {
+export const fetchBoardingPoints = async (TraceId, ResultIndex) => {
   const bodyData = {
-    TokenId: TokenId?.trim(),
     TraceId: TraceId?.trim(),
     ResultIndex: parseInt(ResultIndex),
   };

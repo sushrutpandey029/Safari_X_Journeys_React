@@ -1,19 +1,19 @@
 import { API } from "./apiEndpoints";
 import axios from "axios";
 
-// export const getCountryList = async () => {
-//   try {
-//     const resp = await axios.get(API.COUNTRY_LIST);
-//     return resp.data?.data?.CountryList || [];
-//   } catch (err) {
-//     throw err;
-//   }
-// };
+export const getCountryList = async () => {
+  try {
+    const resp = await axios.get(API.COUNTRY_LIST);
+    return resp.data?.data?.CountryList || [];
+  } catch (err) {
+    throw err;
+  }
+};
 
 export const getCityList = async (countryCode) => {
   try {
     const resp = await axios.post(API.CITY_LIST, {
-      CountryCode: countryCode, // ✅ dynamic country
+      CountryCode: countryCode, 
     });
     return resp.data?.data?.CityList || [];
   } catch (err) {
@@ -62,6 +62,7 @@ export const getHotelDetail = async (hotelCode) => {
 export const searchHotels = async (payload) => {
   try {
     const resp = await axios.post(API.HOTEL_SEARCH, payload);
+    console.log("data in serch hotels", resp.data);
     // Directly return inner data
     return resp.data?.data;
   } catch (err) {

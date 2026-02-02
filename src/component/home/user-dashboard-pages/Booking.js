@@ -45,13 +45,21 @@ function Booking() {
   const currentBookings = bookings.slice(firstIndex, lastIndex);
   const totalPages = Math.ceil(bookings.length / itemsPerPage);
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
     <div className="container mt-4">
       <table className="table table-hover table-bordered">
         <thead>
           <tr>
-            <th>Booking ID</th>
-            <th>Service Type</th>
+            <th>Booking Date</th>
+            <th>Service</th>
             <th>Status</th>
             <th>View</th>
           </tr>
@@ -61,7 +69,7 @@ function Booking() {
           {currentBookings.length > 0 ? (
             currentBookings.map((booking) => (
               <tr key={booking.id}>
-                <td>{booking.bookingId}</td>
+                <td>{formatDate(booking.createdAt)}</td>
                 <td>{booking.serviceType}</td>
                 <td
                   className={

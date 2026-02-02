@@ -63,47 +63,58 @@ const HotelDetail = () => {
       userId: userdetails?.id,
       serviceType: "hotel",
       vendorType: "hotel",
-      vendorId: hotelDetails.HotelCode,
+      vendorId: hotelDetails?.HotelCode,
+
       serviceDetails: {
-        hotelCode: hotelDetails.HotelCode,
-        hotelName: hotelDetails.HotelName, // ✅ Hotel name
-        hotelRating: hotelDetails.StarRating, // ✅ Hotel rating
-        hotelAddress: hotelDetails?.Address || "", // ✅ (optional) Address
-        checkIn: bookingData.checkIn,
-        checkOut: bookingData.checkOut,
-        GuestNationality: bookingData.guestNationality,
-        NoOfRooms: bookingData.NoOfRooms,
-        totalAmount: room.TotalFare,
-        BookingCode: room.BookingCode,
-        RoomType: room.RoomTypeName, // ✅ Room type
-        RoomCategory: room.RoomCategory || "", // ✅ Room category
-        RoomMealPlan: room.MealType || "", // ✅ Meal plan
-        RoomOccupancy: room.Occupancy || "", // ✅ Occupancy details
-        enduserip: ip,
+        hotelCode: hotelDetails?.HotelCode,
+        hotelName: hotelDetails?.HotelName,
+        hotelRating: hotelDetails?.HotelRating,
+        hotelAddress: hotelDetails?.Address || "",
+
+        checkIn: bookingData?.checkIn,
+        checkOut: bookingData?.checkOut,
+
+        GuestNationality: bookingData?.guestNationality,
+        NoOfRooms: bookingData?.NoOfRooms,
+
+        // ✅ PRICE DETAILS (FROM API)
+        TotalFare: Number(room?.TotalFare || 0),
+        TotalTax: Number(room?.TotalTax || 0),
+        NetAmount: Number(room?.NetAmount || 0),
+        PriceBreakUp: room?.PriceBreakUp || [],
+        Pricing: room?.Pricing,
+        BookingCode: room?.BookingCode,
+        RoomType: room?.RoomTypeName,
+        RoomCategory: room?.RoomCategory || "",
+        RoomMealPlan: room?.MealType || "",
+        RoomOccupancy: room?.Occupancy || "",
+
         currency: "INR",
+        enduserip: ip,
+
         PaxRooms: bookingData?.PaxRooms,
-        ResponseTime: bookingData.ResponseTime,
-        IsDetailedResponse: bookingData.IsDetailedResponse,
-        Filters: bookingData.Filters,
-        // IsPackageFare:
-        //   booking?.serviceDetails?.ValidationInfo?.PackageFare || false,
-        // IsPackageDetailsMandatory:
-        //   booking?.serviceDetails?.ValidationInfo?.PackageDetailsMandatory ||
-        //   false,
+        ResponseTime: bookingData?.ResponseTime,
+        IsDetailedResponse: bookingData?.IsDetailedResponse,
+        Filters: bookingData?.Filters,
       },
-      startDate: bookingData.checkIn,
-      endDate: bookingData.checkOut,
-      totalAmount: room.TotalFare,
+
+      startDate: bookingData?.checkIn,
+      endDate: bookingData?.checkOut,
+
+      // ✅ KEEP PRICE ALSO AT ROOT LEVEL (FOR CHECKOUT PAGE)
+      totalAmount: Number(room?.TotalFare || 0),
+      totalTax: Number(room?.TotalTax || 0),
+      netAmount: Number(room?.NetAmount || 0),
+
       currency: "INR",
     };
 
-    // ✅ Navigate to checkout page with payload
     navigate("/hotel-checkout", {
       state: {
         payload,
         selectedRoom: room,
         hotelInfo: hotelDetails,
-        searchFilters: bookingData, // <-- keeps your entire previous search data
+        searchFilters: bookingData,
       },
     });
   }
@@ -117,6 +128,7 @@ const HotelDetail = () => {
         console.log("gethotel details resp", detailResp);
 
         const details = detailResp?.data?.HotelDetails?.[0] || null;
+        console.log("details in hotel deatil", details);
         setHotelDetails(details);
 
         // ✅ Search using exact bookingData
@@ -212,148 +224,158 @@ const HotelDetail = () => {
     <div>
       <div className="hotel-detail-page">
         <div className="container">
+          <div className="col-sm-12 border-bottom mb-4 pb-3">
+            <nav aria-label="breadcrumb ">
+              <ol className="breadcrumb mb-0">
+                <li className="breadcrumb-item">
+                  <a href="/">Home</a>
+                </li>
+
+                <li className="breadcrumb-item">
+                  <a href="/hotel-list">Hotels</a>
+                </li>
+
+                <li className="breadcrumb-item active" aria-current="page">
+                  Hotel Detail
+                </li>
+              </ol>
+            </nav>
+          </div>
           <div className="row">
-            <div className="row g-3">
-              {/* Left - Images */}
-              <div className="col-md-7">
-                <a
-                  href={hotel.images[0]}
-                  data-fancybox="gallery"
-                  data-caption={hotel.name}
-                >
-                  <img
-                    src={hotel.images[0]}
-                    alt="Hotel"
-                    className="hotel-main-img rounded img-fluid"
-                  />
-                </a>
+            {/* Left - Images */}
+            <div className="col-md-6">
+              <a
+                href={hotel.images[0]}
+                data-fancybox="gallery"
+                data-caption={hotel.name}
+              >
+                <img
+                  src={hotel.images[0]}
+                  alt="Hotel"
+                  className="hotel-main-img rounded img-fluid"
+                />
+              </a>
 
-                {/* Sub Images */}
-                <div className="hotel-sub-imgs d-flex gap-2 flex-wrap mt-2">
-                  {hotel?.images?.slice(1, 4).map((img, i) => (
-                    <div
-                      key={i}
-                      className="hotel-sub-img-wrapper"
-                      style={{ width: "30%", position: "relative" }}
-                    >
-                      <a
-                        href={img}
-                        data-fancybox="gallery"
-                        data-caption={`${hotel.name} - Image ${i + 2}`}
-                      >
-                        <img
-                          src={img}
-                          alt={`Hotel-${i}`}
-                          className="hotel-sub-img rounded img-fluid"
-                          style={{
-                            width: "100%",
-                            height: "100px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </a>
-
-                      {i === 2 && hotel?.images?.length > 4 && (
-                        <div
-                          className="hotel-overlay"
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: "rgba(0,0,0,0.5)",
-                            color: "white",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "4px",
-                          }}
-                        >
-                          +{hotel?.images?.length - 4} More
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Hidden images for Fancybox */}
-                  {hotel?.images?.slice(4).map((img, j) => (
+              {/* Sub Images */}
+              <div className="hotel-sub-imgs d-flex gap-2 flex-wrap mt-2">
+                {hotel?.images?.slice(1, 4).map((img, i) => (
+                  <div
+                    key={i}
+                    className="hotel-sub-img-wrapper"
+                    style={{ width: "30%", position: "relative" }}
+                  >
                     <a
-                      key={j}
                       href={img}
                       data-fancybox="gallery"
-                      data-caption={`${hotel.name} - Extra Image`}
-                      style={{ display: "none" }}
+                      data-caption={`${hotel.name} - Image ${i + 2}`}
                     >
-                      <img src={img} alt={`Hidden-${j}`} />
+                      <img
+                        src={img}
+                        alt={`Hotel-${i}`}
+                        className="hotel-sub-img rounded img-fluid"
+                        style={{
+                          width: "100%",
+                          height: "100px",
+                          objectFit: "cover",
+                        }}
+                      />
                     </a>
-                  ))}
-                </div>
-              </div>
 
-              {/* Right - Details */}
-              <div className="col-md-5">
-                <div className="right-details">
-                  {/* Title & Rating */}
-                  <h3 className="fw-bold">{hotel.location}</h3>
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <h4 className="fw-bold mb-0">{hotel.name}</h4>
-                    <span className="badge bg-primary">⭐ {hotel.rating}</span>
-                  </div>
-
-                  {/* ✅ Hotel Rating, CheckIn & CheckOut */}
-
-                  <div className="mb-2 small">
-                    <span className="fw-bold">Address:</span> {hotel.Address}
-                  </div>
-
-                  {/* ✅ Description with ReadMore */}
-                  <div className="p-tag">
-                    {shouldTruncate && !expanded
-                      ? stripHtml(shortDesc)
-                      : stripHtml(hotel.description)}
-                  </div>
-                  {shouldTruncate && (
-                    <button
-                      onClick={toggleReadMore}
-                      className="btn btn-link p-0 small"
-                    >
-                      {expanded ? "Read Less" : "Read More"}
-                    </button>
-                  )}
-
-                  <h6 className="fw-bold mt-3">Amenities</h6>
-                  <div className="d-flex flex-wrap gap-2 small aminities">
-                    {hotel?.facilities?.slice(0, 6).map((f, i) => (
-                      <span key={i} className="badge bg-light text-dark border">
-                        {f}
-                      </span>
-                    ))}
-                    {hotel?.facilities?.length > 6 && (
-                      <span className="badge bg-light text-primary">
-                        + More
-                      </span>
+                    {i === 2 && hotel?.images?.length > 4 && (
+                      <div
+                        className="hotel-overlay"
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: "rgba(0,0,0,0.5)",
+                          color: "white",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        +{hotel?.images?.length - 4} More
+                      </div>
                     )}
                   </div>
+                ))}
 
-                  <div className="d-flex align-items-center mt-3">
-                    <a
-                      href={`https://maps.google.com/?q=${hotel.location}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ms-auto small text-primary"
-                    >
-                      See on Map
-                    </a>
-                  </div>
-                  <div className="d-flex align-items-center mt-3">
-                    <button
-                      className="explore-btn"
-                      onClick={scrollToPriceTable}
-                    >
-                      Choose room
-                    </button>
-                  </div>
+                {/* Hidden images for Fancybox */}
+                {hotel?.images?.slice(4).map((img, j) => (
+                  <a
+                    key={j}
+                    href={img}
+                    data-fancybox="gallery"
+                    data-caption={`${hotel.name} - Extra Image`}
+                    style={{ display: "none" }}
+                  >
+                    <img src={img} alt={`Hidden-${j}`} />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Right - Details */}
+            <div className="col-md-6">
+              <div className="right-details">
+                {/* Title & Rating */}
+                <h3 className="fw-bold">{hotel.location}</h3>
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                  <h4 className="fw-bold mb-0">{hotel.name}</h4>
+                  <span className="badge bg-primary">⭐ {hotel.rating}</span>
+                </div>
+
+                {/* ✅ Hotel Rating, CheckIn & CheckOut */}
+
+                <div className="mb-2 small">
+                  <span className="fw-bold">Address:</span> {hotel.Address}
+                </div>
+
+                {/* ✅ Description with ReadMore */}
+                <div className="p-tag">
+                  {shouldTruncate && !expanded
+                    ? stripHtml(shortDesc)
+                    : stripHtml(hotel.description)}
+                </div>
+                {shouldTruncate && (
+                  <button
+                    onClick={toggleReadMore}
+                    className="btn btn-link p-0 small"
+                  >
+                    {expanded ? "Read Less" : "Read More"}
+                  </button>
+                )}
+
+                <h6 className="fw-bold mt-3">Amenities</h6>
+                <div className="d-flex flex-wrap gap-2 small aminities">
+                  {hotel?.facilities?.slice(0, 6).map((f, i) => (
+                    <span key={i} className="badge bg-light text-dark border">
+                      {f}
+                    </span>
+                  ))}
+                  {hotel?.facilities?.length > 6 && (
+                    <span className="badge bg-light text-primary">+ More</span>
+                  )}
+                </div>
+
+                <div className="d-flex align-items-center mt-3">
+                  <a
+                    href={`https://maps.google.com/?q=${hotel.location}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ms-auto small text-primary"
+                  >
+                    See on Map
+                  </a>
+                </div>
+                <div className="d-flex align-items-center mt-3">
+                  <button className="explore-btn" onClick={scrollToPriceTable}>
+                    Choose room
+                  </button>
                 </div>
               </div>
             </div>
@@ -383,9 +405,9 @@ const HotelDetail = () => {
                     <tr>
                       <th>Room Type</th>
                       <th>Inclusions</th>
-                      <th>Base Price</th>
+                      {/* <th>Base Price</th> */}
                       <th>Total Fare</th>
-                      <th>Tax</th>
+                      {/* <th>Tax</th> */}
                       <th>Meal Type</th>
                       <th>Cancellation</th>
                       <th>Action</th>
@@ -431,18 +453,15 @@ const HotelDetail = () => {
                               )}
                             </td>
 
-                            <td className="text-success fw-semibold">
+                            {/* <td className="text-success fw-semibold">
                               ₹{basePrice}
-                            </td>
+                            </td> */}
 
                             <td className="text-primary fw-semibold">
-                              ₹{room.TotalFare || "N/A"}
+                              ₹{Math.ceil(room.DisplayPrice) || "N/A"}
                             </td>
 
-                            <td className="text-muted">
-                              ₹{room.TotalTax || "N/A"}
-                            </td>
-
+                           
                             <td>
                               <span className="badge bg-info text-dark">
                                 {room.MealType || "N/A"}

@@ -6,8 +6,11 @@ import { flight_getBookingDetails } from "../../../services/flightService";
 import useCancellation from "../../../hooks/useCancellation";
 import { insuranceBookingDetails } from "../../../services/insuranceService";
 import { handleDownloadInvoice } from "../../../utils/invoice";
+import { downloadBookingPDF } from "../../../services/bookingService";
 
 export default function FlightView({ booking }) {
+  const [activeBookingId, setActiveBookingId] = useState(null);
+
   const {
     bookingId,
     status,
@@ -17,6 +20,21 @@ export default function FlightView({ booking }) {
     bookingPayments,
     serviceType,
   } = booking || {};
+
+  console.log("booking in flightview page", booking);
+
+  // Normalize vendor booking IDs
+  const bookingIds = React.useMemo(() => {
+    if (Array.isArray(booking?.vendorResponse?.bookingIds)) {
+      return booking.vendorResponse.bookingIds.map(String);
+    }
+
+    if (typeof booking?.vendorBookingId === "string") {
+      return booking.vendorBookingId.split(",").map((id) => id.trim());
+    }
+
+    return [];
+  }, [booking]);
 
   const insurance = booking?.insuranceDetails;
   const insuranceBookingId = insurance?.insuranceBookingId;
@@ -53,8 +71,16 @@ export default function FlightView({ booking }) {
   // Preferred live API → fallback
   const flightAPIData = liveBookingData?.data?.Response || {};
   const flightItinerary = flightAPIData?.FlightItinerary || fallbackFlight;
-  const PNR = flightAPIData?.PNR || fallbackPNR;
-  const vendorBookingId = flightAPIData?.BookingId || fallbackBookingId;
+  // BookingId from live API OR active tab
+  const vendorBookingId = flightAPIData?.BookingId || activeBookingId || "";
+
+  // PNR from live API OR journey-level data
+  const activeIndex = bookingIds.findIndex(
+    (id) => String(id) === String(activeBookingId)
+  );
+
+  const PNR =
+    flightAPIData?.PNR || booking?.vendorResponse?.pnrs?.[activeIndex] || "";
 
   const segments = flightItinerary?.Segments || [];
   const passengers = flightItinerary?.Passenger || [];
@@ -77,18 +103,36 @@ export default function FlightView({ booking }) {
   const airline = firstSegment?.Airline;
 
   // Fetch booking details (Live Data)
-  const getBookingDetails = async () => {
-    try {
-      let payload = { EndUserIp: "0.0.0.0" };
+  // const getBookingDetails = async () => {
+  //   try {
+  //     let payload = { EndUserIp: "192.168.1.11" };
 
-      if (vendorBookingId !== "N/A") payload.BookingId = vendorBookingId;
-      else if (PNR !== "N/A") payload.PNR = PNR;
-      else return;
+  //     if (vendorBookingId !== "N/A") payload.BookingId = vendorBookingId;
+  //     else if (PNR !== "N/A") payload.PNR = PNR;
+  //     else return;
+  //     console.log("payload before gliht getbookingdtails", payload);
+  //     const resp = await flight_getBookingDetails(payload);
+  //     setLiveBookingData(resp.data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+
+  const getBookingDetails = async (bookingIdToFetch) => {
+    try {
+      if (!bookingIdToFetch) return;
+
+      const payload = {
+        EndUserIp: "192.168.1.11",
+        BookingId: bookingIdToFetch,
+      };
+
+      console.log("Fetching booking details for:", bookingIdToFetch);
 
       const resp = await flight_getBookingDetails(payload);
       setLiveBookingData(resp.data);
     } catch (err) {
-      console.error(err);
+      console.error("Flight getBookingDetails error", err);
     }
   };
 
@@ -108,68 +152,71 @@ export default function FlightView({ booking }) {
   };
 
   useEffect(() => {
-    getBookingDetails();
     fetchLatestInsurance();
   }, []);
 
-  // PDF Invoice
-  // const handleDownloadInvoice = () => {
-  //   const doc = new jsPDF();
-  //   doc.setFontSize(18);
-  //   doc.text("FLIGHT Booking Invoice", 14, 20);
+  const handleDownloadInvoice = async (bookingId,vendorBookingId) => {
+    try {
+      console.log("bookingid indownload", bookingId,vendorBookingId);
+      const pdfBlob = await downloadBookingPDF(bookingId,vendorBookingId);
 
-  //   doc.setFontSize(12);
-  //   // doc.text(`Booking ID: ${bookingId}`, 14, 28);
-  //   doc.text(`PNR: ${PNR}`, 14, 34);
-  //   doc.text(`Vendor Booking ID: ${vendorBookingId}`, 14, 40);
-  //   doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 46);
+      const url = window.URL.createObjectURL(
+        new Blob([pdfBlob], { type: "application/pdf" })
+      );
 
-  //   autoTable(doc, {
-  //     startY: 54,
-  //     head: [["Field", "Value"]],
-  //     body: [
-  //       ["PNR", PNR],
-  //       ["Vendor Booking ID", String(vendorBookingId)],
-  //       ["Route", `${originCity} → ${destinationCity}`],
-  //       ["Departure", depTime?.toLocaleString()],
-  //       ["Arrival", arrTime?.toLocaleString()],
-  //       [
-  //         "Airline",
-  //         airline
-  //           ? `${airline.AirlineName} (${airline.AirlineCode} ${airline.FlightNumber})`
-  //           : "N/A",
-  //       ],
-  //       ["Total Fare", `${currency} ${totalAmount}`],
-  //     ],
-  //   });
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Booking-${bookingId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
 
-  //   if (passengers.length > 0) {
-  //     autoTable(doc, {
-  //       startY: doc.lastAutoTable.finalY + 10,
-  //       head: [["Name", "Type", "Gender", "DOB", "Ticket No.", "Status"]],
-  //       body: passengers.map((p) => [
-  //         `${p.Title} ${p.FirstName} ${p.LastName}`,
-  //         p.PaxType === 1 ? "Adult" : p.PaxType === 2 ? "Child" : "Infant",
-  //         p.Gender === 1 ? "Male" : "Female",
-  //         p.DateOfBirth ? new Date(p.DateOfBirth).toLocaleDateString() : "-",
-  //         p.Ticket?.TicketNumber || "-",
-  //         p.Ticket?.Status || "-",
-  //       ]),
-  //     });
-  //   }
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download invoice", error);
+      alert("Unable to download invoice. Please try again.");
+    }
+  };
 
-  //   autoTable(doc, {
-  //     startY: doc.lastAutoTable.finalY + 10,
-  //     head: [["Payment Field", "Value"]],
-  //     body: [
-  //       ["Amount", `${currency} ${totalAmount}`],
-  //       ["Method", paymentInfo.paymentMethod || "N/A"],
-  //       ["Payment Status", paymentInfo.paymentStatus || "N/A"],
-  //     ],
-  //   });
+  const getJourneySummary = (index) => {
+    console.log("🔥 getJourneySummary called for index:", index);
+    const journey = booking?.vendorResponse?.journeys?.[index];
+    console.log("journey", journey);
+    const itinerary =
+      journey?.bookResponse?.Response?.Response?.FlightItinerary;
+    console.log("itinerary", itinerary);
+    if (!itinerary) return "";
 
-  //   doc.save(`Invoice_Flight_${bookingId}.pdf`);
-  // };
+    // Primary (TBO best)
+    if (
+      typeof itinerary.Origin === "string" &&
+      typeof itinerary.Destination === "string"
+    ) {
+      return `${itinerary.Origin} → ${itinerary.Destination}`;
+    }
+
+    // Fallback
+    const segments = itinerary?.Segments;
+    if (!segments?.length) return "";
+
+    const origin = segments[0]?.Origin?.Airport?.AirportCode;
+    const destination =
+      segments[segments.length - 1]?.Destination?.Airport?.AirportCode;
+    console.log("origin,destination", origin, destination);
+    return origin && destination ? `${origin} → ${destination}` : "";
+  };
+
+  useEffect(() => {
+    if (bookingIds.length > 0) {
+      setActiveBookingId(bookingIds[0]); // default first journey
+    }
+  }, [bookingIds]);
+
+  useEffect(() => {
+    if (activeBookingId) {
+      getBookingDetails(activeBookingId);
+    }
+  }, [activeBookingId]);
 
   return (
     <>
@@ -189,21 +236,49 @@ export default function FlightView({ booking }) {
         <div className="alert alert-danger mt-2">{cancelMessage}</div>
       )}
 
+      {bookingIds.length > 1 && (
+        <ul className="nav nav-tabs mb-3">
+          {bookingIds.map((id, index) => {
+            const journeyLabel =
+              booking.serviceDetails?.TripType === "round"
+                ? index === 0
+                  ? "Onward"
+                  : "Return"
+                : `Journey ${index + 1}`;
+
+            const routeSummary = getJourneySummary(index);
+
+            return (
+              <li className="nav-item" key={id}>
+                <button
+                  className={`nav-link ${
+                    activeBookingId === id ? "active" : ""
+                  }`}
+                  onClick={() => setActiveBookingId(id)}
+                >
+                  <div className="fw-bold">{journeyLabel}</div>
+                  {routeSummary && (
+                    <small className="text-muted">{routeSummary}</small>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
       {/* BOOKING TABLE */}
       <table className="table table-bordered mt-3">
         <tbody>
-          {/* <tr>
-            <th>Booking ID</th>
-            <td>{bookingId}</td>
-          </tr> */}
           <tr>
             <th>Booking ID</th>
-            <td>{vendorBookingId}</td>
+            <td>{vendorBookingId || "Loading..."}</td>
           </tr>
           <tr>
             <th>PNR</th>
-            <td>{PNR}</td>
+            <td>{PNR || "Loading..."}</td>
           </tr>
+
           <tr>
             <th>Status</th>
             <td>{status}</td>
@@ -264,7 +339,7 @@ export default function FlightView({ booking }) {
 
               <tr>
                 <th>Premium Amount</th>
-                <td>{insurance.premiumAmount}</td>
+                <td>{insurance.totalAmount}</td>
               </tr>
 
               <tr>
@@ -361,10 +436,9 @@ export default function FlightView({ booking }) {
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-          <button
+          {/* <button
             className="btn btn-success mt-3"
-            // onClick={handleDownloadInvoice}
-            onClick={() =>
+             onClick={() =>
               handleDownloadInvoice({
                 serviceType: "flight",
                 payload: {
@@ -385,11 +459,19 @@ export default function FlightView({ booking }) {
             }
           >
             Download Invoice (PDF)
+          </button> */}
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => handleDownloadInvoice(booking.bookingId,vendorBookingId)}
+          >
+            Download Invoice
           </button>
           <button
-            className="btn btn-danger mt-3 ms-2"
+            className="btn btn-outline-danger"
             disabled={isCancelling}
-            onClick={() => startCancellation({ vendorBookingId, bookingId })}
+            onClick={() =>
+              startCancellation({ vendorBookingId: activeBookingId, bookingId })
+            }
           >
             {isCancelling ? "Processing..." : "Cancel Flight"}
           </button>

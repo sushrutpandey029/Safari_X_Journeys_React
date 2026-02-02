@@ -77,7 +77,7 @@ function Home() {
         const res = await getHotelCityByCategory();
         console.log("Hotel categories raw:", res);
         if (res.success) {
-          setCategories(res.data); // store API data
+          setCategories(res.data); // store API 
         }
       } catch (err) {
         console.error("Fetch error hotel category:", err.response?.data || err.message);
@@ -130,35 +130,90 @@ function Home() {
     <div>
       <ScrollToTop />
       <HomeBanner />
-
-      <div className="top-destination">
+      <div className="top-destination py-5">
         <div className="container">
-          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
-            {categories.map((item, index) => (
-              <div className="col" key={index}>
-                {/* Category Card */}
-                <div
-                  className="place-card-link place"
-                  style={{ cursor: "pointer" }}
-                  onClick={() =>
-                    navigate("/places", { state: { category: item } })
-                  }
-                >
-                  <div className="place">
-                    <img
-                      src={staticImages[index % staticImages.length]}
-                      alt={item.category}
-                    />
-                    <div className="overlay">
-                      <p className="card-destination">{item.category}</p>
+          <div className="row align-items-center">
+
+            {/* LEFT CONTENT */}
+            <div className="col-lg-5 mb-4 mb-lg-0">
+              <h2 className="title-modern">
+                About <span>India</span>
+              </h2>
+
+              <ul className="about-list">
+                <li>
+                  <p>
+                    India is a big country in Asia, known for its rich culture and diverse landscapes.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    The word "India" originates from Greek mythology and refers to the land of the Indus River.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    It's the 7th largest country in the world, covering 2.4% of the Earth's surface.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    India is known by many names such as Aryavarta, Bharat, and Hindustan.
+                  </p>
+                </li>
+              </ul>
+            </div>
+
+            {/* RIGHT IMAGE GALLERY */}
+            <div className="col-lg-7">
+
+              {/* TOP ROW – 3 IMAGES */}
+              <div className="row g-3 mb-3">
+                {categories.slice(0, 3).map((item, index) => (
+                  <div className="col-4" key={index}>
+                    <div
+                      className="gallery-card show-title"
+                      onClick={() =>
+                        navigate("/places", { state: { category: item } })
+                      }
+                    >
+                      <img
+                        src={staticImages[index % staticImages.length]}
+                        alt={item.category}
+                      />
+                      <div className="title">{item.category}</div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+
+              {/* BOTTOM ROW – 2 IMAGES CENTERED */}
+              <div className="row g-3 justify-content-center">
+                {categories.slice(3, 5).map((item, index) => (
+                  <div className="col-6 col-md-4" key={index}>
+                    <div
+                      className="gallery-card show-title"
+                      onClick={() =>
+                        navigate("/places", { state: { category: item } })
+                      }
+                    >
+                      <img
+                        src={staticImages[(index + 3) % staticImages.length]}
+                        alt={item.category}
+                      />
+                      <div className="title">{item.category}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+
+
           </div>
         </div>
       </div>
+
 
       <HotelPopularDestination />
 
@@ -213,17 +268,8 @@ function Home() {
       <div className="Testionials">
         <div className="container">
 
-           <div className="row align-items-center mb-4">
-            <div className="col-sm-9">
-              <h2>
-                Our Recent <span>Testimonials</span>
-              </h2>
-              <p className="section-subtext">
-                Stay inspired with our latest travel stories, guides, and
-                destination tips crafted just for you.
-              </p>
-            </div>
-            <div className="col-sm-3 text-end">
+          <div className="row align-items-center">
+            <div className="col-sm-12 text-end mb-4">
               <Link to={"/testimonials"}>
                 <button className="explore-btn">Explore More</button>
               </Link>
@@ -231,81 +277,81 @@ function Home() {
           </div>
           <div className="row align-items-start">
             {/* LEFT STATIC BOX */}
-            <div className="Testionials">
-              <div className="container">
-                <div className="row align-items-start">
-                  {/* LEFT SECTION (col-sm-4) */}
-                  <div className="col-sm-4">
-                    <h2 className="feedback-title">
-                      Client <span>Feedback</span>
-                    </h2>
-                    <p className="feedback-heading">
-                      What They Say After Using Our Product
-                    </p>
-                    <p className="feedback-sub">
-                      Many of our members have started their early careers with
-                      us Many of our members have started their early careers
-                      with us
-                    </p>
+            <div className="container">
+              <div className="row align-items-start">
+                {/* LEFT SECTION (col-sm-4) */}
+                <div className="col-sm-4">
+                  <h2 className="feedback-title">
+                    Client <span>Feedback</span>
+                  </h2>
+                  <p className="feedback-heading">
+                    What They Say After Using Our Product
+                  </p>
+                  <p className="feedback-sub">
+                    Many of our members have started their early careers with
+                    us Many of our members have started their early careers
+                    with us
+                  </p>
 
-                    {/* Slider Arrows */}
-                    <div className="testimonial-arrows">
-                      <button
-                        onClick={() => {
-                          const slider =
-                            document.getElementById("testimonialSlider");
-                          slider.scrollLeft -= 370;
-                        }}
-                      >
-                        ←
-                      </button>
-                      <button
-                        onClick={() => {
-                          const slider =
-                            document.getElementById("testimonialSlider");
-                          slider.scrollLeft += 370;
-                        }}
-                      >
-                        →
-                      </button>
-                    </div>
+                  {/* Slider Arrows */}
+                  <div className="testimonial-arrows">
+                    <button
+                      onClick={() => {
+                        const slider =
+                          document.getElementById("testimonialSlider");
+                        slider.scrollLeft -= 370;
+                      }}
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={() => {
+                        const slider =
+                          document.getElementById("testimonialSlider");
+                        slider.scrollLeft += 370;
+                      }}
+                    >
+                      →
+                    </button>
                   </div>
+                </div>
 
-                  {/* RIGHT SECTION (col-sm-8) */}
-                  <div className="col-sm-8">
-                    {/* SLIDER START */}
-                    <div id="testimonialSlider" className="testimonial-slider">
-                      <div className="row flex-nowrap">
-                        {testimonialData?.map((item) => (
-                          <div key={item.id} className="col-sm-3">
-                            {" "}
-                            {/* ← show 3 cards */}
-                            <div className="testimonial-card">
-                              <div className="stars">
-                                {"★".repeat(item.rating)}
-                              </div>
+                {/* RIGHT SECTION (col-sm-8) */}
+                <div className="col-sm-8">
+                  {/* SLIDER START */}
+                  <div id="testimonialSlider" className="testimonial-slider">
+                    <div className="row flex-nowrap testimonial-row">
+                      {testimonialData?.map((item) => (
+                        <div
+                          key={item.id}
+                          className="col-10 col-sm-6 col-md-4 col-lg-3 testimonial-col"
+                        >
+                          <div className="testimonial-card">
+                            <div className="stars">
+                              {"★".repeat(item.rating)}
+                            </div>
 
-                              <p className="review-text">
-                                {item.description?.substring(0, 110)}...
-                              </p>
+                            <p className="review-text">
+                              {item.description?.substring(0, 110)}...
+                            </p>
 
-                              <div className="review-user">
-                                <img
-                                  src={`${BASE_URL}/testimonial/images/${item.image}`}
-                                  alt={item.name}
-                                />
-                                <div>
-                                  <h4>{item.name}</h4>
-                                  <small>{item.designation}</small>
-                                </div>
+                            <div className="review-user">
+                              <img
+                                src={`${BASE_URL}/testimonial/images/${item.image}`}
+                                alt={item.name}
+                              />
+                              <div>
+                                <h4>{item.name}</h4>
+                                <small>{item.designation}</small>
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                    {/* SLIDER END */}
                   </div>
+
+                  {/* SLIDER END */}
                 </div>
               </div>
             </div>

@@ -19,6 +19,17 @@ export const userLogout = async () => {
   }
 };
 
+export const userVerifyEmailOtp = async (payload) => {
+   return await axios.post(API.USER_VERIFY_OTP, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const userResendOtp = async (payload) => {
+   return await axios.post(API.USER_RESEND_OTP, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
 export const driverGuideLogin = async (payload) => {
   try {
     const response = await axios.post(API.DRIVER_GUIDE_LOGIN, payload);
@@ -27,12 +38,3 @@ export const driverGuideLogin = async (payload) => {
     throw error;
   }
 };
-
-export const driverGuideLogout = async () => {
-  try{
-    const response = await axios.post(API.DRIVER_GUIDE_LOGOUT);
-    return response.data
-  }catch(error){
-    throw error;
-  }
-}

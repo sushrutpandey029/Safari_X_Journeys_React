@@ -1,7 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import "../home/Home.css";
+// import "../home/Home.css";
+import "../home/style.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
@@ -9,9 +10,9 @@ import { logout } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
 import AuthModal from "../auth/AuthModal";
-import DriverGuideAuth from "../auth/DriverGuideAuth";
+import GuideAuth from "../auth/GuideAuth";
 import { getUserData, removeUserData } from "../utils/storage";
-import { userLogout, driverGuideLogout } from "../services/authService";
+import { userLogout } from "../services/authService";
 
 function Header() {
   const user = getUserData("safarix_user");
@@ -20,7 +21,7 @@ function Header() {
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
-  const [showDriverGuideLogin, setShowDriverGuideLogin] = useState(false);
+  const [showGuideLogin, setShowGuideLogin] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
 
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ function Header() {
     if (!confirmed) return;
 
     setShowProfileMenu(false);
-    await driverGuideLogout();
+    // await driverGuideLogout();
     removeUserData("driver");
     removeUserData("driver_token");
     removeUserData("driver_refreshtoken");
@@ -62,12 +63,13 @@ function Header() {
     if (!confirmed) return;
 
     setShowProfileMenu(false);
-    await driverGuideLogout();
+    // await driverGuideLogout();
     removeUserData("guide");
     removeUserData("guide_token");
     removeUserData("guide_refreshtoken");
     dispatch(logout());
-    window.location.reload(true);
+    navigate("/")
+    // window.location.reload(true);
   };
 
   useEffect(() => {
@@ -108,23 +110,23 @@ function Header() {
         }
       >
         <nav className="navbar navbar-expand-lg">
-          <div className="container-fluid">
+          <div className="container">
             <a className="navbar-brand" href="/">
               <img
-                src="/images/Safarix-Blue-Logo.png"
+                src="/Images/black-logo.png"
                 alt="Safarix Logo"
                 height="70"
               />
             </a>
 
-            <button
+            {/* <button
               className="navbar-toggler"
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#navbarSupportedContent"
             >
               <span className="navbar-toggler-icon"></span>
-            </button>
+            </button> */}
 
             <div
               className="collapse navbar-collapse"
@@ -141,7 +143,7 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/aircraft.gif"
+                      src="/Images/aircraft.gif"
                       alt="Safarix Logo" className="icon-img"
                     /> Flight
                   </NavLink>
@@ -156,7 +158,7 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/hotel.gif"
+                      src="/Images/hotel.gif"
                       alt="Safarix Logo" className="icon-img"
                     /> Hotel
                   </NavLink>
@@ -171,9 +173,9 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/tour-guide.gif"
+                      src="/Images/tour-guide.gif"
                       alt="Safarix Logo" className="icon-img"
-                    /> Guides
+                    /> Guide
                   </NavLink>
                 </li>
 
@@ -199,22 +201,15 @@ function Header() {
                     }
                   >
                     <img
-                      src="/images/bus-journey.gif"
+                      src="/Images/bus-journey.gif"
                       alt="Safarix Logo" className="icon-img"
-                    /> Buses
+                    /> Bus
                   </NavLink>
                 </li>
               </ul>
             </div>
 
-            <div className="plan" style={{ marginRight: "5px" }}>
-              <button
-                className="explore-btn"
-                onClick={() => navigate("/bot-modal")}
-              >
-                Plan My Holiday 24 x 7
-              </button>
-            </div>
+         
 
             {/* User Icon & Profile Menu */}
             <div className="user-icon position-relative">
@@ -224,7 +219,7 @@ function Header() {
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img
-                    src="images/userprofile.png"
+                    src="Images/userprofile.png"
                     alt="User Icon"
                     className="user-icon-image"
                   />
@@ -232,7 +227,7 @@ function Header() {
 
                 {showProfileMenu && (
                   <div className="profile-menu">
-                    <div className="profile-heading">Profile</div>
+                    <div className="profile-heading">Dashboard</div>
                     <ul>
                       {!user && !guide && !driver && (
                         <>
@@ -242,15 +237,15 @@ function Header() {
                               setShowProfileMenu(false);
                             }}
                           >
-                            Login or Signup as User
+                            Login or Signup
                           </li>
                           <li
                             onClick={() => {
-                              setShowDriverGuideLogin(true);
+                              setShowGuideLogin(true);
                               setShowProfileMenu(false);
                             }}
                           >
-                            Login as Guide
+                            Guide Login
                           </li>
                         </>
                       )}
@@ -261,7 +256,7 @@ function Header() {
                             navigate("/user-dashboard");
                           }}
                         >
-                          My Profile
+                          User Dashboard
                         </li>
                       )}
                       {guide && !user && !driver && (
@@ -271,7 +266,7 @@ function Header() {
                             navigate("/guide-dashboard");
                           }}
                         >
-                          My Profile
+                          Guide Dashboard
                         </li>
                       )}
                       {driver && !guide && !user && (
@@ -324,10 +319,11 @@ function Header() {
                 setShowUserLogin={setShowUserLogin}
               />
 
-              <DriverGuideAuth
-                show={showDriverGuideLogin}
-                onClose={() => setShowDriverGuideLogin(false)}
-                setShowDriverGuideLogin={setShowDriverGuideLogin}
+              <GuideAuth
+                show={showGuideLogin}
+                onClose={() => setShowGuideLogin(false)}
+                setShowGuideLogin={setShowGuideLogin}
+              // setShowDriverGuideLogin={setShowDriverGuideLogin}
               />
             </div>
           </div>

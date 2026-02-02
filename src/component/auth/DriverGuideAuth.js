@@ -17,11 +17,14 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
     role: "guide",
   });
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); 
+
+
 
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
+  
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

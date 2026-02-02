@@ -13,12 +13,13 @@ import {
 import { getCityList, getHotelCodeListNew } from "../services/hotelService";
 import { searchHotels } from "../services/hotelService";
 import { useNavigate, useLocation } from "react-router-dom";
+import Loading from "../common/loading";
 
 function HotelBooking() {
   // Location
   const location = useLocation();
   const [cityList, setCityList] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState("IN");
+  const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCityName, setSelectedCityName] = useState("");
 
@@ -26,7 +27,7 @@ function HotelBooking() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
 
-  const [rooms, setRooms] = useState(1);
+  const [rooms, setRooms] = useState(0);
   const [paxRooms, setPaxRooms] = useState([
     { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
@@ -38,7 +39,7 @@ function HotelBooking() {
   const [isRefundable, setIsRefundable] = useState(false);
   const [mealType, setMealType] = useState("All");
   const [isDetailedResponse, setIsDetailedResponse] = useState(false);
-  const [responseTime, setResponseTime] = useState(30);
+  const [responseTime, setResponseTime] = useState(18);
 
   // Results
   const [hotelList, setHotelList] = useState([]);
@@ -63,6 +64,10 @@ function HotelBooking() {
     freeBreakfast: false,
     refundable: false,
   });
+  const countryOptions = [
+    { label: "India", code: "IN" },
+    { label: "UAE", code: "AE" },
+  ];
 
   // Infinite scroll states
   const [visibleCount, setVisibleCount] = useState(9); // Show 9 cards initially
@@ -75,6 +80,14 @@ function HotelBooking() {
   const searchRef = useRef(null);
 
   const navigate = useNavigate();
+
+  const chunkArray = (arr, size = 100) => {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+  };
 
   useEffect(() => {
     const today = new Date();
@@ -123,7 +136,7 @@ function HotelBooking() {
         .map((hotel) => hotel.Address)
         .filter(
           (address, index, self) =>
-            address && address.trim() !== "" && self.indexOf(address) === index
+            address && address.trim() !== "" && self.indexOf(address) === index,
         );
       setAddressSuggestions(addresses);
     } else {
@@ -145,83 +158,179 @@ function HotelBooking() {
     };
   }, []);
 
-  const handleSearch = async () => {
-    setIsSearching(true);
-    setVisibleCount(9); // Reset to 9 cards on new search
-    setAddressSearch(""); // Reset address search on new search
-    setAddressSuggestions([]); // Reset suggestions
+  // const handleSearch = async () => {
+  //   setIsSearching(true);
+  //   setVisibleCount(9); // Reset to 9 cards on new search
+  //   setAddressSearch(""); // Reset address search on new search
+  //   setAddressSuggestions([]); // Reset suggestions
 
-    try {
-      // 🔹 Step 1: Get hotel codes for selected city
-      const data = await getHotelCodeListNew(selectedCountry, selectedCity);
-      console.log("Search List API Full Response:", data);
+  //   try {
+  //     // 🔹 Step 1: Get hotel codes for selected city
+  //     const data = await getHotelCodeListNew(selectedCountry, selectedCity);
+  //     console.log("Search List API Full Response:", data);
 
-      let hotels = [];
-      if (Array.isArray(data)) {
-        hotels = data;
-      } else if (data?.Hotels && Array.isArray(data.Hotels)) {
-        hotels = data.Hotels;
-      } else if (data?.data?.Hotels && Array.isArray(data.data.Hotels)) {
-        hotels = data.data.Hotels;
-      } else if (data?.data && Array.isArray(data.data)) {
-        hotels = data.data;
-      }
+  //     let hotels = [];
+  //     if (Array.isArray(data)) {
+  //       hotels = data;
+  //     } else if (data?.Hotels && Array.isArray(data.Hotels)) {
+  //       hotels = data.Hotels;
+  //     } else if (data?.data?.Hotels && Array.isArray(data.data.Hotels)) {
+  //       hotels = data.data.Hotels;
+  //     } else if (data?.data && Array.isArray(data.data)) {
+  //       hotels = data.data;
+  //     }
 
-      console.log("✅ Final Filtered Hotels:", hotels);
-      setHotelList(hotels);
+  //     console.log("✅ Final Filtered Hotels:", hotels);
+  //     setHotelList(hotels);
 
-      // 🔹 Step 2: Extract hotel codes
-      const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
-      if (hotelCodes.length === 0) {
-        setSearchResults([]);
-        setIsSearching(false);
-        return;
-      }
+  //     // 🔹 Step 2: Extract hotel codes
+  //     const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
+  //     if (hotelCodes.length === 0) {
+  //       setSearchResults([]);
+  //       setIsSearching(false);
+  //       return;
+  //     }
 
-      // 🔹 Step 3: Build payload according to TBO Docs
-      const payload = {
-        CheckIn: checkIn,
-        CheckOut: checkOut,
-        HotelCodes: hotelCodes.slice(0, 100), // ⚡ in chunks of 100
-        GuestNationality: guestNationality,
-        NoOfRooms: rooms,
-        PaxRooms: paxRooms.map((p) => ({
-          Adults: p.Adults,
-          Children: p.Children,
-          ChildrenAges: p.ChildrenAges,
-        })),
-        ResponseTime: responseTime, // default 30s
-        IsDetailedResponse: isDetailedResponse, // true/false
-        Filters: {
-          Refundable: isRefundable,
-          MealType: mealType, // All | WithMeal | RoomOnly
-        },
-      };
+  //     // 🔹 Step 3: Build payload according to TBO Docs
+  //     const payload = {
+  //       CheckIn: checkIn,
+  //       CheckOut: checkOut,
+  //       HotelCodes: hotelCodes.slice(0, 100), // ⚡ in chunks of 100
+  //       GuestNationality: guestNationality,
+  //       PaxRooms: paxRooms.map((p) => ({
+  //         Adults: p.Adults,
+  //         Children: p.Children,
+  //         ChildrenAges: p.ChildrenAges,
+  //       })),
+  //       ResponseTime: responseTime,
+  //       IsDetailedResponse: isDetailedResponse, // true/false
+  //       Filters: {
+  //         NoOfRooms: 0,
+  //         Refundable: isRefundable,
+  //         MealType: mealType, // All | WithMeal | RoomOnly
+  //       },
+  //     };
 
-      console.log("🔹 Final Payload:", payload);
+  //     console.log("🔹 Final Payload:", payload);
 
-      // 🔹 Step 4: Call Search API
-      const res = await searchHotels(payload);
-      console.log("Hotel Search Response:", res);
-      if (res?.data?.HotelResult) {
-        setSearchResults(res.data.HotelResult);
-      } else {
-        setSearchResults([]);
-      }
-    } catch (err) {
-      console.error("❌ Error in search:", err);
+  //     // 🔹 Step 4: Call Search API
+  //     const res = await searchHotels(payload);
+  //     console.log("Hotel Search Response:", res);
+  //     if (res?.data?.HotelResult) {
+  //       setSearchResults(res.data.HotelResult);
+  //     } else {
+  //       setSearchResults([]);
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Error in search:", err);
+  //     setSearchResults([]);
+  //   } finally {
+  //     setIsSearching(false);
+  //   }
+  // };
+
+ const handleSearch = async () => {
+  setIsSearching(true);
+  setVisibleCount(9);
+  setAddressSearch("");
+  setAddressSuggestions([]);
+
+  try {
+    // 🔹 STEP 1: Get hotel codes
+    const data = await getHotelCodeListNew(selectedCountry, selectedCity);
+
+    let hotels = [];
+    if (Array.isArray(data?.data)) hotels = data.data;
+    else if (Array.isArray(data)) hotels = data;
+    else if (Array.isArray(data?.Hotels)) hotels = data.Hotels;
+
+    setHotelList(hotels);
+
+    const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
+    if (!hotelCodes.length) {
       setSearchResults([]);
-    } finally {
-      setIsSearching(false);
+      return;
     }
-  };
 
-  // ✅ Fetch Cities for India by default
-  // Step 1: Load city list
+    // 🔹 STEP 2: Chunk hotel codes (100 max)
+    const hotelCodeChunks = chunkArray(hotelCodes, 100).slice(0, 5);
+
+    // 🔹 STEP 3: Base payload
+    const basePayload = {
+      CheckIn: checkIn,
+      CheckOut: checkOut,
+      GuestNationality: guestNationality,
+      PaxRooms: paxRooms.map((p) => ({
+        Adults: p.Adults,
+        Children: p.Children,
+        ChildrenAges: p.ChildrenAges,
+      })),
+      ResponseTime: responseTime,
+      IsDetailedResponse: isDetailedResponse,
+      Filters: {
+        Refundable: isRefundable,
+        MealType: mealType,
+      },
+    };
+
+    // 🔹 STEP 4: Parallel search calls
+    const responses = await Promise.all(
+      hotelCodeChunks.map((codes) =>
+        searchHotels({ ...basePayload, HotelCodes: codes }),
+      ),
+    );
+
+    // 🔹 STEP 5: Merge search results
+    const mergedResults = responses.flatMap(
+      (res) => res?.data?.data?.HotelResult || [],
+    );
+
+    // 🔹 STEP 6: Create price map
+    const priceMap = {};
+
+    mergedResults.forEach((item) => {
+      if (!item?.HotelCode || !item?.Rooms?.length) return;
+
+      const minRoomPrice = Math.min(
+        ...item.Rooms.map(
+          (r) => r.TotalFare ?? r.DisplayPrice ?? Infinity,
+        ),
+      );
+
+      priceMap[item.HotelCode] = {
+        MinPrice: minRoomPrice,
+        Currency: item.Currency,
+        Rooms: item.Rooms,
+      };
+    });
+
+    // 🔹 STEP 7: Merge hotel list + price map
+    const mergedHotelList = hotels.map((hotel) => {
+      const code = hotel.HotelCode || hotel.Code;
+      return {
+        ...hotel,
+        MinPrice: priceMap[code]?.MinPrice ?? null,
+        Currency: priceMap[code]?.Currency ?? "INR",
+        Rooms: priceMap[code]?.Rooms ?? [],
+      };
+    });
+
+    setSearchResults(mergedHotelList);
+  } catch (err) {
+    console.error("❌ Parallel search failed:", err);
+    setSearchResults([]);
+  } finally {
+    setIsSearching(false);
+  }
+};
+
+
   useEffect(() => {
+    if (!selectedCountry) return;
+
     const loadCities = async () => {
       try {
-        const resp = await getCityList("IN");
+        const resp = await getCityList(selectedCountry);
         console.log("Cities API Raw Response:", resp);
 
         let cities = [];
@@ -232,26 +341,26 @@ function HotelBooking() {
 
         setCityList(cities);
 
-        // ✅ Navigation se city aaye toh match karo cityList ke sath
+        // ✅ If coming from previous page
         if (cities.length > 0 && location.state?.city) {
           const cityCode = location.state.city.toString();
           const cityObj = cities.find(
-            (c) => (c.CityCode?.toString() || c.Code?.toString()) === cityCode
+            (c) => (c.CityCode?.toString() || c.Code?.toString()) === cityCode,
           );
 
           if (cityObj) {
             setSelectedCity(cityObj.CityCode || cityObj.Code);
             setSelectedCityName(
-              cityObj.CityName || cityObj.Name || cityObj.City
+              cityObj.CityName || cityObj.Name || cityObj.City,
             );
           }
         }
 
-        // ✅ Agar navigation se kuch nahi aaya toh first city select
+        // ✅ Fallback to first city
         if (cities.length > 0 && !location.state?.city) {
           setSelectedCity(cities[0].CityCode || cities[0].Code);
           setSelectedCityName(
-            cities[0].CityName || cities[0].Name || cities[0].City
+            cities[0].CityName || cities[0].Name || cities[0].City,
           );
         }
       } catch (err) {
@@ -260,7 +369,7 @@ function HotelBooking() {
     };
 
     loadCities();
-  }, [location.state]);
+  }, [selectedCountry, location.state]);
 
   // Handle address search
   const handleAddressSearch = (e) => {
@@ -282,7 +391,7 @@ function HotelBooking() {
         .filter(
           (hotel) =>
             hotel.Address &&
-            hotel.Address.toLowerCase().includes(value.toLowerCase())
+            hotel.Address.toLowerCase().includes(value.toLowerCase()),
         )
         .map((hotel) => hotel.Address)
         .filter((address, index, self) => self.indexOf(address) === index);
@@ -308,20 +417,11 @@ function HotelBooking() {
       const filteredHotels = sourceArray.filter(
         (hotel) =>
           hotel.Address &&
-          hotel.Address.toLowerCase().includes(address.toLowerCase())
+          hotel.Address.toLowerCase().includes(address.toLowerCase()),
       );
       setSearchResults(filteredHotels);
       setVisibleCount(9); // Reset visible count
     }
-  };
-
-  // Clear address search
-  const clearAddressSearch = () => {
-    setAddressSearch("");
-    const sourceArray = searchResults.length > 0 ? searchResults : hotelList;
-    setSearchResults(sourceArray);
-    setShowSuggestions(false);
-    setVisibleCount(9); // Reset visible count
   };
 
   // Toggle states for each filter section
@@ -343,7 +443,7 @@ function HotelBooking() {
     setSelectedStarRatings((prev) =>
       prev.includes(rating)
         ? prev.filter((r) => r !== rating)
-        : [...prev, rating]
+        : [...prev, rating],
     );
   };
 
@@ -351,7 +451,7 @@ function HotelBooking() {
     setSelectedUserRatings((prev) =>
       prev.includes(rating)
         ? prev.filter((r) => r !== rating)
-        : [...prev, rating]
+        : [...prev, rating],
     );
   };
 
@@ -359,7 +459,7 @@ function HotelBooking() {
     setSelectedAmenities((prev) =>
       prev.includes(amenity)
         ? prev.filter((a) => a !== amenity)
-        : [...prev, amenity]
+        : [...prev, amenity],
     );
   };
 
@@ -379,10 +479,10 @@ function HotelBooking() {
       filtered = filtered.filter(
         (hotel) =>
           hotel.HotelName?.toLowerCase().includes(
-            searchKeyword.toLowerCase()
+            searchKeyword.toLowerCase(),
           ) ||
           hotel.CityName?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-          hotel.Address?.toLowerCase().includes(searchKeyword.toLowerCase())
+          hotel.Address?.toLowerCase().includes(searchKeyword.toLowerCase()),
       );
     }
 
@@ -403,7 +503,7 @@ function HotelBooking() {
         return selectedStarRatings.some(
           (rating) =>
             hotelRating === ratingMap[rating] ||
-            (rating === "Unrated" && !hotel.HotelRating)
+            (rating === "Unrated" && !hotel.HotelRating),
         );
       });
     }
@@ -431,22 +531,22 @@ function HotelBooking() {
       filtered = filtered.filter(
         (hotel) =>
           hotel.Address &&
-          hotel.Address.toLowerCase().includes(addressSearch.toLowerCase())
+          hotel.Address.toLowerCase().includes(addressSearch.toLowerCase()),
       );
     }
 
     // Sort logic
     if (sortOption === "PriceLowHigh") {
       filtered = [...filtered].sort(
-        (a, b) => (a.MinPrice || 0) - (b.MinPrice || 0)
+        (a, b) => (a.MinPrice || 0) - (b.MinPrice || 0),
       );
     } else if (sortOption === "PriceHighLow") {
       filtered = [...filtered].sort(
-        (a, b) => (b.MinPrice || 0) - (a.MinPrice || 0)
+        (a, b) => (b.MinPrice || 0) - (a.MinPrice || 0),
       );
     } else if (sortOption === "Rating") {
       filtered = [...filtered].sort(
-        (a, b) => (b.HotelRating || 0) - (a.HotelRating || 0)
+        (a, b) => (b.HotelRating || 0) - (a.HotelRating || 0),
       );
     }
     // Popularity is default
@@ -484,33 +584,52 @@ function HotelBooking() {
   const visibleHotels = filteredHotels.slice(0, visibleCount);
 
   // ✅ Run only once on first load if data exists
+  // useEffect(() => {
+  //   if (location.state) {
+  //     const { country, city, cityName, checkIn, checkOut, rooms, paxRooms } =
+  //       location.state;
+
+  //     // ✅ handle when coming from HotelPopularDestination
+  //     if (city && cityName) {
+  //       setSelectedCity(city);
+  //       setSelectedCityName(cityName);
+
+  //       // optional: set default dates if none provided
+  //       if (!checkIn) setCheckIn(new Date().toISOString().split("T")[0]);
+  //       if (!checkOut) {
+  //         const tomorrow = new Date();
+  //         tomorrow.setDate(tomorrow.getDate() + 1);
+  //         setCheckOut(tomorrow.toISOString().split("T")[0]);
+  //       }
+  //     }
+
+  //     // ✅ handle when coming from your other component
+  //     if (country) setSelectedCountry(country);
+  //     if (checkIn) setCheckIn(checkIn);
+  //     if (checkOut) setCheckOut(checkOut);
+  //     if (rooms) setRooms(rooms);
+  //     if (paxRooms) setPaxRooms(paxRooms);
+  //   }
+  // }, [location.state]);
   useEffect(() => {
-    if (location.state) {
-      const { country, city, cityName, checkIn, checkOut, rooms, paxRooms } =
-        location.state;
+    if (!location.state) return;
 
-      // ✅ handle when coming from HotelPopularDestination
-      if (city && cityName) {
-        setSelectedCity(city);
-        setSelectedCityName(cityName);
+    const { country, city, cityName, checkIn, checkOut, rooms, paxRooms } =
+      location.state;
 
-        // optional: set default dates if none provided
-        if (!checkIn) setCheckIn(new Date().toISOString().split("T")[0]);
-        if (!checkOut) {
-          const tomorrow = new Date();
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          setCheckOut(tomorrow.toISOString().split("T")[0]);
-        }
-      }
-
-      // ✅ handle when coming from your other component
-      if (country) setSelectedCountry(country);
-      if (checkIn) setCheckIn(checkIn);
-      if (checkOut) setCheckOut(checkOut);
-      if (rooms) setRooms(rooms);
-      if (paxRooms) setPaxRooms(paxRooms);
+    // ✅ COUNTRY FIRST (important)
+    if (country) {
+      setSelectedCountry(country);
     }
+
+    if (checkIn) setCheckIn(checkIn);
+    if (checkOut) setCheckOut(checkOut);
+    if (rooms) setRooms(rooms);
+    if (paxRooms) setPaxRooms(paxRooms);
+
+    // city & cityName handled after city list loads
   }, [location.state]);
+
   // sirf jab navigation se data aaye
 
   // Trigger search when all relevant state values are ready
@@ -525,10 +644,39 @@ function HotelBooking() {
       {/* search hotel box filter */}
       <div
         className="search-box listing-search-form"
-        style={{ marginTop: "108px" }}
+        style={{ marginTop: "200px" }}
       >
         <div className="container">
           <div className="row g-3 align-items-end">
+            {/* Country */}
+            <div className="col-md-2">
+              <label className="form-label">Country</label>
+              <select
+                className="form-control"
+                value={selectedCountry}
+                onChange={(e) => {
+                  const countryCode = e.target.value;
+                  setSelectedCountry(countryCode);
+
+                  // 🔁 reset city when country changes
+                  setSelectedCity("");
+                  setSelectedCityName("");
+                  setCityList([]);
+
+                  // optional: reset results
+                  setHotelList([]);
+                  setSearchResults([]);
+                }}
+              >
+                <option value="">-- Select Country --</option>
+                {countryOptions.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* City */}
             <div className="col-md-2">
               <label className="form-label">City</label>
@@ -542,15 +690,13 @@ function HotelBooking() {
                   const cityObj = cityList.find(
                     (c) =>
                       (c.CityCode?.toString() || c.Code?.toString()) ===
-                      cityCode.toString()
+                      cityCode.toString(),
                   );
 
                   const cityName =
                     cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
 
                   setSelectedCityName(cityName);
-                  localStorage.setItem("selectedCity", cityCode);
-                  localStorage.setItem("selectedCityName", cityName);
 
                   // Reset address search when city changes
                   setAddressSearch("");
@@ -684,7 +830,7 @@ function HotelBooking() {
                                     idx
                                   ].ChildrenAges.slice(
                                     0,
-                                    updated[idx].Children
+                                    updated[idx].Children,
                                   );
                                 }
                                 setPaxRooms(updated);
@@ -727,14 +873,14 @@ function HotelBooking() {
                                 onChange={(e) => {
                                   const updated = [...paxRooms];
                                   updated[idx].ChildrenAges[cIdx] = Number(
-                                    e.target.value
+                                    e.target.value,
                                   );
                                   setPaxRooms(updated);
                                 }}
                               >
                                 {Array.from(
                                   { length: 12 },
-                                  (_, i) => i + 1
+                                  (_, i) => i + 1,
                                 ).map((a) => (
                                   <option key={a} value={a}>
                                     {a}
@@ -803,73 +949,12 @@ function HotelBooking() {
       </div>
       {/* searchbox */}
 
-      <div className="container">
-        <div className="address-search-container" ref={searchRef}>
-          <div className="input-group">
-            <span className="input-group-text">
-              <FontAwesomeIcon icon={faSearch} />
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder={`Search hotels by address in ${
-                selectedCityName || "selected city"
-              }...`}
-              value={addressSearch}
-              onChange={handleAddressSearch}
-              onFocus={() => setShowSuggestions(true)}
-              disabled={!selectedCity || hotelList.length === 0}
-            />
-          </div>
-
-          {/* Address Suggestions Dropdown */}
-          {showSuggestions && addressSuggestions.length > 0 && (
-            <div className="address-suggestions-dropdown">
-              <div className="dropdown-header">
-                <small className="text-muted">
-                  <FontAwesomeIcon icon={faLocationDot} className="me-1" />
-                  Address recommendations for {selectedCityName}
-                </small>
-              </div>
-              {addressSuggestions.slice(0, 10).map((address, index) => (
-                <div
-                  key={index}
-                  className="suggestion-item"
-                  onClick={() => handleAddressSelect(address)}
-                >
-                  <FontAwesomeIcon
-                    icon={faLocationDot}
-                    className="text-primary me-2"
-                  />
-                  <span>{address}</span>
-                </div>
-              ))}
-              {addressSuggestions.length > 10 && (
-                <div className="dropdown-header">
-                  <small className="text-muted">
-                    And {addressSuggestions.length - 10} more addresses...
-                  </small>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* No suggestions message */}
-          {showSuggestions &&
-            addressSearch &&
-            addressSuggestions.length === 0 && (
-              <div className="address-suggestions-dropdown">
-                <div className="suggestion-item text-muted">
-                  No addresses found matching "{addressSearch}"
-                </div>
-              </div>
-            )}
-        </div>
-      </div>
+      <div className="container"></div>
       {/* Hotel Listing */}
       <div className="container hotel-listing">
-        <div className="row align-items-end pb-3">
-          <div className="col-sm-5">
+        <div className="row align-items-end pt-5 pb-3 border-bottom mb-4">
+          {/* LEFT SIDE → Breadcrumb */}
+          <div className="col-md-5 col-sm-12">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
@@ -881,18 +966,65 @@ function HotelBooking() {
               </ol>
             </nav>
           </div>
-          {/* Display current search info */}
-          {/* <div className="col-sm-7">
-            <div className="d-flex justify-content-end">
 
-          
-              <small className="text-muted">
-                {selectedCityName && `Searching in: ${selectedCityName}`}
-                {addressSearch && ` | Address: ${addressSearch}`}
-                {addressSearch && ` (${filteredHotels.length} hotels found)`}
-              </small>
+          {/* RIGHT SIDE → Hotel Address Search */}
+          <div className="col-md-7 col-sm-12 d-flex justify-content-end">
+            <div className="address-search-container" ref={searchRef}>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <FontAwesomeIcon icon={faSearch} />
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder={`Search hotels by address in ${
+                    selectedCityName || "selected city"
+                  }...`}
+                  value={addressSearch}
+                  onChange={handleAddressSearch}
+                  onFocus={() => setShowSuggestions(true)}
+                  disabled={!selectedCity || hotelList.length === 0}
+                />
+              </div>
+
+              {/* Address Suggestions Dropdown */}
+              {showSuggestions && addressSuggestions.length > 0 && (
+                <div className="address-suggestions-dropdown">
+                  <div className="dropdown-header">
+                    <small className="text-muted">
+                      <FontAwesomeIcon icon={faLocationDot} className="me-1" />
+                      Address recommendations for {selectedCityName}
+                    </small>
+                  </div>
+
+                  {addressSuggestions.slice(0, 10).map((address, index) => (
+                    <div
+                      key={index}
+                      className="suggestion-item"
+                      onClick={() => handleAddressSelect(address)}
+                    >
+                      <FontAwesomeIcon
+                        icon={faLocationDot}
+                        className="text-primary me-2"
+                      />
+                      <span>{address}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No Suggestions */}
+              {showSuggestions &&
+                addressSearch &&
+                addressSuggestions.length === 0 && (
+                  <div className="address-suggestions-dropdown">
+                    <div className="suggestion-item text-muted">
+                      No addresses found matching "{addressSearch}"
+                    </div>
+                  </div>
+                )}
             </div>
-          </div> */}
+          </div>
         </div>
 
         <div className="row">
@@ -982,7 +1114,7 @@ function HotelBooking() {
                             {rating}
                           </label>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 )}
@@ -1034,8 +1166,8 @@ function HotelBooking() {
           <div className="col-sm-9">
             {isSearching ? (
               <div className="text-center mt-5">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
+                <div>
+                  <Loading />
                 </div>
                 <p className="mt-2">
                   Searching hotels in {selectedCityName}...
@@ -1091,20 +1223,20 @@ function HotelBooking() {
                                 hotel.HotelRating === "FiveStar"
                                   ? 5
                                   : hotel.HotelRating === "FourStar"
-                                  ? 4
-                                  : hotel.HotelRating === "ThreeStar"
-                                  ? 3
-                                  : hotel.HotelRating === "TwoStar"
-                                  ? 2
-                                  : hotel.HotelRating === "OneStar"
-                                  ? 1
-                                  : 0;
+                                    ? 4
+                                    : hotel.HotelRating === "ThreeStar"
+                                      ? 3
+                                      : hotel.HotelRating === "TwoStar"
+                                        ? 2
+                                        : hotel.HotelRating === "OneStar"
+                                          ? 1
+                                          : 0;
 
                               return (
                                 <span
                                   key={i}
                                   style={{
-                                    color: i < rating ? "#10669b" : "#ccc",
+                                    color: i < rating ? "#6665ae" : "#ccc",
                                     fontSize: "20px",
                                   }}
                                 >
@@ -1176,7 +1308,7 @@ function HotelBooking() {
                     </div>
                   )}
               </div>
-            )}
+             )} 
           </div>
         </div>
       </div>

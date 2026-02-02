@@ -12,7 +12,7 @@ import { logout } from "../redux/slices/authSlice";
 
 import Profile from "./driver-dashboard-pages/Profile";
 import ChangePassword from "./driver-dashboard-pages/ChangePassword";
-import { driverGuideLogout } from "../services/authService";
+// import { driverGuideLogout } from "../services/authService";
 
 function DriverDashboard() {
   const dispatch = useDispatch();
@@ -20,7 +20,7 @@ function DriverDashboard() {
   const handleLogout = async () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (!confirmed) return;
-    await driverGuideLogout();
+    // await driverGuideLogout();
     localStorage.removeItem("driver");
     localStorage.removeItem("driver_token");
     localStorage.removeItem("driver_refreshtoken");

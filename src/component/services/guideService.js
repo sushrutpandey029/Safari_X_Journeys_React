@@ -2,6 +2,15 @@ import { getUserData, getUserToken } from "../utils/storage";
 import { API } from "./apiEndpoints";
 import axios from "axios";
 
+export const guideLogin = async (payload) => {
+  try {
+    const response = await axios.post(API.GUIDE_LOGIN, payload);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getAllGuides = async (filters = {}) => {
   try {
     const response = await axios.get(API.GUIDE_LIST, { params: filters });
@@ -16,7 +25,10 @@ export const guideUpdateProfile = async (payload) => {
     const guide = getUserData("guide");
     console.log("guide from local storage", guide);
 
-    const resp = await axios.put(API.GUIDE_UPDATE_PROFILE(guide.id), payload);
+    const resp = await axios.put(
+      API.GUIDE_UPDATE_PROFILE(guide.guideId),
+      payload
+    );
     return resp.data;
   } catch (err) {
     throw err;
@@ -28,7 +40,7 @@ export const guideChangePassword = async (payload) => {
     const token = getUserToken("guide_token");
     const guide = getUserData("guide");
     const resp = await axios.post(
-      API.GUIDE_CHANGE_PASSWORD(guide.id),
+      API.GUIDE_CHANGE_PASSWORD(guide.guideId),
       payload,
       {
         headers: {
@@ -56,4 +68,31 @@ export const guideCareerSubmit = async (payload) => {
     console.log("error in career guide submit", err.response);
     throw err;
   }
+};
+
+export const GuideLogout = async () => {
+  // const guide = await getUserData("guide")
+  try {
+    const response = await axios.post(API.GUIDE_LOGOUT);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const guideApplyLeave = async (payload) => {
+  return await axios.post(API.GUIDE_MARK_LEAVE(payload.guideId), payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const guideLeaveHistory = async (id) => {
+  return await axios.get(API.GUIDE_LEAVE_HISTORY(id), {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const guideBookingHistory = async (id) => {
+   return await axios.get(API.GUIDE_BOOKING_HISTORY(id), {
+    headers: { "Content-Type": "application/json" },
+  });
 };
