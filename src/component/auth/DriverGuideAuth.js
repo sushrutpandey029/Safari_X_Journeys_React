@@ -20,9 +20,14 @@ const DriverGuideAuth = ({ show, onClose, setShowDriverGuideLogin }) => {
   const dispatch = useDispatch(); 
 
 
+  const dispatch = useDispatch(); 
+
+
 
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+
+  
 
   
   const handleChange = (e) => {

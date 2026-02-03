@@ -1,8 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-// import "../home/Home.css";
-import "../home/style.css";
+import "../home/Home.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
@@ -209,13 +208,12 @@ function Header() {
               </ul>
             </div>
 
-         
+
 
             {/* User Icon & Profile Menu */}
             <div className="user-icon position-relative">
               <div className="profile-wrapper" ref={profileMenuRef}>
-                <a
-                  className="profile-icon-link"
+                <a className="profile-icon-link"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img

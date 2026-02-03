@@ -9,7 +9,7 @@ function HotelPopularDestination() {
 
   const City = [
     { name: "", image: "/Images/Goa.jpg" },
-    { name: "", image: "/Images/jammu.jpg" },
+    { name: "", image: "/Images/jammu.jpg"},
     { name: "", image: "/Images/kaashmir.jpg" },
     { name: "", image: "/Images/Ooty.jpg" },
     { name: "", image: "/Images/Pelling_Sikhim.jpg" },

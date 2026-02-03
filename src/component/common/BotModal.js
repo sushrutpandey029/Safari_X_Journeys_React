@@ -22,7 +22,7 @@ function BotModal() {
     noOfChildren: "0",
     cabNeed: "Yes",
     purposeType: "Tourism",
-    mood: "",
+      mood: "",
 
   });
 

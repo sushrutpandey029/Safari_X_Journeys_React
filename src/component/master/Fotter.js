@@ -15,20 +15,20 @@ import {
 
 const bots = [
   {
-    icon: "/Images/call.gif",
+    icon: "/Images/phone-call.png",
     label: "Call",
     phone: "9821351111",
     type: "call",
   },
   {
-    icon: "/Images/whatsapp.gif",
+    icon: "/Images/whatsapp.png",
     label: "Whatsapp",
     phone: "9821351111",
     message: "Hello, I want to know more about your services.",
     type: "whatsapp",
   },
   {
-    icon: "/Images/mail.gif",
+    icon: "/Images/gmail.png",
     label: "Mail",
     email: "tomharry192999@gmail.com",
     subject: "Service Inquiry",

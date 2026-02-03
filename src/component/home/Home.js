@@ -130,60 +130,99 @@ function Home() {
     <div>
       <ScrollToTop />
       <HomeBanner />
-        <div className="top-destination">
-          <div className="container">
+      <div className="top-destination py-5">
+        <div className="container">
+          <div className="row align-items-center">
 
-        <div class="row">
-            <div class="col-sm-12">
-              <h2 class="title-modern">About <span>India</span></h2>
-              <ul>
-                <li><p>
-                  India is a big country in Asia, known for its rich culture and diverse landscapes.</p></li>
-                <li><p>
-                  The word "India" originates from the Greek Mythology referred to the land of "Indoi", or people living near the Indus River</p></li>
-                <li><p>
-                  It's the 7th largest country in the world, covering 2.4% of the Earth's surface.</p></li>
-                <li><p>
-                  India is home to ancient civilizations and has been called by many names, including Aryavarta ( The land of the Aryan race), Bharat, and Hindustan ( The Land beyond the river Sindhu)</p></li>
+            {/* LEFT CONTENT */}
+            <div className="col-lg-5 mb-4 mb-lg-0">
+              <h2 className="title-modern">
+                About <span>India</span>
+              </h2>
+
+              <ul className="about-list">
+                <li>
+                  <p>
+                    India is a big country in Asia, known for its rich culture and diverse landscapes.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    The word "India" originates from Greek mythology and refers to the land of the Indus River.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    It's the 7th largest country in the world, covering 2.4% of the Earth's surface.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    India is known by many names such as Aryavarta, Bharat, and Hindustan.
+                  </p>
+                </li>
               </ul>
             </div>
-          </div>
 
-            <div className="row justify-content-center row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
-              {categories.map((item, index) => (
-                <div className="col col-6" key={index}>
-                  {/* Category Card */}
-                  <div
-                    className="place-card-link place"
-                    style={{ cursor: "pointer" }}
-                    onClick={() =>
-                      navigate("/places", { state: { category: item } })
-                    }
-                  >
-                    <div className="place">
+            {/* RIGHT IMAGE GALLERY */}
+            <div className="col-lg-7">
+
+              {/* TOP ROW – 3 IMAGES */}
+              <div className="row g-3 mb-3">
+                {categories.slice(0, 3).map((item, index) => (
+                  <div className="col-4" key={index}>
+                    <div
+                      className="gallery-card show-title"
+                      onClick={() =>
+                        navigate("/places", { state: { category: item } })
+                      }
+                    >
                       <img
                         src={staticImages[index % staticImages.length]}
                         alt={item.category}
                       />
-                      <div className="overlay">
-                        <p className="card-destination">{item.category}</p>
-                      </div>
+                      <div className="title">{item.category}</div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* BOTTOM ROW – 2 IMAGES CENTERED */}
+              <div className="row g-3 justify-content-center">
+                {categories.slice(3, 5).map((item, index) => (
+                  <div className="col-6 col-md-4" key={index}>
+                    <div
+                      className="gallery-card show-title"
+                      onClick={() =>
+                        navigate("/places", { state: { category: item } })
+                      }
+                    >
+                      <img
+                        src={staticImages[(index + 3) % staticImages.length]}
+                        alt={item.category}
+                      />
+                      <div className="title">{item.category}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
             </div>
+
+
           </div>
         </div>
+      </div>
 
-        <HotelPopularDestination />
 
-        {/* guide section */}
-        <GuidePreview />
+      <HotelPopularDestination />
 
-        {/* cab section */}
+      {/* guide section */}
+      <GuidePreview />
 
-        {/* <div className="book-hotel ">
+      {/* cab section */}
+
+      {/* <div className="book-hotel ">
         <div className="container">
           <div class="row">
             <div className="col-sm-12 d-flex">
@@ -224,183 +263,183 @@ function Home() {
         </div>
       </div> */}
 
-        <WhyChooseUs />
+      <WhyChooseUs />
 
-        <div className="Testionials">
-          <div className="container">
+      <div className="Testionials">
+        <div className="container">
 
-            <div className="row align-items-center">
-              <div className="col-sm-12 text-end mb-4">
-                <Link to={"/testimonials"}>
-                  <button className="explore-btn">Explore More</button>
-                </Link>
-              </div>
+          <div className="row align-items-center">
+            <div className="col-sm-12 text-end mb-4">
+              <Link to={"/testimonials"}>
+                <button className="explore-btn">Explore More</button>
+              </Link>
             </div>
-            <div className="row align-items-start">
-              {/* LEFT STATIC BOX */}
-              <div className="container">
-                <div className="row align-items-start">
-                  {/* LEFT SECTION (col-sm-4) */}
-                  <div className="col-sm-4">
-                    <h2 className="feedback-title">
-                      Client <span>Feedback</span>
-                    </h2>
-                    <p className="feedback-heading">
-                      What They Say After Using Our Product
-                    </p>
-                    <p className="feedback-sub">
-                      Many of our members have started their early careers with
-                      us Many of our members have started their early careers
-                      with us
-                    </p>
+          </div>
+          <div className="row align-items-start">
+            {/* LEFT STATIC BOX */}
+            <div className="container">
+              <div className="row align-items-start">
+                {/* LEFT SECTION (col-sm-4) */}
+                <div className="col-sm-4">
+                  <h2 className="feedback-title">
+                    Client <span>Feedback</span>
+                  </h2>
+                  <p className="feedback-heading">
+                    What They Say After Using Our Product
+                  </p>
+                  <p className="feedback-sub">
+                    Many of our members have started their early careers with
+                    us Many of our members have started their early careers
+                    with us
+                  </p>
 
-                    {/* Slider Arrows */}
-                    <div className="testimonial-arrows">
-                      <button
-                        onClick={() => {
-                          const slider =
-                            document.getElementById("testimonialSlider");
-                          slider.scrollLeft -= 370;
-                        }}
-                      >
-                        ←
-                      </button>
-                      <button
-                        onClick={() => {
-                          const slider =
-                            document.getElementById("testimonialSlider");
-                          slider.scrollLeft += 370;
-                        }}
-                      >
-                        →
-                      </button>
+                  {/* Slider Arrows */}
+                  <div className="testimonial-arrows">
+                    <button
+                      onClick={() => {
+                        const slider =
+                          document.getElementById("testimonialSlider");
+                        slider.scrollLeft -= 370;
+                      }}
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={() => {
+                        const slider =
+                          document.getElementById("testimonialSlider");
+                        slider.scrollLeft += 370;
+                      }}
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+
+                {/* RIGHT SECTION (col-sm-8) */}
+                <div className="col-sm-8">
+                  {/* SLIDER START */}
+                  <div id="testimonialSlider" className="testimonial-slider">
+                    <div className="row flex-nowrap testimonial-row">
+                      {testimonialData?.map((item) => (
+                        <div
+                          key={item.id}
+                          className="col-10 col-sm-6 col-md-4 col-lg-3 testimonial-col"
+                        >
+                          <div className="testimonial-card">
+                            <div className="stars">
+                              {"★".repeat(item.rating)}
+                            </div>
+
+                            <p className="review-text">
+                              {item.description?.substring(0, 110)}...
+                            </p>
+
+                            <div className="review-user">
+                              <img
+                                src={`${BASE_URL}/testimonial/images/${item.image}`}
+                                alt={item.name}
+                              />
+                              <div>
+                                <h4>{item.name}</h4>
+                                <small>{item.designation}</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* RIGHT SECTION (col-sm-8) */}
-                  <div className="col-sm-8">
-                    {/* SLIDER START */}
-                   <div id="testimonialSlider" className="testimonial-slider">
-  <div className="row flex-nowrap testimonial-row">
-    {testimonialData?.map((item) => (
-      <div
-        key={item.id}
-        className="col-10 col-sm-6 col-md-4 col-lg-3 testimonial-col"
-      >
-        <div className="testimonial-card">
-          <div className="stars">
-            {"★".repeat(item.rating)}
-          </div>
-
-          <p className="review-text">
-            {item.description?.substring(0, 110)}...
-          </p>
-
-          <div className="review-user">
-            <img
-              src={`${BASE_URL}/testimonial/images/${item.image}`}
-              alt={item.name}
-            />
-            <div>
-              <h4>{item.name}</h4>
-              <small>{item.designation}</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-
-                    {/* SLIDER END */}
-                  </div>
+                  {/* SLIDER END */}
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* FAQ section */}
-        <FAQ />
+      {/* FAQ section */}
+      <FAQ />
 
-        <div className=" modern-blog">
-          <div className="container">
-            <div className="row align-items-center mb-4">
-              <div className="col-sm-9">
-                <h2>
-                  Our Recent <span>Blogs</span>
-                </h2>
-                <p className="section-subtext">
-                  Stay inspired with our latest travel stories, guides, and
-                  destination tips crafted just for you.
-                </p>
-              </div>
-              <div className="col-sm-3 text-end">
-                <Link to={"/blogs"}>
-                  <button className="explore-btn">Explore More</button>
-                </Link>
-              </div>
+      <div className=" modern-blog">
+        <div className="container">
+          <div className="row align-items-center mb-4">
+            <div className="col-sm-9">
+              <h2>
+                Our Recent <span>Blogs</span>
+              </h2>
+              <p className="section-subtext">
+                Stay inspired with our latest travel stories, guides, and
+                destination tips crafted just for you.
+              </p>
             </div>
+            <div className="col-sm-3 text-end">
+              <Link to={"/blogs"}>
+                <button className="explore-btn">Explore More</button>
+              </Link>
+            </div>
+          </div>
 
-            <div className="row">
-              {blogData &&
-                blogData.slice(0, 3).map((blog, index) => (
-                  <div
-                    className="col-sm-4"
-                    key={index}
-                    onClick={() => handleNavigate(blog)}
-                  >
-                    <div className="blog-card">
-                      <div className="blog-image">
-                        <img
-                          src={`${BASE_URL}/blog/images/${blog.image}`}
-                          alt="blog"
-                          className="img-fluid"
-                        />
-                      </div>
+          <div className="row">
+            {blogData &&
+              blogData.slice(0, 3).map((blog, index) => (
+                <div
+                  className="col-sm-4"
+                  key={index}
+                  onClick={() => handleNavigate(blog)}
+                >
+                  <div className="blog-card">
+                    <div className="blog-image">
+                      <img
+                        src={`${BASE_URL}/blog/images/${blog.image}`}
+                        alt="blog"
+                        className="img-fluid"
+                      />
+                    </div>
 
-                      <div className="blog-content">
-                        <h5 className="blog-category">{blog.title}</h5>
-                        <h4 className="blog-title">{blog.heading}</h4>
-                        <p className="blog-desc">
-                          {blog.description.length > 100
-                            ? blog.description.substring(0, 100) + "..."
-                            : blog.description}
-                        </p>
+                    <div className="blog-content">
+                      <h5 className="blog-category">{blog.title}</h5>
+                      <h4 className="blog-title">{blog.heading}</h4>
+                      <p className="blog-desc">
+                        {blog.description.length > 100
+                          ? blog.description.substring(0, 100) + "..."
+                          : blog.description}
+                      </p>
 
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                          <h6 className="date">
-                            {new Date(blog.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                day: "numeric",
-                                month: "long",
-                              }
-                            )}
-                          </h6>
-
-                          <button
-                            className="read-more-btn"
-                            onClick={() =>
-                              navigate("/blog-detail", { state: { blog } })
+                      <div className="d-flex justify-content-between align-items-center mt-3">
+                        <h6 className="date">
+                          {new Date(blog.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              day: "numeric",
+                              month: "long",
                             }
-                          >
-                            Read More
-                          </button>
-                        </div>
+                          )}
+                        </h6>
+
+                        <button
+                          className="read-more-btn"
+                          onClick={() =>
+                            navigate("/blog-detail", { state: { blog } })
+                          }
+                        >
+                          Read More
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
-            </div>
+                </div>
+              ))}
           </div>
         </div>
-
-        {/* newslater */}
-        <NewsLater />
       </div>
-      );
+
+      {/* newslater */}
+      <NewsLater />
+    </div>
+  );
 }
 
-      export default Home;
+export default Home;
