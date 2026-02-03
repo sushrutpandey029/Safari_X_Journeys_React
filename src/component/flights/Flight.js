@@ -418,8 +418,6 @@ const Flight = () => {
   const getFilteredResultsForDisplay = () => {
     if (!searchResults || searchResults.length === 0) return [];
 
-   
-
     // Check if searchResults is an array of arrays (domestic return response)
     if (
       Array.isArray(searchResults[0]) &&
@@ -446,7 +444,6 @@ const Flight = () => {
       return searchResults.flat();
     }
 
- 
     // For domestic return with flat array (old logic)
     if (tripType === "round" && isDomestic) {
       // First check TripIndicator if available
@@ -465,8 +462,6 @@ const Flight = () => {
           flight.TripIndicator === "Return" ||
           flight.TripIndicator === "2", // Sometimes numeric
       );
-
-     
 
       // If TripIndicator worked, use it
       if (outboundFlights.length > 0 || inboundFlights.length > 0) {
@@ -513,8 +508,6 @@ const Flight = () => {
         return segOrigin === destination && segDest === origin;
       });
 
-    
-
       return activeTab === 0 ? obFlights : ibFlights;
     }
 
@@ -522,8 +515,6 @@ const Flight = () => {
     if (tripType === "multi") {
       const currentFlight = flights[activeTab];
       if (!currentFlight) return [];
-
-  
 
       const segmentFlights = searchResults.filter((flight) => {
         const segments = flight.Segments || [];
@@ -551,12 +542,11 @@ const Flight = () => {
         return hasMatchingRoute;
       });
 
-     
       return segmentFlights;
     }
 
     // For one-way: return all
-     return searchResults;
+    return searchResults;
   };
 
   const applyFilters = (flights) => {
@@ -1214,7 +1204,7 @@ const Flight = () => {
         JourneyType: journeyType,
         PreferredAirlines: [],
         Segments: segments,
-        // Sources: ["GDS"],
+        Sources: ["GDS"], //by default it is LCC and it not allow booking api call
       };
 
       console.log("Search payload", searchPayload);
@@ -1290,8 +1280,6 @@ const Flight = () => {
       }
 
       if (foundFlights.length > 0) {
-       
-
         // For multi-city, ensure we have the right structure
         if (tripType === "multi") {
           if (
@@ -1374,8 +1362,6 @@ const Flight = () => {
   // ✅ FIXED: Render tabs based on trip type with accurate counts
   const renderTabs = () => {
     if (searchResults.length === 0) return null;
-
-   
 
     if (tripType === "round") {
       let obCount, ibCount;
