@@ -46,7 +46,6 @@ const Flight = () => {
     gstPercent: 18,
     netFare: 0,
   });
-  
 
   useEffect(() => {
     if (!flights[0]?.date) {
@@ -419,13 +418,6 @@ const Flight = () => {
   const getFilteredResultsForDisplay = () => {
     if (!searchResults || searchResults.length === 0) return [];
 
-    console.log("=== DEBUG: getFilteredResultsForDisplay ===");
-    console.log("Total search results:", searchResults.length);
-    console.log(
-      "Search results structure:",
-      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array",
-    );
-
     // Check if searchResults is an array of arrays (domestic return response)
     if (
       Array.isArray(searchResults[0]) &&
@@ -452,8 +444,6 @@ const Flight = () => {
       return searchResults.flat();
     }
 
-    console.log("⚠️ Using flat array format");
-
     // For domestic return with flat array (old logic)
     if (tripType === "round" && isDomestic) {
       // First check TripIndicator if available
@@ -471,13 +461,6 @@ const Flight = () => {
           flight.TripIndicator === "RT" ||
           flight.TripIndicator === "Return" ||
           flight.TripIndicator === "2", // Sometimes numeric
-      );
-
-      console.log(
-        "TripIndicator - OB:",
-        outboundFlights.length,
-        "IB:",
-        inboundFlights.length,
       );
 
       // If TripIndicator worked, use it
@@ -525,13 +508,6 @@ const Flight = () => {
         return segOrigin === destination && segDest === origin;
       });
 
-      console.log(
-        "Route-based - OB:",
-        obFlights.length,
-        "IB:",
-        ibFlights.length,
-      );
-
       return activeTab === 0 ? obFlights : ibFlights;
     }
 
@@ -539,10 +515,6 @@ const Flight = () => {
     if (tripType === "multi") {
       const currentFlight = flights[activeTab];
       if (!currentFlight) return [];
-
-      console.log(
-        `Filtering multi-city segment ${activeTab}: ${currentFlight.from} -> ${currentFlight.to}`,
-      );
 
       const segmentFlights = searchResults.filter((flight) => {
         const segments = flight.Segments || [];
@@ -570,15 +542,10 @@ const Flight = () => {
         return hasMatchingRoute;
       });
 
-      console.log(
-        `Multi-city segment ${activeTab} flights:`,
-        segmentFlights.length,
-      );
       return segmentFlights;
     }
 
     // For one-way: return all
-    console.log("One-way flights total:", searchResults.length);
     return searchResults;
   };
 
@@ -1179,8 +1146,6 @@ const Flight = () => {
     const domesticCheck = checkIfDomestic(flights[0].from, flights[0].to);
     setIsDomestic(domesticCheck);
 
-  
-
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults([]);
@@ -1239,7 +1204,7 @@ const Flight = () => {
         JourneyType: journeyType,
         PreferredAirlines: [],
         Segments: segments,
-        // Sources: ["GDS"],
+        Sources: ["GDS"], //by default it is LCC and it not allow booking api call
       };
 
       console.log("Search payload", searchPayload);
@@ -1315,10 +1280,6 @@ const Flight = () => {
       }
 
       if (foundFlights.length > 0) {
-        console.log("=== API RESPONSE ANALYSIS ===");
-        console.log("Total flights found:", foundFlights.length);
-        console.log("Trip type:", tripType);
-
         // For multi-city, ensure we have the right structure
         if (tripType === "multi") {
           if (
@@ -1358,7 +1319,7 @@ const Flight = () => {
             foundFlights = segmentedResults;
           }
         }
-
+        console.log("flight resp", foundFlights);
         setSearchResults(foundFlights);
         setTraceId(searchResponse?.data?.Response?.TraceId || "");
         setSearchError(null);
@@ -1401,12 +1362,6 @@ const Flight = () => {
   // ✅ FIXED: Render tabs based on trip type with accurate counts
   const renderTabs = () => {
     if (searchResults.length === 0) return null;
-
-    console.log("=== DEBUG: renderTabs ===");
-    console.log(
-      "Search results type:",
-      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array",
-    );
 
     if (tripType === "round") {
       let obCount, ibCount;
@@ -1818,7 +1773,8 @@ const Flight = () => {
                       <strong>Baggage:</strong> {segmentData?.Baggage || "--"}•
                       <strong> Cabin:</strong>{" "}
                       {segmentData?.CabinBaggage || "--"} •
-                      <strong> Class:</strong> {travelClass}
+                      <strong> Class:</strong> {getCabinClassFromApi(flight)}
+                      {/* <strong> Class:</strong> {travelClass} */}
                     </small>
                   </div>
                 </Col>
@@ -1922,7 +1878,7 @@ const Flight = () => {
         ).length;
         return { code, name, count };
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => a?.name?.localeCompare(b.name));
   }, [searchResults, activeTab, tripType, isDomestic]);
 
   const buildFlightDetailPayload = () => {
@@ -1951,6 +1907,23 @@ const Flight = () => {
       passengers: { adults, children, infants },
       travelClass,
     };
+  };
+
+  const getCabinClassFromApi = (flight) => {
+    const cabinCode = flight?.Segments?.[0]?.[0]?.CabinClass;
+
+    switch (Number(cabinCode)) {
+      case 1:
+        return "Economy";
+      case 2:
+        return "Premium Economy";
+      case 3:
+        return "Business";
+      case 4:
+        return "First Class";
+      default:
+        return "Unknown";
+    }
   };
 
   return (

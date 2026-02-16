@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { hotel_prebook } from "../services/hotelService";
 
 const HotelCheckout = () => {
   const location = useLocation();
-  const { payload } = location.state;
-  console.log("data from previous page on checkout", payload);
+  const payload = location.state?.payload;
   const userdetails = getUserData("safarix_user");
-  console.log("userdetails on hotel checkout", userdetails);
   const { startPayment } = useCashfreePayment();
+  const navigate = useNavigate();
 
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
@@ -121,6 +120,12 @@ const HotelCheckout = () => {
   };
 
   useEffect(() => {
+    if (!payload) {
+      navigate("/hotel", { replace: true });
+    }
+  }, [payload, navigate]);
+
+  useEffect(() => {
     if (!payload || !payload.serviceDetails) return;
 
     const details = payload.serviceDetails;
@@ -206,6 +211,7 @@ const HotelCheckout = () => {
   const handleSubmit = async (e) => {
     if (!userdetails) {
       alert("Please login first...");
+
       return;
     }
     if (!preBookInfo || !validationInfo) {
@@ -241,7 +247,7 @@ const HotelCheckout = () => {
       console.log("📥 PreBook Response:", preBookData);
 
       const hotelResult = preBookData?.HotelResult?.[0];
-      console.log("hotelresult", JSON.stringify(hotelResult, null, 2));
+      console.log("hotelresult", hotelResult);
       if (!hotelResult) {
         alert("Server error, please try again.");
         return;
@@ -320,7 +326,6 @@ const HotelCheckout = () => {
           endDate,
           city,
           NetAmount: finalNetAmount,
-          
         },
         HotelRoomsDetails: hotelRoomsDetails,
       };
@@ -336,11 +341,9 @@ const HotelCheckout = () => {
 
   useEffect(() => {
     if (!hotel?.bookingCode) return;
-
     const fetchPreBookInfo = async () => {
       try {
         setInitialPreBookLoading(true);
-
         const res = await hotel_prebook({
           BookingCode: hotel.bookingCode,
         });
@@ -358,10 +361,10 @@ const HotelCheckout = () => {
         setPreBookInfo(hotelResult);
         setValidationInfo(data?.ValidationInfo || null);
 
-        console.log("✅ Initial PreBook Data:", hotelResult);
-        console.log("✅ Validation Info:", data?.ValidationInfo);
+        console.log("Initial PreBook Data:", hotelResult);
+        console.log("Validation Info:", data?.ValidationInfo);
       } catch (err) {
-        console.error("❌ Initial PreBook error:", err);
+        console.error("Initial PreBook error:", err);
       } finally {
         setInitialPreBookLoading(false);
       }
@@ -369,17 +372,7 @@ const HotelCheckout = () => {
 
     fetchPreBookInfo();
   }, [hotel?.bookingCode]);
-
-  if (!payload) {
-    return (
-      <div className="container" style={{ marginTop: "110px" }}>
-        <div className="text-center mt-5">
-          <h4>No booking data found</h4>
-          <p>Please go back and select a room to book</p>
-        </div>
-      </div>
-    );
-  }
+  if (!payload) return null;
 
   return (
     <div className="container" style={{ marginTop: "110px" }}>
@@ -510,7 +503,10 @@ const HotelCheckout = () => {
                               required
                             />
                           </div>
-
+                        </>
+                      )}
+                      {validationInfo?.PanMandatory && pax.LeadPassenger && (
+                        <>
                           <div className="mb-2">
                             <label className="form-label">
                               PAN{" "}
@@ -535,6 +531,51 @@ const HotelCheckout = () => {
                           </div>
                         </>
                       )}
+
+                      {/* {pax.LeadPassenger && (
+                        <>
+                          <div className="mb-2">
+                            <label className="form-label">Email</label>
+                            <input
+                              type="email"
+                              className="form-control"
+                              value={pax.Email}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  roomIndex,
+                                  paxIndex,
+                                  "Email",
+                                  e.target.value,
+                                )
+                              }
+                              required
+                            />
+                          </div>
+
+                          <div className="mb-2">
+                            <label className="form-label">
+                              PAN{" "}
+                              {hotel?.guestNationality !== "IN" && (
+                                <span className="text-danger">*</span>
+                              )}
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={pax.PAN}
+                              onChange={(e) =>
+                                handlePassengerChange(
+                                  roomIndex,
+                                  paxIndex,
+                                  "PAN",
+                                  e.target.value,
+                                )
+                              }
+                              required
+                            />
+                          </div>
+                        </>
+                      )} */}
 
                       {pax.PaxType === 2 && (
                         <div className="mb-2">

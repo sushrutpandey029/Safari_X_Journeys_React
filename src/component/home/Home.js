@@ -23,13 +23,50 @@ import { getHotelCityByCategory } from "../services/hotelService";
 
 import SearchBox from "../flights/Searchbox";
 
-const staticImages = [
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
-  "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
-  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
-];
+// const staticImages = [
+//   "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+//   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+//   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
+//   "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
+//   "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
+// ];
+
+
+// const categoryImages = {
+//   Mountain:
+//     "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+
+//   Spiritual:
+//     "https://upload.wikimedia.org/wikipedia/commons/6/6d/Kashi_Vishwanath_Temple_Varanasi.jpg",
+
+//   Honeymoon:
+//     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+
+//   Desert:
+//     "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg",
+
+//   "Hill Station":
+//     "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+
+//   default:
+//     "https://via.placeholder.com/800x600?text=Travel",
+// };
+
+
+const categoryImages = {
+  Mountain: "topographyimages/mountaion.jpg",
+  Spiritual: "topographyimages/spritual.jpg",
+  Honeymoon: "topographyimages/honeymoon.jpg",
+  Desert: "topographyimages/desert.jpg",
+  "Hill Station": "topographyimages/hillstation.jpg",
+
+  default: "/placeimages/default.jpg",
+};
+
+const getCategoryImage = (category) => {
+  return categoryImages[category] || categoryImages.default;
+};
+
 
 const destinations = [
   { name: "AULI", image: "/Images/place.jpg" },
@@ -178,10 +215,21 @@ function Home() {
                       }
                     >
                       <img
-                        src={staticImages[index % staticImages.length]}
+                        src={getCategoryImage(item.category)}
                         alt={item.category}
                       />
-                      <div className="title">{item.category}</div>
+                      <div
+                        className="title"
+                        style={{
+                          background: "rgb(255 255 255 / 45%)",
+                          color: "#000",
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {item.category}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -198,10 +246,21 @@ function Home() {
                       }
                     >
                       <img
-                        src={staticImages[(index + 3) % staticImages.length]}
+                        src={getCategoryImage(item.category)}
                         alt={item.category}
                       />
-                      <div className="title">{item.category}</div>
+                      <div
+                        className="title"
+                        style={{
+                          background: "rgb(255 255 255 / 45%)",
+                          color: "#000",
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {item.category}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -324,7 +383,7 @@ function Home() {
                       {testimonialData?.map((item) => (
                         <div
                           key={item.id}
-                          className="col-10 col-sm-6 col-md-4 col-lg-3 testimonial-col"
+                          className="col-12 col-sm-6 testimonial-col"
                         >
                           <div className="testimonial-card">
                             <div className="stars">
