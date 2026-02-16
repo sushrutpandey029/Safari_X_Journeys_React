@@ -76,10 +76,10 @@ function Booking() {
                     booking.status === "failed"
                       ? "text-danger"
                       : booking.status === "pending"
-                      ? "text-warning"
-                      : booking.status === "cancelled"
-                      ? "text-danger"
-                      : "text-success"
+                        ? "text-warning"
+                        : booking.status === "cancelled"
+                          ? "text-danger"
+                          : "text-success"
                   }
                 >
                   {booking.status}

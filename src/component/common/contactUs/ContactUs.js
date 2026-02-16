@@ -75,7 +75,7 @@ const ContactUs = () => {
             {/* Emails */}
             <div className="mb-3">
               <i className="bi bi-envelope text-primary"></i>{" "}
-              <strong>info@safariX.com</strong>
+              <strong>support@safarixjourneys.com</strong>
             </div>
 
             {/* Address */}

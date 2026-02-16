@@ -27,14 +27,14 @@ export default function BusView({ booking }) {
     bookResult?.BookingId ||
     bookResult?.BusBookingId ||
     null;
-    console.log("bus id",BusId)
+  console.log("bus id", BusId);
 
   // Extract from DB serviceDetails
-  const {  TraceId, EndUserIp } = serviceDetails || {};
+  const { TraceId, EndUserIp } = serviceDetails || {};
   // const { TokenId, TraceId, EndUserIp } = serviceDetails || {};
-  console.log("service detials",serviceDetails)
+  console.log("service detials", serviceDetails);
   console.log("traceid in busview", TraceId);
- 
+
   // LIVE DATA STATE
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,9 +83,8 @@ export default function BusView({ booking }) {
   };
 
   useEffect(() => {
-
-    if ( TraceId && BusId) fetchBusBookingDetails();
-  }, [ TraceId, BusId]);
+    if (TraceId && BusId) fetchBusBookingDetails();
+  }, [TraceId, BusId]);
   // useEffect(() => {
 
   //   if (TokenId && TraceId && BusId) fetchBusBookingDetails();

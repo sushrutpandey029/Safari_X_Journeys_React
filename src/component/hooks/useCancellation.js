@@ -194,7 +194,7 @@ export default function useCancellation(serviceType) {
     }
 
     const confirmCancel = window.confirm(
-      "⚠ Are you sure you want to cancel?\nThis may include cancellation charges."
+      "⚠ Are you sure you want to cancel?\nThis may include cancellation charges.",
     );
     if (!confirmCancel) return;
 
@@ -342,7 +342,7 @@ export default function useCancellation(serviceType) {
       changeRequestId,
       //   payload.TokenId,
       bookingId,
-      TraceId
+      TraceId,
     );
   };
 

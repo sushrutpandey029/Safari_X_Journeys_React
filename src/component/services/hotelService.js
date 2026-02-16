@@ -13,7 +13,7 @@ export const getCountryList = async () => {
 export const getCityList = async (countryCode) => {
   try {
     const resp = await axios.post(API.CITY_LIST, {
-      CountryCode: countryCode, 
+      CountryCode: countryCode,
     });
     return resp.data?.data?.CityList || [];
   } catch (err) {
