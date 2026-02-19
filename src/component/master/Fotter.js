@@ -15,20 +15,20 @@ import {
 
 const bots = [
   {
-    icon: "/Images/call.gif",
+    icon: "/Images/phone-call.png",
     label: "Call",
     phone: "9821351111",
     type: "call",
   },
   {
-    icon: "/Images/whatsapp.gif",
+    icon: "/Images/whatsapp.png",
     label: "Whatsapp",
     phone: "9821351111",
     message: "Hello, I want to know more about your services.",
     type: "whatsapp",
   },
   {
-    icon: "/Images/mail.gif",
+    icon: "/Images/gmail.png",
     label: "Mail",
     email: "support@safarixjourneys.com",
     subject: "Service Inquiry",
@@ -116,7 +116,7 @@ function Footer() {
               <ul className="list-unstyled">
                 <li><a href="/flight">Flight</a></li>
                 <li><a href="/hotel">Hotels</a></li>
-                <li><a href="/guides">Guides</a></li>
+                <li><a href="/guides">Guide</a></li>
                 <li><a href="/Bus-list">Bus</a></li>
               </ul>
             </div>

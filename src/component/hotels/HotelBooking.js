@@ -57,6 +57,12 @@ function HotelBooking() {
   const [selectedUserRatings, setSelectedUserRatings] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
 
+  // NEW states for city search
+  const [citySearch, setCitySearch] = useState("");
+  const [filteredCities, setFilteredCities] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const citySearchRef = useRef(null);
+
   const [showProperties, setShowProperties] = useState({
     bookWithZero: false,
     freeCancellation: false,
@@ -146,14 +152,31 @@ function HotelBooking() {
   }, [selectedCity, hotelList]);
 
   // Close suggestions when clicking outside
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (searchRef.current && !searchRef.current.contains(event.target)) {
+  //       setShowSuggestions(false);
+  //     }
+  //   };
+
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSuggestions(false);
+      if (
+        citySearchRef.current &&
+        !citySearchRef.current.contains(event.target)
+      ) {
+        setShowCitySuggestions(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -255,7 +278,10 @@ function HotelBooking() {
 
       // 🔹 STEP 2: Chunk hotel codes (100 max)
       const hotelCodeChunks = chunkArray(hotelCodes, 100).slice(0, 5);
-
+      // console.log(
+      //   "hotel code chunks",
+      //   JSON.stringify(hotelCodeChunks, null, 2),
+      // );
       // 🔹 STEP 3: Base payload
       const basePayload = {
         CheckIn: checkIn,
@@ -274,7 +300,12 @@ function HotelBooking() {
         },
       };
 
+      // console.log(
+      //   "hotel search requiest body",
+      //   JSON.stringify(basePayload, null, 2),
+      // );
       // 🔹 STEP 4: Parallel search calls
+
       const responses = await Promise.all(
         hotelCodeChunks.map((codes) =>
           searchHotels({ ...basePayload, HotelCodes: codes }),
@@ -346,20 +377,42 @@ function HotelBooking() {
             (c) => (c.CityCode?.toString() || c.Code?.toString()) === cityCode,
           );
 
+          // if (cityObj) {
+          //   setSelectedCity(cityObj.CityCode || cityObj.Code);
+          //   setSelectedCityName(
+          //     cityObj.CityName || cityObj.Name || cityObj.City,
+          //   );
+          //   setCitySearch(cityObj.CityName || cityObj.Name || cityObj.City);
+
+          // }
+
           if (cityObj) {
+            const cityName = cityObj.CityName || cityObj.Name || cityObj.City;
+
             setSelectedCity(cityObj.CityCode || cityObj.Code);
-            setSelectedCityName(
-              cityObj.CityName || cityObj.Name || cityObj.City,
-            );
+            setSelectedCityName(cityName);
+
+            // ✅ ADD THIS LINE
+            setCitySearch(cityName);
           }
         }
 
         // ✅ Fallback to first city
+        // if (cities.length > 0 && !location.state?.city) {
+        //   setSelectedCity(cities[0].CityCode || cities[0].Code);
+        //   setSelectedCityName(
+        //     cities[0].CityName || cities[0].Name || cities[0].City,
+        //   );
+        // }
         if (cities.length > 0 && !location.state?.city) {
+          const defaultCityName =
+            cities[0].CityName || cities[0].Name || cities[0].City;
+
           setSelectedCity(cities[0].CityCode || cities[0].Code);
-          setSelectedCityName(
-            cities[0].CityName || cities[0].Name || cities[0].City,
-          );
+          setSelectedCityName(defaultCityName);
+
+          // ✅ ADD THIS LINE
+          setCitySearch(defaultCityName);
         }
       } catch (err) {
         console.error("❌ Error fetching cities:", err);
@@ -466,6 +519,39 @@ function HotelBooking() {
       ...prev,
       [property]: !prev[property],
     }));
+  };
+
+  const handleCitySearch = (e) => {
+    const value = e.target.value;
+    setCitySearch(value);
+
+    if (value.trim() === "") {
+      setFilteredCities(cityList);
+    } else {
+      const filtered = cityList.filter((city) =>
+        (city.CityName || city.Name || city.City || "")
+          .toLowerCase()
+          .includes(value.toLowerCase()),
+      );
+      setFilteredCities(filtered);
+    }
+
+    setShowCitySuggestions(true);
+  };
+
+  const handleCitySelect = (city) => {
+    const cityCode = city.CityCode || city.Code;
+    const cityName = city.CityName || city.Name || city.City;
+
+    setSelectedCity(cityCode);
+    setSelectedCityName(cityName);
+
+    setCitySearch(cityName);
+    setShowCitySuggestions(false);
+
+    // reset address search
+    setAddressSearch("");
+    setAddressSuggestions([]);
   };
 
   // FILTERED HOTELS LOGIC
@@ -678,7 +764,7 @@ function HotelBooking() {
             {/* City */}
             <div className="col-md-2">
               <label className="form-label">City</label>
-              <select
+              {/* <select
                 className="form-control"
                 value={selectedCity}
                 onChange={(e) => {
@@ -708,7 +794,44 @@ function HotelBooking() {
                     {city.CityName || city.Name || city.City}
                   </option>
                 ))}
-              </select>
+              </select> */}
+              <div className="position-relative" ref={citySearchRef}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search or select city"
+                  value={citySearch}
+                  onChange={handleCitySearch}
+                  onFocus={() => {
+                    setFilteredCities(cityList);
+                    setShowCitySuggestions(true);
+                  }}
+                  disabled={!selectedCountry}
+                />
+
+                {/* Suggestions */}
+                {showCitySuggestions && filteredCities.length > 0 && (
+                  <div
+                    className="position-absolute bg-white border w-100 shadow-sm"
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 1000,
+                    }}
+                  >
+                    {filteredCities.map((city, index) => (
+                      <div
+                        key={index}
+                        className="p-2 suggestion-item"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        {city.CityName || city.Name || city.City}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="col-md-2">

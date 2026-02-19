@@ -2355,7 +2355,7 @@ const Flightcheckout = () => {
                       }}
                     >
                       <div className="d-flex justify-content-between">
-                        <span>{meal.Description}</span>
+                        <span>{meal.AirlineDescription}</span>
                         <strong>₹ {meal.Price}</strong>
                       </div>
                     </div>

@@ -23,13 +23,50 @@ import { getHotelCityByCategory } from "../services/hotelService";
 
 import SearchBox from "../flights/Searchbox";
 
-const staticImages = [
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-  "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
-  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
-  "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
-];
+// const staticImages = [
+//   "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+//   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+//   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoOGB-D7TqUnglnEtnn0pKWyLvHtQ1KvpfBg&s",
+//   "https://media.istockphoto.com/id/506598655/photo/couple-on-a-beach-jetty-at-maldives.jpg?s=612x612&w=0&k=20&c=UJha8UU51ThBgH151slXPie_fCsfvnQWYxnLOcRmUkw=",
+//   "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg?cs=srgb&dl=pexels-senuscape-728360-1658967.jpg&fm=jpg",
+// ];
+
+
+// const categoryImages = {
+//   Mountain:
+//     "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80",
+
+//   Spiritual:
+//     "https://upload.wikimedia.org/wikipedia/commons/6/6d/Kashi_Vishwanath_Temple_Varanasi.jpg",
+
+//   Honeymoon:
+//     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+
+//   Desert:
+//     "https://images.pexels.com/photos/1658967/pexels-photo-1658967.jpeg",
+
+//   "Hill Station":
+//     "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+
+//   default:
+//     "https://via.placeholder.com/800x600?text=Travel",
+// };
+
+
+const categoryImages = {
+  Mountain: "topographyimages/mountaion.jpg",
+  Spiritual: "topographyimages/spritual.jpg",
+  Honeymoon: "topographyimages/honeymoon.jpg",
+  Desert: "topographyimages/desert.jpg",
+  "Hill Station": "topographyimages/hillstation.jpg",
+
+  default: "/placeimages/default.jpg",
+};
+
+const getCategoryImage = (category) => {
+  return categoryImages[category] || categoryImages.default;
+};
+
 
 const destinations = [
   { name: "AULI", image: "/Images/place.jpg" },
@@ -133,34 +170,112 @@ function Home() {
     <div>
       <ScrollToTop />
       <HomeBanner />
-      <div className="top-destination">
+      <div className="top-destination py-5">
         <div className="container">
-          <div className="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-4">
-            {categories.map((item, index) => (
-              <div className="col" key={index}>
-                {/* Category Card */}
-                <div
-                  className="place-card-link place"
-                  style={{ cursor: "pointer" }}
-                  onClick={() =>
-                    navigate("/places", { state: { category: item } })
-                  }
-                >
-                  <div className="place">
-                    <img
-                      src={staticImages[index % staticImages.length]}
-                      alt={item.category}
-                    />
-                    <div className="overlay">
-                      <p className="card-destination">{item.category}</p>
+          <div className="row align-items-center">
+
+            {/* LEFT CONTENT */}
+            <div className="col-lg-5 mb-4 mb-lg-0">
+              <h2 className="title-modern">
+                About <span>India</span>
+              </h2>
+
+              <ul className="about-list">
+                <li>
+                  <p>
+                    India is a big country in Asia, known for its rich culture and diverse landscapes.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    The word "India" originates from Greek mythology and refers to the land of the Indus River.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    It's the 7th largest country in the world, covering 2.4% of the Earth's surface.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    India is known by many names such as Aryavarta, Bharat, and Hindustan.
+                  </p>
+                </li>
+              </ul>
+            </div>
+
+            {/* RIGHT IMAGE GALLERY */}
+            <div className="col-lg-7">
+
+              {/* TOP ROW – 3 IMAGES */}
+              <div className="row g-3 mb-3">
+                {categories.slice(0, 3).map((item, index) => (
+                  <div className="col-4" key={index}>
+                    <div
+                      className="gallery-card show-title"
+                      onClick={() =>
+                        navigate("/places", { state: { category: item } })
+                      }
+                    >
+                      <img
+                        src={getCategoryImage(item.category)}
+                        alt={item.category}
+                      />
+                      <div
+                        className="title"
+                        style={{
+                          background: "rgb(255 255 255 / 45%)",
+                          color: "#000",
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {item.category}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+
+              {/* BOTTOM ROW – 2 IMAGES CENTERED */}
+              <div className="row g-3 justify-content-center">
+                {categories.slice(3, 5).map((item, index) => (
+                  <div className="col-6 col-md-4" key={index}>
+                    <div
+                      className="gallery-card show-title"
+                      onClick={() =>
+                        navigate("/places", { state: { category: item } })
+                      }
+                    >
+                      <img
+                        src={getCategoryImage(item.category)}
+                        alt={item.category}
+                      />
+                      <div
+                        className="title"
+                        style={{
+                          background: "rgb(255 255 255 / 45%)",
+                          color: "#000",
+                          padding: "6px 12px",
+                          borderRadius: "6px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {item.category}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+
+
           </div>
         </div>
       </div>
+
 
       <HotelPopularDestination />
 
@@ -234,8 +349,9 @@ function Home() {
                     What They Say After Using Our Product
                   </p>
                   <p className="feedback-sub">
-                    Many of our members have started their early careers with us
-                    Many of our members have started their early careers with us
+                    Many of our members have started their early careers with
+                    us Many of our members have started their early careers
+                    with us
                   </p>
 
                   {/* Slider Arrows */}
@@ -265,11 +381,12 @@ function Home() {
                 <div className="col-sm-8">
                   {/* SLIDER START */}
                   <div id="testimonialSlider" className="testimonial-slider">
-                    <div className="row flex-nowrap">
+                    <div className="row flex-nowrap testimonial-row">
                       {testimonialData?.map((item) => (
-                        <div key={item.id} className="col-sm-3">
-                          {" "}
-                          {/* ← show 3 cards */}
+                        <div
+                          key={item.id}
+                          className="col-12 col-sm-6 testimonial-col"
+                        >
                           <div className="testimonial-card">
                             <div className="stars">
                               {"★".repeat(item.rating)}
@@ -358,7 +475,7 @@ function Home() {
                               year: "numeric",
                               day: "numeric",
                               month: "long",
-                            },
+                            }
                           )}
                         </h6>
 

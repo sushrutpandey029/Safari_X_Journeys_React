@@ -1,6 +1,6 @@
 // export const BASE_URL = "http://localhost:2625/";
-// export const BASE_URL = "http://172.18.213.26:2625";
-// export const BASE_URL = "http://192.168.1.6:2625";
+// export const BASE_URL = "http://10.73.198.26:2625";
+// export const BASE_URL = "http://192.168.1.7:2625";
 
 export const BASE_URL = "https://dash.safarixjourneys.com";
 
@@ -28,6 +28,12 @@ export const API = {
   USER_BOOKING_DETAILS: (id) => `${BASE_URL}/api/user/booking-details/${id}`,
   USER_DOWNLOAD_INVOICE: (bookingId, vendorBookingId) =>
     `${BASE_URL}/api/bookings/${bookingId}/pdf/${vendorBookingId}`,
+
+  // user forgote password
+  USER_FORGOT_PASSWORD: `${BASE_URL}/api/user/forgot-password`,
+  USER_FORGOT_VERIFY_OTP: `${BASE_URL}/api/user/forgot-verify-email-otp`,
+  RESEND_USER_OTP: `${BASE_URL}/api/user/forgot-email-resend-otp`,
+  USER_RESET_PASSWORD: `${BASE_URL}/api/user/reset-Password`,
 
   //driver
   DRIVER_UPDATE_PROFILE: (id) => `${BASE_URL}/driver/update/${id}`,

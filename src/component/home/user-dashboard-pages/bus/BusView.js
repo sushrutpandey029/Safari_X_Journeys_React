@@ -5,6 +5,8 @@ import autoTable from "jspdf-autotable";
 import { bus_getBookingDetails } from "../../../services/busservice";
 import useCancellation from "../../../hooks/useCancellation";
 import { downloadBookingPDF } from "../../../services/bookingService";
+import BlockingLoader from "../loader/BlockingLoader";
+ import { toast } from "react-toastify";
 
 export default function BusView({ booking }) {
   const {
@@ -134,6 +136,14 @@ export default function BusView({ booking }) {
 
   return (
     <>
+      <BlockingLoader
+        show={isCancelling}
+        title="Cancelling Booking"
+        message="Your cancellation request is being processed. Please do not go back or close this window. This may take up to 30 seconds."
+      />
+
+  
+
       {/* Cancellation messages */}
       {cancelStatus === "processing" && (
         <div className="alert alert-warning mt-3">{cancelMessage}</div>

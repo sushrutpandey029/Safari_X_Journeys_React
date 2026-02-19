@@ -1,0 +1,366 @@
+.bus-seat-container {
+  width: fit-content; /* important */
+  max-width: 100%;
+
+  margin: auto;
+
+  background: #fff;
+
+  padding: 20px;
+
+  border-radius: 12px;
+
+  border: 1px solid #eee;
+}
+
+/* Driver */
+
+.driver-section {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 20px;
+}
+
+.driver-label {
+  font-weight: bold;
+}
+
+/* Deck */
+
+.deck-container {
+  margin-bottom: 25px;
+}
+
+.deck-title {
+  font-weight: bold;
+
+  margin-bottom: 10px;
+
+  color: #444;
+}
+
+/* Grid */
+
+.deck-grid {
+  display: grid;
+  gap: 10px;
+  justify-content: start;
+  align-items: start;
+}
+
+/* Base seat */
+
+.bus-seat {
+  width: 45px;
+
+  height: 45px;
+
+  border-radius: 6px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  font-size: 11px;
+
+  border: 2px solid #ccc;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+/* Available */
+
+.seat-available {
+  background: white;
+
+  border-color: #4caf50;
+}
+
+/* Selected */
+
+.seat-selected {
+  background: #d84e55;
+
+  border-color: #d84e55;
+
+  color: white;
+}
+
+/* Booked */
+
+.seat-booked {
+  background: #ddd;
+
+  border-color: #bbb;
+
+  cursor: not-allowed;
+}
+
+/* Ladies */
+
+.seat-ladies {
+  background: #ffe4ec;
+
+  border-color: #ff4081;
+}
+
+/* Male */
+
+.seat-male {
+  background: #e3f2fd;
+
+  border-color: #2196f3;
+}
+
+/* Sleeper */
+
+.seat-sleeper {
+  width: 60px;
+}
+
+/* Price */
+
+.seat-price {
+  font-size: 9px;
+}
+
+/* Gender icon */
+
+.seat-gender-icon {
+  font-size: 10px;
+
+  color: #ff4081;
+}
+
+.bus-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 20px;
+
+  z-index: 999;
+}
+
+.bus-modal {
+  width: fit-content; /* important */
+  max-width: 95vw; /* responsive */
+  max-height: 90vh;
+
+  background: white;
+  border-radius: 12px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+/* HEADER */
+
+.bus-modal-header {
+  padding: 16px 20px;
+
+  border-bottom: 1px solid #eee;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+  margin-top: 80px;
+}
+
+.bus-modal-title {
+  margin: 0;
+
+  font-size: 18px;
+}
+
+.bus-modal-subtitle {
+  font-size: 13px;
+
+  color: #666;
+}
+
+.bus-modal-close {
+  border: none;
+
+  background: none;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+/* LEGEND */
+
+.bus-seat-legend {
+  display: flex;
+
+  gap: 20px;
+
+  padding: 10px 20px;
+
+  border-bottom: 1px solid #eee;
+}
+
+.legend-item {
+  display: flex;
+
+  gap: 6px;
+
+  align-items: center;
+}
+
+.legend-box {
+  width: 18px;
+
+  height: 18px;
+
+  border-radius: 4px;
+}
+
+.legend-box.available {
+  border: 2px solid #4caf50;
+}
+
+.legend-box.selected {
+  background: #d84e55;
+}
+
+.legend-box.booked {
+  background: #ccc;
+}
+
+.legend-box.ladies {
+  background: #ffe4ec;
+}
+
+/* BODY */
+
+.bus-modal-body {
+  flex: 1;
+
+  overflow: auto;
+
+  padding: 20px;
+
+  display: flex;
+  justify-content: center; /* center layout */
+}
+
+/* FOOTER */
+
+.bus-modal-footer {
+  padding: 16px 20px;
+
+  border-top: 1px solid #eee;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+}
+
+.bus-footer-left {
+  display: flex;
+
+  flex-direction: column;
+}
+
+.total-amount {
+  font-size: 18px;
+
+  font-weight: bold;
+}
+
+.bus-footer-right {
+  display: flex;
+
+  gap: 10px;
+}
+
+.bus-btn-cancel {
+  padding: 10px 20px;
+
+  border: 1px solid #ccc;
+
+  background: white;
+
+  cursor: pointer;
+}
+
+.bus-btn-proceed {
+  padding: 10px 20px;
+
+  border: none;
+
+  background: #d84e55;
+
+  color: white;
+
+  cursor: pointer;
+
+  border-radius: 6px;
+}
+
+.deck-wrapper {
+  width: fit-content; /* important */
+  max-width: 100%;
+
+  margin: auto;
+
+  background: #fafafa;
+
+  padding: 15px;
+
+  border-radius: 10px;
+}
+
+.seat-row {
+  display: flex;
+
+  justify-content: center;
+
+  margin-bottom: 12px;
+}
+
+.seat-group {
+  display: flex;
+
+  gap: 8px;
+}
+
+.seat-group.left {
+  justify-content: flex-end;
+
+  width: 120px;
+}
+
+.seat-group.right {
+  justify-content: flex-start;
+
+  width: 120px;
+}
+
+.seat-aisle {
+  width: 40px;
+}

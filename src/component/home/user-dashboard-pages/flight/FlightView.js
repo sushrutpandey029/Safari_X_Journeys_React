@@ -7,6 +7,7 @@ import useCancellation from "../../../hooks/useCancellation";
 import { insuranceBookingDetails } from "../../../services/insuranceService";
 import { handleDownloadInvoice } from "../../../utils/invoice";
 import { downloadBookingPDF } from "../../../services/bookingService";
+import BlockingLoader from "../loader/BlockingLoader";
 
 export default function FlightView({ booking }) {
   const [activeBookingId, setActiveBookingId] = useState(null);
@@ -101,22 +102,6 @@ export default function FlightView({ booking }) {
     new Date(firstSegment.Destination.ArrTime);
 
   const airline = firstSegment?.Airline;
-
-  // Fetch booking details (Live Data)
-  // const getBookingDetails = async () => {
-  //   try {
-  //     let payload = { EndUserIp: "192.168.1.11" };
-
-  //     if (vendorBookingId !== "N/A") payload.BookingId = vendorBookingId;
-  //     else if (PNR !== "N/A") payload.PNR = PNR;
-  //     else return;
-  //     console.log("payload before gliht getbookingdtails", payload);
-  //     const resp = await flight_getBookingDetails(payload);
-  //     setLiveBookingData(resp.data);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
 
   const getBookingDetails = async (bookingIdToFetch) => {
     try {
@@ -224,6 +209,12 @@ export default function FlightView({ booking }) {
 
   return (
     <>
+      <BlockingLoader
+        show={isCancelling}
+        title="Cancelling Flight"
+        message="Your cancellation request is being processed. Please do not go back or close this window."
+      />
+
       {/* STATUS UI */}
       {cancelStatus === "processing" && (
         <div className="alert alert-warning mt-3">{cancelMessage}</div>

@@ -22,6 +22,7 @@ import { getIndianAirports, Flight_search } from "../services/flightService";
 import { Modal } from "react-bootstrap";
 import FlightDetail from "./Flghitdetail";
 import Laoding from "../common/loading";
+import { Offcanvas } from "react-bootstrap";
 
 const Flight = () => {
   // Flight segments (multi-city form)
@@ -74,6 +75,9 @@ const Flight = () => {
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [showTravellerDropdown, setShowTravellerDropdown] = useState(false);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
+
+  const [showFilter, setShowFilter] = useState(false);
 
   // ✅ Active tab for multi-city and return OB/IB
   const [activeTab, setActiveTab] = useState(0);
@@ -418,6 +422,13 @@ const Flight = () => {
   const getFilteredResultsForDisplay = () => {
     if (!searchResults || searchResults.length === 0) return [];
 
+    console.log("=== DEBUG: getFilteredResultsForDisplay ===");
+    console.log("Total search results:", searchResults.length);
+    console.log(
+      "Search results structure:",
+      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array",
+    );
+
     // Check if searchResults is an array of arrays (domestic return response)
     if (
       Array.isArray(searchResults[0]) &&
@@ -444,6 +455,8 @@ const Flight = () => {
       return searchResults.flat();
     }
 
+    console.log("⚠️ Using flat array format");
+
     // For domestic return with flat array (old logic)
     if (tripType === "round" && isDomestic) {
       // First check TripIndicator if available
@@ -461,6 +474,13 @@ const Flight = () => {
           flight.TripIndicator === "RT" ||
           flight.TripIndicator === "Return" ||
           flight.TripIndicator === "2", // Sometimes numeric
+      );
+
+      console.log(
+        "TripIndicator - OB:",
+        outboundFlights.length,
+        "IB:",
+        inboundFlights.length,
       );
 
       // If TripIndicator worked, use it
@@ -508,44 +528,71 @@ const Flight = () => {
         return segOrigin === destination && segDest === origin;
       });
 
+      console.log(
+        "Route-based - OB:",
+        obFlights.length,
+        "IB:",
+        ibFlights.length,
+      );
+
       return activeTab === 0 ? obFlights : ibFlights;
     }
 
     // ✅ FIXED: For multi-city - filter by active segment route
+    // if (tripType === "multi") {
+    //   const currentFlight = flights[activeTab];
+    //   if (!currentFlight) return [];
+
+    //   console.log(
+    //     `Filtering multi-city segment ${activeTab}: ${currentFlight.from} -> ${currentFlight.to}`,
+    //   );
+
+    //   const segmentFlights = searchResults.filter((flight) => {
+    //     const segments = flight.Segments || [];
+    //     if (segments.length === 0) return false;
+
+    //     // Get first segment
+    //     const firstSegment = segments[0];
+    //     const segment = Array.isArray(firstSegment)
+    //       ? firstSegment[0]
+    //       : firstSegment;
+    //     if (!segment) return false;
+
+    //     const segOrigin = getAirportCodeFromSegment(segment, "origin");
+    //     const segDest = getAirportCodeFromSegment(segment, "destination");
+
+    //     // Also check TripIndicator for multi-city segments
+    //     const hasMatchingRoute =
+    //       segOrigin === currentFlight.from && segDest === currentFlight.to;
+
+    //     // Check if flight has segment index indicator
+    //     if (flight.SegmentIndex !== undefined) {
+    //       return flight.SegmentIndex === activeTab;
+    //     }
+
+    //     return hasMatchingRoute;
+    //   });
+
+    //   console.log(
+    //     `Multi-city segment ${activeTab} flights:`,
+    //     segmentFlights.length,
+    //   );
+    //   return segmentFlights;
+    // }
+
+    // ✅ CORRECT MULTI-CITY HANDLING
     if (tripType === "multi") {
-      const currentFlight = flights[activeTab];
-      if (!currentFlight) return [];
+      if (!Array.isArray(searchResults)) return [];
 
-      const segmentFlights = searchResults.filter((flight) => {
-        const segments = flight.Segments || [];
-        if (segments.length === 0) return false;
+      if (Array.isArray(searchResults[activeTab])) {
+        return searchResults[activeTab];
+      }
 
-        // Get first segment
-        const firstSegment = segments[0];
-        const segment = Array.isArray(firstSegment)
-          ? firstSegment[0]
-          : firstSegment;
-        if (!segment) return false;
-
-        const segOrigin = getAirportCodeFromSegment(segment, "origin");
-        const segDest = getAirportCodeFromSegment(segment, "destination");
-
-        // Also check TripIndicator for multi-city segments
-        const hasMatchingRoute =
-          segOrigin === currentFlight.from && segDest === currentFlight.to;
-
-        // Check if flight has segment index indicator
-        if (flight.SegmentIndex !== undefined) {
-          return flight.SegmentIndex === activeTab;
-        }
-
-        return hasMatchingRoute;
-      });
-
-      return segmentFlights;
+      return [];
     }
 
     // For one-way: return all
+    console.log("One-way flights total:", searchResults.length);
     return searchResults;
   };
 
@@ -1029,57 +1076,131 @@ const Flight = () => {
   };
 
   // ✅ UPDATED: Pass all selected flights, total price, AND PRICING DATA to modal
+  // const onViewPrices = () => {
+  //   // Check if all segments have selected flights
+  //   const segmentsCount =
+  //     tripType === "round" ? 2 : tripType === "multi" ? flights.length : 1;
+
+  //   if (tripType === "round" || tripType === "multi") {
+  //     const missingSelections = [];
+  //     for (let i = 0; i < segmentsCount; i++) {
+  //       if (!selectedFlights[i]) {
+  //         missingSelections.push(i + 1);
+  //       }
+  //     }
+
+  //     if (missingSelections.length > 0) {
+  //       alert(
+  //         `Please select flights for all segments. Missing: ${missingSelections.join(
+  //           ", ",
+  //         )}`,
+  //       );
+  //       return;
+  //     }
+  //   } else {
+  //     if (!selectedFlights[0]) {
+  //       alert("Please select a flight");
+  //       return;
+  //     }
+  //   }
+
+  //   const passengerData = {
+  //     passengers: {
+  //       adults,
+  //       children,
+  //       infants,
+  //     },
+  //     tripType,
+  //     flights: selectedFlights.filter((f) => f), // Only non-null
+  //     totalPrice,
+  //     pricingBreakdown,
+  //     origin: flights?.[0]?.from,
+  //     destination: flights?.[0]?.to,
+  //     departureDate: flights?.[0]?.date,
+  //     returnDate: flights?.[0]?.returnDate,
+  //     travelClass,
+  //     TraceId,
+  //     isDomestic,
+  //     activeTab,
+  //   };
+
+  //   setSearchData(passengerData);
+  //   setShowModal(true);
+  // };
+
   const onViewPrices = () => {
-    // Check if all segments have selected flights
-    const segmentsCount =
-      tripType === "round" ? 2 : tripType === "multi" ? flights.length : 1;
 
-    if (tripType === "round" || tripType === "multi") {
-      const missingSelections = [];
-      for (let i = 0; i < segmentsCount; i++) {
-        if (!selectedFlights[i]) {
-          missingSelections.push(i + 1);
-        }
-      }
+  // ✅ ROUND TRIP → require both
+  if (tripType === "round") {
 
-      if (missingSelections.length > 0) {
-        alert(
-          `Please select flights for all segments. Missing: ${missingSelections.join(
-            ", ",
-          )}`,
-        );
-        return;
-      }
-    } else {
-      if (!selectedFlights[0]) {
-        alert("Please select a flight");
-        return;
-      }
+    if (!selectedFlights[0] || !selectedFlights[1]) {
+      alert("Please select outbound and return flights");
+      return;
     }
 
-    const passengerData = {
-      passengers: {
-        adults,
-        children,
-        infants,
-      },
-      tripType,
-      flights: selectedFlights.filter((f) => f), // Only non-null
-      totalPrice,
-      pricingBreakdown,
-      origin: flights?.[0]?.from,
-      destination: flights?.[0]?.to,
-      departureDate: flights?.[0]?.date,
-      returnDate: flights?.[0]?.returnDate,
-      travelClass,
-      TraceId,
-      isDomestic,
-      activeTab,
-    };
+  }
 
-    setSearchData(passengerData);
-    setShowModal(true);
+  // ✅ ONE WAY → require 1
+  else if (tripType === "oneway") {
+
+    if (!selectedFlights[0]) {
+      alert("Please select a flight");
+      return;
+    }
+
+  }
+
+  // ✅ MULTI CITY → require ONLY current active tab
+  else if (tripType === "multi") {
+
+    if (!selectedFlights[activeTab]) {
+      alert(`Please select flight for segment ${activeTab + 1}`);
+      return;
+    }
+
+  }
+
+
+  // ✅ prepare payload
+
+  let flightsToSend = [];
+
+  if (tripType === "multi") {
+
+    // send only selected segment flight
+    flightsToSend = [selectedFlights[activeTab]];
+
+  } else {
+
+    flightsToSend = selectedFlights.filter(Boolean);
+
+  }
+
+
+  const passengerData = {
+    passengers: {
+      adults,
+      children,
+      infants,
+    },
+    tripType,
+    flights: flightsToSend,
+    totalPrice,
+    pricingBreakdown,
+    origin: flights?.[activeTab]?.from,
+    destination: flights?.[activeTab]?.to,
+    departureDate: flights?.[activeTab]?.date,
+    travelClass,
+    TraceId,
+    isDomestic,
+    activeTab,
   };
+
+  setSearchData(passengerData);
+  setShowModal(true);
+
+};
+
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -1204,13 +1325,13 @@ const Flight = () => {
         JourneyType: journeyType,
         PreferredAirlines: [],
         Segments: segments,
-        Sources: ["GDS"], //by default it is LCC and it not allow booking api call
+        // Sources: ["GDS"],//by default it is LCC and it not allow booking api call
       };
 
       console.log("Search payload", searchPayload);
 
       const searchResponse = await Flight_search(searchPayload);
-
+      console.log("fligh search resp", searchResponse);
       let foundFlights = [];
 
       if (searchResponse) {
@@ -1280,46 +1401,61 @@ const Flight = () => {
       }
 
       if (foundFlights.length > 0) {
+        console.log("=== API RESPONSE ANALYSIS ===");
+        console.log("Total flights found:", foundFlights.length);
+        console.log("Trip type:", tripType);
+
         // For multi-city, ensure we have the right structure
+        // if (tripType === "multi") {
+        //   if (
+        //     Array.isArray(foundFlights[0]) &&
+        //     !Array.isArray(foundFlights[0][0])
+        //   ) {
+        //     // We have a flat array, need to split by segment
+        //     console.log("Flat array for multi-city, splitting by segment...");
+
+        //     const segmentedResults = [];
+        //     flights.forEach((flight, index) => {
+        //       const segmentFlights = foundFlights.filter((f) => {
+        //         const segments = f.Segments || [];
+        //         if (segments.length === 0) return false;
+
+        //         const firstSegment = segments[0];
+        //         const segment = Array.isArray(firstSegment)
+        //           ? firstSegment[0]
+        //           : firstSegment;
+        //         if (!segment) return false;
+
+        //         const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        //         const segDest = getAirportCodeFromSegment(
+        //           segment,
+        //           "destination",
+        //         );
+
+        //         return segOrigin === flight.from && segDest === flight.to;
+        //       });
+
+        //       segmentedResults.push(segmentFlights);
+        //       console.log(
+        //         `Segment ${index} (${flight.from} -> ${flight.to}): ${segmentFlights.length} flights`,
+        //       );
+        //     });
+
+        //     foundFlights = segmentedResults;
+        //   }
+        // }
         if (tripType === "multi") {
-          if (
-            Array.isArray(foundFlights[0]) &&
-            !Array.isArray(foundFlights[0][0])
-          ) {
-            // We have a flat array, need to split by segment
-            console.log("Flat array for multi-city, splitting by segment...");
+          const results = searchResponse?.data?.Response?.Results || [];
 
-            const segmentedResults = [];
-            flights.forEach((flight, index) => {
-              const segmentFlights = foundFlights.filter((f) => {
-                const segments = f.Segments || [];
-                if (segments.length === 0) return false;
-
-                const firstSegment = segments[0];
-                const segment = Array.isArray(firstSegment)
-                  ? firstSegment[0]
-                  : firstSegment;
-                if (!segment) return false;
-
-                const segOrigin = getAirportCodeFromSegment(segment, "origin");
-                const segDest = getAirportCodeFromSegment(
-                  segment,
-                  "destination",
-                );
-
-                return segOrigin === flight.from && segDest === flight.to;
-              });
-
-              segmentedResults.push(segmentFlights);
-              console.log(
-                `Segment ${index} (${flight.from} -> ${flight.to}): ${segmentFlights.length} flights`,
-              );
-            });
-
-            foundFlights = segmentedResults;
+          if (Array.isArray(results) && Array.isArray(results[0])) {
+            // PERFECT multi-city format
+            foundFlights = results;
+          } else {
+            // fallback safety
+            foundFlights = [results];
           }
         }
-        console.log("flight resp", foundFlights);
+
         setSearchResults(foundFlights);
         setTraceId(searchResponse?.data?.Response?.TraceId || "");
         setSearchError(null);
@@ -1362,6 +1498,12 @@ const Flight = () => {
   // ✅ FIXED: Render tabs based on trip type with accurate counts
   const renderTabs = () => {
     if (searchResults.length === 0) return null;
+
+    console.log("=== DEBUG: renderTabs ===");
+    console.log(
+      "Search results type:",
+      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array",
+    );
 
     if (tripType === "round") {
       let obCount, ibCount;
@@ -1483,6 +1625,80 @@ const Flight = () => {
       );
     }
 
+    // if (tripType === "multi") {
+    //   return (
+    //     <div className="mb-4">
+    //       <Tabs
+    //         activeKey={activeTab}
+    //         onSelect={(k) => setActiveTab(Number(k))}
+    //         className="mb-3"
+    //       >
+    //         {flights.map((flight, index) => {
+    //           // Handle array of arrays structure
+    //           let flightCount;
+    //           if (
+    //             Array.isArray(searchResults[0]) &&
+    //             searchResults.length > index
+    //           ) {
+    //             flightCount = searchResults[index]?.length || 0;
+    //           } else {
+    //             // Flat array structure
+    //             const segmentFlights = searchResults.filter((f) => {
+    //               const segments = f.Segments || [];
+    //               if (segments.length === 0) return false;
+    //               const firstSegment = segments[0];
+    //               const segment = Array.isArray(firstSegment)
+    //                 ? firstSegment[0]
+    //                 : firstSegment;
+    //               if (!segment) return false;
+    //               const segOrigin = getAirportCodeFromSegment(
+    //                 segment,
+    //                 "origin",
+    //               );
+    //               const segDest = getAirportCodeFromSegment(
+    //                 segment,
+    //                 "destination",
+    //               );
+    //               return segOrigin === flight.from && segDest === flight.to;
+    //             });
+    //             flightCount = segmentFlights.length;
+    //           }
+
+    //           return (
+    //             <Tab
+    //               key={index}
+    //               eventKey={index}
+    //               title={
+    //                 <div className="d-flex align-items-center">
+    //                   <span>
+    //                     {flight.from} → {flight.to}
+    //                   </span>
+    //                   <span className="badge bg-secondary ms-2">
+    //                     {flightCount}
+    //                   </span>
+    //                 </div>
+    //               }
+    //             />
+    //           );
+    //         })}
+    //       </Tabs>
+
+    //       <div className="alert alert-info py-2">
+    //         <small>
+    //           Showing flights for:{" "}
+    //           <strong>
+    //             {flights[activeTab]?.from} → {flights[activeTab]?.to}
+    //           </strong>{" "}
+    //           on {flights[activeTab]?.date}
+    //         </small>
+    //         <div className="small text-muted mt-1">
+    //           Segment {activeTab + 1} of {flights.length}
+    //         </div>
+    //       </div>
+    //     </div>
+    //   );
+    // }
+
     if (tripType === "multi") {
       return (
         <div className="mb-4">
@@ -1491,66 +1707,33 @@ const Flight = () => {
             onSelect={(k) => setActiveTab(Number(k))}
             className="mb-3"
           >
-            {flights.map((flight, index) => {
-              // Handle array of arrays structure
-              let flightCount;
-              if (
-                Array.isArray(searchResults[0]) &&
-                searchResults.length > index
-              ) {
-                flightCount = searchResults[index]?.length || 0;
-              } else {
-                // Flat array structure
-                const segmentFlights = searchResults.filter((f) => {
-                  const segments = f.Segments || [];
-                  if (segments.length === 0) return false;
-                  const firstSegment = segments[0];
-                  const segment = Array.isArray(firstSegment)
-                    ? firstSegment[0]
-                    : firstSegment;
-                  if (!segment) return false;
-                  const segOrigin = getAirportCodeFromSegment(
-                    segment,
-                    "origin",
-                  );
-                  const segDest = getAirportCodeFromSegment(
-                    segment,
-                    "destination",
-                  );
-                  return segOrigin === flight.from && segDest === flight.to;
-                });
-                flightCount = segmentFlights.length;
-              }
+            {searchResults.map((segmentFlights, index) => (
+              <Tab
+                key={index}
+                eventKey={index}
+                title={
+                  <div className="d-flex align-items-center">
+                    <span>
+                      {flights[index]?.from} → {flights[index]?.to}
+                    </span>
 
-              return (
-                <Tab
-                  key={index}
-                  eventKey={index}
-                  title={
-                    <div className="d-flex align-items-center">
-                      <span>
-                        {flight.from} → {flight.to}
-                      </span>
-                      <span className="badge bg-secondary ms-2">
-                        {flightCount}
-                      </span>
-                    </div>
-                  }
-                />
-              );
-            })}
+                    <span className="badge bg-secondary ms-2">
+                      {segmentFlights?.length || 0}
+                    </span>
+                  </div>
+                }
+              />
+            ))}
           </Tabs>
 
           <div className="alert alert-info py-2">
-            <small>
-              Showing flights for:{" "}
-              <strong>
-                {flights[activeTab]?.from} → {flights[activeTab]?.to}
-              </strong>{" "}
-              on {flights[activeTab]?.date}
-            </small>
-            <div className="small text-muted mt-1">
-              Segment {activeTab + 1} of {flights.length}
+            Showing flights for:
+            <strong>
+              {" "}
+              {flights[activeTab]?.from} → {flights[activeTab]?.to}
+            </strong>
+            <div className="small mt-1">
+              Segment {activeTab + 1} of {searchResults.length}
             </div>
           </div>
         </div>
@@ -1649,7 +1832,7 @@ const Flight = () => {
           return (
             <Card
               key={index}
-              className={`shadow-sm p-3 mb-4 rounded-3 ${
+              className={`flight-card shadow-sm p-3 mb-4 rounded-3 ${
                 isSelected ? "border-primary border-2" : ""
               }`}
               onClick={() => handleFlightSelect(flight)}
@@ -1773,8 +1956,7 @@ const Flight = () => {
                       <strong>Baggage:</strong> {segmentData?.Baggage || "--"}•
                       <strong> Cabin:</strong>{" "}
                       {segmentData?.CabinBaggage || "--"} •
-                      <strong> Class:</strong> {getCabinClassFromApi(flight)}
-                      {/* <strong> Class:</strong> {travelClass} */}
+                      <strong> Class:</strong> {travelClass}
                     </small>
                   </div>
                 </Col>
@@ -1785,7 +1967,7 @@ const Flight = () => {
 
         {/* ✅ FIXED: SHOW TOTAL PRICE AND VIEW PRICES BUTTON FOR ALL TRIP TYPES */}
         {selectedFlights.some((f) => f) && (
-          <div className="sticky-bottom bg-white p-3 border-top shadow-sm">
+          <div className="sticky-bottom flight-summary-bar bg-white p-3 border-top shadow-sm">
             <Row className="align-items-center">
               <Col md={6}>
                 <h5 className="mb-0">Selected Flights:</h5>
@@ -1878,7 +2060,7 @@ const Flight = () => {
         ).length;
         return { code, name, count };
       })
-      .sort((a, b) => a?.name?.localeCompare(b.name));
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [searchResults, activeTab, tripType, isDomestic]);
 
   const buildFlightDetailPayload = () => {
@@ -1909,23 +2091,6 @@ const Flight = () => {
     };
   };
 
-  const getCabinClassFromApi = (flight) => {
-    const cabinCode = flight?.Segments?.[0]?.[0]?.CabinClass;
-
-    switch (Number(cabinCode)) {
-      case 1:
-        return "Economy";
-      case 2:
-        return "Premium Economy";
-      case 3:
-        return "Business";
-      case 4:
-        return "First Class";
-      default:
-        return "Unknown";
-    }
-  };
-
   return (
     <div>
       {/* Flight Search Form */}
@@ -1941,26 +2106,41 @@ const Flight = () => {
               </div>
             )}
 
-            <Row className="align-items-end g-2 mb-3 travellers">
-              <Col md={2}>
+            <Row className="align-items-end g-2 mb-3 mt-0  travellers justify-content-center">
+              <Col md={12} className="mb-4 tabing-section">
                 <Form.Group>
-                  <Form.Label className="fw-semibold small">
-                    Trip Type
-                  </Form.Label>
-                  <Form.Select
-                    value={tripType}
-                    onChange={(e) => handleTripTypeChange(e.target.value)}
-                    className="form-control"
-                    disabled={isInitialLoading || searchLoading}
-                  >
-                    <option value="oneway">One Way</option>
-                    <option value="round">Round Trip</option>
-                    <option value="multi">Multi City</option>
-                  </Form.Select>
+                  <div className="trip-tabs text-center">
+                    <button
+                      type="button"
+                      className={`trip-tab ${tripType === "oneway" ? "active" : ""}`}
+                      onClick={() => handleTripTypeChange("oneway")}
+                      disabled={isInitialLoading || searchLoading}
+                    >
+                      <i class="bi bi-airplane"></i> One Way
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`trip-tab ${tripType === "round" ? "active" : ""}`}
+                      onClick={() => handleTripTypeChange("round")}
+                      disabled={isInitialLoading || searchLoading}
+                    >
+                      <i class="bi bi-arrow-left-right"></i> Round Trip
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`trip-tab ${tripType === "multi" ? "active" : ""}`}
+                      onClick={() => handleTripTypeChange("multi")}
+                      disabled={isInitialLoading || searchLoading}
+                    >
+                      <i class="bi bi-signpost-split"></i> Multi City
+                    </button>
+                  </div>
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
+              <Col xs={6} md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">From</Form.Label>
                   <AirportDropdown
@@ -1974,7 +2154,7 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
+              <Col xs={6} md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">To</Form.Label>
                   <AirportDropdown
@@ -1988,7 +2168,7 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
+              <Col xs={6} md={2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">Depart</Form.Label>
                   <DatePicker
@@ -2009,7 +2189,7 @@ const Flight = () => {
               </Col>
 
               {tripType === "round" && (
-                <Col md={2}>
+                <Col xs={6} md={2}>
                   <Form.Group>
                     <Form.Label className="fw-semibold small">
                       Return
@@ -2041,7 +2221,7 @@ const Flight = () => {
                 </Col>
               )}
 
-              <Col md={tripType === "round" ? 2 : 2}>
+              <Col xs={6} sm={2} md={tripType === "round" ? 2 : 2}>
                 <Form.Group>
                   <Form.Label className="fw-semibold small">
                     Passengers & Class
@@ -2117,7 +2297,7 @@ const Flight = () => {
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
+              <Col xs={6} md={2}>
                 <Button
                   type="submit"
                   className="explore-flight-btn w-100"
@@ -2147,10 +2327,10 @@ const Flight = () => {
                 return (
                   <Row
                     key={flight.id || actualIndex}
-                    className="align-items-end g-2 mb-3 travellers"
+                    className="align-items-end g-2 mb-3 travellers justify-content-center"
                   >
                     {/* FROM */}
-                    <Col md={2}>
+                    <Col xs={6} md={2}>
                       <Form.Group>
                         <Form.Label className="fw-semibold small">
                           From
@@ -2174,7 +2354,7 @@ const Flight = () => {
                     </Col>
 
                     {/* TO */}
-                    <Col md={2}>
+                    <Col xs={6} md={2}>
                       <Form.Group>
                         <Form.Label className="fw-semibold small">
                           To
@@ -2198,7 +2378,7 @@ const Flight = () => {
                     </Col>
 
                     {/* DATE */}
-                    <Col md={2}>
+                    <Col xs={6} md={2}>
                       <Form.Group>
                         <Form.Label className="fw-semibold small">
                           Depart
@@ -2228,7 +2408,11 @@ const Flight = () => {
                     </Col>
 
                     {/* ACTION BUTTONS */}
-                    <Col md={2} className="d-flex align-items-center gap-2">
+                    <Col
+                      xs={6}
+                      md={2}
+                      className="d-flex align-items-center gap-2"
+                    >
                       {/* Remove Button (first row ke alawa) */}
                       {actualIndex > 0 && (
                         <Button
@@ -2236,7 +2420,7 @@ const Flight = () => {
                           className="rounded-pill"
                           onClick={() => removeCity(actualIndex)}
                         >
-                          Remove
+                          REMOVE
                         </Button>
                       )}
 
@@ -2248,7 +2432,7 @@ const Flight = () => {
                             className="rounded-pill"
                             onClick={addCity}
                           >
-                            + Add City
+                            ADD
                           </Button>
                         )}
                     </Col>
@@ -2259,10 +2443,14 @@ const Flight = () => {
         </div>
       </div>
 
-      <div className="container py-5">
+      <div className="container py-5 filters-mob">
         <Row>
           {/* Filter Sidebar */}
-          <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
+          <Col
+            sm={3}
+            style={{ opacity: isInitialLoading ? 0.5 : 1 }}
+            className="d-none d-lg-block"
+          >
             <fieldset disabled={isInitialLoading || searchLoading}>
               <div className="filter-box p-3 border rounded shadow-sm">
                 <div className="d-flex justify-content-between align-items-center mb-3">
@@ -2542,6 +2730,22 @@ const Flight = () => {
 
           {/* Flight Results Section */}
           <Col sm={9}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h6 className="mb-0 fw-bold">Available Flights</h6>
+              <button
+                className="filters-mini-btn d-lg-none"
+                onClick={() => setShowMobileFilter(true)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M3 5h18l-7 8v5l-4 2v-7z"></path>
+                </svg>
+                Filter
+              </button>
+            </div>
             {/* Tabs for multi-city and return */}
             {renderTabs()}
 
@@ -2550,6 +2754,298 @@ const Flight = () => {
           </Col>
         </Row>
       </div>
+
+      <Offcanvas
+        show={showMobileFilter}
+        onHide={() => setShowMobileFilter(false)}
+        placement="start"
+      >
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Filters</Offcanvas.Title>
+        </Offcanvas.Header>
+
+        <Offcanvas.Body>
+          {/* yaha EXACT wahi filter code paste karo jo aapne bheja */}
+
+          <Col sm={3} style={{ opacity: isInitialLoading ? 0.5 : 1 }}>
+            <fieldset disabled={isInitialLoading || searchLoading}>
+              <div className="filter-box p-3 border rounded shadow-sm">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="fw-bold mb-0">FILTER</h5>
+                  <FaUndoAlt
+                    title="Reset Filters"
+                    style={{ cursor: "pointer", color: "#d04856ff" }}
+                    onClick={clearAllFilters}
+                  />
+                </div>
+
+                {/* Refundable Filter */}
+                <div className="filter-group mb-3">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="refundable"
+                      checked={filters.refundableOnly}
+                      onChange={(e) =>
+                        handleFilterChange("refundableOnly", e.target.checked)
+                      }
+                    />
+                    <label className="form-check-label" htmlFor="refundable">
+                      Refundable Only
+                    </label>
+                  </div>
+                </div>
+
+                {/* Airlines Filter */}
+                <fieldset disabled={isInitialLoading || searchLoading}>
+                  <div className="filter-group mb-3">
+                    <div
+                      className="filter-title d-flex justify-content-between"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleToggle("airlines")}
+                    >
+                      <span className="flight-heading">Airlines</span>
+                      <FontAwesomeIcon
+                        icon={toggle.airlines ? faChevronUp : faChevronDown}
+                      />
+                    </div>
+
+                    {toggle.airlines && (
+                      <div className="filter-options mt-2">
+                        {availableAirlines.length === 0 ? (
+                          <small className="text-muted">
+                            No airlines available
+                          </small>
+                        ) : (
+                          availableAirlines.map((airline) => (
+                            <div className="form-check" key={airline.code}>
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`airline-${airline.code}`}
+                                checked={filters.airlines.includes(
+                                  airline.code,
+                                )}
+                                onChange={(e) =>
+                                  handleAirlineFilter(
+                                    airline.code,
+                                    e.target.checked,
+                                  )
+                                }
+                              />
+                              <label
+                                className="form-check-label"
+                                htmlFor={`airline-${airline.code}`}
+                              >
+                                {airline.name}
+                                <span className="text-muted">
+                                  ({airline.count})
+                                </span>
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </fieldset>
+
+                {/* Stops Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("stops")}
+                  >
+                    <span className="flight-heading">Stops</span>
+                    <FontAwesomeIcon
+                      icon={toggle.stops ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.stops && (
+                    <div className="filter-options mt-2">
+                      {[
+                        { label: "Non-stop", value: 0 },
+                        { label: "1 Stop", value: 1 },
+                        { label: "2+ Stops", value: 2 },
+                      ].map((stop, i) => (
+                        <div className="form-check" key={stop.value}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`stop-${stop.value}`}
+                            checked={filters.stops.includes(stop.value)}
+                            onChange={(e) =>
+                              handleStopFilter(stop.value, e.target.checked)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`stop-${stop.value}`}
+                          >
+                            {stop.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Price Range Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("price")}
+                  >
+                    <span className="flight-heading">Price Range</span>
+                    <FontAwesomeIcon
+                      icon={toggle.price ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.price && (
+                    <div className="filter-options mt-2">
+                      <div className="mb-2">
+                        <label className="form-label small">
+                          Min: ₹{filters.priceRange.min}
+                        </label>
+                        <input
+                          type="range"
+                          className="form-range"
+                          min="0"
+                          max="50000"
+                          step="1000"
+                          value={filters.priceRange.min}
+                          onChange={(e) =>
+                            handlePriceRangeChange(
+                              "min",
+                              parseInt(e.target.value),
+                            )
+                          }
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="form-label small">
+                          Max: ₹{filters.priceRange.max}
+                        </label>
+                        <input
+                          type="range"
+                          className="form-range"
+                          min="0"
+                          max="50000"
+                          step="1000"
+                          value={filters.priceRange.max}
+                          onChange={(e) =>
+                            handlePriceRangeChange(
+                              "max",
+                              parseInt(e.target.value),
+                            )
+                          }
+                        />
+                      </div>
+                      <div className="d-flex justify-content-between small text-muted">
+                        <span>₹0</span>
+                        <span>₹50,000</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Departure Time Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("departure")}
+                  >
+                    <span className="flight-heading">Departure Time</span>
+                    <FontAwesomeIcon
+                      icon={toggle.departure ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.departure && (
+                    <div className="filter-options mt-2">
+                      {[
+                        { label: "Early Morning (00:00-06:00)", range: [0, 6] },
+                        { label: "Morning (06:00-12:00)", range: [6, 12] },
+                        { label: "Afternoon (12:00-18:00)", range: [12, 18] },
+                        { label: "Evening (18:00-24:00)", range: [18, 24] },
+                      ].map((time, i) => (
+                        <div className="form-check" key={i}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`departure-${i}`}
+                            checked={filters.departureTimes.some(
+                              (t) =>
+                                t[0] === time.range[0] &&
+                                t[1] === time.range[1],
+                            )}
+                            onChange={(e) =>
+                              handleDepartureTimeFilter(
+                                time.range,
+                                e.target.checked,
+                              )
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`departure-${i}`}
+                          >
+                            {time.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Duration Filter */}
+                <div className="filter-group mb-3">
+                  <div
+                    className="filter-title d-flex justify-content-between"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleToggle("duration")}
+                  >
+                    <span className="flight-heading">Flight Duration</span>
+                    <FontAwesomeIcon
+                      icon={toggle.duration ? faChevronUp : faChevronDown}
+                    />
+                  </div>
+                  {toggle.duration && (
+                    <div className="filter-options mt-2">
+                      {[
+                        { label: "Short (< 2 hours)", max: 120 },
+                        { label: "Medium (2-4 hours)", min: 120, max: 240 },
+                        { label: "Long (> 4 hours)", min: 240 },
+                      ].map((duration, i) => (
+                        <div className="form-check" key={i}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`duration-${i}`}
+                            checked={filters.durations.includes(duration.label)}
+                            onChange={(e) =>
+                              handleDurationFilter(duration, e.target.checked)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`duration-${i}`}
+                          >
+                            {duration.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </fieldset>
+          </Col>
+        </Offcanvas.Body>
+      </Offcanvas>
 
       {/* Flight Detail Modal */}
       <FlightDetail

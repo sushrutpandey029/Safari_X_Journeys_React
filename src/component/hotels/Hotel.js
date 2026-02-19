@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCityList } from "../services/hotelService"; // API functions
+import { getCityList,getCountryList } from "../services/hotelService"; // API functions
 import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
 import DatePicker from "react-datepicker";
@@ -16,6 +16,12 @@ function Hotel() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [rooms, setRooms] = useState(1);
+  // NEW states for city search
+  const [citySearch, setCitySearch] = useState("");
+  const [filteredCities, setFilteredCities] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const citySearchRef = useRef(null);
+
   const [paxRooms, setPaxRooms] = useState([
     { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
@@ -60,10 +66,15 @@ function Hotel() {
         setCityList(cities);
 
         if (cities.length > 0 && !selectedCity) {
-          setSelectedCity(cities[0].CityCode || cities[0].Code);
-          setSelectedCityName(
-            cities[0].CityName || cities[0].Name || cities[0].City,
-          );
+          const defaultCityCode = cities[0].CityCode || cities[0].Code;
+          const defaultCityName =
+            cities[0].CityName || cities[0].Name || cities[0].City;
+
+          setSelectedCity(defaultCityCode);
+          setSelectedCityName(defaultCityName);
+
+          // IMPORTANT
+          setCitySearch(defaultCityName);
         }
       } catch (err) {
         console.error("Error fetching cities:", err);
@@ -73,6 +84,59 @@ function Hotel() {
     };
     fetchCities();
   }, [selectedCountry]);
+
+  
+
+
+ 
+
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        citySearchRef.current &&
+        !citySearchRef.current.contains(event.target)
+      ) {
+        setShowCitySuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleCitySearch = (e) => {
+    const value = e.target.value;
+    setCitySearch(value);
+
+    if (value.trim() === "") {
+      setFilteredCities(cityList);
+    } else {
+      const filtered = cityList.filter((city) =>
+        (city.CityName || city.Name || city.City || "")
+          .toLowerCase()
+          .includes(value.toLowerCase()),
+      );
+      setFilteredCities(filtered);
+    }
+
+    setShowCitySuggestions(true);
+  };
+
+  const handleCitySelect = (city) => {
+    const cityCode = city.CityCode || city.Code;
+    const cityName = city.CityName || city.Name || city.City;
+
+    setSelectedCity(cityCode);
+    setSelectedCityName(cityName);
+
+    setCitySearch(cityName);
+
+    setShowCitySuggestions(false);
+  };
 
   // Handle search
   const handleSearch = () => {
@@ -111,6 +175,7 @@ function Hotel() {
                     setSelectedCountry(e.target.value);
                     setSelectedCity("");
                     setSelectedCityName("");
+                    setCitySearch("");
                   }}
                 >
                   {countryOptions.map((c) => (
@@ -122,7 +187,7 @@ function Hotel() {
               </div>
 
               {/* City */}
-              <div className="col-md-2">
+              {/* <div className="col-md-2">
                 <label className="form-label">City</label>
                 <select
                   className="form-control"
@@ -149,6 +214,43 @@ function Hotel() {
                     </option>
                   ))}
                 </select>
+              </div> */}
+
+              <div className="col-md-2 position-relative" ref={citySearchRef}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search or select city"
+                  value={citySearch}
+                  onChange={handleCitySearch}
+                  onFocus={() => {
+                    setFilteredCities(cityList);
+                    setShowCitySuggestions(true);
+                  }}
+                  disabled={loading}
+                />
+
+                {showCitySuggestions && filteredCities.length > 0 && (
+                  <div
+                    className="position-absolute bg-white border w-100 shadow-sm"
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 1000,
+                    }}
+                  >
+                    {filteredCities.map((city, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 suggestion-item"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        {city.CityName || city.Name || city.City}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Check-in */}

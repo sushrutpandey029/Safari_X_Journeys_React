@@ -374,6 +374,16 @@ const HotelCheckout = () => {
   }, [hotel?.bookingCode]);
   if (!payload) return null;
 
+  if (initialPreBookLoading) {
+  return (
+    <div className="container text-center" style={{ marginTop: "150px" }}>
+      <div className="spinner-border text-primary mb-3"></div>
+      <h5>Validating hotel availability...</h5>
+      <p>Please wait while we fetch latest room details.</p>
+    </div>
+  );
+}
+
   return (
     <div className="container" style={{ marginTop: "110px" }}>
       <div className="row">
@@ -628,7 +638,7 @@ const HotelCheckout = () => {
               <button
                 type="submit"
                 className="explore-btn"
-                disabled={preBookLoading}
+                disabled={preBookLoading || initialPreBookLoading}
               >
                 {preBookLoading ? "Checking Availability..." : "Continue"}
               </button>
@@ -675,7 +685,7 @@ const HotelCheckout = () => {
 
           {/* CANCELLATION CARD */}
 
-          {preBookInfo && (
+          {  preBookInfo && (
             <div className="card shadow-sm border p-3 mb-3 rounded-3">
               <h5 className="fw-bold mb-2">ℹ️ Room Details</h5>
 

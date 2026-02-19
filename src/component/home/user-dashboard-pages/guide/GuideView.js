@@ -15,31 +15,12 @@ export default function GuideView({ booking }) {
     bookingPayments,
   } = booking;
 
-  // const handleDownloadGuideInvoice = () => {
-  //   const doc = new jsPDF();
-  //   doc.text("Guide Service Invoice", 14, 20);
-
-  //   autoTable(doc, {
-  //     startY: 30,
-  //     head: [["Field", "Value"]],
-  //     body: [
-  //       ["Guide Name", serviceDetails?.guideName],
-  //       ["Email", serviceDetails?.guideEmail],
-  //       ["Phone", serviceDetails?.guidePhone],
-  //       ["Location", serviceDetails?.location],
-  //       ["Charges", `${currency} ${serviceDetails?.chargesPerDay}`],
-  //     ],
-  //   });
-
-  //   doc.save(`Guide_${bookingId}.pdf`);
-  // };
-
   const handleDownloadInvoice = async (bookingId) => {
     try {
       const pdfBlob = await downloadBookingPDF(bookingId);
 
       const url = window.URL.createObjectURL(
-        new Blob([pdfBlob], { type: "application/pdf" })
+        new Blob([pdfBlob], { type: "application/pdf" }),
       );
 
       const link = document.createElement("a");
@@ -86,7 +67,6 @@ export default function GuideView({ booking }) {
       </table>
 
       {status === "confirmed" && (
-        
         <button
           className="btn btn-outline-primary"
           onClick={() => handleDownloadInvoice(booking.bookingId)}

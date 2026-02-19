@@ -174,7 +174,7 @@ function Header() {
                     <img
                       src="/Images/tour-guide.gif"
                       alt="Safarix Logo" className="icon-img"
-                    /> Guides
+                    /> Guide
                   </NavLink>
                 </li>
 
@@ -202,19 +202,18 @@ function Header() {
                     <img
                       src="/Images/bus-journey.gif"
                       alt="Safarix Logo" className="icon-img"
-                    /> Buses
+                    /> Bus
                   </NavLink>
                 </li>
               </ul>
             </div>
 
-         
+
 
             {/* User Icon & Profile Menu */}
             <div className="user-icon position-relative">
               <div className="profile-wrapper" ref={profileMenuRef}>
-                <a
-                  className="profile-icon-link"
+                <a className="profile-icon-link"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img
@@ -226,7 +225,7 @@ function Header() {
 
                 {showProfileMenu && (
                   <div className="profile-menu">
-                    <div className="profile-heading">Profile</div>
+                    <div className="profile-heading">Dashboard</div>
                     <ul>
                       {!user && !guide && !driver && (
                         <>
@@ -255,7 +254,7 @@ function Header() {
                             navigate("/user-dashboard");
                           }}
                         >
-                          My Profile
+                          User Dashboard
                         </li>
                       )}
                       {guide && !user && !driver && (
@@ -265,7 +264,7 @@ function Header() {
                             navigate("/guide-dashboard");
                           }}
                         >
-                          My Profile
+                          Guide Dashboard
                         </li>
                       )}
                       {driver && !guide && !user && (

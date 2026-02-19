@@ -67,10 +67,10 @@ const WhyChooseUs = () => {
 
           {/* Heading Section */}
           <div className="col-sm-12 mb-5 text-center">
-            <h2 className="text-start mb-4">
+            <h2 className=" mb-4">
               why <span>Choose </span>us
             </h2>
-            <p className="whychose text-start">
+            <p className="whychose">
               At Safarix Journeys Private Limited, we don’t just plan trips — we craft meaningful travel experiences. Whether you're chasing Himalayan peaks, relaxing on tranquil beaches, or immersing yourself in rich cultural heritage, we are your trusted companion for discovering Incredible India — your way.
             </p>
           </div>
@@ -93,8 +93,6 @@ const WhyChooseUs = () => {
         </div>
       </div>
     </div>
-
-
   );
 };
 
