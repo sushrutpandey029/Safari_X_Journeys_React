@@ -32,13 +32,13 @@ body {
 }
 
 .modify-btn {
-  border: 1px solid #6665ae;
-  color: #6665ae;
+  border: 1px solid #4889b9;
+  color: #4889b9;
   border-radius: 25px;
 }
 
 .modify-btn:hover {
-  background-color: #6665ae;
+  background-color: #4889b9;
   color: #fff;
 }
 
@@ -101,7 +101,7 @@ body {
 
 .filter-title span {
   font-size: 15px;
-  color: #6665ae;
+  color: #4889b9;
 }
 
 .filter-title svg {
@@ -335,7 +335,7 @@ body {
   }
 
   .hotel-place {
-    color: #6665ae;
+    color: #4889b9;
   }
 
   .hotel-name {
@@ -439,7 +439,7 @@ body {
 
 .right-details {
   h4 {
-    color: #6665ae;
+    color: #4889b9;
     font-size: 20px;
   }
 
@@ -774,7 +774,7 @@ body {
 
     .form-label {
       font-weight: 500;
-      color: #6665ae !important;
+      color: #4889b9 !important;
       font-size: 13px;
       text-transform: uppercase;
     }
@@ -787,7 +787,7 @@ body {
     }
 
     .explore-btnnew {
-      background-color: #6665ae;
+      background-color: #4889b9;
       color: #ffffff;
       margin-top: 0px;
       width: 50% !important;
@@ -801,7 +801,7 @@ body {
       margin-top: 0px;
       width: 50% !important;
       margin: 0 auto;
-      background-color: #6665ae;
+      background-color: #4889b9;
       color: #fff;
       border-radius: 10px !important;
       font-size: 13px;} 

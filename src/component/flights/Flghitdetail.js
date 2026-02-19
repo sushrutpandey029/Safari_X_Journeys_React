@@ -108,9 +108,9 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
         resultIndexes:
           tripType === "round" && isDomestic
             ? {
-                outbound: selectedIndexes[0],
-                inbound: selectedIndexes[1],
-              }
+              outbound: selectedIndexes[0],
+              inbound: selectedIndexes[1],
+            }
             : selectedIndexes[0],
       },
     });
@@ -128,30 +128,30 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
       size="lg"
       centered
       scrollable
-      className="flight-detail-modal"
+      dialogClassName="modern-flight-modal"
     >
       {/* ================= HEADER ================= */}
-      <Modal.Header closeButton className="modal-header-custom">
-        <Modal.Title className="w-100">
-          <div className="modal-main-title">
-            Flight Details and Fare Options
+      <Modal.Header closeButton className="modern-modal-header">
+        <div className="w-100">
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="fw-bold mb-0 text-white">Flight Fare Options</h5>
+            <Badge bg="primary">{tripType?.toUpperCase()}</Badge>
           </div>
 
-          <div className="flight-segments-summary">
-            <Badge bg="info">{tripType?.toUpperCase()}</Badge>
-            {isDomestic && tripType === "round" && (
-              <Badge bg="secondary">Domestic Return</Badge>
-            )}
-          </div>
+          {isDomestic && tripType === "round" && (
+            <Badge bg="secondary" className="mt-2">
+              Domestic Return
+            </Badge>
+          )}
 
-          <div className="passenger-count-display mt-2">
-            <small style={{color:"black"}}>Please select any one plan to continue</small>
-          </div>
-        </Modal.Title>
+          <small className="plan-booking d-block mt-2">
+            Please select plan to continue booking
+          </small>
+        </div>
       </Modal.Header>
 
       {/* ================= BODY ================= */}
-      <Modal.Body className="modal-body-custom">
+      <Modal.Body className="modern-modal-body">
         {loading && (
           <div className="text-center py-4">
             <Spinner animation="border" />
@@ -163,14 +163,15 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
 
         {/* ===== DEPART / RETURN TABS ===== */}
         {!loading && fareRules.length > 1 && (
-          <div className="fare-tabs mb-4 d-flex gap-2">
+          <div className="fare-tabs mb-4 d-flex gap-2 flex-wrap">
             {fareRules.map((item, idx) => {
               const routeLabel = getRouteLabel(item);
 
               return (
                 <Button
                   key={idx}
-                  variant={activeTab === idx ? "primary" : "outline-primary"}
+                  className={`modern-tab-btn ${activeTab === idx ? "active" : ""
+                    }`}
                   onClick={() => setActiveTab(idx)}
                 >
                   {idx === 0
@@ -189,18 +190,20 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
             fareRules[activeTab].rules.map((rule, rIdx) => (
               <div
                 key={rIdx}
-                className={`fare-option-card clickable-fare ${
-                  selectedIndexes[activeTab] ===
-                  fareRules[activeTab].ResultIndex
-                    ? "selected"
+                className={`modern-fare-card ${selectedIndexes[activeTab] ===
+                    fareRules[activeTab].ResultIndex
+                    ? "active"
                     : ""
-                }`}
+                  }`}
                 onClick={() =>
-                  handleSelect(activeTab, fareRules[activeTab].ResultIndex)
+                  handleSelect(
+                    activeTab,
+                    fareRules[activeTab].ResultIndex
+                  )
                 }
               >
                 <div
-                  className="fare-rules-content"
+                  className="fare-content"
                   dangerouslySetInnerHTML={{
                     __html:
                       rule.FareRuleDetail ||
@@ -210,23 +213,24 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
               </div>
             ))
           ) : (
-            <div className="text-muted">
+            <div className="segment">
               No fare rules available for this segment.
             </div>
           ))}
       </Modal.Body>
 
       {/* ================= FOOTER ================= */}
-      <Modal.Footer className="modal-footer-custom">
+      <Modal.Footer className="modern-modal-footer">
         <Button
-          className="book-now-main-btn"
+          className="continue-btn-modern"
           onClick={handleContinue}
           disabled={!canContinue || loading}
         >
-          CONTINUE
+          Continue Booking →
         </Button>
       </Modal.Footer>
     </Modal>
+
   );
 };
 
