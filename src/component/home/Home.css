@@ -87,11 +87,11 @@ header .navbar-brand {
 
 header .nav-link {
   border: 1px solid #4789B9;
-  border-radius: 10px;
+  border-radius: 50px;
   padding: 2px 13px 2px 2px !important;
   margin-right: 10px;
   font-size: 14px;
-  color: #4789B9;
+  color: #000000;
   background-color: #fff;
   text-transform: uppercase;
 
@@ -101,8 +101,8 @@ header .nav-link {
   }
 
   .icon-img {
-    height: 27px;
-    border-radius: 6px;
+    height: 23px;
+    border-radius: 18px;
     margin-right: 2px;
   }
 }
@@ -404,43 +404,25 @@ header {
 }
 
 .explore-btn {
-  background-color: #ffffff;
-  color: #4789B9;
+  background-color: #4889b9;
+  color: #ffffff !important;
   border: none;
   padding: 7px 20px;
-  border-radius: 16px;
+  border-radius: 50px;
   font-size: 16px;
   cursor: pointer;
   transition: 0.3s ease;
-  border: 1px solid #4789B9;
   margin-top: 25px;
 }
 
-.explore-btnnew {
 
-  background-color: #ffffff;
-  color: #4789B9;
-  border: none;
-  padding: 7px 20px;
-  width: -webkit-fill-available;
-  border-radius: 16px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s ease;
-  border: 1px solid #4789B9;
-  margin-top: 25px;
-
-}
 
 .explore-btn image {
   height: 40px;
   width: 40px;
 }
 
-.explore-btn:hover {
-  background-color: #4789B9;
-  color: #fff;
-}
+
 
 .destination-card {
   margin: 0px;
@@ -1381,7 +1363,7 @@ header {
 
 .foot {
   position: relative;
-  top: -5px;
+  top: -25px;
 
 
   .chatbot-box img {
@@ -1422,7 +1404,7 @@ header {
 footer {
   position: relative;
   padding: 100px 0 40px;
-  margin-top: -27px;
+  margin-top: -50px;
   color: #fff;
   overflow: hidden;
   /* z-index: -1; REMOVE THIS */
@@ -1604,10 +1586,11 @@ footer > * {
 /* Button */
 .newsletter-btn {
   padding: 15px 30px;
-  background: #333;
+  background: #4889b9;
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 50px;
+  transition: 0.5s;
   font-size: 16px;
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -2037,8 +2020,8 @@ footer > * {
     font-size: 22px;
 }
 .testimonial-card {
-    width: 90%;
-    margin-right: 0px;
+  width: 100%;
+  margin-right: 0px;
 }
 .testimonial-arrows {
     margin-top: 20px;
@@ -2142,12 +2125,10 @@ footer {
   }
 
   .testimonial-col {
-    max-width: 20%;
+    max-width: 100%;
   }
 
-  .testimonial-row {
-    gap: 38px;
-  }
+
 
   .place img {
     height: 180px;
@@ -2238,7 +2219,9 @@ footer {
       width: 50%;
     }
   }
-
+  .why-choose::before {
+    width: 100px;
+}
 
 
 

@@ -10,7 +10,11 @@ import {
   faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { getCityList, getHotelCodeListNew } from "../services/hotelService";
+import {
+  getCityList,
+  getHotelCodeListNew,
+  getCountryList,
+} from "../services/hotelService";
 import { searchHotels } from "../services/hotelService";
 import { useNavigate, useLocation } from "react-router-dom";
 import Loading from "../common/loading";
@@ -19,6 +23,8 @@ function HotelBooking() {
   // Location
   const location = useLocation();
   const [cityList, setCityList] = useState([]);
+  const [countryList, setCountryList] = useState([]);
+
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCityName, setSelectedCityName] = useState("");
@@ -62,6 +68,10 @@ function HotelBooking() {
   const [filteredCities, setFilteredCities] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const citySearchRef = useRef(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [filteredCountries, setFilteredCountries] = useState([]);
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
+  const countrySearchRef = useRef(null);
 
   const [showProperties, setShowProperties] = useState({
     bookWithZero: false,
@@ -96,6 +106,55 @@ function HotelBooking() {
     return chunks;
   };
 
+  const fetchAllCountry = async () => {
+    try {
+      const resp = await getCountryList();
+
+      setCountryList(resp);
+
+      // set default country search text
+      const defaultCountry = resp.find((c) => c.Code === selectedCountry);
+
+      if (defaultCountry) {
+        setCountrySearch(defaultCountry.Name);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleCountrySearch = (e) => {
+    const value = e.target.value;
+
+    setCountrySearch(value);
+
+    if (value.trim() === "") {
+      setFilteredCountries(countryList);
+    } else {
+      const filtered = countryList.filter((country) =>
+        country.Name.toLowerCase().includes(value.toLowerCase()),
+      );
+
+      setFilteredCountries(filtered);
+    }
+
+    setShowCountrySuggestions(true);
+  };
+  const handleCountrySelect = (country) => {
+    setSelectedCountry(country.Code);
+
+    setCountrySearch(country.Name);
+
+    setShowCountrySuggestions(false);
+
+    // reset city and results
+    setSelectedCity("");
+    setSelectedCityName("");
+    setCityList([]);
+    setHotelList([]);
+    setSearchResults([]);
+  };
+
   useEffect(() => {
     const today = new Date();
 
@@ -112,7 +171,9 @@ function HotelBooking() {
     setCheckIn(formatDate(tomorrow));
     setCheckOut(formatDate(dayAfterTomorrow));
   }, []);
-
+  useEffect(() => {
+    fetchAllCountry();
+  }, []);
   // Infinite Scroll Logic
   useEffect(() => {
     const handleScroll = () => {
@@ -151,20 +212,6 @@ function HotelBooking() {
     }
   }, [selectedCity, hotelList]);
 
-  // Close suggestions when clicking outside
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (searchRef.current && !searchRef.current.contains(event.target)) {
-  //       setShowSuggestions(false);
-  //     }
-  //   };
-
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -172,6 +219,13 @@ function HotelBooking() {
         !citySearchRef.current.contains(event.target)
       ) {
         setShowCitySuggestions(false);
+      }
+
+      if (
+        countrySearchRef.current &&
+        !countrySearchRef.current.contains(event.target)
+      ) {
+        setShowCountrySuggestions(false);
       }
     };
 
@@ -181,77 +235,6 @@ function HotelBooking() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  // const handleSearch = async () => {
-  //   setIsSearching(true);
-  //   setVisibleCount(9); // Reset to 9 cards on new search
-  //   setAddressSearch(""); // Reset address search on new search
-  //   setAddressSuggestions([]); // Reset suggestions
-
-  //   try {
-  //     // 🔹 Step 1: Get hotel codes for selected city
-  //     const data = await getHotelCodeListNew(selectedCountry, selectedCity);
-  //     console.log("Search List API Full Response:", data);
-
-  //     let hotels = [];
-  //     if (Array.isArray(data)) {
-  //       hotels = data;
-  //     } else if (data?.Hotels && Array.isArray(data.Hotels)) {
-  //       hotels = data.Hotels;
-  //     } else if (data?.data?.Hotels && Array.isArray(data.data.Hotels)) {
-  //       hotels = data.data.Hotels;
-  //     } else if (data?.data && Array.isArray(data.data)) {
-  //       hotels = data.data;
-  //     }
-
-  //     console.log("✅ Final Filtered Hotels:", hotels);
-  //     setHotelList(hotels);
-
-  //     // 🔹 Step 2: Extract hotel codes
-  //     const hotelCodes = hotels.map((h) => h.HotelCode || h.Code);
-  //     if (hotelCodes.length === 0) {
-  //       setSearchResults([]);
-  //       setIsSearching(false);
-  //       return;
-  //     }
-
-  //     // 🔹 Step 3: Build payload according to TBO Docs
-  //     const payload = {
-  //       CheckIn: checkIn,
-  //       CheckOut: checkOut,
-  //       HotelCodes: hotelCodes.slice(0, 100), // ⚡ in chunks of 100
-  //       GuestNationality: guestNationality,
-  //       PaxRooms: paxRooms.map((p) => ({
-  //         Adults: p.Adults,
-  //         Children: p.Children,
-  //         ChildrenAges: p.ChildrenAges,
-  //       })),
-  //       ResponseTime: responseTime,
-  //       IsDetailedResponse: isDetailedResponse, // true/false
-  //       Filters: {
-  //         NoOfRooms: 0,
-  //         Refundable: isRefundable,
-  //         MealType: mealType, // All | WithMeal | RoomOnly
-  //       },
-  //     };
-
-  //     console.log("🔹 Final Payload:", payload);
-
-  //     // 🔹 Step 4: Call Search API
-  //     const res = await searchHotels(payload);
-  //     console.log("Hotel Search Response:", res);
-  //     if (res?.data?.HotelResult) {
-  //       setSearchResults(res.data.HotelResult);
-  //     } else {
-  //       setSearchResults([]);
-  //     }
-  //   } catch (err) {
-  //     console.error("❌ Error in search:", err);
-  //     setSearchResults([]);
-  //   } finally {
-  //     setIsSearching(false);
-  //   }
-  // };
 
   const handleSearch = async () => {
     setIsSearching(true);
@@ -278,10 +261,7 @@ function HotelBooking() {
 
       // 🔹 STEP 2: Chunk hotel codes (100 max)
       const hotelCodeChunks = chunkArray(hotelCodes, 100).slice(0, 5);
-      // console.log(
-      //   "hotel code chunks",
-      //   JSON.stringify(hotelCodeChunks, null, 2),
-      // );
+
       // 🔹 STEP 3: Base payload
       const basePayload = {
         CheckIn: checkIn,
@@ -300,10 +280,6 @@ function HotelBooking() {
         },
       };
 
-      // console.log(
-      //   "hotel search requiest body",
-      //   JSON.stringify(basePayload, null, 2),
-      // );
       // 🔹 STEP 4: Parallel search calls
 
       const responses = await Promise.all(
@@ -316,6 +292,7 @@ function HotelBooking() {
       const mergedResults = responses.flatMap(
         (res) => res?.data?.data?.HotelResult || [],
       );
+      console.log("merged hotel lists", mergedResults);
 
       // 🔹 STEP 6: Create price map
       const priceMap = {};
@@ -360,7 +337,6 @@ function HotelBooking() {
     const loadCities = async () => {
       try {
         const resp = await getCityList(selectedCountry);
-        console.log("Cities API Raw Response:", resp);
 
         let cities = [];
         if (Array.isArray(resp)) cities = resp;
@@ -733,7 +709,7 @@ function HotelBooking() {
         <div className="container">
           <div className="row g-3 align-items-end">
             {/* Country */}
-            <div className="col-md-2">
+            {/* <div className="col-md-2">
               <label className="form-label">Country</label>
               <select
                 className="form-control"
@@ -742,23 +718,59 @@ function HotelBooking() {
                   const countryCode = e.target.value;
                   setSelectedCountry(countryCode);
 
-                  // 🔁 reset city when country changes
                   setSelectedCity("");
                   setSelectedCityName("");
                   setCityList([]);
 
-                  // optional: reset results
                   setHotelList([]);
                   setSearchResults([]);
                 }}
               >
                 <option value="">-- Select Country --</option>
-                {countryOptions.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.label}
+                {countryList?.map((c) => (
+                  <option key={c.Code} value={c.Code}>
+                    {c.Name}
                   </option>
                 ))}
               </select>
+            </div> */}
+
+            <div className="col-md-2 position-relative" ref={countrySearchRef}>
+              <label className="form-label">Country</label>
+
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search or select country"
+                value={countrySearch}
+                onChange={handleCountrySearch}
+                onFocus={() => {
+                  setFilteredCountries(countryList);
+                  setShowCountrySuggestions(true);
+                }}
+              />
+
+              {showCountrySuggestions && filteredCountries.length > 0 && (
+                <div
+                  className="position-absolute bg-white border w-100 shadow-sm"
+                  style={{
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    zIndex: 1000,
+                  }}
+                >
+                  {filteredCountries.map((country, index) => (
+                    <div
+                      key={index}
+                      className="p-2 suggestion-item"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleCountrySelect(country)}
+                    >
+                      {country.Name}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* City */}
@@ -873,7 +885,7 @@ function HotelBooking() {
             </div>
 
             {/* Rooms Dropdown */}
-            <div className="col-md-4 position-relative">
+            <div className="col-md-2 position-relative">
               {/* Dropdown Trigger */}
               <label className="form-label">Rooms/Guests</label>
               <div
@@ -1098,7 +1110,7 @@ function HotelBooking() {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder={`Search hotels by address in ${
+                  placeholder={`Search hotels ${
                     selectedCityName || "selected city"
                   }...`}
                   value={addressSearch}
@@ -1300,7 +1312,6 @@ function HotelBooking() {
                   visibleHotels.map((hotel, idx) => (
                     <div key={idx} className="col-md-4 mb-4">
                       <div className="card shadow-sm border-0 h-100 rounded-3">
-                        {/* Hotel Image */}
                         <div className="card-img-top position-relative">
                           {hotel.ImageUrls && hotel.ImageUrls.length > 0 ? (
                             <img
@@ -1325,7 +1336,6 @@ function HotelBooking() {
                           )}
                         </div>
 
-                        {/* Card Body */}
                         <div className="card-body">
                           <small className="hotel-place">
                             {hotel.CityName || "Hotel"}
@@ -1357,7 +1367,7 @@ function HotelBooking() {
                                 <span
                                   key={i}
                                   style={{
-                                    color: i < rating ? "#6665ae" : "#ccc",
+                                    color: i < rating ? "#ffb600" : "#ccc",
                                     fontSize: "20px",
                                   }}
                                 >
@@ -1367,7 +1377,6 @@ function HotelBooking() {
                             })}
                           </div>
 
-                          {/* Expiry Tag + Button */}
                           <div className="d-flex justify-content-between align-items-center">
                             <button
                               className="btn btn-primary btn-sm detail"
@@ -1409,7 +1418,6 @@ function HotelBooking() {
                   </div>
                 )}
 
-                {/* Loading indicator for infinite scroll */}
                 {isLoadingMore && (
                   <div className="col-12 text-center my-3">
                     <div className="spinner-border text-primary" role="status">
@@ -1436,5 +1444,4 @@ function HotelBooking() {
     </div>
   );
 }
-
 export default HotelBooking;

@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const getCountryList = async () => {
   try {
-    const resp = await axios.post(API.COUNTRY_LIST);
+    const resp = await axios.get(API.COUNTRY_LIST);
     console.log("counyry list data",resp.data)
     return resp.data?.data?.CountryList || [];
   } catch (err) {

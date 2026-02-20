@@ -6,7 +6,7 @@ import { bus_getBookingDetails } from "../../../services/busservice";
 import useCancellation from "../../../hooks/useCancellation";
 import { downloadBookingPDF } from "../../../services/bookingService";
 import BlockingLoader from "../loader/BlockingLoader";
- import { toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 export default function BusView({ booking }) {
   const {
@@ -141,8 +141,6 @@ export default function BusView({ booking }) {
         title="Cancelling Booking"
         message="Your cancellation request is being processed. Please do not go back or close this window. This may take up to 30 seconds."
       />
-
-  
 
       {/* Cancellation messages */}
       {cancelStatus === "processing" && (
@@ -288,17 +286,18 @@ export default function BusView({ booking }) {
           ))}
         </tbody>
       </table>
+      {(status === "confirmed" || status === "cancelled") && (
+        <button
+          className="btn btn-outline-primary"
+          onClick={() => handleDownloadInvoice(booking.bookingId)}
+        >
+          Download Invoice
+        </button>
+      )}
 
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-          <button
-            className="btn btn-outline-primary"
-            onClick={() => handleDownloadInvoice(booking.bookingId)}
-          >
-            Download Invoice
-          </button>
-
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

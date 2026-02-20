@@ -31,7 +31,7 @@ const HotelDetail = () => {
 
   const bookingData = location.state || {};
 
-  console.log("booking data from previous page", bookingData);
+  console.log("booking data from hotel search page ", bookingData);
 
   const scrollToPriceTable = () => {
     if (priceTableRef.current) {
@@ -128,7 +128,6 @@ const HotelDetail = () => {
         console.log("gethotel details resp", detailResp);
 
         const details = detailResp?.data?.HotelDetails?.[0] || null;
-        console.log("details in hotel deatil", details);
         setHotelDetails(details);
 
         // ✅ Search using exact bookingData

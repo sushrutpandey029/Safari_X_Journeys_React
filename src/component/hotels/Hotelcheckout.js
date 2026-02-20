@@ -11,6 +11,8 @@ const HotelCheckout = () => {
   const { startPayment } = useCashfreePayment();
   const navigate = useNavigate();
 
+  console.log("payload in hotel chckout",payload)
+
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);

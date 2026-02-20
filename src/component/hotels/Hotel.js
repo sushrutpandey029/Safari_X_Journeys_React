@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCityList,getCountryList } from "../services/hotelService"; // API functions
+import { getCityList, getCountryList } from "../services/hotelService"; // API functions
 import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
 import DatePicker from "react-datepicker";
@@ -10,6 +10,7 @@ function Hotel() {
 
   // States
   const [cityList, setCityList] = useState([]);
+  const [countryList, setCountryList] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("IN");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCityName, setSelectedCityName] = useState("");
@@ -21,6 +22,10 @@ function Hotel() {
   const [filteredCities, setFilteredCities] = useState([]);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const citySearchRef = useRef(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [filteredCountries, setFilteredCountries] = useState([]);
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
+  const countrySearchRef = useRef(null);
 
   const [paxRooms, setPaxRooms] = useState([
     { Adults: 1, Children: 0, ChildrenAges: [] },
@@ -32,6 +37,49 @@ function Hotel() {
     { label: "India", code: "IN" },
     { label: "UAE", code: "AE" },
   ];
+
+  const fetchAllCountry = async () => {
+    try {
+      const resp = await getCountryList();
+      console.log("coutnry resp", resp);
+      // setCountryList(resp);
+      setCountryList(resp.sort((a,b)=>a.Name.localeCompare(b.Name)));
+
+    } catch (err) {
+      console.log("err in coutnry list", err.response);
+    }
+  };
+
+  const handleCountrySearch = (e) => {
+    const value = e.target.value;
+
+    setCountrySearch(value);
+
+    if (value.trim() === "") {
+      setFilteredCountries(countryList);
+    } else {
+      const filtered = countryList.filter((country) =>
+        country.Name.toLowerCase().includes(value.toLowerCase()),
+      );
+
+      setFilteredCountries(filtered);
+    }
+
+    setShowCountrySuggestions(true);
+  };
+
+  const handleCountrySelect = (country) => {
+    setSelectedCountry(country.Code);
+
+    setCountrySearch(country.Name);
+
+    setShowCountrySuggestions(false);
+
+    // reset city
+    setSelectedCity("");
+    setSelectedCityName("");
+    setCitySearch("");
+  };
 
   // Default checkin/checkout = today/tomorrow
   useEffect(() => {
@@ -49,6 +97,30 @@ function Hotel() {
 
     setCheckIn(formatDate(tomorrow));
     setCheckOut(formatDate(dayAfterTomorrow));
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        countrySearchRef.current &&
+        !countrySearchRef.current.contains(event.target)
+      ) {
+        setShowCountrySuggestions(false);
+      }
+
+      if (
+        citySearchRef.current &&
+        !citySearchRef.current.contains(event.target)
+      ) {
+        setShowCitySuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Fetch cities
@@ -85,11 +157,9 @@ function Hotel() {
     fetchCities();
   }, [selectedCountry]);
 
-  
-
-
- 
-
+  useEffect(() => {
+    fetchAllCountry();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -166,55 +236,49 @@ function Hotel() {
           <div className="container">
             <div className="row g-3 align-items-end">
               {/* Country */}
-              <div className="col-md-2">
+
+              <div
+                className="col-md-2 position-relative"
+                ref={countrySearchRef}
+              >
                 <label className="form-label">Country</label>
-                <select
+
+                <input
+                  type="text"
                   className="form-control"
-                  value={selectedCountry}
-                  onChange={(e) => {
-                    setSelectedCountry(e.target.value);
-                    setSelectedCity("");
-                    setSelectedCityName("");
-                    setCitySearch("");
+                  placeholder="Search or select country"
+                  value={countrySearch}
+                  onChange={handleCountrySearch}
+                  onFocus={() => {
+                    setFilteredCountries(countryList);
+                    setShowCountrySuggestions(true);
                   }}
-                >
-                  {countryOptions.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                />
+
+                {showCountrySuggestions && filteredCountries.length > 0 && (
+                  <div
+                    className="position-absolute bg-white border w-100 shadow-sm"
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 1000,
+                    }}
+                  >
+                    {filteredCountries.map((country, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 suggestion-item"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleCountrySelect(country)}
+                      >
+                        {country.Name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* City */}
-              {/* <div className="col-md-2">
-                <label className="form-label">City</label>
-                <select
-                  className="form-control"
-                  value={selectedCity}
-                  onChange={(e) => {
-                    const cityCode = e.target.value;
-                    setSelectedCity(cityCode);
-
-                    const cityObj = cityList.find(
-                      (c) =>
-                        (c.CityCode?.toString() || c.Code?.toString()) ===
-                        cityCode.toString(),
-                    );
-                    const cityName =
-                      cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
-                    setSelectedCityName(cityName);
-                  }}
-                  disabled={loading}
-                >
-                  <option value="">-- Select City --</option>
-                  {cityList.map((city, idx) => (
-                    <option key={idx} value={city.CityCode || city.Code}>
-                      {city.CityName || city.Name || city.City}
-                    </option>
-                  ))}
-                </select>
-              </div> */}
 
               <div className="col-md-2 position-relative" ref={citySearchRef}>
                 <input
