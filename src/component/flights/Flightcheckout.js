@@ -1213,48 +1213,49 @@ const Flightcheckout = () => {
       (fareBreakdown.otherTaxes || 0);
 
     return (
-      <div className="fare-breakdown mb-3">
-        <div className="d-flex justify-content-between">
-          <span>Base Fare</span>
-          <span>₹ {formatPrice(fareBreakdown.baseFare)}</span>
-        </div>
+      <div className="fare-breakdown modern-fare-breakdown mb-3">
 
-        <div className="d-flex justify-content-between">
-          <span>Taxes & Fees</span>
-          <span>₹ {formatPrice(taxes)}</span>
-        </div>
+  <div className="fare-row">
+    <span>Base Fare</span>
+    <span>₹ {formatPrice(fareBreakdown.baseFare)}</span>
+  </div>
 
-        {ssrTotal > 0 && (
-          <div className="d-flex justify-content-between">
-            <span>Seats / Meals / Baggage</span>
-            <span>₹ {formatPrice(ssrTotal)}</span>
-          </div>
-        )}
+  <div className="fare-row">
+    <span>Taxes & Fees</span>
+    <span>₹ {formatPrice(taxes)}</span>
+  </div>
 
-        {insuranceAmount > 0 && (
-          <div className="d-flex justify-content-between">
-            <span>Travel Insurance</span>
-            <span>₹ {formatPrice(insuranceAmount)}</span>
-          </div>
-        )}
+  {ssrTotal > 0 && (
+    <div className="fare-row">
+      <span>Seats / Meals / Baggage</span>
+      <span>₹ {formatPrice(ssrTotal)}</span>
+    </div>
+  )}
 
-        {expanded && (
-          <>
-            <hr />
-            <small className="text-muted">
-              Includes airline charges, convenience fee, and GST where
-              applicable.
-            </small>
-          </>
-        )}
+  {insuranceAmount > 0 && (
+    <div className="fare-row">
+      <span>Travel Insurance</span>
+      <span>₹ {formatPrice(insuranceAmount)}</span>
+    </div>
+  )}
 
-        <hr />
-
-        <div className="d-flex justify-content-between fw-bold">
-          <span>Total Amount</span>
-          <span>₹ {formatPrice(totalAmount)}</span>
-        </div>
+  {expanded && (
+    <>
+      <div className="fare-info">
+        Includes airline charges, convenience fee & GST where applicable.
       </div>
+    </>
+  )}
+
+  <div className="fare-divider"></div>
+
+  <div className="fare-total">
+    <span>Total Amount</span>
+    <span>₹ {formatPrice(totalAmount)}</span>
+  </div>
+
+</div>
+
     );
   };
 
@@ -1731,7 +1732,7 @@ const Flightcheckout = () => {
                         </Row>
 
                         <Row>
-                          <Col md={6}>
+                          <Col md={4}>
                             <Form.Group className="mb-3">
                               <Form.Label>Date of Birth *</Form.Label>
                               <Form.Control
@@ -1748,7 +1749,7 @@ const Flightcheckout = () => {
                               />
                             </Form.Group>
                           </Col>
-                          <Col md={6}>
+                          <Col md={4}>
                             <Form.Group className="mb-3">
                               <Form.Label>Gender *</Form.Label>
                               <Form.Select
@@ -1768,10 +1769,28 @@ const Flightcheckout = () => {
                               </Form.Select>
                             </Form.Group>
                           </Col>
+                          <Col md={4}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Contact Number *</Form.Label>
+                              <Form.Control
+                                type="tel"
+                                placeholder="Enter contact number"
+                                value={passenger.contactNo}
+                                onChange={(e) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "contactNo",
+                                    e.target.value,
+                                  )
+                                }
+                                required
+                              />
+                            </Form.Group>
+                          </Col>
                         </Row>
 
                         <Row>
-                          <Col md={6}>
+                          <Col md={4}>
                             {fieldRequirements.passport && (
                               <Form.Group className="mb-3">
                                 <Form.Label>Passport Number *</Form.Label>
@@ -1791,7 +1810,7 @@ const Flightcheckout = () => {
                               </Form.Group>
                             )}
                           </Col>
-                          <Col md={6}>
+                          <Col md={4}>
                             {fieldRequirements.passportExpiry && (
                               <Form.Group className="mb-3">
                                 <Form.Label>Passport Expiry Date *</Form.Label>
@@ -1815,7 +1834,7 @@ const Flightcheckout = () => {
 
                         <Row>
                           {fieldRequirements.nationality && (
-                            <Col md={6}>
+                            <Col md={4}>
                               <Form.Group className="mb-3">
                                 <Form.Label>Nationality *</Form.Label>
                                 <Form.Select
@@ -1839,24 +1858,7 @@ const Flightcheckout = () => {
                             </Col>
                           )}
 
-                          <Col md={6}>
-                            <Form.Group className="mb-3">
-                              <Form.Label>Contact Number *</Form.Label>
-                              <Form.Control
-                                type="tel"
-                                placeholder="Enter contact number"
-                                value={passenger.contactNo}
-                                onChange={(e) =>
-                                  handlePassengerChange(
-                                    index,
-                                    "contactNo",
-                                    e.target.value,
-                                  )
-                                }
-                                required
-                              />
-                            </Form.Group>
-                          </Col>
+                          
                         </Row>
 
                         <Row>
@@ -2078,7 +2080,7 @@ const Flightcheckout = () => {
                     )}
                     <div className="text-end mt-3">
                       <Button
-                        variant="primary"
+                        variant="confirm-passanger"
                         disabled={loading}
                         onClick={() => {
                           const isValid = validatePassengers();
@@ -2419,12 +2421,12 @@ const Flightcheckout = () => {
 
           <Col lg={4}>
             {/* Fare Summary */}
-            <Card className="sticky-top shadow-sm" style={{ top: "20px" }}>
+            <Card className="sticky-top shadow-sm" style={{ top: "98px" }}>
               <Card.Header className="fare-summary-header">
                 <h5 className="mb-0">Fare Summary</h5>
 
                 {fareSource === "fareQuote" && (
-                  <small className="text-success d-block mt-1">
+                  <small className=" d-block mt-1">
                     🔒 Fare locked by airline
                   </small>
                 )}

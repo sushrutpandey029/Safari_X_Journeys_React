@@ -62,7 +62,7 @@
 .trip-tab {
   flex: 1;
   border: none;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 30px;
   background: #ffffff;
   font-size: 13px;
@@ -76,9 +76,10 @@
 }
 
 .trip-tab.active {
-  background: #4889b9;
-  color: #fff;
+  background: #ffe792 !important;
+  color: #000000;
   transform: translateY(-1px);
+  border: 1px solid #000000;
 }
 
 
@@ -543,10 +544,16 @@
 
 /* checkout */
 
-/* Flight Checkout Styles */
-
+/************************ Flight Checkout Styles /***************************/
+.text-primary {
+  --bs-text-opacity: 1;
+  color: #65b421 !important;
+}
+select{
+  border-radius: 58px !important;
+  font-size: 13px;}
 .fare-summary-header {
-  background: #274a62;
+  background: #4789b9 !important;
   color: white;
 }
 .flight-checkout-container {
@@ -554,7 +561,7 @@
 }
 
 .airline-info {
-  border-left: 4px solid #007bff;
+  border-left: 4px solid #4789b9;
 }
 
 .time-display {
@@ -612,15 +619,30 @@
 }
 
 .fare-breakdown {
-  background: #f8f9fa;
+  background: #aec9e2;
   padding: 15px;
   border-radius: 8px;
 }
-
+.btn-confirm-passanger{    background-color: #4889b9;
+  color: #ffffff !important;
+  border: none;
+  padding: 7px 20px;
+  border-radius: 50px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  margin-top: 25px;}
+  .btn-confirm-passanger:hover{     background: #3294dc;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);}
 .coupon-section .alert {
   margin-bottom: 0;
 }
-
+.modal-title {
+  margin-bottom: 0;
+  line-height: var(--bs-modal-title-line-height);
+  color: #fff;
+  font-size: 17px;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .flight-timeline .d-flex {
@@ -1199,6 +1221,15 @@ label {
 }
 
 
+
+
+
+
+
+
+
+
+
 /* ===== FARE RULE WRAPPER ===== */
 .fare-content{
   font-size:14px;
@@ -1261,17 +1292,22 @@ label {
   padding:3px 25px;
   }
   
-  .badge{
-  background-color:#198754;
-  border:1px solid #fff;
-  margin-right:40px;
-  }
-  
+  .badge {
+    background-color: #ffe792 !important;
+    border: 1px solid #3f1a1a;
+    margin-right: 40px;
+    color: #000;
+}
+.card-header {
+  background-color: #edfbf7;
+}
   .btn-close{
-  opacity:1;
-  position:absolute;
-  top:7px;
-  right:4px;
+    opacity: 1;
+    position: absolute;
+    top: 7px;
+    right: 4px;
+    background-color: #fff;
+    border-radius: 0px 0px 0px 10px;
   }
   
   /* ===== CARD GRID ===== */
@@ -1281,101 +1317,90 @@ label {
   gap:15px;
   }
   
-  /* ===== MODERN FARE CARD ===== */
-  .modern-fare-card{
+/* ===== CARD GRID ===== */
+.modern-modal-body{
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+}
+
+/* ===== MODERN FARE CARD ===== */
+.modern-fare-card{
   width:calc(50% - 10px);
   background:#fafafa;
-  padding:20px 18px 18px 50px;
+  padding:20px;
   border-radius:14px;
   border:2px dashed #dcdcdc;
   cursor:pointer;
-  transition:all 0.25s ease;
+  transition:all .25s ease;
   position:relative;
-  }
-  
-  /* hover */
-  .modern-fare-card:hover{
-  background:#ffffff;
+}
+
+/* hover feel */
+.modern-fare-card:hover{
+  background:#fff;
   border-style:solid;
   border-color:#0d6efd55;
   transform:translateY(-2px);
   box-shadow:0 6px 18px rgba(0,0,0,0.08);
-  }
-  
-  /* ===== CIRCLE CHECKBOX ===== */
-  .modern-fare-card::before{
-  content:"";
-  position:absolute;
-  left:15px;
-  top:20px;
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  border:2px solid #bbb;
-  background:#fff;
-  transition:all 0.25s ease;
-  }
-  
-  /* select text */
-  .modern-fare-card::after{
-  content:"Click to Select";
-  position:absolute;
-  top:10px;
-  right:12px;
-  font-size:11px;
-  color:#999;
-  font-weight:500;
-  }
-  
-  /* ===== ACTIVE SELECTED ===== */
-  .modern-fare-card.active{
-  border:2px solid #28a745;
-  background:#f4fff7;
-  box-shadow:0 8px 20px rgba(40,167,69,0.15);
-  }
-  
-  /* green circle */
-  .modern-fare-card.active::before{
-  background:#28a745;
-  border-color:#28a745;
-  }
-  
-  /* check icon */
-  .modern-fare-card.active::after{
-  content:"✔ Selected";
-  background:#28a745;
-  color:#fff;
-  padding:4px 10px;
-  border-radius:20px;
-  font-size:12px;
-  }
+}
 
-  /* RIGHT SIDE CIRCLE */
+/* ===== RIGHT SIDE CIRCLE (UNSELECTED) ===== */
 .modern-fare-card::after{
   content:"";
   position:absolute;
-  top:18px;
-  right:15px;
-  width:22px;
-  height:22px;
+  top:16px;
+  right:16px;
+  width:24px;
+  height:24px;
   border-radius:50%;
-  border:2px solid #bbb;
+  border:2px solid #cfcfcf;
   background:#fff;
-  transition:all 0.25s ease;
-  }
-  
-  /* SELECTED RIGHT CHECK */
-  .modern-fare-card.active::after{
-  content:"✔";
+  transition:all .25s ease;
+}
+
+/* ===== ACTIVE CARD ===== */
+.modern-fare-card.active{
+  border:2px solid #28a745;
+  background:#f4fff7;
+  box-shadow:0 10px 24px rgba(40,167,69,0.18);
+}
+
+/* ===== GREEN CHECK ===== */
+.modern-fare-card.active::after{
+  content:"✓";
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:13px;
+  font-size:14px;
   font-weight:bold;
   color:#fff;
   background:#28a745;
   border-color:#28a745;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+
+  .modern-fare-card{
+    width:100%;
   }
+
+  .fare-content table{
+    display:block;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  .fare-content th,
+  .fare-content td{
+    padding:8px;
+    font-size:12px;
+  }
+}
+
+
+
   
   
   /* ===== MOBILE ===== */
