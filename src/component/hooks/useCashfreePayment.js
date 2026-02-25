@@ -10,7 +10,7 @@ export default function useCashfreePayment() {
   // Load Cashfree SDK once
   useEffect(() => {
     async function initSDK() {
-      const cf = await load({ mode: "production" }); // change to "production" later
+      const cf = await load({ mode: "sandbox" }); // change to "production" later
       setCashfree(cf);
     }
     initSDK();

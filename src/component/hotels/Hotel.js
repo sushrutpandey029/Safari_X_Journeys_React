@@ -1,41 +1,99 @@
-import React, { useState, useEffect } from "react";
+
+
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCityList } from "../services/hotelService"; // API functions
+import { getCityList, getCountryList } from "../services/hotelService";
 import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
 function Hotel() {
   const navigate = useNavigate();
 
   // States
   const [cityList, setCityList] = useState([]);
+  const [countryList, setCountryList] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("IN");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCityName, setSelectedCityName] = useState("");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [rooms, setRooms] = useState(1);
+
+  // Country search states
+  const [countrySearch, setCountrySearch] = useState("");
+  const [filteredCountries, setFilteredCountries] = useState([]);
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
+  const countrySearchRef = useRef(null);
+
+  // City select state
   const [paxRooms, setPaxRooms] = useState([
     { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const countryOptions = [
-    { label: "India", code: "IN" },
-    { label: "UAE", code: "AE" },
-  ];
+  // ✅ Fetch all countries from API and set default to India
+  const fetchAllCountry = async () => {
+    try {
+      const resp = await getCountryList();
 
-  // Default checkin/checkout = today/tomorrow
+      const sortedCountries = resp.sort((a, b) =>
+        a.Name.localeCompare(b.Name)
+      );
+
+      setCountryList(sortedCountries);
+      setFilteredCountries(sortedCountries);
+
+      // Set default country name based on selectedCountry ("IN")
+      const defaultCountry = sortedCountries.find(
+        (country) => country.Code === selectedCountry
+      );
+
+      if (defaultCountry) {
+        setCountrySearch(defaultCountry.Name); // Shows "India" by default
+      }
+    } catch (err) {
+      console.log("err in country list", err.response);
+    }
+  };
+
+  // ✅ Handle country search input change
+  const handleCountrySearch = (e) => {
+    const value = e.target.value;
+    setCountrySearch(value);
+
+    if (value.trim() === "") {
+      setFilteredCountries(countryList);
+    } else {
+      const filtered = countryList.filter((country) =>
+        country.Name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCountries(filtered);
+    }
+
+    setShowCountrySuggestions(true);
+  };
+
+  // ✅ Handle country selection from dropdown
+  const handleCountrySelect = (country) => {
+    setSelectedCountry(country.Code);
+    setCountrySearch(country.Name);
+    setShowCountrySuggestions(false);
+
+    // Reset city when country changes
+    setSelectedCity("");
+    setSelectedCityName("");
+  };
+
+  // ✅ Default check-in = tomorrow, check-out = day after tomorrow
   useEffect(() => {
     const today = new Date();
 
-    // ✅ check-in = tomorrow
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
-    // ✅ check-out = day after tomorrow
     const dayAfterTomorrow = new Date(today);
     dayAfterTomorrow.setDate(today.getDate() + 2);
 
@@ -45,7 +103,22 @@ function Hotel() {
     setCheckOut(formatDate(dayAfterTomorrow));
   }, []);
 
-  // Fetch cities
+  // ✅ Click outside → close country suggestions
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        countrySearchRef.current &&
+        !countrySearchRef.current.contains(event.target)
+      ) {
+        setShowCountrySuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ Fetch cities when selectedCountry changes
   useEffect(() => {
     const fetchCities = async () => {
       try {
@@ -59,10 +132,10 @@ function Hotel() {
 
         setCityList(cities);
 
-        if (cities.length > 0 && !selectedCity) {
+        if (cities.length > 0) {
           setSelectedCity(cities[0].CityCode || cities[0].Code);
           setSelectedCityName(
-            cities[0].CityName || cities[0].Name || cities[0].City,
+            cities[0].CityName || cities[0].Name || cities[0].City
           );
         }
       } catch (err) {
@@ -71,10 +144,16 @@ function Hotel() {
         setLoading(false);
       }
     };
+
     fetchCities();
   }, [selectedCountry]);
 
-  // Handle search
+  // ✅ Fetch countries on mount
+  useEffect(() => {
+    fetchAllCountry();
+  }, []);
+
+  // Handle search → navigate to hotel-list
   const handleSearch = () => {
     const filters = {
       country: selectedCountry,
@@ -88,10 +167,9 @@ function Hotel() {
 
     console.log(
       "➡️ Passing Filters to hotel-list:",
-      JSON.stringify(filters, null, 2),
+      JSON.stringify(filters, null, 2)
     );
 
-    // Navigate with state
     navigate("/hotel-list", { state: filters });
   };
 
@@ -101,27 +179,41 @@ function Hotel() {
         <div className="search-box rounded shadow-sm hotel-form">
           <div className="container">
             <div className="row g-3 align-items-end">
-              {/* Country */}
-              <div className="col-md-2">
+
+              {/* ✅ Country - Searchable Autocomplete */}
+              <div className="col-md-2 position-relative" ref={countrySearchRef}>
                 <label className="form-label">Country</label>
-                <select
+                <input
+                  type="text"
                   className="form-control"
-                  value={selectedCountry}
-                  onChange={(e) => {
-                    setSelectedCountry(e.target.value);
-                    setSelectedCity("");
-                    setSelectedCityName("");
+                  placeholder="Search country..."
+                  value={countrySearch}
+                  onChange={handleCountrySearch}
+                  onFocus={() => {
+                    setFilteredCountries(countryList);
+                    setShowCountrySuggestions(true);
                   }}
-                >
-                  {countryOptions.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                />
+                {showCountrySuggestions && filteredCountries.length > 0 && (
+                  <div
+                    className="position-absolute bg-white border w-100 shadow-sm"
+                    style={{ maxHeight: "200px", overflowY: "auto", zIndex: 1000 }}
+                  >
+                    {filteredCountries.map((country, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 suggestion-item"
+                        style={{ cursor: "pointer" }}
+                        onMouseDown={() => handleCountrySelect(country)}
+                      >
+                        {country.Name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* City */}
+              {/* City - Plain Select */}
               <div className="col-md-2">
                 <label className="form-label">City</label>
                 <select
@@ -134,7 +226,7 @@ function Hotel() {
                     const cityObj = cityList.find(
                       (c) =>
                         (c.CityCode?.toString() || c.Code?.toString()) ===
-                        cityCode.toString(),
+                        cityCode.toString()
                     );
                     const cityName =
                       cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
@@ -151,18 +243,16 @@ function Hotel() {
                 </select>
               </div>
 
-              {/* Check-in */}
+              {/* Check-In */}
               <div className="col-md-2">
                 <label className="form-label">Check-In</label>
                 <DatePicker
                   selected={checkIn ? new Date(checkIn) : null}
                   onChange={(date) => {
                     if (!date) return;
-
                     const checkInDate = date.toISOString().split("T")[0];
                     setCheckIn(checkInDate);
 
-                    // ⭐ Automatically set Check-Out = tomorrow date
                     const nextDay = new Date(date);
                     nextDay.setDate(nextDay.getDate() + 1);
                     setCheckOut(nextDay.toISOString().split("T")[0]);
@@ -185,7 +275,7 @@ function Hotel() {
                   className="form-control"
                   dateFormat="yyyy-MM-dd"
                   minDate={checkIn ? new Date(checkIn) : new Date()}
-                  excludeDates={checkIn ? [new Date(checkIn)] : []} // ⭐ Hide check-in date
+                  excludeDates={checkIn ? [new Date(checkIn)] : []}
                   placeholderText="Select Check-Out"
                 />
               </div>
@@ -199,8 +289,7 @@ function Hotel() {
                   style={{ cursor: "pointer" }}
                 >
                   {rooms} Room{rooms > 1 ? "s" : ""},{" "}
-                  {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)}{" "}
-                  Guests
+                  {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)} Guests
                   <span>▼</span>
                 </div>
 
@@ -259,10 +348,7 @@ function Hotel() {
                                     updated[idx].Children -= 1;
                                     updated[idx].ChildrenAges = updated[
                                       idx
-                                    ].ChildrenAges.slice(
-                                      0,
-                                      updated[idx].Children,
-                                    );
+                                    ].ChildrenAges.slice(0, updated[idx].Children);
                                   }
                                   setPaxRooms(updated);
                                 }}
@@ -291,9 +377,7 @@ function Hotel() {
                         {/* Children Ages */}
                         {room.Children > 0 && (
                           <div>
-                            <label className="form-label">
-                              Age(s) of Children
-                            </label>
+                            <label className="form-label">Age(s) of Children</label>
                             <div className="d-flex gap-2">
                               {room.ChildrenAges.map((age, cIdx) => (
                                 <select
@@ -304,19 +388,18 @@ function Hotel() {
                                   onChange={(e) => {
                                     const updated = [...paxRooms];
                                     updated[idx].ChildrenAges[cIdx] = Number(
-                                      e.target.value,
+                                      e.target.value
                                     );
                                     setPaxRooms(updated);
                                   }}
                                 >
-                                  {Array.from(
-                                    { length: 12 },
-                                    (_, i) => i + 1,
-                                  ).map((a) => (
-                                    <option key={a} value={a}>
-                                      {a}
-                                    </option>
-                                  ))}
+                                  {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                                    (a) => (
+                                      <option key={a} value={a}>
+                                        {a}
+                                      </option>
+                                    )
+                                  )}
                                 </select>
                               ))}
                             </div>
@@ -373,6 +456,7 @@ function Hotel() {
                   Search
                 </button>
               </div>
+
             </div>
           </div>
         </div>

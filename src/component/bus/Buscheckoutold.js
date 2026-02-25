@@ -12,14 +12,6 @@ const BusCheckout = () => {
   const navigate = useNavigate();
   const state = location?.state || {};
   console.log("state in buscheckout", state);
-  const traceId =
-    state?.traceId || state?.bus?.TraceId || state?.bus?.traceId || null;
-
-  const resultIndex =
-    state?.resultIndex ??
-    state?.bus?.ResultIndex ??
-    state?.bus?.resultIndex ??
-    null;
 
   const pricingFromSearch = state?.pricing || null;
 
@@ -95,84 +87,37 @@ const BusCheckout = () => {
 
   // --------------------------- FETCH BOARDING POINTS ------------------------------
 
-  // const fetchBoardingPointsData = async (busData) => {
-  //   try {
-  //     setApiLoading(true);
-  //     const TraceId = busData?.TraceId || state.traceId;
-  //     const ResultIndex = busData?.ResultIndex ?? state.resultIndex;
-
-  //     if (!TraceId || ResultIndex == null) {
-  //       setError("Missing TraceId / ResultIndex");
-  //       return;
-  //     }
-
-  //     const response = await fetchBoardingPoints(TraceId, ResultIndex);
-  //     console.log("response of fetchboardingpoints", response);
-  //     const boardingData =
-  //       response?.data?.BoardingPointsDetails ||
-  //       response?.BoardingPointsDetails ||
-  //       response?.boardingPoints ||
-  //       [];
-
-  //     const droppingData =
-  //       response?.data?.DroppingPointsDetails ||
-  //       response?.DroppingPointsDetails ||
-  //       response?.droppingPoints ||
-  //       [];
-
-  //     setBoardingPoints(boardingData);
-  //     setDroppingPoints(droppingData);
-
-  //     if (boardingData.length > 0) setSelectedBoarding(boardingData[0]);
-  //     if (droppingData.length > 0) setSelectedDropping(droppingData[0]);
-  //   } catch (err) {
-  //     setError("Failed to load boarding points");
-  //   } finally {
-  //     setApiLoading(false);
-  //   }
-  // };
-
-  const fetchBoardingPointsData = async () => {
+  const fetchBoardingPointsData = async (busData) => {
     try {
       setApiLoading(true);
-      setError(null);
+      const TraceId = busData?.TraceId || state.traceId;
+      const ResultIndex = busData?.ResultIndex ?? state.resultIndex;
 
-      if (!traceId || resultIndex == null) {
+      if (!TraceId || ResultIndex == null) {
         setError("Missing TraceId / ResultIndex");
         return;
       }
 
-      console.log("📤 Calling Boarding API:", {
-        traceId,
-        resultIndex,
-      });
-
-      const response = await fetchBoardingPoints(traceId, resultIndex);
-
-      console.log("📥 Boarding API Response:", response);
-
+      const response = await fetchBoardingPoints(TraceId, ResultIndex);
+      console.log("response of fetchboardingpoints", response);
       const boardingData =
         response?.data?.BoardingPointsDetails ||
         response?.BoardingPointsDetails ||
+        response?.boardingPoints ||
         [];
 
       const droppingData =
         response?.data?.DroppingPointsDetails ||
         response?.DroppingPointsDetails ||
+        response?.droppingPoints ||
         [];
 
       setBoardingPoints(boardingData);
       setDroppingPoints(droppingData);
 
-      if (boardingData.length > 0) {
-        setSelectedBoarding(boardingData[0]);
-      }
-
-      if (droppingData.length > 0) {
-        setSelectedDropping(droppingData[0]);
-      }
+      if (boardingData.length > 0) setSelectedBoarding(boardingData[0]);
+      if (droppingData.length > 0) setSelectedDropping(droppingData[0]);
     } catch (err) {
-      console.error("Boarding API error:", err);
       setError("Failed to load boarding points");
     } finally {
       setApiLoading(false);
@@ -181,63 +126,29 @@ const BusCheckout = () => {
 
   // --------------------------- INITIALIZE ------------------------------
 
-  // useEffect(() => {
-  //   const init = async () => {
-  //     const bus =
-  //       state?.bus || JSON.parse(localStorage.getItem("selectedBus") || "null");
-  //     const seats =
-  //       state?.seats ||
-  //       JSON.parse(localStorage.getItem("selectedSeats") || "[]");
-
-  //     if (!bus) {
-  //       setError("No bus details found");
-  //       setLoading(false);
-  //       return;
-  //     }
-  //     console.log("seats", seats);
-  //     console.log("bus", bus);
-  //     setBusDetails(bus);
-  //     setSelectedSeats(seats);
-
-  //     await fetchBoardingPointsData(bus);
-  //     setLoading(false);
-  //   };
-  //   init();
-  // }, [location]);
-
   useEffect(() => {
     const init = async () => {
-      try {
-        setLoading(true);
+      const bus =
+        state?.bus || JSON.parse(localStorage.getItem("selectedBus") || "null");
+      const seats =
+        state?.seats ||
+        JSON.parse(localStorage.getItem("selectedSeats") || "[]");
 
-        const bus =
-          state?.bus ||
-          JSON.parse(localStorage.getItem("selectedBus") || "null");
-
-        const seats =
-          state?.seats ||
-          JSON.parse(localStorage.getItem("selectedSeats") || "[]");
-
-        if (!bus) {
-          setError("No bus details found");
-          return;
-        }
-
-        setBusDetails(bus);
-        setSelectedSeats(seats);
-
-        // ✅ CALL BOARDING API HERE
-        await fetchBoardingPointsData();
-      } catch (err) {
-        console.error("Checkout init error:", err);
-        setError("Failed to initialize checkout");
-      } finally {
+      if (!bus) {
+        setError("No bus details found");
         setLoading(false);
+        return;
       }
-    };
+      console.log("seats", seats);
+      console.log("bus", bus);
+      setBusDetails(bus);
+      setSelectedSeats(seats);
 
+      await fetchBoardingPointsData(bus);
+      setLoading(false);
+    };
     init();
-  }, []);
+  }, [location]);
 
   // --------------------------- MAP SEATS TO PASSENGERS ------------------------------
 
@@ -686,11 +597,7 @@ const BusCheckout = () => {
               <div className="position-relative">
                 <input
                   className="form-control"
-                  placeholder={
-                    apiLoading
-                      ? "Loading boarding points..."
-                      : "Search boarding point"
-                  }
+                  placeholder="Search boarding point"
                   value={
                     showBoardingDropdown
                       ? boardingSearch
@@ -701,7 +608,6 @@ const BusCheckout = () => {
                     setBoardingSearch(e.target.value);
                     setShowBoardingDropdown(true);
                   }}
-                  disabled={apiLoading}
                 />
 
                 {showBoardingDropdown && (
@@ -745,13 +651,7 @@ const BusCheckout = () => {
               <div className="position-relative">
                 <input
                   className="form-control"
-                  // placeholder="Search dropping point"
-                  placeholder={
-                    apiLoading
-                      ? "Loading dropping points..."
-                      : "Search dropping point"
-                  }
-                  disabled={apiLoading}
+                  placeholder="Search dropping point"
                   value={
                     showDroppingDropdown
                       ? droppingSearch
@@ -1001,7 +901,7 @@ const BusCheckout = () => {
             <button
               className="continue-btn"
               onClick={handleFinalSubmit}
-              disabled={apiLoading || !selectedBoarding || !selectedDropping}
+              disabled={apiLoading}
             >
               {blockLoading ? "Blocking Seats..." : "Continue to Payment"}
             </button>

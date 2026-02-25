@@ -13,7 +13,6 @@ import {
   fetchBoardingPoints,
 } from "../services/busservice";
 import Loading from "../common/loading";
-import BusSeatLayout from "./BusSeatLayout";
 
 function BusList() {
   const [busData, setBusData] = useState([]);
@@ -533,139 +532,106 @@ function BusList() {
     });
   };
 
-  // const handleConfirmSeats = async () => {
-  //   if (selectedSeats.length === 0) return;
+  const handleConfirmSeats = async () => {
+    if (selectedSeats.length === 0) return;
 
-  //   try {
-  //     console.log("🚀 Starting seat confirmation process...");
+    try {
+      console.log("🚀 Starting seat confirmation process...");
 
-  //     const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
-  //     const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
+      const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
+      const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
 
-  //     // ✅ Seat-wise pricing
-  //     const seatCharges = selectedSeats.map((seat) => ({
-  //       SeatIndex: seat.SeatIndex,
-  //       SeatName: seat.SeatName,
-  //       BaseFare: seat.Pricing?.baseFare ?? 0,
-  //       Tax: seat.Pricing?.taxAmount ?? 0,
-  //       FinalAmount: seat.Pricing?.finalAmount ?? 0,
-  //     }));
+      // ✅ Seat-wise pricing
+      const seatCharges = selectedSeats.map((seat) => ({
+        SeatIndex: seat.SeatIndex,
+        SeatName: seat.SeatName,
+        BaseFare: seat.Pricing?.baseFare ?? 0,
+        Tax: seat.Pricing?.taxAmount ?? 0,
+        FinalAmount: seat.Pricing?.finalAmount ?? 0,
+      }));
 
-  //     // ✅ Total amount
-  //     const totalPayableAmount = selectedSeats.reduce(
-  //       (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
-  //       0,
-  //     );
+      // ✅ Total amount
+      const totalPayableAmount = selectedSeats.reduce(
+        (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
+        0,
+      );
 
-  //     // ✅ Pricing summary (like hotelCharges)
-  //     const pricing = {
-  //       currency: "INR",
-  //       seatsCount: selectedSeats.length,
-  //       seatCharges,
-  //       totalAmount: totalPayableAmount,
-  //     };
+      // ✅ Pricing summary (like hotelCharges)
+      const pricing = {
+        currency: "INR",
+        seatsCount: selectedSeats.length,
+        seatCharges,
+        totalAmount: totalPayableAmount,
+      };
 
-  //     if (!TraceId || ResultIndex == null) {
-  //       console.error("❌ CRITICAL: Missing API parameters in BusList");
-  //       throw new Error("Required parameters missing for boarding points");
-  //     }
+      if (!TraceId || ResultIndex == null) {
+        console.error("❌ CRITICAL: Missing API parameters in BusList");
+        throw new Error("Required parameters missing for boarding points");
+      }
 
-  //      const boardingResponse = await fetchBoardingPoints(TraceId, ResultIndex);
-  //     console.log("📥 Boarding API Response:", boardingResponse);
+      console.log("📤 Calling Boarding Points API from BusList...");
+      const boardingResponse = await fetchBoardingPoints(TraceId, ResultIndex);
+      console.log("📥 Boarding API Response:", boardingResponse);
 
-  //     const boardingData = boardingResponse?.data?.BoardingPointsDetails || [];
-  //     const droppingData = boardingResponse?.data?.DroppingPointsDetails || [];
+      const boardingData = boardingResponse?.data?.BoardingPointsDetails || [];
+      const droppingData = boardingResponse?.data?.DroppingPointsDetails || [];
 
-  //     const completeBusData = {
-  //       ...selectedBus,
-  //       TraceId: TraceId,
-  //       ResultIndex: ResultIndex,
-  //       boardingPoints: boardingData,
-  //       droppingPoints: droppingData,
-  //     };
+      console.log(
+        `✅ Boarding Points: ${boardingData.length}, Dropping Points: ${droppingData.length}`,
+      );
 
-    
- 
-  //     const navigationState = {
-  //       bus: completeBusData,
-  //       seats: selectedSeats,
-  //       pricing,
-  //       traceId: TraceId,
-  //       resultIndex: ResultIndex,
-  //     };
+      const completeBusData = {
+        ...selectedBus,
+        TraceId: TraceId,
+        ResultIndex: ResultIndex,
+        boardingPoints: boardingData,
+        droppingPoints: droppingData,
+      };
 
-  //     console.log("🚀 Navigating to checkout with complete data...");
+      localStorage.setItem("selectedBus", JSON.stringify(completeBusData));
+      localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
+      localStorage.setItem("boardingPoints", JSON.stringify(boardingData));
+      localStorage.setItem("droppingPoints", JSON.stringify(droppingData));
+      localStorage.setItem("Bus_Trace_Id", TraceId);
+      localStorage.setItem("Bus_Result_Index", ResultIndex.toString());
 
-  //     navigate("/Bus-checkout", { state: navigationState });
-  //   } catch (error) {
-  //     console.error("❌ Error in seat confirmation:", error);
+      console.log("💾 ALL data saved to localStorage successfully");
 
-  //     const fallbackBusData = {
-  //       ...selectedBus,
-  //       TraceId: selectedBus?.traceId || selectedBus?.TraceId,
-  //       ResultIndex: selectedBus?.resultIndex ?? selectedBus?.ResultIndex,
-  //     };
-
-  //     localStorage.setItem("selectedBus", JSON.stringify(fallbackBusData));
-  //     localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
-
-  //     navigate("/Bus-checkout", {
-  //       state: {
-  //         bus: fallbackBusData,
-  //         seats: selectedSeats,
-  //       },
-  //     });
-  //   }
-
-  //   handleCloseModal();
-  // };
-
-  // Calculate total price
-
-const handleConfirmSeats = async () => {
-  if (selectedSeats.length === 0) return;
-
-  try {
-    const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
-    const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
-
-    const seatCharges = selectedSeats.map((seat) => ({
-      SeatIndex: seat.SeatIndex,
-      SeatName: seat.SeatName,
-      BaseFare: seat.Pricing?.baseFare ?? 0,
-      Tax: seat.Pricing?.taxAmount ?? 0,
-      FinalAmount: seat.Pricing?.finalAmount ?? 0,
-    }));
-
-    const totalPayableAmount = selectedSeats.reduce(
-      (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
-      0
-    );
-
-    const pricing = {
-      currency: "INR",
-      seatsCount: selectedSeats.length,
-      seatCharges,
-      totalAmount: totalPayableAmount,
-    };
-
-    navigate("/Bus-checkout", {
-      state: {
-        bus: selectedBus,
+      const navigationState = {
+        bus: completeBusData,
         seats: selectedSeats,
         pricing,
         traceId: TraceId,
         resultIndex: ResultIndex,
-      },
-    });
+      };
 
-  } catch (error) {
-    console.error(error);
-  }
+      console.log("🚀 Navigating to checkout with complete data...");
 
-  handleCloseModal();
-};
+      navigate("/Bus-checkout", { state: navigationState });
+    } catch (error) {
+      console.error("❌ Error in seat confirmation:", error);
 
+      const fallbackBusData = {
+        ...selectedBus,
+        TraceId: selectedBus?.traceId || selectedBus?.TraceId,
+        ResultIndex: selectedBus?.resultIndex ?? selectedBus?.ResultIndex,
+      };
+
+      localStorage.setItem("selectedBus", JSON.stringify(fallbackBusData));
+      localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
+
+      navigate("/Bus-checkout", {
+        state: {
+          bus: fallbackBusData,
+          seats: selectedSeats,
+        },
+      });
+    }
+
+    handleCloseModal();
+  };
+
+  // Calculate total price
 
   const calculateDisplayTotal = () => {
     const exactTotal = selectedSeats.reduce(
@@ -676,62 +642,52 @@ const handleConfirmSeats = async () => {
     return Math.round(exactTotal); // Rounds to the nearest whole number
   };
 
-  // const renderSeatsFromAPI = () => {
-  //   console.log("seatlayout data in renderSeatsFromAPI", seatLayoutData);
-  //   if (!seatLayoutData) return <div>Loading seat layout...</div>;
+  const renderSeatsFromAPI = () => {
+    console.log("seatlayout data in renderSeatsFromAPI", seatLayoutData);
+    if (!seatLayoutData) return <div>Loading seat layout...</div>;
 
-  //   const seats =
-  //     seatLayoutData.seats ||
-  //     seatLayoutData.SeatDetails ||
-  //     seatLayoutData.SeatLayoutDetails?.SeatDetails ||
-  //     seatLayoutData.SeatLayout?.SeatDetails ||
-  //     [];
+    const seats =
+      seatLayoutData.seats ||
+      seatLayoutData.SeatDetails ||
+      seatLayoutData.SeatLayoutDetails?.SeatDetails ||
+      seatLayoutData.SeatLayout?.SeatDetails ||
+      [];
 
-  //   if (seats.length === 0) return <div>No seat layout available</div>;
-  //   console.log("seats ", seats);
-  //   return (
-  //     <div
-  //       className="bus-layout-api"
-  //       style={{ position: "relative", height: "500px", overflow: "auto" }}
-  //     >
-  //       {seats.map((seat) => {
-  //         const isSelected = selectedSeats.some(
-  //           (s) => s.SeatIndex === seat.SeatIndex,
-  //         );
+    if (seats.length === 0) return <div>No seat layout available</div>;
+    console.log("seats ", seats);
+    return (
+      <div
+        className="bus-layout-api"
+        style={{ position: "relative", height: "500px", overflow: "auto" }}
+      >
+        {seats.map((seat) => {
+          const isSelected = selectedSeats.some(
+            (s) => s.SeatIndex === seat.SeatIndex,
+          );
 
-  //         const row = Number(seat.RowNo) || 0;
-  //         const col = Number(seat.ColumnNo) || 0;
+          const row = Number(seat.RowNo) || 0;
+          const col = Number(seat.ColumnNo) || 0;
 
-  //         return (
-  //           <div
-  //             key={seat.SeatIndex}
-  //             className={`seat-api ${isSelected ? "selected" : ""}`}
-  //             style={{
-  //               position: "absolute",
-  //               top: row * 45,
-  //               left: col * 45,
-  //             }}
-  //             onClick={() => seat.SeatStatus && handleSeatSelect(seat)}
-  //           >
-  //             <div className="seat-icon">{seat.SeatName}</div>
-  //             <span>₹{seat.DisplayPrice}</span>
-  //             {/* <span>₹{getSeatFare(seat)}</span> */}
-  //           </div>
-  //         );
-  //       })}
-  //     </div>
-  //   );
-  // };
-
-const renderSeatsFromAPI = () => {
-  return (
-    <BusSeatLayout
-      seatLayoutData={seatLayoutData}
-      selectedSeats={selectedSeats}
-      onSeatSelect={handleSeatSelect}
-    />
-  );
-};
+          return (
+            <div
+              key={seat.SeatIndex}
+              className={`seat-api ${isSelected ? "selected" : ""}`}
+              style={{
+                position: "absolute",
+                top: row * 45,
+                left: col * 45,
+              }}
+              onClick={() => seat.SeatStatus && handleSeatSelect(seat)}
+            >
+              <div className="seat-icon">{seat.SeatName}</div>
+              <span>₹{seat.DisplayPrice}</span>
+              {/* <span>₹{getSeatFare(seat)}</span> */}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const handleToggle = (section) => {
     setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -916,17 +872,6 @@ const renderSeatsFromAPI = () => {
       </div>
     );
   }
-
-  const Legend = ({ color, label }) => (
-  <div className="legend-item">
-
-    <div className={`legend-box ${color}`} />
-
-    <span>{label}</span>
-
-  </div>
-);
-
 
   return (
     <div>
@@ -1389,13 +1334,14 @@ const renderSeatsFromAPI = () => {
       </div>
 
       {/* Seat Selection Modal */}
-      {/* {showModal && (
+      {showModal && (
         <div
           className="modal-overlay make-mytrip-style"
           style={{ marginTop: "100px" }}
         >
           <div className="modal-content make-mytrip-modal">
-             <div className="modal-header make-mytrip-header">
+            {/* Modal Header */}
+            <div className="modal-header make-mytrip-header">
               <div className="header-content">
                 <h2>Select Seats</h2>
                 <div className="bus-info">
@@ -1416,7 +1362,8 @@ const renderSeatsFromAPI = () => {
               </button>
             </div>
 
-             <div className="seat-legend make-mytrip-legend">
+            {/* Seat Type Legend */}
+            <div className="seat-legend make-mytrip-legend">
               <div className="legend-item">
                 <div className="seat-sample available"></div>
                 <span>Available</span>
@@ -1435,7 +1382,8 @@ const renderSeatsFromAPI = () => {
               </div>
             </div>
 
-             <div className="bus-layout-container">
+            {/* Bus Layout Container */}
+            <div className="bus-layout-container">
               <div className="bus-driver-section">
                 <div className="driver-cabin">Driver Cabin</div>
               </div>
@@ -1451,7 +1399,8 @@ const renderSeatsFromAPI = () => {
               </div>
             </div>
 
-             <div className="selection-summary make-mytrip-summary">
+            {/* Selected Seats & Pricing Summary */}
+            <div className="selection-summary make-mytrip-summary">
               <div className="selected-seats-section">
                 <h4>Selected Seats</h4>
                 {selectedSeats.length > 0 ? (
@@ -1464,7 +1413,8 @@ const renderSeatsFromAPI = () => {
                         <span className="seat-price">
                           ₹{seat?.Pricing?.finalAmount || 0}
                         </span>
-                       </div>
+                        {/* <span className="seat-price">₹{getSeatFare(seat)}</span> */}
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -1480,7 +1430,8 @@ const renderSeatsFromAPI = () => {
               </div>
             </div>
 
-             <div className="modal-actions make-mytrip-actions">
+            {/* Action Buttons */}
+            <div className="modal-actions make-mytrip-actions">
               <button className="cancel-btn" onClick={handleCloseModal}>
                 Cancel
               </button>
@@ -1495,130 +1446,7 @@ const renderSeatsFromAPI = () => {
             </div>
           </div>
         </div>
-      )} */}
-      {/* PROFESSIONAL SEAT MODAL */}
-{showModal && (
-  <div className="bus-modal-overlay">
-
-    <div className="bus-modal">
-
-      {/* HEADER */}
-      <div className="bus-modal-header">
-
-        <div className="bus-modal-header-left">
-
-          <h3 className="bus-modal-title">
-            Select Seats
-          </h3>
-
-          <div className="bus-modal-subtitle">
-
-            <span className="bus-name">
-              {selectedBus?.busName}
-            </span>
-
-            <span className="bus-route">
-              {searchParams.fromCity} → {searchParams.toCity}
-            </span>
-
-            <span className="bus-time">
-              {selectedBus?.departureTime} • {searchParams.travelDate}
-            </span>
-
-          </div>
-
-        </div>
-
-        <button
-          className="bus-modal-close"
-          onClick={handleCloseModal}
-        >
-          ✕
-        </button>
-
-      </div>
-
-
-      {/* LEGEND */}
-      <div className="bus-seat-legend">
-
-        <Legend color="available" label="Available" />
-
-        <Legend color="selected" label="Selected" />
-
-        <Legend color="booked" label="Booked" />
-
-        <Legend color="ladies" label="Ladies" />
-
-      </div>
-
-
-      {/* BODY */}
-      <div className="bus-modal-body">
-
-        {loadingSeats ? (
-
-          <div className="bus-seat-loading">
-            Loading seat layout...
-          </div>
-
-        ) : (
-
-          <BusSeatLayout
-            seatLayoutData={seatLayoutData}
-            selectedSeats={selectedSeats}
-            onSeatSelect={handleSeatSelect}
-          />
-
-        )}
-
-      </div>
-
-
-      {/* FOOTER */}
-      <div className="bus-modal-footer">
-
-        <div className="bus-footer-left">
-
-          <div className="selected-seats">
-            {selectedSeats.length > 0
-              ? selectedSeats.map(seat => seat.SeatName).join(", ")
-              : "No seats selected"}
-          </div>
-
-          <div className="total-amount">
-            ₹{calculateDisplayTotal()}
-          </div>
-
-        </div>
-
-
-        <div className="bus-footer-right">
-
-          <button
-            className="bus-btn-cancel"
-            onClick={handleCloseModal}
-          >
-            Cancel
-          </button>
-
-          <button
-            className="bus-btn-proceed"
-            onClick={handleConfirmSeats}
-            disabled={selectedSeats.length === 0}
-          >
-            Proceed
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-)}
-
+      )}
     </div>
   );
 }

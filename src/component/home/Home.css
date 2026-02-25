@@ -2086,7 +2086,6 @@ footer > * {
         }
     }
 }
-
 footer {
     padding: 40px 0px 30px;
 
@@ -2099,22 +2098,7 @@ footer {
         line-height: 21px;
     }
 }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**************************responsive**************************/
 @media (max-width: 768px) {
@@ -2238,8 +2222,4 @@ footer {
       width: 50%;
     }
   }
-
-
-
-
 }
