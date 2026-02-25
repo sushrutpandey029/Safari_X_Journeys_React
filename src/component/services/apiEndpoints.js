@@ -1,13 +1,13 @@
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.73.198.26:2625";
-// export const BASE_URL = "http://192.168.1.7:2625";
+export const BASE_URL = "http://192.168.1.6:2625";
 
-export const BASE_URL = "https://dash.safarixjourneys.com";
+// export const BASE_URL = "https://dash.safarixjourneys.com";
 
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
   CAB_LIST: `${BASE_URL}/api/cab/list`,
-  // DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/guide/login`,
+  // DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/guide/login`,ngrok
   GUIDE_LOGIN: `${BASE_URL}/guide/login`,
   GUIDE_LOGOUT: `${BASE_URL}/guide/logout`,
   NEWSLATER: `${BASE_URL}/api/news/later`,

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { BASE_URL } from "../services/apiEndpoints";
 import "./GuideCareers.css";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
+import { toast } from "react-toastify";
 
 const Guidedetail = () => {
   const location = useLocation();
@@ -11,6 +12,15 @@ const Guidedetail = () => {
   const guide = location.state?.guideData;
 
   const userdetails = getUserData("safarix_user");
+  console.log("user data in guide checkout", userdetails);
+
+  useEffect(() => {
+    if (!userdetails) {
+      toast.info("Please login first, before proceed to booking.", {
+        toastId: "login-warning", // prevents duplicate toast
+      });
+    }
+  }, []);
 
   // Get data from previous page (GuideList)
   const prevStartDate = location.state?.startDate;
@@ -41,6 +51,8 @@ const Guidedetail = () => {
     prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : "",
   );
 
+  const GUIDE_FORM_STORAGE_KEY = "guide_form_data";
+
   // Calculate total price based on number of days
   const calculateTotalPrice = () => {
     if (!startDate || !endDate) return guide?.chargesPerDay || 0;
@@ -61,6 +73,93 @@ const Guidedetail = () => {
         ) + 1
       : 1;
 
+  const handleResetGuideForm = () => {
+    if (!window.confirm("Are you sure you want to reset form data?")) {
+      return;
+    }
+
+    // ✅ Reset form fields
+    setUserForm({
+      name: "",
+      phone: "",
+      address: "",
+      location:
+        selectedCity ||
+        `${guide?.city}, ${guide?.state}, ${guide?.country}` ||
+        "",
+    });
+
+    // ✅ Reset dates (optional: keep or clear)
+    setStartDate(
+      prevStartDate ? new Date(prevStartDate).toISOString().split("T")[0] : "",
+    );
+
+    setEndDate(
+      prevEndDate ? new Date(prevEndDate).toISOString().split("T")[0] : "",
+    );
+
+    // ✅ Remove localStorage
+    localStorage.removeItem(GUIDE_FORM_STORAGE_KEY);
+
+    toast.success("Form reset successfully");
+  };
+
+  // ✅ RESTORE GUIDE FORM DATA
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(GUIDE_FORM_STORAGE_KEY);
+
+      if (!saved) {
+        console.log("No saved guide form found");
+        return;
+      }
+
+      const parsed = JSON.parse(saved);
+
+      console.log("Restoring guide form:", parsed);
+
+      if (parsed.userForm) {
+        setUserForm((prev) => ({
+          ...prev,
+          ...parsed.userForm,
+        }));
+      }
+
+      if (parsed.startDate) {
+        setStartDate(parsed.startDate);
+      }
+
+      if (parsed.endDate) {
+        setEndDate(parsed.endDate);
+      }
+    } catch (err) {
+      console.error("Guide restore error:", err);
+    }
+  }, [guideId]);
+
+  // ✅ AUTO SAVE GUIDE FORM DATA
+  useEffect(() => {
+    try {
+      if (!userForm) return;
+
+      const hasData = userForm.name || userForm.phone || userForm.address;
+
+      if (!hasData) return;
+
+      const dataToSave = {
+        userForm,
+        startDate,
+        endDate,
+        lastUpdated: Date.now(),
+      };
+
+      localStorage.setItem(GUIDE_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+
+      console.log("Guide form saved");
+    } catch (err) {
+      console.error("Guide save error:", err);
+    }
+  }, [userForm, startDate, endDate, GUIDE_FORM_STORAGE_KEY]);
   const handleUserFormChange = (e) => {
     const { name, value } = e.target;
     setUserForm((prev) => ({ ...prev, [name]: value }));
@@ -172,6 +271,7 @@ const Guidedetail = () => {
       console.log("payment res", result);
 
       setShowBookingForm(false);
+      localStorage.removeItem(GUIDE_FORM_STORAGE_KEY);
     } catch (err) {
       console.error(err);
       alert("Failed to send booking request. Please try again.");
@@ -301,10 +401,35 @@ const Guidedetail = () => {
 
               {/* User Form */}
               <div className="user-form-section mt-4">
-                <h4>User Detail</h4>
+                {/* <h4>User Detail</h4>
+
+                {localStorage.getItem(GUIDE_FORM_STORAGE_KEY) && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={handleResetGuideForm}
+                  >
+                    Reset Form
+                  </button>
+                )} */}
+
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h4>User Detail</h4>
+
+                  {localStorage.getItem(GUIDE_FORM_STORAGE_KEY) && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={handleResetGuideForm}
+                    >
+                      Reset Form
+                    </button>
+                  )}
+                </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
+                    <label>Full Name</label>
                     <input
                       type="text"
                       name="name"
@@ -316,6 +441,7 @@ const Guidedetail = () => {
                   </div>
 
                   <div className="col-md-6 mb-3">
+                    <label>Phone </label>
                     <input
                       type="tel"
                       name="phone"
@@ -327,6 +453,7 @@ const Guidedetail = () => {
                   </div>
 
                   <div className="col-12 mb-3">
+                    <label>Address </label>
                     <textarea
                       name="address"
                       value={userForm.address}
@@ -338,6 +465,7 @@ const Guidedetail = () => {
                   </div>
 
                   <div className="col-12">
+                    <label>Location</label>
                     <input
                       readOnly
                       className="form-control"

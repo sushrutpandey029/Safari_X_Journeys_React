@@ -33,22 +33,31 @@ function Hotel() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const countryOptions = [
-    { label: "India", code: "IN" },
-    { label: "UAE", code: "AE" },
-  ];
+ 
 
   const fetchAllCountry = async () => {
-    try {
-      const resp = await getCountryList();
-      console.log("coutnry resp", resp);
-      // setCountryList(resp);
-      setCountryList(resp.sort((a,b)=>a.Name.localeCompare(b.Name)));
+  try {
+    const resp = await getCountryList();
 
-    } catch (err) {
-      console.log("err in coutnry list", err.response);
+    const sortedCountries = resp.sort((a, b) =>
+      a.Name.localeCompare(b.Name)
+    );
+
+    setCountryList(sortedCountries);
+
+    // ✅ Set default country name based on selectedCountry ("IN")
+    const defaultCountry = sortedCountries.find(
+      (country) => country.Code === selectedCountry
+    );
+
+    if (defaultCountry) {
+      setCountrySearch(defaultCountry.Name); // This will show "India"
     }
-  };
+
+  } catch (err) {
+    console.log("err in country list", err.response);
+  }
+};
 
   const handleCountrySearch = (e) => {
     const value = e.target.value;
@@ -281,6 +290,7 @@ function Hotel() {
               {/* City */}
 
               <div className="col-md-2 position-relative" ref={citySearchRef}>
+               <label className="form-label">City</label>
                 <input
                   type="text"
                   className="form-control"

@@ -37,6 +37,8 @@ import Guidedetail from "../guides/Guidedetail";
 import BookingView from "../home/user-dashboard-pages/BookingView";
 import BusList from "../bus/Buslist";
 import BusCheckout from "../bus/Buscheckout";
+import BusPopularDestination from "../bus/BusPopularDestination";
+import FlightPopularDestination from "../flights/FlightPopularDestination";
 
 function RootNavigation() {
   const dispatch = useDispatch();
@@ -49,7 +51,7 @@ function RootNavigation() {
         loginSuccess({
           user: JSON.parse(user),
           token,
-        })
+        }),
       );
     }
   }, [dispatch]);
@@ -62,9 +64,6 @@ function RootNavigation() {
         <Route path="/places" element={<Places />} />
         {/* <Route path="/about" element={<About />} /> */}
         <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/hotel" element={<Hotel />} />
-        <Route path="/hotel-list" element={<HotelBooking />} />
-        <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
 
         <Route path="/blogs" element={<Blogs />} />
         <Route path="/blog-detail" element={<Blogdetail />} />
@@ -78,18 +77,27 @@ function RootNavigation() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
         <Route path="/flight" element={<Flight />} />
-        <Route path="cancelation" element={< Cancellation/>} />
-        <Route path="about" element={< About/>} />
-        <Route path="hotel-checkout" element={< HotelCheckout/>} />
-        <Route path="/flight-detail" element={<FlightDetail/>} />
-        <Route path="/flight-checkout" element={<Flightcheckout/>} />
-        <Route path="/view-booking" element={<BookingView/>} />
+        <Route path="/flights" element={<FlightPopularDestination />} />
+        <Route path="cancelation" element={<Cancellation />} />
+        <Route path="about" element={<About />} />
 
-         <Route path="/guide/:guideId" element={<Guidedetail />} />
-         <Route path="/Bus-list" element={<BusList />} />
-          <Route path="/Bus-checkout" element={<BusCheckout />} />
+        <Route path="/flight-detail" element={<FlightDetail />} />
+        <Route path="/flight-checkout" element={<Flightcheckout />} />
+        <Route path="/view-booking" element={<BookingView />} />
 
-        
+        {/* hotel route */}
+        <Route path="hotel-checkout" element={<HotelCheckout />} />
+        <Route path="/hotel" element={<Hotel />} />
+        <Route path="/hotel-list" element={<HotelBooking />} />
+        <Route path="/hotel-detail/:hotelCode" element={<HotelDetail />} />
+
+        {/* bus route */}
+
+        <Route path="/guide/:guideId" element={<Guidedetail />} />
+        <Route path="/Bus-list" element={<BusList />} />
+        <Route path="/Bus-checkout" element={<BusCheckout />} />
+        <Route path="/bus" element={<BusPopularDestination />} />
+
         <Route
           path="/user-dashboard"
           element={

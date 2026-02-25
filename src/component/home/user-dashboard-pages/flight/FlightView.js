@@ -428,17 +428,28 @@ export default function FlightView({ booking }) {
         "No passenger details available"
       )}
 
+      {(status === "confirmed" || status === "cancelled") && (
+        <button
+          className="btn btn-outline-primary"
+          onClick={() =>
+            handleDownloadInvoice(booking.bookingId, vendorBookingId)
+          }
+        >
+          Download Invoice
+        </button>
+      )}
+
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-          <button
+          {/* <button
             className="btn btn-outline-primary"
             onClick={() =>
               handleDownloadInvoice(booking.bookingId, vendorBookingId)
             }
           >
             Download Invoice
-          </button>
+          </button> */}
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

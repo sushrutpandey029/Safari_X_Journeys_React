@@ -67,7 +67,7 @@ function Header() {
     removeUserData("guide_token");
     removeUserData("guide_refreshtoken");
     dispatch(logout());
-    navigate("/")
+    navigate("/");
     // window.location.reload(true);
   };
 
@@ -135,7 +135,7 @@ function Header() {
                 {/* Flight (default active if /) */}
                 <li className="nav-item">
                   <NavLink
-                    to="/flight"
+                    to="/flights"
                     className={({ isActive }) =>
                       "nav-link" +
                       (isActive || location.pathname === "/" ? " active" : "")
@@ -143,8 +143,10 @@ function Header() {
                   >
                     <img
                       src="/Images/aircraft.gif"
-                      alt="Safarix Logo" className="icon-img"
-                    /> Flight
+                      alt="Safarix Logo"
+                      className="icon-img"
+                    />{" "}
+                    Flight
                   </NavLink>
                 </li>
 
@@ -158,8 +160,28 @@ function Header() {
                   >
                     <img
                       src="/Images/hotel.gif"
-                      alt="Safarix Logo" className="icon-img"
-                    /> Hotel
+                      alt="Safarix Logo"
+                      className="icon-img"
+                    />{" "}
+                    Hotel
+                  </NavLink>
+                </li>
+
+                 {/* Bus */}
+                <li className="nav-item">
+                  <NavLink
+                    to="/bus"
+                    // to="/Bus-list"
+                    className={({ isActive }) =>
+                      "nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <img
+                      src="/Images/bus-journey.gif"
+                      alt="Safarix Logo"
+                      className="icon-img"
+                    />{" "}
+                    Bus
                   </NavLink>
                 </li>
 
@@ -173,8 +195,10 @@ function Header() {
                   >
                     <img
                       src="/Images/tour-guide.gif"
-                      alt="Safarix Logo" className="icon-img"
-                    /> Guide
+                      alt="Safarix Logo"
+                      className="icon-img"
+                    />{" "}
+                    Guide
                   </NavLink>
                 </li>
 
@@ -191,29 +215,15 @@ function Header() {
               <i className="bi bi-taxi-front"></i> Cab
             </NavLink>
           </li> */}
-                {/* Bus */}
-                <li className="nav-item">
-                  <NavLink
-                    to="/Bus-list"
-                    className={({ isActive }) =>
-                      "nav-link" + (isActive ? " active" : "")
-                    }
-                  >
-                    <img
-                      src="/Images/bus-journey.gif"
-                      alt="Safarix Logo" className="icon-img"
-                    /> Bus
-                  </NavLink>
-                </li>
+               
               </ul>
             </div>
-
-
 
             {/* User Icon & Profile Menu */}
             <div className="user-icon position-relative">
               <div className="profile-wrapper" ref={profileMenuRef}>
-                <a className="profile-icon-link"
+                <a
+                  className="profile-icon-link"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   <img
@@ -278,7 +288,6 @@ function Header() {
                         </li>
                       )}
 
-
                       {!user && !guide && !driver && ""}
                       {user && (
                         <li
@@ -321,7 +330,7 @@ function Header() {
                 show={showGuideLogin}
                 onClose={() => setShowGuideLogin(false)}
                 setShowGuideLogin={setShowGuideLogin}
-              // setShowDriverGuideLogin={setShowDriverGuideLogin}
+                // setShowDriverGuideLogin={setShowDriverGuideLogin}
               />
             </div>
           </div>

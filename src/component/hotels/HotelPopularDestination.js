@@ -9,7 +9,7 @@ function HotelPopularDestination() {
 
   const City = [
     { name: "", image: "/Images/Goa.jpg" },
-    { name: "", image: "/Images/jammu.jpg"},
+    { name: "", image: "/Images/jammu.jpg" },
     { name: "", image: "/Images/kaashmir.jpg" },
     { name: "", image: "/Images/Ooty.jpg" },
     { name: "", image: "/Images/Pelling_Sikhim.jpg" },
@@ -17,6 +17,7 @@ function HotelPopularDestination() {
     { name: "", image: "/Images/sikkim.jpg" },
     { name: "", image: "/Images/Ladhak.jpg" },
   ];
+
   const handleCityClick = (city) => {
     navigate("/hotel-list", {
       state: {
@@ -43,6 +44,7 @@ function HotelPopularDestination() {
 
     loadCities();
   }, []);
+
   return (
     <div className="book-hotel">
       <div className="container">
@@ -57,7 +59,7 @@ function HotelPopularDestination() {
 
           {City &&
             City.map((dest, index) => (
-             <Col key={index} xs={6} lg={3}>
+              <Col key={index} xs={6} lg={3}>
                 <div
                   className="place destination-card"
                   onClick={() => handleCityClick(cities[index])}
@@ -78,11 +80,11 @@ function HotelPopularDestination() {
           <div class="col-sm-12">
             <h4>Geography</h4>
             <p>
-              India is located in the Northern Hemisphere, surrounded by the Himalayas in the north, the Indian Ocean in the south, and the Arabian Sea in the west and Bay of Bengal in the east.
+              India is located in the Northern Hemisphere, surrounded by the
+              Himalayas in the north, the Indian Ocean in the south, and the
+              Arabian Sea in the west and Bay of Bengal in the east.
             </p>
-            <p>
-              The country has diverse landscapes, including:
-            </p>
+            <p>The country has diverse landscapes, including:</p>
             <ul>
               <li> Snowy Himalayas</li>
               <li> Great Indo-Gangetic Plains</li>
@@ -90,7 +92,11 @@ function HotelPopularDestination() {
               <li> Hilly north-east region</li>
               <li> Islands (Andaman & Nicobar, Lakshadweep)</li>
             </ul>
-            <p>India's mainland extends from North Indira Ridge in Kashmir to South Kanyakumari in Tamil Nadu (3214 km) and from west Rann of kutch in Gujarat to east Kibuthu in Arunachal Pradesh (2933 km).</p>
+            <p>
+              India's mainland extends from North Indira Ridge in Kashmir to
+              South Kanyakumari in Tamil Nadu (3214 km) and from west Rann of
+              kutch in Gujarat to east Kibuthu in Arunachal Pradesh (2933 km).
+            </p>
           </div>
         </div>
       </div>

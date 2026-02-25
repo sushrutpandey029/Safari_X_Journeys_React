@@ -2,8 +2,8 @@ import React from "react";
 
 function EmergencyPanel() {
   const emergencyContacts = [
+    { name: "Safarix", number: "9821373111", icon: "🚓" },
     { name: "Police", number: "100", icon: "🚓" },
-    { name: "Safarix Journey", number: "9821373111", icon: "🚓" },
     { name: "Ambulance", number: "108", icon: "🚑" },
     { name: "Fire Brigade", number: "101", icon: "🔥" },
     { name: "Women Helpline", number: "1091", icon: "🚨" },

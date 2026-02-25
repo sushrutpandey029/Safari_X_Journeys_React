@@ -4,7 +4,7 @@ import axios from "axios";
 export const getCountryList = async () => {
   try {
     const resp = await axios.get(API.COUNTRY_LIST);
-    console.log("counyry list data",resp.data)
+    console.log("counyry list data", resp.data);
     return resp.data?.data?.CountryList || [];
   } catch (err) {
     throw err;
@@ -50,6 +50,7 @@ export const getHotelCodeListNew = async (countryCode, cityCode) => {
 
 export const getHotelDetail = async (hotelCode) => {
   try {
+    console.log("hotel code in get hoel detals",hotelCode)
     const resp = await axios.post(API.HOTEL_DETAIL, {
       HotelCode: hotelCode, // ✅ backend ko HotelCode chahiye
     });
@@ -63,7 +64,7 @@ export const getHotelDetail = async (hotelCode) => {
 export const searchHotels = async (payload) => {
   try {
     const resp = await axios.post(API.HOTEL_SEARCH, payload);
-    console.log("data in serch hotels",resp.data);
+    console.log("data in serch hotels", resp.data);
     // console.log("data in serch hotels",JSON.stringify(resp.data) );
     // Directly return inner data
     return resp.data?.data;

@@ -44,7 +44,7 @@ function HotelBooking() {
   // Filters
   const [isRefundable, setIsRefundable] = useState(false);
   const [mealType, setMealType] = useState("All");
-  const [isDetailedResponse, setIsDetailedResponse] = useState(false);
+  const [isDetailedResponse, setIsDetailedResponse] = useState(true);
   const [responseTime, setResponseTime] = useState(18);
 
   // Results
@@ -106,23 +106,51 @@ function HotelBooking() {
     return chunks;
   };
 
-  const fetchAllCountry = async () => {
-    try {
-      const resp = await getCountryList();
+  // const fetchAllCountry = async () => {
+  //   try {
+  //     const resp = await getCountryList();
 
-      setCountryList(resp);
+  //     setCountryList(resp);
 
-      // set default country search text
+  //     // set default country search text
+  //     const defaultCountry = resp.find((c) => c.Code === selectedCountry);
+
+  //     if (defaultCountry) {
+  //       setCountrySearch(defaultCountry.Name);
+  //     }
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+const fetchAllCountry = async () => {
+  try {
+    const resp = await getCountryList();
+    setCountryList(resp);
+
+    // ✅ If coming from previous page
+    if (location.state?.country) {
+      const countryCode = location.state.country.toString();
+
+      const countryObj = resp.find(
+        (c) => c.Code?.toString() === countryCode
+      );
+
+      if (countryObj) {
+        setSelectedCountry(countryObj.Code);   // set country code
+        setCountrySearch(countryObj.Name);     // set country name in input
+      }
+    }
+    // optional default country
+    else {
       const defaultCountry = resp.find((c) => c.Code === selectedCountry);
-
       if (defaultCountry) {
         setCountrySearch(defaultCountry.Name);
       }
-    } catch (err) {
-      console.log(err);
     }
-  };
-
+  } catch (err) {
+    console.log(err);
+  }
+};
   const handleCountrySearch = (e) => {
     const value = e.target.value;
 
@@ -292,8 +320,7 @@ function HotelBooking() {
       const mergedResults = responses.flatMap(
         (res) => res?.data?.data?.HotelResult || [],
       );
-      console.log("merged hotel lists", mergedResults);
-
+ 
       // 🔹 STEP 6: Create price map
       const priceMap = {};
 
@@ -353,14 +380,7 @@ function HotelBooking() {
             (c) => (c.CityCode?.toString() || c.Code?.toString()) === cityCode,
           );
 
-          // if (cityObj) {
-          //   setSelectedCity(cityObj.CityCode || cityObj.Code);
-          //   setSelectedCityName(
-          //     cityObj.CityName || cityObj.Name || cityObj.City,
-          //   );
-          //   setCitySearch(cityObj.CityName || cityObj.Name || cityObj.City);
-
-          // }
+       
 
           if (cityObj) {
             const cityName = cityObj.CityName || cityObj.Name || cityObj.City;
@@ -373,13 +393,7 @@ function HotelBooking() {
           }
         }
 
-        // ✅ Fallback to first city
-        // if (cities.length > 0 && !location.state?.city) {
-        //   setSelectedCity(cities[0].CityCode || cities[0].Code);
-        //   setSelectedCityName(
-        //     cities[0].CityName || cities[0].Name || cities[0].City,
-        //   );
-        // }
+     
         if (cities.length > 0 && !location.state?.city) {
           const defaultCityName =
             cities[0].CityName || cities[0].Name || cities[0].City;

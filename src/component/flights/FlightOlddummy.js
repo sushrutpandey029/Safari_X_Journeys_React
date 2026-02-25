@@ -27,7 +27,15 @@ import { useLocation } from "react-router-dom";
 
 const Flight = () => {
   // Flight segments (multi-city form)
-  const [flights, setFlights] = useState([]);
+  const [flights, setFlights] = useState([
+    {
+      from: "DEL",
+      to: "BOM",
+      date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+    },
+  ]);
 
   // ✅ STATE FOR SELECTED FLIGHTS AND TOTAL PRICE WITH PRICING DATA
   const [selectedFlights, setSelectedFlights] = useState([]);
@@ -40,6 +48,14 @@ const Flight = () => {
     gstPercent: 18,
     netFare: 0,
   });
+
+  useEffect(() => {
+    if (!flights[0]?.date) {
+      const newFlights = [...flights];
+      newFlights[0].date = new Date().toISOString().split("T")[0];
+      setFlights(newFlights);
+    }
+  }, []);
 
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [airports, setAirports] = useState([]);
@@ -89,9 +105,7 @@ const Flight = () => {
   });
 
   const location = useLocation();
-  const navigationState = location.state;
-
-  console.log("navigationState in flight", navigationState);
+const navigationState = location.state;
 
   // ✅ HELPER FUNCTION TO GET DISPLAY PRICE
   const getDisplayPrice = (flight) => {
@@ -412,6 +426,7 @@ const Flight = () => {
   const getFilteredResultsForDisplay = () => {
     if (!searchResults || searchResults.length === 0) return [];
 
+    console.log("=== DEBUG: getFilteredResultsForDisplay ===");
     console.log("Total search results:", searchResults.length);
     console.log(
       "Search results structure:",
@@ -443,6 +458,8 @@ const Flight = () => {
       // For other trip types, flatten the array
       return searchResults.flat();
     }
+
+    console.log("⚠️ Using flat array format");
 
     // For domestic return with flat array (old logic)
     if (tripType === "round" && isDomestic) {
@@ -811,51 +828,6 @@ const Flight = () => {
     initializeApp();
   }, []);
 
-  // Handle navigation data from FlightPopularDestination
-  useEffect(() => {
-    if (navigationState) {
-      console.log("Received navigation state:", navigationState);
-
-      // Set flights from navigation state
-      if (navigationState.flights && navigationState.flights.length > 0) {
-        setFlights(navigationState.flights);
-      }
-
-      // Set trip type
-      if (navigationState.tripType) {
-        setTripType(navigationState.tripType);
-      }
-
-      // Set passengers
-      if (navigationState.passengers) {
-        setAdults(navigationState.passengers.adults || 1);
-        setChildren(navigationState.passengers.children || 0);
-        setInfants(navigationState.passengers.infants || 0);
-      }
-
-      // Set travel class
-      if (navigationState.travelClass) {
-        setTravelClass(navigationState.travelClass);
-      }
-
-      // Set domestic status
-      if (navigationState.isDomestic !== undefined) {
-        setIsDomestic(navigationState.isDomestic);
-      }
-    } else {
-      // Fallback default values if no navigation state
-      setFlights([
-        {
-          from: "DEL",
-          to: "BOM",
-          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-        },
-      ]);
-    }
-  }, [navigationState]);
-
   // Custom Airport Dropdown Component with FIXES
   const AirportDropdown = ({
     value,
@@ -894,7 +866,18 @@ const Flight = () => {
         let filtered = airports;
 
         // Apply search filter
-
+        // if (searchTerm.trim()) {
+        //   filtered = airports.filter((airport) => {
+        //     const city = airport.city_name || "";
+        //     const name = airport.airport_name || "";
+        //     const code = airport.airport_code || "";
+        //     return (
+        //       city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        //       name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        //       code.toLowerCase().includes(searchTerm.toLowerCase())
+        //     );
+        //   });
+        // }
         if (searchTerm.trim()) {
           const search = searchTerm.toLowerCase();
 
@@ -1297,7 +1280,7 @@ const Flight = () => {
         JourneyType: journeyType,
         PreferredAirlines: [],
         Segments: segments,
-        Sources: ["GDS"], //by default it is LCC and it not allow booking api call
+        // Sources: ["GDS"],//by default it is LCC and it not allow booking api call
       };
 
       console.log("Search payload", searchPayload);
@@ -1449,7 +1432,7 @@ const Flight = () => {
     if (!isoString) return "--:--";
     try {
       const date = new Date(isoString);
-      return date?.toLocaleTimeString("en-IN", {
+      return date.toLocaleTimeString("en-IN", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
@@ -1470,6 +1453,12 @@ const Flight = () => {
   // ✅ FIXED: Render tabs based on trip type with accurate counts
   const renderTabs = () => {
     if (searchResults.length === 0) return null;
+
+    console.log("=== DEBUG: renderTabs ===");
+    console.log(
+      "Search results type:",
+      Array.isArray(searchResults[0]) ? "Array of arrays" : "Flat array",
+    );
 
     if (tripType === "round") {
       let obCount, ibCount;
@@ -1741,9 +1730,8 @@ const Flight = () => {
     }
 
     const currentFlights = getFilteredResultsForDisplay();
-    console.log("current flights", currentFlights);
     const filteredResults = applyFilters(currentFlights);
-    console.log("filterred flihts", filteredResults);
+
     if (filteredResults.length === 0 && currentFlights.length > 0) {
       return (
         <div className="text-center py-5 text-muted">
@@ -1989,78 +1977,25 @@ const Flight = () => {
     );
   };
 
-  // Auto-search flights when airports load and we have flight data
-  // useEffect(() => {
-  //   const performInitialSearch = async () => {
-  //     // Only search if we have flights data and airports loaded
-  //     if (airports.length > 0 && flights.length > 0) {
-  //       // Check if all required fields are filled
-  //       const isValid = flights.every(flight => flight.from && flight.to && flight.date);
-
-  //       if (isValid) {
-  //         setTimeout(async () => {
-  //           try {
-  //             setIsInitialLoading(true);
-  //             await searchFlights();
-  //           } catch (error) {
-  //             console.error("Error during initial search:", error);
-  //           } finally {
-  //             setIsInitialLoading(false);
-  //           }
-  //         }, 1000);
-  //       } else {
-  //         setIsInitialLoading(false);
-  //       }
-  //     }
-  //   };
-
-  //   performInitialSearch();
-  // }, [airports]);
-  // Initialize selectedFlights based on trip type and flights length
-  useEffect(() => {
-    if (flights.length > 0) {
-      if (tripType === "round") {
-        setSelectedFlights([null, null]); // Outbound and inbound
-      } else if (tripType === "multi") {
-        setSelectedFlights(new Array(flights.length).fill(null));
-      } else {
-        setSelectedFlights([null]); // One way
-      }
-    }
-  }, [tripType, flights.length]);
-
-  // Add this new useEffect - runs only once when airports load
+  // Auto-search flights on initial render with default values
   useEffect(() => {
     const performInitialSearch = async () => {
-      // Only search if we have airports loaded
       if (airports.length > 0) {
-        // Check if we have navigation state with flights data
-        if (navigationState?.flights && navigationState.flights.length > 0) {
-          // Check if all required fields are filled
-          const isValid = navigationState.flights.every(
-            (flight) => flight.from && flight.to && flight.date,
-          );
-
-          if (isValid) {
-            try {
-              setIsInitialLoading(true);
-              await searchFlights();
-            } catch (error) {
-              console.error("Error during initial search:", error);
-            } finally {
-              setIsInitialLoading(false);
-            }
-          } else {
+        setTimeout(async () => {
+          try {
+            setIsInitialLoading(true);
+            await searchFlights();
+          } catch (error) {
+            console.error("Error during initial search:", error);
+          } finally {
             setIsInitialLoading(false);
           }
-        } else {
-          setIsInitialLoading(false);
-        }
+        }, 1000);
       }
     };
 
     performInitialSearch();
-  }, [airports]); // Only depend on airports
+  }, [airports]);
 
   const availableAirlines = React.useMemo(() => {
     const map = new Map();
@@ -2080,7 +2015,7 @@ const Flight = () => {
         ).length;
         return { code, name, count };
       })
-      .sort((a, b) => a?.name?.localeCompare(b.name));
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [searchResults, activeTab, tripType, isDomestic]);
 
   const buildFlightDetailPayload = () => {
@@ -2129,34 +2064,19 @@ const Flight = () => {
             <Row className="align-items-end g-2 mb-3 mt-0  travellers justify-content-center">
               <Col md={12} className="mb-4 tabing-section">
                 <Form.Group>
-                  <div className="trip-tabs text-center">
-                    <button
-                      type="button"
-                      className={`trip-tab ${tripType === "oneway" ? "active" : ""}`}
-                      onClick={() => handleTripTypeChange("oneway")}
-                      disabled={isInitialLoading || searchLoading}
-                    >
-                      <i class="bi bi-airplane"></i> One Way
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`trip-tab ${tripType === "round" ? "active" : ""}`}
-                      onClick={() => handleTripTypeChange("round")}
-                      disabled={isInitialLoading || searchLoading}
-                    >
-                      <i class="bi bi-arrow-left-right"></i> Round Trip
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`trip-tab ${tripType === "multi" ? "active" : ""}`}
-                      onClick={() => handleTripTypeChange("multi")}
-                      disabled={isInitialLoading || searchLoading}
-                    >
-                      <i class="bi bi-signpost-split"></i> Multi City
-                    </button>
-                  </div>
+                  <Form.Label className="fw-semibold small">
+                    Trip Type
+                  </Form.Label>
+                  <Form.Select
+                    value={tripType}
+                    onChange={(e) => handleTripTypeChange(e.target.value)}
+                    className="form-control"
+                    disabled={isInitialLoading || searchLoading}
+                  >
+                    <option value="oneway">One Way</option>
+                    <option value="round">Round Trip</option>
+                    <option value="multi">Multi City</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
 
@@ -2164,7 +2084,7 @@ const Flight = () => {
                 <Form.Group>
                   <Form.Label className="fw-semibold small">From</Form.Label>
                   <AirportDropdown
-                    value={flights[0]?.from}
+                    value={flights[0].from}
                     onChange={(value) => handleFromChange(0, value)}
                     placeholder="From City"
                     type="from"
@@ -2178,7 +2098,7 @@ const Flight = () => {
                 <Form.Group>
                   <Form.Label className="fw-semibold small">To</Form.Label>
                   <AirportDropdown
-                    value={flights[0]?.to}
+                    value={flights[0].to}
                     onChange={(value) => handleToChange(0, value)}
                     placeholder="To City"
                     type="to"

@@ -124,6 +124,7 @@ const HotelDetail = () => {
     const fetchHotelData = async () => {
       try {
         // ✅ Details
+        console.log("hotel code before get hotel details",hotelCode)
         const detailResp = await getHotelDetail(hotelCode);
         console.log("gethotel details resp", detailResp);
 
@@ -141,8 +142,8 @@ const HotelDetail = () => {
           ResponseTime: bookingData.ResponseTime || 30,
           IsDetailedResponse: true, // force true for details
           Filters: {
-            Refundable: true, // relax filters to match working Postman
-            MealType: "WithMeal", // "All" was too restrictive
+            Refundable: false, // relax filters to match working Postman
+            MealType: "All", // "All" was too restrictive
           },
         });
 

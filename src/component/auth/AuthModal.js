@@ -39,8 +39,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
     confirmPassword: "",
   });
 
- const isValidEmail = (email) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -400,7 +399,12 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                 </span>
               </div>
 
-              <button className="btn btn-link p-0 text-primary fw-bold" onClick={() => setStep(5)}>forgot Password? </button>
+              <button
+                className="btn btn-link p-0 text-primary fw-bold"
+                onClick={() => setStep(5)}
+              >
+                forgot Password?{" "}
+              </button>
 
               <div className="mb-3">
                 <button
@@ -453,7 +457,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
 
               <div className="mb-3 position-relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   className="form-control pe-5"
                   placeholder="Password"
                   name="password"
@@ -461,15 +465,22 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                   onChange={handleChange}
                   required
                 />
+
                 <span
                   className="position-absolute"
                   style={{
                     right: "10px",
                     top: "50%",
                     transform: "translateY(-50%)",
+                    cursor: "pointer",
                   }}
+                  onClick={() => setShowPassword((prev) => !prev)}
                 >
-                  👁️
+                  <i
+                    className={`bi ${
+                      showPassword ? "bi-eye-slash-fill" : "bi-eye-fill"
+                    }`}
+                  ></i>
                 </span>
               </div>
 

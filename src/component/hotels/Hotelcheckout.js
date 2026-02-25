@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { hotel_prebook } from "../services/hotelService";
+import { toast } from "react-toastify";
 
 const HotelCheckout = () => {
   const location = useLocation();
@@ -11,7 +12,7 @@ const HotelCheckout = () => {
   const { startPayment } = useCashfreePayment();
   const navigate = useNavigate();
 
-  console.log("payload in hotel chckout",payload)
+  console.log("payload in hotel chckout", payload);
 
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 
@@ -33,6 +34,9 @@ const HotelCheckout = () => {
     tax: 0,
     totalFare: 0,
   });
+
+  // ✅ UNIQUE KEY PER HOTEL BOOKING
+  const HOTEL_FORM_STORAGE_KEY = "hotel_form_data";
 
   // PreBook on load data
   const [preBookInfo, setPreBookInfo] = useState(null);
@@ -121,6 +125,70 @@ const HotelCheckout = () => {
     return null;
   };
 
+  const handleResetHotelForm = () => {
+    if (
+      !window.confirm("Are you sure you want to reset passenger form data?")
+    ) {
+      return;
+    }
+
+    // ✅ Reinitialize passengers from original payload
+    const rooms = payload?.serviceDetails?.PaxRooms || [];
+
+    const freshRooms = rooms.map((room) => {
+      const passengers = [];
+
+      // Adults
+      for (let i = 0; i < (room.Adults || 0); i++) {
+        passengers.push({
+          Title: "Mr",
+          FirstName: "",
+          MiddleName: "",
+          LastName: "",
+          Email: "",
+          Age: "",
+          PhoneNo: "",
+          PAN: "",
+          PaxType: 1,
+          LeadPassenger: i === 0,
+        });
+      }
+
+      // Children
+      for (let j = 0; j < (room.Children || 0); j++) {
+        passengers.push({
+          Title: "Miss",
+          FirstName: "",
+          MiddleName: "",
+          LastName: "",
+          Email: "",
+          Age: room.ChildrenAges?.[j] || "",
+          PhoneNo: "",
+          PAN: "",
+          PaxType: 2,
+          LeadPassenger: false,
+        });
+      }
+
+      return { passengers };
+    });
+
+    // ✅ Reset state
+    setRoomsData(freshRooms);
+
+    // ✅ Remove saved data
+    localStorage.removeItem(HOTEL_FORM_STORAGE_KEY);
+
+    toast.success("Passenger form reset successfully");
+  };
+  useEffect(() => {
+    if (!userdetails) {
+      toast.info("Please login first, before proceed to booking.", {
+        toastId: "login-warning",
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (!payload) {
       navigate("/hotel", { replace: true });
@@ -203,6 +271,76 @@ const HotelCheckout = () => {
 
     setRoomsData(roomsWithPassengers);
   }, [payload]);
+
+  // ✅ RESTORE HOTEL FORM DATA
+  useEffect(() => {
+    try {
+      if (!roomsData || roomsData.length === 0) return;
+
+      const saved = localStorage.getItem(HOTEL_FORM_STORAGE_KEY);
+
+      if (!saved) {
+        console.log("No saved hotel form found");
+        return;
+      }
+
+      const parsed = JSON.parse(saved);
+
+      console.log("Restoring hotel form:", parsed);
+
+      // restore rooms passengers safely
+      if (parsed.roomsData?.length) {
+        setRoomsData((prev) =>
+          prev.map((room, rIndex) => ({
+            ...room,
+            passengers: room.passengers.map((pax, pIndex) => ({
+              ...pax,
+              ...(parsed.roomsData?.[rIndex]?.passengers?.[pIndex] || {}),
+            })),
+          })),
+        );
+      }
+
+      // restore dates & city
+      if (parsed.startDate) setStartDate(parsed.startDate);
+      if (parsed.endDate) setEndDate(parsed.endDate);
+      if (parsed.city) setCity(parsed.city);
+
+      console.log("✅ Hotel form restored");
+    } catch (err) {
+      console.error("Hotel restore error:", err);
+    }
+  }, [roomsData.length]); // critical dependency
+
+  // ✅ AUTO SAVE HOTEL FORM DATA
+  useEffect(() => {
+    try {
+      if (!roomsData || roomsData.length === 0) return;
+
+      // prevent saving empty form
+      const hasData = roomsData.some((room) =>
+        room.passengers.some(
+          (p) => p.FirstName || p.LastName || p.Email || p.PhoneNo || p.PAN,
+        ),
+      );
+
+      if (!hasData) return;
+
+      const dataToSave = {
+        roomsData,
+        startDate,
+        endDate,
+        city,
+        lastUpdated: Date.now(),
+      };
+
+      localStorage.setItem(HOTEL_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+
+      console.log("💾 Hotel form saved");
+    } catch (err) {
+      console.error("Hotel save error:", err);
+    }
+  }, [roomsData, startDate, endDate, city]);
 
   const handlePassengerChange = (roomIndex, passengerIndex, field, value) => {
     const updatedRooms = [...roomsData];
@@ -335,6 +473,7 @@ const HotelCheckout = () => {
       console.log("💳 FINAL PAYMENT PAYLOAD:", bookingPayload);
 
       startPayment(bookingPayload);
+      localStorage.removeItem(HOTEL_FORM_STORAGE_KEY);
     } catch (err) {
       console.error("❌ Book Now error:", err);
       alert("Unable to proceed with payment");
@@ -377,14 +516,14 @@ const HotelCheckout = () => {
   if (!payload) return null;
 
   if (initialPreBookLoading) {
-  return (
-    <div className="container text-center" style={{ marginTop: "150px" }}>
-      <div className="spinner-border text-primary mb-3"></div>
-      <h5>Validating hotel availability...</h5>
-      <p>Please wait while we fetch latest room details.</p>
-    </div>
-  );
-}
+    return (
+      <div className="container text-center" style={{ marginTop: "150px" }}>
+        <div className="spinner-border text-primary mb-3"></div>
+        <h5>Validating hotel availability...</h5>
+        <p>Please wait while we fetch latest room details.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ marginTop: "110px" }}>
@@ -425,7 +564,20 @@ const HotelCheckout = () => {
                 </p>
               </div>
             </div>
+            {/* Reset Button */}
+            <div className="d-flex justify-content-end mb-3">
+              {localStorage.getItem(HOTEL_FORM_STORAGE_KEY) && (
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={handleResetHotelForm}
+                >
+                  Reset Form
+                </button>
+              )}
+            </div>
 
+            <form onSubmit={handleSubmit}></form>
             {/* DYNAMIC PASSENGER FORMS */}
             <form onSubmit={handleSubmit}>
               {roomsData.map((room, roomIndex) => (
@@ -619,6 +771,7 @@ const HotelCheckout = () => {
                             className="form-control"
                             placeholder="Enter mobile number"
                             value={pax.PhoneNo || ""}
+                            maxLength={10}
                             onChange={(e) =>
                               handlePassengerChange(
                                 roomIndex,
@@ -687,7 +840,7 @@ const HotelCheckout = () => {
 
           {/* CANCELLATION CARD */}
 
-          {  preBookInfo && (
+          {preBookInfo && (
             <div className="card shadow-sm border p-3 mb-3 rounded-3">
               <h5 className="fw-bold mb-2">ℹ️ Room Details</h5>
 

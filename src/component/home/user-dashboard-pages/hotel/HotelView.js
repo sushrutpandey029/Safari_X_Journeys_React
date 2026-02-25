@@ -392,15 +392,24 @@ export default function HotelView({ booking }) {
         </tbody>
       </table>
 
+      {(status === "confirmed" || status === "cancelled") && (
+        <button
+          className="btn btn-outline-primary"
+          onClick={() => handleDownloadInvoice(booking.bookingId)}
+        >
+          Download Invoice
+        </button>
+      )}
+
       {/* Action Buttons */}
       {status === "confirmed" && (
         <>
-          <button
+          {/* <button
             className="btn btn-outline-primary"
             onClick={() => handleDownloadInvoice(booking.bookingId)}
           >
             Download Invoice
-          </button>
+          </button> */}
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

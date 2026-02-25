@@ -17,7 +17,7 @@ import { fare_quote, flight_fetchSSR } from "../services/flightService";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { searchInsurance } from "../services/insuranceService";
-// 07ABCDE1234F1Z5
+import { toast } from "react-toastify";
 
 const Flightcheckout = () => {
   const location = useLocation();
@@ -56,6 +56,7 @@ const Flightcheckout = () => {
   const [ssrDataArray, setSSRDataArray] = useState([]);
   const [ssrLoading, setSSRLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("PASSENGER");
+  const [restoreChecked, setRestoreChecked] = useState(false);
   const [expandedSSR, setExpandedSSR] = useState({
     baggage: false,
     meal: false,
@@ -67,6 +68,16 @@ const Flightcheckout = () => {
     companyAddress: "",
     companyEmail: "",
   });
+  const [isRestored, setIsRestored] = useState(false);
+
+  useEffect(() => {
+    const userdata = getUserData("safarix_user");
+    if (!userdata) {
+      toast.info("Please login first, before proceed to booking.", {
+        toastId: "login-warning",
+      });
+    }
+  }, []);
 
   const isUserLoggedIn = async () => {
     const user = await getUserData("safarix_user");
@@ -137,6 +148,8 @@ const Flightcheckout = () => {
   const [fareDiff, setFareDiff] = useState(0);
 
   const state = location?.state;
+  // ✅ UNIQUE KEY PER TRACEID (VERY IMPORTANT)
+  const FLIGHT_CHECKOUT_STORAGE_KEY = "flight_checkout_data";
 
   const [fareSource, setFareSource] = useState("search");
 
@@ -156,8 +169,95 @@ const Flightcheckout = () => {
   const [selectedMealList, setSelectedMealList] = useState([]);
   const [selectedBaggageList, setSelectedBaggageList] = useState([]);
 
+  // ✅ RESTORE CHECKOUT DATA
   useEffect(() => {
-    if (!state) return;
+    try {
+      const saved = localStorage.getItem(FLIGHT_CHECKOUT_STORAGE_KEY);
+
+      if (!saved) {
+        console.log("No saved data");
+        setRestoreChecked(true);
+        return;
+      }
+
+      const parsed = JSON.parse(saved);
+
+      console.log("Restoring flight checkout:", parsed);
+
+      if (parsed.passengers?.length > 0) {
+        setPassengers(parsed.passengers);
+        setIsRestored(true);
+      }
+
+      if (parsed.contactEmail) setContactEmail(parsed.contactEmail);
+      if (parsed.contactMobile) setContactMobile(parsed.contactMobile);
+      if (parsed.gstDetails) setGstDetails(parsed.gstDetails);
+      if (parsed.selectedMeals) setSelectedMeals(parsed.selectedMeals);
+      if (parsed.selectedBaggage) setSelectedBaggage(parsed.selectedBaggage);
+      if (parsed.selectedSeats) setSelectedSeats(parsed.selectedSeats);
+      if (parsed.selectedInsurancePlan)
+        setSelectedInsurancePlan(parsed.selectedInsurancePlan);
+      if (parsed.appliedCoupon) setAppliedCoupon(parsed.appliedCoupon);
+      if (parsed.passengerConfirmed)
+        setPassengerConfirmed(parsed.passengerConfirmed);
+
+      setRestoreChecked(true); // ✅ VERY IMPORTANT
+    } catch (err) {
+      console.error("Restore error:", err);
+      setRestoreChecked(true);
+    }
+  }, []);
+
+  // ✅ AUTO SAVE CHECKOUT DATA
+  useEffect(() => {
+    try {
+      if (!passengers || passengers.length === 0) return;
+
+      const hasData = passengers.some(
+        (p) => p.firstName || p.lastName || p.dateOfBirth || p.contactNo,
+      );
+
+      if (!hasData) return;
+
+      const dataToSave = {
+        passengers,
+        contactEmail,
+        contactMobile,
+        gstDetails,
+        selectedMeals,
+        selectedBaggage,
+        selectedSeats,
+        selectedInsurancePlan,
+        appliedCoupon,
+        passengerConfirmed,
+        lastUpdated: Date.now(),
+      };
+
+      localStorage.setItem(
+        FLIGHT_CHECKOUT_STORAGE_KEY,
+        JSON.stringify(dataToSave),
+      );
+
+      console.log("Flight checkout saved");
+    } catch (err) {
+      console.error("Save error:", err);
+    }
+  }, [
+    passengers,
+    contactEmail,
+    contactMobile,
+    gstDetails,
+    selectedMeals,
+    selectedBaggage,
+    selectedSeats,
+    selectedInsurancePlan,
+    appliedCoupon,
+    passengerConfirmed,
+  ]);
+
+  useEffect(() => {
+    // wait until restore check is complete
+    if (!state || !restoreChecked) return;
 
     const {
       TraceId,
@@ -169,12 +269,12 @@ const Flightcheckout = () => {
       travelClass,
     } = state;
 
-    // 1️⃣ Save pricing breakdown
+    // set pricing breakdown
     if (pricingBreakdown) {
       setPricingBreakdown(pricingBreakdown);
     }
 
-    // 2️⃣ Build searchData MINIMAL (required for APIs)
+    // set search data
     setSearchData({
       TraceId,
       tripType,
@@ -182,7 +282,7 @@ const Flightcheckout = () => {
       travelClass,
     });
 
-    // 3️⃣ Normalize resultIndexes → array
+    // normalize flight indexes
     const normalizedIndexes =
       tripType === "round"
         ? [resultIndexes.outbound, resultIndexes.inbound]
@@ -190,14 +290,20 @@ const Flightcheckout = () => {
           ? resultIndexes
           : [resultIndexes];
 
-    // 4️⃣ Build placeholder selectedFlights ONLY with ResultIndex
     const flights = normalizedIndexes.map((ri) => ({
       ResultIndex: ri,
     }));
 
     setSelectedFlights(flights);
 
-    // 5️⃣ Initialize passengers (counts only)
+    // ✅ CRITICAL FIX: DO NOT overwrite restored passengers
+    if (isRestored) {
+      console.log("Passengers restored, skipping initializePassengers");
+      return;
+    }
+
+    console.log("Initializing passengers fresh");
+
     initializePassengers(
       passengerCount || {
         adults: 1,
@@ -205,13 +311,7 @@ const Flightcheckout = () => {
         infants: 0,
       },
     );
-  }, []);
-
-  useEffect(() => {
-    if (state?.passengerCount) {
-      initializePassengers(state.passengerCount);
-    }
-  }, [state?.passengerCount]);
+  }, [state, restoreChecked, isRestored]);
 
   // 🔒 AUTO RUN FARE QUOTE ON CHECKOUT LOAD (PRICE LOCK)
   useEffect(() => {
@@ -242,7 +342,7 @@ const Flightcheckout = () => {
     const firstSegment = Array.isArray(segments) ? segments[0] : segments;
     const airline = firstSegment?.Airline || flight.Airline || {};
     const origin = firstSegment?.Origin || flight.origin || {};
-    const destination = firstSegment?.Destination || flight.destination || {};
+    const destination = firstSegment?.Destination || flight?.destination || {};
 
     return {
       airline: {
@@ -296,6 +396,46 @@ const Flightcheckout = () => {
       IsRefundable: flight.IsRefundable,
       Fare: flight.Fare,
     };
+  };
+
+  const handleResetFormData = () => {
+    if (
+      !window.confirm("Are you sure you want to reset passenger form data?")
+    ) {
+      return;
+    }
+
+    // ✅ Reset only passenger form fields
+    initializePassengers(
+      state?.passengerCount || {
+        adults: 1,
+        children: 0,
+        infants: 0,
+      },
+    );
+
+    // ✅ Reset contact details
+    setContactEmail("");
+    setContactMobile("");
+
+    // ✅ Reset GST details
+    setGstDetails({
+      gstNumber: "",
+      companyName: "",
+      companyAddress: "",
+      companyEmail: "",
+    });
+
+    // ✅ Reset confirmation flag
+    setPassengerConfirmed(false);
+
+    // ✅ Remove saved form data from localStorage
+    localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
+
+    // ✅ Update restore flag
+    setIsRestored(false);
+
+    toast.success("Passenger form reset successfully");
   };
 
   // ✅ Fetch fare quotes for all flights
@@ -521,7 +661,7 @@ const Flightcheckout = () => {
 
       const TravelStartDate = formatDateForInsurance(depTime);
       const TravelEndDate = formatDateForInsurance(
-        lastSegment.Destination.ArrTime,
+        lastSegment?.Destination.ArrTime,
       );
 
       const passengerCount = getPassengerCount();
@@ -1095,6 +1235,8 @@ const Flightcheckout = () => {
       console.log("✅ ACTUAL PAYMENT AMOUNT (INCLUDES EVERYTHING):", newTotal);
 
       await startPayment(bookingDetails);
+      // ✅ clear saved checkout
+      localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
     } catch (error) {
       console.error("Confirm & Pay failed", error);
       alert("Unable to start payment. Please try again.");
@@ -1116,13 +1258,14 @@ const Flightcheckout = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h5 className="mb-1">
-                Flight {index + 1}: {flightInfo.origin.city} (
-                {flightInfo.origin.code}) → {flightInfo.destination.city} (
-                {flightInfo.destination.code})
+                Flight {index + 1}: {flightInfo?.origin.city} (
+                {flightInfo?.origin.code}) → {flightInfo?.destination.city} (
+                {flightInfo?.destination.code})
               </h5>
               <small className="text-muted">
-                {formatDate(flightInfo.origin.time)} • {flightInfo.airline.name}{" "}
-                • Flight {flightInfo.airline.flightNumber}
+                {formatDate(flightInfo?.origin.time)} •{" "}
+                {flightInfo?.airline.name} • Flight{" "}
+                {flightInfo?.airline.flightNumber}
               </small>
             </div>
             <Badge bg="info">Segment {index + 1}</Badge>
@@ -1133,24 +1276,24 @@ const Flightcheckout = () => {
             <Col md={6}>
               <div className="text-center mb-3">
                 <div className="fs-4 fw-bold">
-                  {formatTime(flightInfo.origin.time)}
+                  {formatTime(flightInfo?.origin.time)}
                 </div>
                 <div className="fw-bold text-primary">
-                  {flightInfo.origin.code}
+                  {flightInfo?.origin.code}
                 </div>
-                <small className="text-muted">{flightInfo.origin.city}</small>
+                <small className="text-muted">{flightInfo?.origin.city}</small>
               </div>
             </Col>
             <Col md={6}>
               <div className="text-center mb-3">
                 <div className="fs-4 fw-bold">
-                  {formatTime(flightInfo.destination.time)}
+                  {formatTime(flightInfo?.destination.time)}
                 </div>
                 <div className="fw-bold text-primary">
-                  {flightInfo.destination.code}
+                  {flightInfo?.destination.code}
                 </div>
                 <small className="text-muted">
-                  {flightInfo.destination.city}
+                  {flightInfo?.destination.city}
                 </small>
               </div>
             </Col>
@@ -1171,7 +1314,7 @@ const Flightcheckout = () => {
               <div className="d-flex justify-content-between">
                 <span>Price per adult:</span>
                 <span className="fw-bold text-success">
-                  ₹{selectedFare.price || selectedFare.originalPrice}
+                  ₹{selectedFare.price || selectedFare?.originalPrice}
                 </span>
               </div>
               {!selectedFare.isRefundable && (
@@ -1337,7 +1480,7 @@ const Flightcheckout = () => {
     const lastSegment = lastFare?.Segments?.[0]?.slice(-1)?.[0];
 
     return lastSegment?.Destination?.ArrTime
-      ? new Date(lastSegment.Destination.ArrTime)
+      ? new Date(lastSegment?.Destination.ArrTime)
       : null;
   };
 
@@ -1397,8 +1540,10 @@ const Flightcheckout = () => {
         return false;
       }
 
-      if (p.contactNo.length < 8) {
-        alert(`Invalid contact number for ${p.type} ${i + 1}`);
+      if (!/^[0-9]{10}$/.test(p.contactNo)) {
+        alert(
+          `Contact number must be exactly 10 digits for ${p.type} ${i + 1}`,
+        );
         return false;
       }
 
@@ -1524,7 +1669,7 @@ const Flightcheckout = () => {
       if (seatLines.length === 0) return null;
 
       return {
-        route: `${info.origin.code} → ${info.destination.code}`,
+        route: `${info?.origin.code} → ${info?.destination.code}`,
         seats: seatLines,
       };
     })
@@ -1554,7 +1699,7 @@ const Flightcheckout = () => {
       if (!lines.length) return null;
 
       return {
-        route: `${info.origin.code} → ${info.destination.code}`,
+        route: `${info?.origin.code} → ${info?.destination.code}`,
         items: lines,
       };
     })
@@ -1623,18 +1768,31 @@ const Flightcheckout = () => {
                   )}
                 </div>
 
-                {passengerConfirmed && (
-                  <Button
-                    size="sm"
-                    variant="outline-primary"
-                    onClick={() => {
-                      setPassengerConfirmed(false);
-                      setActiveSection("PASSENGER");
-                    }}
-                  >
-                    Edit
-                  </Button>
-                )}
+                <div className="d-flex gap-2">
+                  {/* RESET BUTTON */}
+                  {isRestored && (
+                    <Button
+                      size="sm"
+                      variant="outline-danger"
+                      onClick={handleResetFormData}
+                    >
+                      Reset Form
+                    </Button>
+                  )}
+
+                  {passengerConfirmed && (
+                    <Button
+                      size="sm"
+                      variant="outline-primary"
+                      onClick={() => {
+                        setPassengerConfirmed(false);
+                        setActiveSection("PASSENGER");
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                </div>
               </Card.Header>
 
               <Card.Body>
@@ -1850,6 +2008,8 @@ const Flightcheckout = () => {
                               <Form.Control
                                 type="tel"
                                 placeholder="Enter contact number"
+                                maxLength={10}
+                                pattern="[0-9]{10}"
                                 value={passenger.contactNo}
                                 onChange={(e) =>
                                   handlePassengerChange(
@@ -1982,6 +2142,8 @@ const Flightcheckout = () => {
                               <Form.Control
                                 type="tel"
                                 placeholder="Enter mobile number"
+                                maxLength={10}
+                                 pattern="[0-9]{10}"
                                 value={contactMobile}
                                 onChange={(e) =>
                                   handleContactChange("mobile", e.target.value)
@@ -2143,7 +2305,9 @@ const Flightcheckout = () => {
                     selectedBaggageList.length === 0
                   ) {
                     setSelectedBaggageList(
-                      Object.values(selectedBaggage[activeFlightIndex] || {}),
+                      Object.values(
+                        selectedBaggage[activeFlightIndex] || {},
+                      ).filter(Boolean),
                     );
                   }
 
@@ -2208,11 +2372,13 @@ const Flightcheckout = () => {
                           onClick={() => {
                             setActiveFlightIndex(index);
                             setSelectedBaggageList(
-                              Object.values(selectedBaggage[index] || {}),
+                              Object.values(
+                                selectedBaggage[index] || {},
+                              ).filter(Boolean),
                             );
                           }}
                         >
-                          {info.origin.code} → {info.destination.code}{" "}
+                          {info?.origin.code} → {info?.destination.code}{" "}
                           {completed ? "✓" : "✗"}
                         </Button>
                       );
@@ -2253,7 +2419,7 @@ const Flightcheckout = () => {
 
                   {ssrDataArray[activeFlightIndex]?.baggage?.map((bag, i) => {
                     const isSelected = selectedBaggageList.some(
-                      (b) => b.Code === bag.Code,
+                      (b) => b?.Code === bag?.Code,
                     );
 
                     return (
@@ -2266,7 +2432,7 @@ const Flightcheckout = () => {
                         onClick={() => {
                           setSelectedBaggageList((prev) => {
                             const existsIndex = prev.findIndex(
-                              (b) => b.Code === bag.Code,
+                              (b) => b?.Code === bag?.Code,
                             );
 
                             // 🔁 CASE 1: deselect if same clicked again
@@ -2437,10 +2603,17 @@ const Flightcheckout = () => {
 
               <Card.Body>
                 {fareSource === "search" && (
-                  <Alert variant="secondary" className="text-center">
-                    Prices shown are <strong>estimated</strong>. Final price
-                    will be confirmed before payment.
-                  </Alert>
+                  <div className="fare-loading-block text-center py-4 border rounded bg-light">
+                    <Spinner animation="border" />
+
+                    <div className="mt-3 fw-semibold">
+                      Confirming fare with airline...
+                    </div>
+
+                    <small className="text-muted">
+                      Please wait. This usually takes a few seconds.
+                    </small>
+                  </div>
                 )}
 
                 {fareDetailsArray.length > 0 && (
@@ -2580,7 +2753,7 @@ const Flightcheckout = () => {
                     );
                   }}
                 >
-                  {info.origin.code} → {info.destination.code}{" "}
+                  {info?.origin.code} → {info?.destination.code}{" "}
                   {isSeatCompleteForFlight(index) ? "✓" : "✗"}
                 </Button>
               );
@@ -2622,6 +2795,26 @@ const Flightcheckout = () => {
                     <small className="text-muted">No seat selected</small>
                   );
                 })()}
+
+                {selectedSeatList.length > 0 && (
+                  <div className="text-end mb-2">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="text-danger p-0"
+                      onClick={() => {
+                        setSelectedSeatList([]); // clear modal local state
+                        setSelectedSeats((prev) => ({
+                          // ✅ also clear persistent state immediately
+                          ...prev,
+                          [activeFlightIndex]: {},
+                        }));
+                      }}
+                    >
+                      ✕ Clear all seats
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </Modal.Title>
@@ -2831,12 +3024,52 @@ const Flightcheckout = () => {
                 <Button
                   variant="primary"
                   disabled={selectedSeatList.length !== requiredSeatCount}
-                  onClick={() => {
-                    // assign seats to passengers AFTER modal
-                    const finalSeatMap = {};
+                  // onClick={() => {
+                  //    const finalSeatMap = {};
 
+                  //   seatEligiblePassengers.forEach((pax, index) => {
+                  //     finalSeatMap[index] = selectedSeatList[index];
+                  //   });
+
+                  //   setSelectedSeats((prev) => {
+                  //     const updated = {
+                  //       ...prev,
+                  //       [activeFlightIndex]: finalSeatMap,
+                  //     };
+
+                  //     const nextFlightIndex = activeFlightIndex + 1;
+
+                  //     if (nextFlightIndex < selectedFlights.length) {
+                  //       setActiveFlightIndex(nextFlightIndex);
+                  //       setSelectedSeatList(
+                  //         Object.values(updated[nextFlightIndex] || {}),
+                  //       );
+                  //     } else {
+                  //       setShowSeatModal(false);
+                  //     }
+
+                  //     return updated;
+                  //   });
+
+                  //    const nextFlightIndex = activeFlightIndex + 1;
+
+                  //   if (nextFlightIndex < selectedFlights.length) {
+                  //     setActiveFlightIndex(nextFlightIndex);
+                  //     setSelectedSeatList(
+                  //       Object.values(selectedSeats[nextFlightIndex] || {}),
+                  //     );
+                  //   } else {
+                  //     setShowSeatModal(false);
+                  //   }
+                  // }}
+                  onClick={() => {
+                    // Build a new seat map: paxIndex → seat (only if seat exists)
+                    const finalSeatMap = {};
                     seatEligiblePassengers.forEach((pax, index) => {
-                      finalSeatMap[index] = selectedSeatList[index];
+                      if (selectedSeatList[index]) {
+                        finalSeatMap[index] = selectedSeatList[index];
+                      }
+                      // If no seat at this index, we intentionally omit it (= deselected)
                     });
 
                     setSelectedSeats((prev) => {
@@ -2846,7 +3079,6 @@ const Flightcheckout = () => {
                       };
 
                       const nextFlightIndex = activeFlightIndex + 1;
-
                       if (nextFlightIndex < selectedFlights.length) {
                         setActiveFlightIndex(nextFlightIndex);
                         setSelectedSeatList(
@@ -2858,18 +3090,6 @@ const Flightcheckout = () => {
 
                       return updated;
                     });
-
-                    // 🔥 AUTO SWITCH LOGIC
-                    const nextFlightIndex = activeFlightIndex + 1;
-
-                    if (nextFlightIndex < selectedFlights.length) {
-                      setActiveFlightIndex(nextFlightIndex);
-                      setSelectedSeatList(
-                        Object.values(selectedSeats[nextFlightIndex] || {}),
-                      );
-                    } else {
-                      setShowSeatModal(false);
-                    }
                   }}
                 >
                   {selectedSeatList.length < requiredSeatCount
@@ -2885,7 +3105,7 @@ const Flightcheckout = () => {
       </Modal>
 
       {/* Confirmation Modal */}
-      <Modal show={showConfirmModal} centered backdrop="static">
+      {/* <Modal show={showConfirmModal} centered backdrop="static">
         <Modal.Header>
           <Modal.Title>Confirm Booking & Payment</Modal.Title>
         </Modal.Header>
@@ -2919,6 +3139,239 @@ const Flightcheckout = () => {
                 </Alert>
               )}
 
+              <div className="payment-summary p-3 bg-light rounded">
+                <div className="d-flex justify-content-between fw-bold fs-5">
+                  <span>Total Amount</span>
+                  <span>₹ {formatPrice(totalAmount)}</span>
+                </div>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConfirmModal(false)}
+          >
+            Review Booking
+          </Button>
+
+          <Button
+            variant="primary"
+            disabled={loading}
+            onClick={handleConfirmAndPay}
+          >
+            Confirm & Pay
+          </Button>
+        </Modal.Footer>
+      </Modal> */}
+
+      {/* Confirmation Modal */}
+      <Modal show={showConfirmModal} centered backdrop="static" size="lg">
+        <Modal.Header>
+          <Modal.Title>Confirm Booking & Payment</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {loading ? (
+            <div className="text-center py-4">
+              <Spinner animation="border" />
+              <div className="mt-2 text-muted">
+                Checking latest fare from airline…
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* BOOKING SUMMARY */}
+              <div className="mb-3">
+                <h6 className="fw-bold">Booking Summary</h6>
+
+                <div className="border rounded p-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted">Flights</span>
+                    <span>{selectedFlights.length} Flight(s)</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted">Passengers</span>
+                    <span>
+                      {passengerCount.adults} Adult(s),{" "}
+                      {passengerCount.children} Child(s),{" "}
+                      {passengerCount.infants} Infant(s)
+                    </span>
+                  </div>
+
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted">Trip Type</span>
+                    <span>
+                      {state?.tripType === "round"
+                        ? "Round Trip"
+                        : state?.tripType === "multi"
+                          ? "Multi-city"
+                          : "One-way"}
+                    </span>
+                  </div>
+
+                  <div className="d-flex justify-content-between">
+                    <span className="text-muted">Travel Class</span>
+                    <span>{state?.travelClass || "Economy"}</span>
+                  </div>
+                </div>
+              </div>
+              {/* FLIGHT DETAILS */}
+              <div className="mb-3">
+                <h6 className="fw-bold">Flight Details</h6>
+
+                {selectedFlights.map((flight, index) => {
+                  const info = extractFlightInfo(flight);
+
+                  return (
+                    <div key={index} className="border rounded p-2 mb-2">
+                      <div className="fw-semibold">
+                        {info.airline.name} ({info.airline.code}
+                        {info.airline.flightNumber})
+                      </div>
+
+                      <div className="small text-muted">
+                        {info?.origin.city} ({info?.origin.code}) →{" "}
+                        {info?.destination.city} ({info?.destination.code})
+                      </div>
+
+                      <div className="small text-muted">
+                        {formatDate(info?.origin.time)} •{" "}
+                        {formatTime(info?.origin.time)} →{" "}
+                        {formatTime(info?.destination.time)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* PASSENGER DETAILS */}
+              <div className="mb-3">
+                <h6 className="fw-bold">Passenger Details</h6>
+
+                {passengers.map((p, index) => (
+                  <div key={index} className="border rounded p-2 mb-2">
+                    <div>
+                      {p.title} {p.firstName} {p.lastName}
+                    </div>
+
+                    <div className="small text-muted">
+                      {p.type} • {p.gender === "1" ? "Male" : "Female"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* SEAT DETAILS */}
+              {seatSummaryByFlight.length > 0 && (
+                <div className="mb-3">
+                  <h6 className="fw-bold">Selected Seats</h6>
+
+                  {seatSummaryByFlight.map((flight, idx) => (
+                    <div key={idx} className="border rounded p-2 mb-2">
+                      <div className="fw-semibold">{flight.route}</div>
+
+                      {flight.seats.map((s, i) => (
+                        <div key={i} className="small text-muted">
+                          {s.label} → {s.seat}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* BAGGAGE DETAILS */}
+              {baggageSummaryByFlight.length > 0 && (
+                <div className="mb-3">
+                  <h6 className="fw-bold">Extra Baggage</h6>
+
+                  {baggageSummaryByFlight.map((flight, idx) => (
+                    <div key={idx} className="border rounded p-2 mb-2">
+                      <div className="fw-semibold">{flight.route}</div>
+
+                      {flight.items.map((item, i) => (
+                        <div key={i} className="small text-muted">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* MEALS */}
+              {Object.keys(selectedMeals).length > 0 && (
+                <div className="mb-3">
+                  <h6 className="fw-bold">Meals</h6>
+
+                  {Object.entries(selectedMeals).map(([flightIndex, meals]) => {
+                    const info = extractFlightInfo(
+                      selectedFlights[flightIndex],
+                    );
+
+                    return (
+                      <div
+                        key={flightIndex}
+                        className="border rounded p-2 mb-2"
+                      >
+                        <div className="fw-semibold">
+                          {info?.origin.code} → {info?.destination.code}
+                        </div>
+
+                        {Object.values(meals || {}).map(
+                          (meal, i) =>
+                            meal && (
+                              <div key={i} className="small text-muted">
+                                {meal.AirlineDescription}
+                              </div>
+                            ),
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* INSURANCE DETAILS */}
+              {selectedInsurancePlan && (
+                <div className="mb-3">
+                  <h6 className="fw-bold">Insurance Plan</h6>
+
+                  <div className="border rounded p-2">
+                    <div className="fw-semibold">
+                      {selectedInsurancePlan.PlanName}
+                    </div>
+
+                    <div className="small text-muted">
+                      Coverage ₹{" "}
+                      {Number(
+                        selectedInsurancePlan.SumInsured,
+                      ).toLocaleString()}
+                    </div>
+
+                    <div className="small text-muted">
+                      Premium ₹{" "}
+                      {formatPrice(
+                        selectedInsurancePlan.Pricing?.finalAmount *
+                          (passengerCount.adults + passengerCount.children),
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PRICE CHANGE */}
+              {priceChanged && (
+                <Alert variant="warning">
+                  Fare increased by ₹ {formatPrice(fareDiff)}
+                </Alert>
+              )}
+
+              {/* TOTAL */}
               <div className="payment-summary p-3 bg-light rounded">
                 <div className="d-flex justify-content-between fw-bold fs-5">
                   <span>Total Amount</span>

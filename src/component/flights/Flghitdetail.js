@@ -12,7 +12,7 @@ const getRouteLabel = (fareRuleItem) => {
 
 const FlightDetail = ({ flightContext, showModal, onHide }) => {
   const navigate = useNavigate();
-
+  const [showFullRule, setShowFullRule] = useState(null);
   const {
     TraceId,
     tripType,
@@ -25,7 +25,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
   const [fareRules, setFareRules] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedIndexes, setSelectedIndexes] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   /* ===============================
@@ -61,7 +61,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
             TraceId,
             ResultIndex: index,
           });
-
+          console.log("farerule reps", res);
           responses.push({
             ResultIndex: index,
             rules: res?.data?.Response?.FareRules || [],
@@ -70,7 +70,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
 
         setFareRules(responses);
       } catch (err) {
-        setError("Failed to fetch fare rules");
+        setError("Failed to fetch fare rules", err.response);
       } finally {
         setLoading(false);
       }
@@ -108,14 +108,47 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
         resultIndexes:
           tripType === "round" && isDomestic
             ? {
-              outbound: selectedIndexes[0],
-              inbound: selectedIndexes[1],
-            }
+                outbound: selectedIndexes[0],
+                inbound: selectedIndexes[1],
+              }
             : selectedIndexes[0],
       },
     });
 
     onHide();
+  };
+
+  const extractFareSummary = (fareRule) => {
+    const miniRules = fareRule?.MiniFarRules?.Rules || [];
+    const currency = fareRule?.MiniFarRules?.Currency || "INR";
+
+    const getFee = (type, departureType) => {
+      const match = miniRules.find(
+        (r) =>
+          r.Type === type &&
+          r.DepartureType.toLowerCase().includes(departureType.toLowerCase()),
+      );
+      return match?.PaxPenalties?.[0]?.AirlineFee ?? null;
+    };
+
+    const refundFee = getFee(0, "Before Departure");
+    const changeFee = getFee(1, "Before Departure");
+    const noShowFee = getFee(1, "No Show");
+
+    return {
+      airline: fareRule.Airline,
+      departureTime: fareRule.DepartureTime,
+      fareBasis: fareRule.FareBasisCode,
+      origin: fareRule.Origin,
+      destination: fareRule.Destination,
+      route: `${fareRule.Origin} → ${fareRule.Destination}`,
+      currency,
+      refundFee,
+      changeFee,
+      noShowFee,
+      isRefundable: refundFee !== null && refundFee !== 0,
+      fullHTML: fareRule.FareRuleDetail,
+    };
   };
 
   /* ===============================
@@ -153,7 +186,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
       {/* ================= BODY ================= */}
       <Modal.Body className="modern-modal-body">
         {loading && (
-          <div className="text-center py-4">
+          <div className="d-flex flex-column justify-content-center align-items-center py-5 w-100">
             <Spinner animation="border" />
             <p className="mt-2">Fetching fare rules…</p>
           </div>
@@ -170,8 +203,9 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
               return (
                 <Button
                   key={idx}
-                  className={`modern-tab-btn ${activeTab === idx ? "active" : ""
-                    }`}
+                  className={`modern-tab-btn ${
+                    activeTab === idx ? "active" : ""
+                  }`}
                   onClick={() => setActiveTab(idx)}
                 >
                   {idx === 0
@@ -184,22 +218,129 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
         )}
 
         {/* ===== FARE RULE CARDS ===== */}
-        {!loading &&
+        {!loading && fareRules.length > 0 && (
+          <div className="fare-card-container">
+            {fareRules.map((item, idx) => {
+              const rule = item.rules?.[0];
+              if (!rule) return null;
+
+              const summary = extractFareSummary(rule);
+
+              const isSelected = selectedIndexes[idx] === item.ResultIndex;
+
+              return (
+                <div
+                  key={idx}
+                  className={`fare-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleSelect(idx, item.ResultIndex)}
+                >
+                  {/* Label */}
+                  <div className="fare-type-label">
+                    {tripType === "round"
+                      ? idx === 0
+                        ? "DEPART FLIGHT"
+                        : "RETURN FLIGHT"
+                      : "FLIGHT"}
+                  </div>
+
+                  {/* Route */}
+                  <div className="fare-route">
+                    {summary.origin} → {summary.destination}
+                  </div>
+
+                  {/* Airline */}
+                  <div className="fare-airline">Airline: {summary.airline}</div>
+
+                  {/* Departure */}
+                  <div className="fare-airline">
+                    Departure:{" "}
+                    {new Date(summary.departureTime).toLocaleString()}
+                  </div>
+
+                  {/* Refund badge */}
+                  <div
+                    className={`fare-badge ${
+                      summary.isRefundable ? "refundable" : "non-refundable"
+                    }`}
+                  >
+                    {summary.isRefundable ? "Refundable" : "Non-Refundable"}
+                  </div>
+
+                  {/* Fees */}
+                  <div className="fare-body">
+                    <div className="fare-row">
+                      <span>Cancellation</span>
+                      <span>
+                        {summary.refundFee === null
+                          ? "Not Allowed"
+                          : summary.refundFee === 0
+                            ? "Free"
+                            : `₹${summary.refundFee}`}
+                      </span>
+                    </div>
+
+                    <div className="fare-row">
+                      <span>Change</span>
+                      <span>
+                        {summary.changeFee === null
+                          ? "Not Allowed"
+                          : summary.changeFee === 0
+                            ? "Free"
+                            : `₹${summary.changeFee}`}
+                      </span>
+                    </div>
+
+                    <div className="fare-row">
+                      <span>No-show</span>
+                      <span>
+                        {summary.noShowFee === null
+                          ? "Not Allowed"
+                          : summary.noShowFee === 0
+                            ? "Free"
+                            : `₹${summary.noShowFee}`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Read More */}
+                  <Button
+                    variant="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setShowFullRule((prev) => (prev === idx ? null : idx));
+                    }}
+                  >
+                    {showFullRule === idx ? "Hide Details" : "Read More"}
+                  </Button>
+
+                  {showFullRule === idx && (
+                    <div
+                      className="fare-full-rule"
+                      dangerouslySetInnerHTML={{
+                        __html: summary.fullHTML,
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {/* {!loading &&
           fareRules[activeTab] &&
           (fareRules[activeTab].rules.length > 0 ? (
             fareRules[activeTab].rules.map((rule, rIdx) => (
               <div
                 key={rIdx}
-                className={`modern-fare-card ${selectedIndexes[activeTab] ===
-                    fareRules[activeTab].ResultIndex
+                className={`modern-fare-card ${
+                  selectedIndexes[activeTab] ===
+                  fareRules[activeTab].ResultIndex
                     ? "active"
                     : ""
-                  }`}
+                }`}
                 onClick={() =>
-                  handleSelect(
-                    activeTab,
-                    fareRules[activeTab].ResultIndex
-                  )
+                  handleSelect(activeTab, fareRules[activeTab].ResultIndex)
                 }
               >
                 <div
@@ -216,7 +357,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
             <div className="segment">
               No fare rules available for this segment.
             </div>
-          ))}
+          ))} */}
       </Modal.Body>
 
       {/* ================= FOOTER ================= */}
@@ -230,7 +371,6 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
         </Button>
       </Modal.Footer>
     </Modal>
-
   );
 };
 
