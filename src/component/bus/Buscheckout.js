@@ -682,7 +682,7 @@ const BusCheckout = () => {
     // ✅ Remove localStorage
     localStorage.removeItem(BUS_FORM_STORAGE_KEY);
 
-    toast.success("Passenger form reset successfully");
+    toast.success("Form reset successfully.");
   };
 
   useEffect(() => {

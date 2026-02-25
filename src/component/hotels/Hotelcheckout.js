@@ -179,7 +179,7 @@ const HotelCheckout = () => {
     // ✅ Remove saved data
     localStorage.removeItem(HOTEL_FORM_STORAGE_KEY);
 
-    toast.success("Passenger form reset successfully");
+    toast.success("Form reset successfully.");
   };
   useEffect(() => {
     if (!userdetails) {

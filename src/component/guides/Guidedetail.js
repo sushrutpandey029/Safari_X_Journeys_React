@@ -101,7 +101,7 @@ const Guidedetail = () => {
     // ✅ Remove localStorage
     localStorage.removeItem(GUIDE_FORM_STORAGE_KEY);
 
-    toast.success("Form reset successfully");
+    toast.success("Form reset successfully.");
   };
 
   // ✅ RESTORE GUIDE FORM DATA

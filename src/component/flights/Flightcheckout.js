@@ -435,7 +435,7 @@ const Flightcheckout = () => {
     // ✅ Update restore flag
     setIsRestored(false);
 
-    toast.success("Passenger form reset successfully");
+    toast.success("Form reset successfully.");
   };
 
   // ✅ Fetch fare quotes for all flights
