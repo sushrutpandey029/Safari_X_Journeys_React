@@ -48,46 +48,36 @@ function Footer() {
   return (
     <>
       {/* ================= BOT SECTION ================= */}
-      <div className="foot">
-        <div className="container">
-          <div className="row justify-content-center">
-            {bots.map((bot, index) => {
-              let link = "";
+      <div className="floating-support">
+        {bots.map((bot, index) => {
+          let link = "";
 
-              if (bot.type === "whatsapp") {
-                link = `https://wa.me/${bot.phone}?text=${encodeURIComponent(
-                  bot.message || ""
-                )}`;
-              } else if (bot.type === "call") {
-                link = `tel:${bot.phone}`;
-              } else if (bot.type === "mail") {
-                link = `mailto:${bot.email}?subject=${encodeURIComponent(
-                  bot.subject || ""
-                )}&body=${encodeURIComponent(bot.body || "")}`;
-              }
+          if (bot.type === "whatsapp") {
+            link = `https://wa.me/${bot.phone}?text=${encodeURIComponent(
+              bot.message || ""
+            )}`;
+          } else if (bot.type === "call") {
+            link = `tel:${bot.phone}`;
+          } else if (bot.type === "mail") {
+            link = `mailto:${bot.email}?subject=${encodeURIComponent(
+              bot.subject || ""
+            )}&body=${encodeURIComponent(bot.body || "")}`;
+          }
 
-              return (
-                <div
-                  key={index}
-                  className="col-6 col-md-3 d-flex justify-content-center"
-                >
-                  <a
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ textDecoration: "none", color: "inherit" }}
-                  >
-                    <div className="chatbot-box text-center">
-                      <img src={bot.icon} alt={bot.label} />
-                      <p>{bot.label}</p>
-                    </div>
-                  </a>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          return (
+            <a
+              key={index}
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="support-btn"
+            >
+              <img src={bot.icon} alt={bot.label} />
+            </a>
+          );
+        })}
       </div>
+
 
       {/* ================= FOOTER ================= */}
       <footer className="footer">

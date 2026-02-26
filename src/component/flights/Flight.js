@@ -777,6 +777,40 @@ const Flight = () => {
     }
   }, [navigationState]);
 
+
+  // Add this new useEffect - runs only once when airports load
+  useEffect(() => {
+    const performInitialSearch = async () => {
+      // Only search if we have airports loaded
+      if (airports.length > 0) {
+        // Check if we have navigation state with flights data
+        if (navigationState?.flights && navigationState.flights.length > 0) {
+          // Check if all required fields are filled
+          const isValid = navigationState.flights.every(
+            (flight) => flight.from && flight.to && flight.date,
+          );
+
+          if (isValid) {
+            try {
+              setIsInitialLoading(true);
+              await searchFlights();
+            } catch (error) {
+              console.error("Error during initial search:", error);
+            } finally {
+              setIsInitialLoading(false);
+            }
+          } else {
+            setIsInitialLoading(false);
+          }
+        } else {
+          setIsInitialLoading(false);
+        }
+      }
+    };
+
+    performInitialSearch();
+  }, [airports]); // Only depend on airports
+
   const handleFromChange = (index, value) => {
     const newFlights = [...flights];
     newFlights[index] = { ...newFlights[index], from: value };
@@ -1159,7 +1193,7 @@ const Flight = () => {
     console.log("current flights", currentFlights);
     const filteredResults = applyFilters(currentFlights);
     console.log("filtered flights", filteredResults);
-    
+
     if (filteredResults.length === 0 && currentFlights.length > 0) {
       return (
         <div className="text-center py-5 text-muted">
@@ -1421,6 +1455,7 @@ const Flight = () => {
         </div>
 
         {/* Price Range */}
+        {/* Price Range - Dual Handle Slider */}
         <div className="filter-section mb-3">
           <div
             className="filter-header d-flex justify-content-between"
@@ -1433,42 +1468,63 @@ const Flight = () => {
 
           {toggle.price && (
             <div className="filter-body mt-2">
-              <div className="mb-2">
-                <strong>
-                  ₹{filters.priceRange.min.toLocaleString()} – ₹
-                  {filters.priceRange.max.toLocaleString()}
-                </strong>
+              <div className="dual-range-value">
+                ₹{filters.priceRange.min.toLocaleString()} – ₹{filters.priceRange.max.toLocaleString()}
               </div>
 
-              {/* MIN SLIDER */}
-              <input
-                type="range"
-                className="form-range"
-                min={dynamicPriceBounds.min}
-                max={dynamicPriceBounds.max}
-                value={filters.priceRange.min}
-                step="500"
-                onChange={(e) =>
-                  handlePriceRangeChange("min", parseInt(e.target.value))
-                }
-              />
+              <div className="dual-range-wrapper">
+                {/* Track background */}
+                <div className="dual-range-track" />
 
-              {/* MAX SLIDER */}
-              <input
-                type="range"
-                className="form-range"
-                min={dynamicPriceBounds.min}
-                max={dynamicPriceBounds.max}
-                value={filters.priceRange.max}
-                step="500"
-                onChange={(e) =>
-                  handlePriceRangeChange("max", parseInt(e.target.value))
-                }
-              />
+                {/* Filled track between thumbs */}
+                <div
+                  className="dual-range-fill"
+                  style={{
+                    left: `${((filters.priceRange.min - dynamicPriceBounds.min) /
+                      (dynamicPriceBounds.max - dynamicPriceBounds.min || 1)) * 100}%`,
+                    right: `${100 - ((filters.priceRange.max - dynamicPriceBounds.min) /
+                      (dynamicPriceBounds.max - dynamicPriceBounds.min || 1)) * 100}%`,
+                  }}
+                />
 
-              <div className="d-flex justify-content-between mt-2">
-                <small>₹{dynamicPriceBounds.min.toLocaleString()}</small>
-                <small>₹{dynamicPriceBounds.max.toLocaleString()}</small>
+                {/* MIN thumb */}
+                <input
+                  type="range"
+                  className="dual-range-input"
+                  style={{ zIndex: filters.priceRange.min > dynamicPriceBounds.max - 1000 ? 5 : 3 }}
+                  min={dynamicPriceBounds.min}
+                  max={dynamicPriceBounds.max}
+                  value={filters.priceRange.min}
+                  step="500"
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (val <= filters.priceRange.max - 500) {
+                      handlePriceRangeChange("min", val);
+                    }
+                  }}
+                />
+
+                {/* MAX thumb */}
+                <input
+                  type="range"
+                  className="dual-range-input"
+                  style={{ zIndex: 4 }}
+                  min={dynamicPriceBounds.min}
+                  max={dynamicPriceBounds.max}
+                  value={filters.priceRange.max}
+                  step="500"
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    if (val >= filters.priceRange.min + 500) {
+                      handlePriceRangeChange("max", val);
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="dual-range-labels">
+                <span>₹{dynamicPriceBounds.min.toLocaleString()}</span>
+                <span>₹{dynamicPriceBounds.max.toLocaleString()}</span>
               </div>
             </div>
           )}
