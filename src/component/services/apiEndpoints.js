@@ -1,6 +1,6 @@
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.73.198.26:2625";
-export const BASE_URL = "http://192.168.1.6:2625";
+export const BASE_URL = "http://192.168.1.7:2625";
 
 // export const BASE_URL = "https://dash.safarixjourneys.com";
 

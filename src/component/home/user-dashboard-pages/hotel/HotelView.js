@@ -222,64 +222,7 @@ export default function HotelView({ booking }) {
       // ✅ Start polling
       pollStatus();
 
-      // setCancelMessage("Tracking cancellation status...");
-      // toast.info("Waiting for hotel confirmation...");
-
-      // const pollInterval = setInterval(async () => {
-      //   const statusResp = await getHotelCancelStatus({
-      //     ChangeRequestId: changeRequestId,
-      //   });
-
-      //   const result = statusResp?.data?.data?.HotelChangeRequestStatusResult;
-      //   console.log("resp hotel cancel status", result);
-      //   const status = result?.ChangeRequestStatus;
-
-      //   console.log("Cancellation status:", status);
-
-      //   // ⏳ Still processing
-      //   if (status === 1 || status === 2) {
-      //     setCancelMessage("⏳ Cancellation is being processed...");
-      //     return;
-      //   }
-
-      //   // ✅ SUCCESS
-      //   if (status === 3) {
-      //     clearInterval(pollInterval);
-
-      //     const refund = result?.RefundedAmount || 0;
-      //     const charge =
-      //       result?.CancellationChargeBreakUp?.CancellationFees || 0;
-      //     const creditNote = result?.CreditNoteNo || null;
-
-      //     await confirmBookingCancellation({
-      //       bookingId,
-      //       refundAmount: refund,
-      //       cancellationCharge: charge,
-      //       creditNote,
-      //       vendorResponse: result,
-      //     });
-
-      //     setCancelState("success");
-      //     setCancelResult({ refund, charge, creditNote });
-      //     const msg = "Hotel booking cancelled successfully.";
-      //    setCancelMessage(msg);
-      //     setIsCancelling(false);
-      //     toast.success(msg);
-      //     setTimeout(() => {
-      //       window.location.reload();
-      //     }, 2500);
-      //   }
-
-      //   // ❌ REJECTED
-      //   if (status === 4) {
-      //     clearInterval(pollInterval);
-      //     const msg = "Cancellation rejected by hotel.";
-      //     setCancelState("rejected");
-      //    setCancelMessage(msg);
-      //     setIsCancelling(false);
-      //     toast.error(msg);
-      //   }
-      // }, 5000);
+     
     } catch (err) {
       const msg = "Cancellation failed. Please try again.";
       setCancelState("failed");

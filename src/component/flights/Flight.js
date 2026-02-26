@@ -1591,80 +1591,6 @@ const Flight = () => {
       );
     }
 
-    // if (tripType === "multi") {
-    //   return (
-    //     <div className="mb-4">
-    //       <Tabs
-    //         activeKey={activeTab}
-    //         onSelect={(k) => setActiveTab(Number(k))}
-    //         className="mb-3"
-    //       >
-    //         {flights.map((flight, index) => {
-    //           // Handle array of arrays structure
-    //           let flightCount;
-    //           if (
-    //             Array.isArray(searchResults[0]) &&
-    //             searchResults.length > index
-    //           ) {
-    //             flightCount = searchResults[index]?.length || 0;
-    //           } else {
-    //             // Flat array structure
-    //             const segmentFlights = searchResults.filter((f) => {
-    //               const segments = f.Segments || [];
-    //               if (segments.length === 0) return false;
-    //               const firstSegment = segments[0];
-    //               const segment = Array.isArray(firstSegment)
-    //                 ? firstSegment[0]
-    //                 : firstSegment;
-    //               if (!segment) return false;
-    //               const segOrigin = getAirportCodeFromSegment(
-    //                 segment,
-    //                 "origin",
-    //               );
-    //               const segDest = getAirportCodeFromSegment(
-    //                 segment,
-    //                 "destination",
-    //               );
-    //               return segOrigin === flight.from && segDest === flight.to;
-    //             });
-    //             flightCount = segmentFlights.length;
-    //           }
-
-    //           return (
-    //             <Tab
-    //               key={index}
-    //               eventKey={index}
-    //               title={
-    //                 <div className="d-flex align-items-center">
-    //                   <span>
-    //                     {flight.from} → {flight.to}
-    //                   </span>
-    //                   <span className="badge bg-secondary ms-2">
-    //                     {flightCount}
-    //                   </span>
-    //                 </div>
-    //               }
-    //             />
-    //           );
-    //         })}
-    //       </Tabs>
-
-    //       <div className="alert alert-info py-2">
-    //         <small>
-    //           Showing flights for:{" "}
-    //           <strong>
-    //             {flights[activeTab]?.from} → {flights[activeTab]?.to}
-    //           </strong>{" "}
-    //           on {flights[activeTab]?.date}
-    //         </small>
-    //         <div className="small text-muted mt-1">
-    //           Segment {activeTab + 1} of {flights.length}
-    //         </div>
-    //       </div>
-    //     </div>
-    //   );
-    // }
-
     if (tripType === "multi") {
       return (
         <div className="mb-4">
@@ -1989,33 +1915,6 @@ const Flight = () => {
     );
   };
 
-  // Auto-search flights when airports load and we have flight data
-  // useEffect(() => {
-  //   const performInitialSearch = async () => {
-  //     // Only search if we have flights data and airports loaded
-  //     if (airports.length > 0 && flights.length > 0) {
-  //       // Check if all required fields are filled
-  //       const isValid = flights.every(flight => flight.from && flight.to && flight.date);
-
-  //       if (isValid) {
-  //         setTimeout(async () => {
-  //           try {
-  //             setIsInitialLoading(true);
-  //             await searchFlights();
-  //           } catch (error) {
-  //             console.error("Error during initial search:", error);
-  //           } finally {
-  //             setIsInitialLoading(false);
-  //           }
-  //         }, 1000);
-  //       } else {
-  //         setIsInitialLoading(false);
-  //       }
-  //     }
-  //   };
-
-  //   performInitialSearch();
-  // }, [airports]);
   // Initialize selectedFlights based on trip type and flights length
   useEffect(() => {
     if (flights.length > 0) {
