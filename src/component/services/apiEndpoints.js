@@ -7,7 +7,7 @@ export const BASE_URL = "https://dash.safarixjourneys.com";
 export const API = {
   CONTACT_US: `${BASE_URL}/api/send/contactUs`,
   CAB_LIST: `${BASE_URL}/api/cab/list`,
-  // DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/guide/login`,
+  // DRIVER_GUIDE_LOGIN: `${BASE_URL}/api/guide/login`,ngrok
   GUIDE_LOGIN: `${BASE_URL}/guide/login`,
   GUIDE_LOGOUT: `${BASE_URL}/guide/logout`,
   NEWSLATER: `${BASE_URL}/api/news/later`,
@@ -28,6 +28,12 @@ export const API = {
   USER_BOOKING_DETAILS: (id) => `${BASE_URL}/api/user/booking-details/${id}`,
   USER_DOWNLOAD_INVOICE: (bookingId, vendorBookingId) =>
     `${BASE_URL}/api/bookings/${bookingId}/pdf/${vendorBookingId}`,
+
+  // user forgote password
+  USER_FORGOT_PASSWORD: `${BASE_URL}/api/user/forgot-password`,
+  USER_FORGOT_VERIFY_OTP: `${BASE_URL}/api/user/forgot-verify-email-otp`,
+  RESEND_USER_OTP: `${BASE_URL}/api/user/forgot-email-resend-otp`,
+  USER_RESET_PASSWORD: `${BASE_URL}/api/user/reset-Password`,
 
   //driver
   DRIVER_UPDATE_PROFILE: (id) => `${BASE_URL}/driver/update/${id}`,

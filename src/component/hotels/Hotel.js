@@ -1,8 +1,6 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCityList, getCountryList } from "../services/hotelService";
+import { getCityList, getCountryList } from "../services/hotelService"; // API functions
 import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
 import DatePicker from "react-datepicker";
@@ -20,61 +18,68 @@ function Hotel() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [rooms, setRooms] = useState(1);
-
-  // Country search states
+  // NEW states for city search
+  const [citySearch, setCitySearch] = useState("");
+  const [filteredCities, setFilteredCities] = useState([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const citySearchRef = useRef(null);
   const [countrySearch, setCountrySearch] = useState("");
   const [filteredCountries, setFilteredCountries] = useState([]);
   const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
   const countrySearchRef = useRef(null);
 
-  // City select state
   const [paxRooms, setPaxRooms] = useState([
     { Adults: 1, Children: 0, ChildrenAges: [] },
   ]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch all countries from API and set default to India
+ 
+
   const fetchAllCountry = async () => {
-    try {
-      const resp = await getCountryList();
+  try {
+    const resp = await getCountryList();
 
-      const sortedCountries = resp.sort((a, b) =>
-        a.Name.localeCompare(b.Name)
-      );
+    const sortedCountries = resp.sort((a, b) =>
+      a.Name.localeCompare(b.Name)
+    );
 
-      setCountryList(sortedCountries);
-      setFilteredCountries(sortedCountries);
+    setCountryList(sortedCountries);
 
-      // Set default country name based on selectedCountry ("IN")
-      const defaultCountry = sortedCountries.find(
-        (country) => country.Code === selectedCountry
-      );
+    // ✅ Set default country name based on selectedCountry ("IN")
+    const defaultCountry = sortedCountries.find(
+      (country) => country.Code === selectedCountry
+    );
 
-      if (defaultCountry) {
-        setCountrySearch(defaultCountry.Name); // Shows "India" by default
-      }
-    } catch (err) {
-      console.log("err in country list", err.response);
+    if (defaultCountry) {
+      setCountrySearch(defaultCountry.Name); // This will show "India"
     }
-  };
 
-  // ✅ Handle country search input change
+  } catch (err) {
+    console.log("err in country list", err.response);
+  }
+};
+
   const handleCountrySearch = (e) => {
     const value = e.target.value;
+
     setCountrySearch(value);
 
     if (value.trim() === "") {
       setFilteredCountries(countryList);
     } else {
       const filtered = countryList.filter((country) =>
-        country.Name.toLowerCase().includes(value.toLowerCase())
+        country.Name.toLowerCase().includes(value.toLowerCase()),
       );
+
       setFilteredCountries(filtered);
     }
 
     setShowCountrySuggestions(true);
   };
+
+
+
 
   // ✅ Handle country selection from dropdown
   const handleCountrySelect = (country) => {
@@ -103,7 +108,6 @@ function Hotel() {
     setCheckOut(formatDate(dayAfterTomorrow));
   }, []);
 
-  // ✅ Click outside → close country suggestions
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -112,13 +116,23 @@ function Hotel() {
       ) {
         setShowCountrySuggestions(false);
       }
+
+      if (
+        citySearchRef.current &&
+        !citySearchRef.current.contains(event.target)
+      ) {
+        setShowCitySuggestions(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  // ✅ Fetch cities when selectedCountry changes
+  // Fetch cities
   useEffect(() => {
     const fetchCities = async () => {
       try {
@@ -148,12 +162,58 @@ function Hotel() {
     fetchCities();
   }, [selectedCountry]);
 
-  // ✅ Fetch countries on mount
   useEffect(() => {
     fetchAllCountry();
   }, []);
 
-  // Handle search → navigate to hotel-list
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        citySearchRef.current &&
+        !citySearchRef.current.contains(event.target)
+      ) {
+        setShowCitySuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleCitySearch = (e) => {
+    const value = e.target.value;
+    setCitySearch(value);
+
+    if (value.trim() === "") {
+      setFilteredCities(cityList);
+    } else {
+      const filtered = cityList.filter((city) =>
+        (city.CityName || city.Name || city.City || "")
+          .toLowerCase()
+          .includes(value.toLowerCase()),
+      );
+      setFilteredCities(filtered);
+    }
+
+    setShowCitySuggestions(true);
+  };
+
+  const handleCitySelect = (city) => {
+    const cityCode = city.CityCode || city.Code;
+    const cityName = city.CityName || city.Name || city.City;
+
+    setSelectedCity(cityCode);
+    setSelectedCityName(cityName);
+
+    setCitySearch(cityName);
+
+    setShowCitySuggestions(false);
+  };
+
+  // Handle search
   const handleSearch = () => {
     const filters = {
       country: selectedCountry,
@@ -179,14 +239,18 @@ function Hotel() {
         <div className="search-box rounded shadow-sm hotel-form">
           <div className="container">
             <div className="row g-3 align-items-end">
+              {/* Country */}
 
-              {/* ✅ Country - Searchable Autocomplete */}
-              <div className="col-md-2 position-relative" ref={countrySearchRef}>
+              <div
+                className="col-md-2 position-relative"
+                ref={countrySearchRef}
+              >
                 <label className="form-label">Country</label>
+
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Search country..."
+                  placeholder="Search or select country"
                   value={countrySearch}
                   onChange={handleCountrySearch}
                   onFocus={() => {
@@ -194,17 +258,22 @@ function Hotel() {
                     setShowCountrySuggestions(true);
                   }}
                 />
+
                 {showCountrySuggestions && filteredCountries.length > 0 && (
                   <div
                     className="position-absolute bg-white border w-100 shadow-sm"
-                    style={{ maxHeight: "200px", overflowY: "auto", zIndex: 1000 }}
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 1000,
+                    }}
                   >
                     {filteredCountries.map((country, idx) => (
                       <div
                         key={idx}
                         className="p-2 suggestion-item"
                         style={{ cursor: "pointer" }}
-                        onMouseDown={() => handleCountrySelect(country)}
+                        onClick={() => handleCountrySelect(country)}
                       >
                         {country.Name}
                       </div>
@@ -213,34 +282,44 @@ function Hotel() {
                 )}
               </div>
 
-              {/* City - Plain Select */}
-              <div className="col-md-2">
-                <label className="form-label">City</label>
-                <select
-                  className="form-control"
-                  value={selectedCity}
-                  onChange={(e) => {
-                    const cityCode = e.target.value;
-                    setSelectedCity(cityCode);
+              {/* City */}
 
-                    const cityObj = cityList.find(
-                      (c) =>
-                        (c.CityCode?.toString() || c.Code?.toString()) ===
-                        cityCode.toString()
-                    );
-                    const cityName =
-                      cityObj?.CityName || cityObj?.Name || cityObj?.City || "";
-                    setSelectedCityName(cityName);
+              <div className="col-md-2 position-relative" ref={citySearchRef}>
+               <label className="form-label">City</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search or select city"
+                  value={citySearch}
+                  onChange={handleCitySearch}
+                  onFocus={() => {
+                    setFilteredCities(cityList);
+                    setShowCitySuggestions(true);
                   }}
                   disabled={loading}
-                >
-                  <option value="">-- Select City --</option>
-                  {cityList.map((city, idx) => (
-                    <option key={idx} value={city.CityCode || city.Code}>
-                      {city.CityName || city.Name || city.City}
-                    </option>
-                  ))}
-                </select>
+                />
+
+                {showCitySuggestions && filteredCities.length > 0 && (
+                  <div
+                    className="position-absolute bg-white border w-100 shadow-sm"
+                    style={{
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 1000,
+                    }}
+                  >
+                    {filteredCities.map((city, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2 suggestion-item"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        {city.CityName || city.Name || city.City}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Check-In */}

@@ -18,6 +18,7 @@ import BookingHistory from "./guide-dashboard-pages/BookingHistory";
 import { useNavigate } from "react-router-dom";
 import { clearGuideAuth } from "../utils/authStorage";
 import GuideEarnings from "./guide-dashboard-pages/GuideEarnings";
+import EmergencyPanel from "./guide-dashboard-pages/EmergencyPanel";
 
 function GuideDashboard() {
   const dispatch = useDispatch();
@@ -122,6 +123,18 @@ function GuideDashboard() {
                   Earnings
                 </button>
               </li>
+              <li className="nav-item">
+                <button
+                  className="nav-link"
+                  data-bs-toggle="pill"
+                  data-bs-target="#emergencypanel"
+                  type="button"
+                >
+                  {" "}
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Emergency Panel
+                </button>
+              </li>
 
               <li className="nav-item">
                 <button className="nav-link" onClick={handleLogout}>
@@ -160,6 +173,10 @@ function GuideDashboard() {
             <div className="tab-pane fade" id="earnings">
               <h4>Earnings</h4>
               <GuideEarnings />
+            </div>
+            <div className="tab-pane fade" id="emergencypanel">
+              <h4>Emergency Panel</h4>
+              <EmergencyPanel />
             </div>
           </div>
         </div>

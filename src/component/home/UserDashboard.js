@@ -15,6 +15,7 @@ import Profile from "./user-dashboard-pages/Profile";
 import Booking from "./user-dashboard-pages/Booking";
 import { userLogout } from "../services/authService";
 import { clearUserAuth } from "../utils/authStorage";
+import EmergencyPanel from "./user-dashboard-pages/EmergencyPanel";
 
 function UserDashboard() {
   const dispatch = useDispatch();
@@ -23,9 +24,6 @@ function UserDashboard() {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (!confirmed) return;
     await userLogout();
-    // localStorage.removeItem("safarix_user");
-    // localStorage.removeItem("safarix_token");
-    // localStorage.removeItem("safarix_refreshtoken");
     clearUserAuth();
     dispatch(logout());
     window.location.reload(true);
@@ -96,6 +94,20 @@ function UserDashboard() {
               <li class="nav-item">
                 <button
                   class="nav-link"
+                  id="settings-tab"
+                  data-bs-toggle="pill"
+                  data-bs-target="#emergencypanel"
+                  type="button"
+                  role="tab"
+                >
+                  {" "}
+                  <FontAwesomeIcon icon={faLock} className="me-2" /> Emergency
+                  Panel
+                </button>
+              </li>
+              <li class="nav-item">
+                <button
+                  class="nav-link"
                   id="logout-tab"
                   data-bs-toggle="pill"
                   // data-bs-target="#logout"
@@ -127,14 +139,10 @@ function UserDashboard() {
               <h4>Change Password</h4>
               <ChangePassword />
             </div>
-            {/* <div
-              class="tab-pane fade"
-              id="logout"
-              role="tabpanel"
-              onClick={handleLogout}
-            >
-              <h4>Logout</h4>
-            </div> */}
+            <div class="tab-pane fade" id="emergencypanel" role="tabpanel">
+              <h4>Emergency Panel</h4>
+              <EmergencyPanel />
+            </div>
           </div>
         </div>
       </div>

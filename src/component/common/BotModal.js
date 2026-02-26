@@ -364,7 +364,8 @@ function BotModal() {
                     __html: chatbotReply
                       .replace(
                         /(http:\/\/localhost:3000\/[^\s]+)/g,
-                        '<a href="$1" target="_blank" class="booking-link">$1</a>'
+                        '<a href="$1" >$1</a>'
+                        // '<a href="$1" target="_blank" class="booking-link">$1</a>'
                       )
                       .replace(/\n/g, "<br/>"),
                   }}

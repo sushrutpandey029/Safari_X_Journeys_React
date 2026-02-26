@@ -1,165 +1,3 @@
-// import { useState } from "react";
-// import {
-//   flight_sendChangeRequest,
-//   flight_getChangeRequestStatus,
-// } from "../services/flightService";
-// import {
-//   bus_sendChangeRequest,
-//   bus_getChangeRequestStatus,
-// } from "../services/busservice";
-// import { confirmBookingCancellation } from "../services/commonService";
-
-// export default function useCancellation(serviceType) {
-//   const [isCancelling, setIsCancelling] = useState(false);
-//   const [cancelStatus, setCancelStatus] = useState(""); // idle | processing | success | failed | rejected
-//   const [cancelMessage, setCancelMessage] = useState("");
-//   const [cancelResult, setCancelResult] = useState(null);
-
-//   const startCancellation = async ({ vendorBookingId, bookingId }) => {
-//     if (!vendorBookingId || vendorBookingId === "N/A") {
-//       alert("Vendor Booking ID missing");
-//       return;
-//     }
-
-//     const confirmCancel = window.confirm(
-//       "⚠ Are you sure you want to cancel?\nThis may include cancellation charges."
-//     );
-//     if (!confirmCancel) return;
-
-//     setIsCancelling(true);
-//     setCancelStatus("processing");
-//     setCancelMessage(
-//       `<div class="alert alert-warning">Submitting cancellation request to vendor...</div>`
-//     );
-
-//     try {
-//       if (serviceType === "flight") {
-//         const changeRequestPayload = {
-//           EndUserIp: "192.168.1.11",
-//           BookingId: vendorBookingId,
-//           RequestType: 1,
-//           CancellationType: 3,
-//           Remarks: "User requested cancellation",
-//         };
-
-//         const resp = await flight_sendChangeRequest(changeRequestPayload);
-//         console.log("resp of flight_sendChangeRequest", resp);
-//         const changeRequestId =
-//           resp?.data?.data?.Response?.TicketCRInfo?.[0]?.ChangeRequestId;
-//         console.log("flight change requst id", changeRequestId);
-//         if (!changeRequestId) {
-//           setCancelStatus("failed");
-//           setCancelMessage(
-//             `<div class="alert alert-danger">ChangeRequestId missing — vendor failed</div>`
-//           );
-//           setIsCancelling(false);
-//           return;
-//         }
-
-//         setCancelMessage(
-//           `<div class="alert alert-info">⏳ Waiting for airline/vendor response...</div>`
-//         );
-
-//         // Poll every 5 sec with max attempts
-//         let attempts = 0;
-//         const maxAttempts = 20; // 100 seconds ~ 1.5 min
-
-//         const pollInterval = setInterval(async () => {
-//           attempts++;
-
-//           setCancelMessage(
-//             `<div class="alert alert-secondary">Checking cancellation progress... (Attempt ${attempts} of ${maxAttempts})</div>`
-//           );
-
-//           try {
-//             const statusResp = await flight_getChangeRequestStatus({
-//               EndUserIp: "192.168.1.11",
-//               ChangeRequestId: changeRequestId,
-//             });
-
-//             console.log(
-//               "status resp of flight_getChangeRequestStatus",
-//               statusResp
-//             );
-
-//             const status =
-//               statusResp?.data?.data?.Response?.ChangeRequestStatus;
-//             const info = statusResp?.data?.data?.Response;
-//             console.log("status of flight_getChangeRequestStatus", status);
-//             // SUCCESS
-//             // if (status === 4) { value will be 4 for success ,1 is for pending, 2/3 is for failed or rejected
-//             if (status === 4) {
-//               clearInterval(pollInterval);
-
-//               const refund = info?.RefundedAmount;
-//               const charge = info?.CancellationCharge;
-//               const creditNote = info?.CreditNoteNo;
-
-//               await confirmBookingCancellation({
-//                 bookingId,
-//                 refundAmount: refund,
-//                 cancellationCharge: charge,
-//                 creditNote,
-//                 vendorResponse: info,
-//               });
-
-//               setCancelResult({ refund, charge, creditNote });
-//               setCancelStatus("success");
-//               setCancelMessage(
-//                 `<div class="alert alert-success">✔ Cancelled successfully! Refund: ₹${refund}, Charge: ₹${charge}</div>`
-//               );
-//               setIsCancelling(false);
-//             }
-//             // REJECTED or FAILED
-//             else if (status === 2 || status === 3) {
-//               clearInterval(pollInterval);
-//               setCancelStatus("rejected");
-//               setCancelMessage(
-//                 `<div class="alert alert-danger">❌ Cancellation rejected or failed</div>`
-//               );
-//               setIsCancelling(false);
-//             }
-//             // TIMEOUT
-//             else if (attempts >= maxAttempts) {
-//               clearInterval(pollInterval);
-//               setCancelStatus("failed");
-//               setCancelMessage(
-//                 `<div class="alert alert-warning">⏳ Airline is taking longer than usual. Please check again later!</div>`
-//               );
-//               setIsCancelling(false);
-//             }
-//           } catch (err) {
-//             clearInterval(pollInterval);
-//             console.error("Polling error:", err);
-//             setCancelStatus("failed");
-//             setCancelMessage(
-//               `<div class="alert alert-danger">⚠ Error checking cancellation status</div>`
-//             );
-//             setIsCancelling(false);
-//           }
-//         }, 5000);
-//       }
-//     } catch (error) {
-//       console.error(error);
-//       setCancelStatus("failed");
-//       setCancelMessage(
-//         `<div class="alert alert-danger">Cancellation failed</div>`
-//       );
-//       setIsCancelling(false);
-//     }
-//   };
-
-//   return {
-//     isCancelling,
-//     cancelStatus,
-//     cancelMessage,
-//     cancelResult,
-//     startCancellation,
-//   };
-// }
-
-// useCancellation.js
-
 import { useState } from "react";
 import {
   flight_sendChangeRequest,
@@ -173,6 +11,7 @@ import {
 
 import { confirmBookingCancellation } from "../services/commonService";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function useCancellation(serviceType) {
   const [isCancelling, setIsCancelling] = useState(false);
@@ -194,13 +33,14 @@ export default function useCancellation(serviceType) {
     }
 
     const confirmCancel = window.confirm(
-      "⚠ Are you sure you want to cancel?\nThis may include cancellation charges."
+      "⚠ Are you sure you want to cancel?\nThis may include cancellation charges.",
     );
     if (!confirmCancel) return;
 
     setIsCancelling(true);
     setCancelStatus("processing");
     setCancelMessage("Submitting cancellation request to vendor...");
+    toast.warning("Submitting cancellation request...");
 
     try {
       // ------------------------------------------------
@@ -247,79 +87,178 @@ export default function useCancellation(serviceType) {
       setCancelMessage("Vendor rejected cancellation");
       return;
     }
+    pollFlightCancellation(changeRequestId, bookingId);
 
-    return await pollFlightCancellation(changeRequestId, bookingId);
+    // return await pollFlightCancellation(changeRequestId, bookingId);
   };
+  const pollFlightCancellation = async (
+    changeRequestId,
+    bookingId,
+    attempt = 1,
+  ) => {
+    console.log("Flight polling attempt:", attempt);
 
-  const pollFlightCancellation = async (changeRequestId, bookingId) => {
-    let attempts = 0;
-    const maxAttempts = 20;
+    const maxAttempts = 24; // 2 minutes timeout
 
-    const pollInterval = setInterval(async () => {
-      attempts++;
+    // STOP after timeout
+    if (attempt > maxAttempts) {
+      const msg =
+        "Cancellation is taking longer than expected. Please check later.";
 
-      try {
-        const resp = await flight_getChangeRequestStatus({
-          EndUserIp: "192.168.1.11",
-          ChangeRequestId: changeRequestId,
+      setCancelStatus("failed");
+      setCancelMessage(msg);
+      setIsCancelling(false);
+
+      toast.error(msg);
+
+      return;
+    }
+
+    try {
+      const resp = await flight_getChangeRequestStatus({
+        EndUserIp: "192.168.1.11",
+        ChangeRequestId: changeRequestId,
+      });
+
+      const status = resp?.data?.data?.Response?.ChangeRequestStatus;
+      const info = resp?.data?.data?.Response;
+
+      console.log("Flight cancellation status:", status);
+
+      // ⏳ PROCESSING
+      if (status === 1) {
+        setCancelMessage("⏳ Cancellation is being processed...");
+
+        setTimeout(() => {
+          pollFlightCancellation(changeRequestId, bookingId, attempt + 1);
+        }, 5000);
+
+        return;
+      }
+
+      // ✅ SUCCESS
+      if (status === 4) {
+        const refund = info?.RefundedAmount;
+        const charge = info?.CancellationCharge;
+        const creditNote = info?.CreditNoteNo;
+
+        await confirmBookingCancellation({
+          bookingId,
+          refundAmount: refund,
+          cancellationCharge: charge,
+          creditNote,
+          vendorResponse: info,
         });
 
-        const status = resp?.data?.data?.Response?.ChangeRequestStatus;
-        const info = resp?.data?.data?.Response;
+        const msg = "Flight booking cancelled successfully.";
 
-        // SUCCESS
-        if (status === 4) {
-          clearInterval(pollInterval);
-
-          const refund = info?.RefundedAmount;
-          const charge = info?.CancellationCharge;
-          const creditNote = info?.CreditNoteNo;
-
-          await confirmBookingCancellation({
-            bookingId,
-            refundAmount: refund,
-            cancellationCharge: charge,
-            creditNote,
-            vendorResponse: info,
-          });
-
-          setCancelResult({ refund, charge, creditNote });
-          setCancelStatus("success");
-          setCancelMessage("✔ Cancellation successful!");
-          setIsCancelling(false);
-        }
-
-        // FAILED / REJECTED
-        else if (status === 2 || status === 3) {
-          clearInterval(pollInterval);
-          setCancelStatus("failed");
-          setCancelMessage("❌ Cancellation rejected");
-          setIsCancelling(false);
-        }
-
-        // TIMEOUT
-        else if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
-          setCancelStatus("failed");
-          setCancelMessage("⏳ Vendor timeout. Try later.");
-          setIsCancelling(false);
-        }
-      } catch (err) {
-        clearInterval(pollInterval);
-        setCancelStatus("failed");
-        setCancelMessage("❌ Error checking cancellation status");
+        setCancelResult({ refund, charge, creditNote });
+        setCancelStatus("success");
+        setCancelMessage(msg);
         setIsCancelling(false);
+
+        toast.success(msg);
+
+        setTimeout(() => {
+          navigate(0);
+        }, 2500);
+
+        return;
       }
-    }, 5000);
+
+      // ❌ REJECTED
+      if (status === 2 || status === 3) {
+        const msg = "Cancellation rejected by airline.";
+
+        setCancelStatus("failed");
+        setCancelMessage(msg);
+        setIsCancelling(false);
+
+        toast.error(msg);
+
+        return;
+      }
+    } catch (err) {
+      const msg = "Error checking cancellation status.";
+
+      setCancelStatus("failed");
+      setCancelMessage(msg);
+      setIsCancelling(false);
+
+      toast.error(msg);
+    }
   };
+
+  // const pollFlightCancellation = async (changeRequestId, bookingId) => {
+  //   let attempts = 0;
+  //   const maxAttempts = 20;
+
+  //   const pollInterval = setInterval(async () => {
+  //     attempts++;
+
+  //     try {
+  //       const resp = await flight_getChangeRequestStatus({
+  //         EndUserIp: "192.168.1.11",
+  //         ChangeRequestId: changeRequestId,
+  //       });
+
+  //       const status = resp?.data?.data?.Response?.ChangeRequestStatus;
+  //       const info = resp?.data?.data?.Response;
+
+  //       // SUCCESS
+  //       if (status === 4) {
+  //         clearInterval(pollInterval);
+
+  //         const refund = info?.RefundedAmount;
+  //         const charge = info?.CancellationCharge;
+  //         const creditNote = info?.CreditNoteNo;
+
+  //         await confirmBookingCancellation({
+  //           bookingId,
+  //           refundAmount: refund,
+  //           cancellationCharge: charge,
+  //           creditNote,
+  //           vendorResponse: info,
+  //         });
+
+  //         setCancelResult({ refund, charge, creditNote });
+  //         setCancelStatus("success");
+  //         setCancelMessage("✔ Cancellation successful!");
+  //         setIsCancelling(false);
+  //         toast.success("Flight booking cancelled successfully");  // ✅ ADD
+  //       }
+
+  //       // FAILED / REJECTED
+  //       else if (status === 2 || status === 3) {
+  //         clearInterval(pollInterval);
+  //         setCancelStatus("failed");
+  //         setCancelMessage("❌ Cancellation rejected");
+  //         setIsCancelling(false);
+  //         toast.error("Cancellation rejected by airline");  // ✅ ADD
+  //       }
+
+  //       // TIMEOUT
+  //       else if (attempts >= maxAttempts) {
+  //         clearInterval(pollInterval);
+  //         setCancelStatus("failed");
+  //         setCancelMessage("⏳ Vendor timeout. Try later.");
+  //         setIsCancelling(false);
+  //       }
+  //     } catch (err) {
+  //       clearInterval(pollInterval);
+  //       setCancelStatus("failed");
+  //       setCancelMessage("❌ Error checking cancellation status");
+  //       setIsCancelling(false);
+  //     }
+  //   }, 5000);
+  // };
 
   // --------------------------------------------------
   // 🚌 BUS CANCELLATION FLOW
   // --------------------------------------------------
+
   const handleBusCancellation = async (vendorBookingId, bookingId, TraceId) => {
     const payload = {
-      //   EndUserIp: "192.168.1.11",
-      //   TokenId: window.localStorage.getItem("busToken"), // or use serviceDetails
       BusId: vendorBookingId,
       RequestType: 11, // FIXED for bus cancellation
       Remarks: "User requested cancellation",
@@ -330,20 +269,33 @@ export default function useCancellation(serviceType) {
 
     console.log("🚌 Bus SendChangeRequest Resp:", resp.data);
 
+    // ✅  Check vendor error
+    if (resp?.data?.error?.ErrorCode && resp.data.error.ErrorCode !== 0) {
+      setCancelStatus("failed");
+
+      setCancelMessage(
+        resp.data.error.ErrorMessage ||
+          "Cancellation could not be processed. Please contact support.",
+      );
+
+      setIsCancelling(false);
+      toast.error(
+        "Cancellation could not be processed. Please contact support.",
+      );
+      return;
+    }
+
     const changeRequestId = resp?.data?.busCRInfo?.[0]?.ChangeRequestId;
 
     if (!changeRequestId) {
       setCancelStatus("failed");
       setCancelMessage("Vendor rejected cancellation");
+      setIsCancelling(false);
+      toast.error("Vendor rejected cancellation");
       return;
     }
 
-    return await pollBusCancellation(
-      changeRequestId,
-      //   payload.TokenId,
-      bookingId,
-      TraceId
-    );
+    return await pollBusCancellation(changeRequestId, bookingId, TraceId);
   };
 
   const pollBusCancellation = async (changeRequestId, bookingId, TraceId) => {
@@ -384,23 +336,35 @@ export default function useCancellation(serviceType) {
 
           setCancelResult({ refund, charge, creditNote });
           setCancelStatus("success");
-          setCancelMessage("✔ Bus cancelled successfully!");
+          setCancelMessage(
+            "✔ Bus booking cancelled successfully. Updating your booking status...",
+          );
           setIsCancelling(false);
-          navigate("/user-dashboard");
+          toast.success("Booking cancelled successfully");
+
+          // navigate("/user-dashboard");
+          // delay navigation to allow user to see message
+          setTimeout(() => {
+            navigate(0); // refresh current page
+          }, 2500);
         }
 
         // TIMEOUT
         else if (attempts >= maxAttempts) {
+          const msg = "Vendor timeout. Please try again later.";
           clearInterval(pollInterval);
           setCancelStatus("failed");
-          setCancelMessage("⏳ Vendor timeout.");
+          setCancelMessage(msg);
           setIsCancelling(false);
+          toast.error(msg);
         }
       } catch (err) {
         clearInterval(pollInterval);
-        setCancelStatus("failed");
+        const msg = "Error in bus cancellation. Please try again.";
+        setCancelMessage(msg);
         setCancelMessage("❌ Error in bus cancellation");
         setIsCancelling(false);
+        toast.error(msg);
       }
     }, 5000);
   };

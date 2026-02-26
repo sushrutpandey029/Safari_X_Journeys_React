@@ -7,6 +7,7 @@ import useCancellation from "../../../hooks/useCancellation";
 import { insuranceBookingDetails } from "../../../services/insuranceService";
 import { handleDownloadInvoice } from "../../../utils/invoice";
 import { downloadBookingPDF } from "../../../services/bookingService";
+import BlockingLoader from "../loader/BlockingLoader";
 
 export default function FlightView({ booking }) {
   const [activeBookingId, setActiveBookingId] = useState(null);
@@ -76,7 +77,7 @@ export default function FlightView({ booking }) {
 
   // PNR from live API OR journey-level data
   const activeIndex = bookingIds.findIndex(
-    (id) => String(id) === String(activeBookingId)
+    (id) => String(id) === String(activeBookingId),
   );
 
   const PNR =
@@ -102,22 +103,6 @@ export default function FlightView({ booking }) {
 
   const airline = firstSegment?.Airline;
 
-  // Fetch booking details (Live Data)
-  // const getBookingDetails = async () => {
-  //   try {
-  //     let payload = { EndUserIp: "192.168.1.11" };
-
-  //     if (vendorBookingId !== "N/A") payload.BookingId = vendorBookingId;
-  //     else if (PNR !== "N/A") payload.PNR = PNR;
-  //     else return;
-  //     console.log("payload before gliht getbookingdtails", payload);
-  //     const resp = await flight_getBookingDetails(payload);
-  //     setLiveBookingData(resp.data);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
   const getBookingDetails = async (bookingIdToFetch) => {
     try {
       if (!bookingIdToFetch) return;
@@ -130,6 +115,10 @@ export default function FlightView({ booking }) {
       console.log("Fetching booking details for:", bookingIdToFetch);
 
       const resp = await flight_getBookingDetails(payload);
+      console.log(
+        "live flight details data",
+        JSON.stringify(resp.data, null, 2),
+      );
       setLiveBookingData(resp.data);
     } catch (err) {
       console.error("Flight getBookingDetails error", err);
@@ -155,13 +144,13 @@ export default function FlightView({ booking }) {
     fetchLatestInsurance();
   }, []);
 
-  const handleDownloadInvoice = async (bookingId,vendorBookingId) => {
+  const handleDownloadInvoice = async (bookingId, vendorBookingId) => {
     try {
-      console.log("bookingid indownload", bookingId,vendorBookingId);
-      const pdfBlob = await downloadBookingPDF(bookingId,vendorBookingId);
+      console.log("bookingid indownload", bookingId, vendorBookingId);
+      const pdfBlob = await downloadBookingPDF(bookingId, vendorBookingId);
 
       const url = window.URL.createObjectURL(
-        new Blob([pdfBlob], { type: "application/pdf" })
+        new Blob([pdfBlob], { type: "application/pdf" }),
       );
 
       const link = document.createElement("a");
@@ -220,6 +209,12 @@ export default function FlightView({ booking }) {
 
   return (
     <>
+      <BlockingLoader
+        show={isCancelling}
+        title="Cancelling Flight"
+        message="Your cancellation request is being processed. Please do not go back or close this window."
+      />
+
       {/* STATUS UI */}
       {cancelStatus === "processing" && (
         <div className="alert alert-warning mt-3">{cancelMessage}</div>
@@ -414,8 +409,8 @@ export default function FlightView({ booking }) {
                   {p.PaxType === 1
                     ? "Adult"
                     : p.PaxType === 2
-                    ? "Child"
-                    : "Infant"}
+                      ? "Child"
+                      : "Infant"}
                 </td>
                 <td>{p.Gender === 1 ? "Male" : "Female"}</td>
                 <td>
@@ -433,16 +428,28 @@ export default function FlightView({ booking }) {
         "No passenger details available"
       )}
 
+      {(status === "confirmed" || status === "cancelled") && (
+        <button
+          className="btn btn-outline-primary"
+          onClick={() =>
+            handleDownloadInvoice(booking.bookingId, vendorBookingId)
+          }
+        >
+          Download Invoice
+        </button>
+      )}
+
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-        
-          <button
+          {/* <button
             className="btn btn-outline-primary"
-            onClick={() => handleDownloadInvoice(booking.bookingId,vendorBookingId)}
+            onClick={() =>
+              handleDownloadInvoice(booking.bookingId, vendorBookingId)
+            }
           >
             Download Invoice
-          </button>
+          </button> */}
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

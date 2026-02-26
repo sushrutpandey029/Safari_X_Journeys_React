@@ -9,6 +9,8 @@ import {
 import { confirmBookingCancellation } from "../../../services/commonService";
 import { useNavigate } from "react-router-dom";
 import { downloadBookingPDF } from "../../../services/bookingService";
+import BlockingLoader from "../loader/BlockingLoader";
+import { toast } from "react-toastify";
 
 export default function HotelView({ booking }) {
   const {
@@ -73,7 +75,7 @@ export default function HotelView({ booking }) {
       const pdfBlob = await downloadBookingPDF(bookingId);
 
       const url = window.URL.createObjectURL(
-        new Blob([pdfBlob], { type: "application/pdf" })
+        new Blob([pdfBlob], { type: "application/pdf" }),
       );
 
       const link = document.createElement("a");
@@ -98,11 +100,11 @@ export default function HotelView({ booking }) {
     setIsCancelling(true);
     setCancelState("processing");
     setCancelMessage("Submitting cancellation request...");
+    toast.warning("Submitting cancellation request...");
 
     try {
       const cancelResp = await cancelHotelBooking({
         bookingId,
-        // EndUserIp: "192.168.1.11",
         Remarks: "Customer requested cancellation",
       });
 
@@ -112,68 +114,198 @@ export default function HotelView({ booking }) {
         cancelResp.data?.data?.HotelChangeRequestResult?.ChangeRequestId;
 
       if (!changeRequestId) {
+        const msg = "Cancellation request was not accepted by hotel.";
         setCancelState("failed");
-        setCancelMessage("Request failed — vendor did not accept.");
+        setCancelMessage(msg);
         setIsCancelling(false);
+        toast.error(msg);
         return;
       }
 
       setCancelMessage("Tracking cancellation status...");
+      toast.info("Waiting for hotel confirmation...");
 
-      const pollInterval = setInterval(async () => {
-        const statusResp = await getHotelCancelStatus({
-          ChangeRequestId: changeRequestId,
-        });
+      // ✅ Recursive polling function
+      const pollStatus = async (attempt = 1) => {
+        console.log("Polling attempt:", attempt);
 
-        const result = statusResp?.data?.data?.HotelChangeRequestStatusResult;
-        console.log("resp hotel cancel status", result);
-        const status = result?.ChangeRequestStatus;
+        // Stop after 24 attempts (2 minutes)
+        if (attempt > 24) {
+          const msg =
+            "Cancellation is taking longer than expected. Please check later.";
 
-        console.log("Cancellation status:", status);
+          setCancelState("failed");
+          setCancelMessage(msg);
+          setIsCancelling(false);
 
-        // ⏳ Still processing
-        if (status === 1 || status === 2) {
-          setCancelMessage("⏳ Cancellation is being processed...");
+          toast.error(msg);
+
           return;
         }
 
-        // ✅ SUCCESS
-        if (status === 3) {
-          clearInterval(pollInterval);
-
-          const refund = result?.RefundedAmount || 0;
-          const charge =
-            result?.CancellationChargeBreakUp?.CancellationFees || 0;
-          const creditNote = result?.CreditNoteNo || null;
-
-          await confirmBookingCancellation({
-            bookingId,
-            refundAmount: refund,
-            cancellationCharge: charge,
-            creditNote,
-            vendorResponse: result,
+        try {
+          const statusResp = await getHotelCancelStatus({
+            ChangeRequestId: changeRequestId,
           });
 
-          setCancelState("success");
-          setCancelResult({ refund, charge, creditNote });
-          setCancelMessage("✔ Booking Cancelled Successfully!");
-          setIsCancelling(false);
-        }
+          const result = statusResp?.data?.data?.HotelChangeRequestStatusResult;
 
-        // ❌ REJECTED
-        if (status === 4) {
-          clearInterval(pollInterval);
-          setCancelState("rejected");
-          setCancelMessage("❌ Cancellation rejected by hotel");
+          const status = result?.ChangeRequestStatus;
+
+          console.log("Cancellation status:", status);
+
+          // ⏳ Still processing
+          if (status === 1 || status === 2) {
+            setCancelMessage("⏳ Cancellation is being processed...");
+
+            // poll again after 5 sec
+            setTimeout(() => pollStatus(attempt + 1), 5000);
+
+            return;
+          }
+
+          // ✅ SUCCESS
+          if (status === 3) {
+            const refund = result?.RefundedAmount || 0;
+            const charge =
+              result?.CancellationChargeBreakUp?.CancellationFees || 0;
+
+            const creditNote = result?.CreditNoteNo || null;
+
+            await confirmBookingCancellation({
+              bookingId,
+              refundAmount: refund,
+              cancellationCharge: charge,
+              creditNote,
+              vendorResponse: result,
+            });
+
+            const msg = "Hotel booking cancelled successfully.";
+
+            setCancelState("success");
+            setCancelResult({ refund, charge, creditNote });
+            setCancelMessage(msg);
+            setIsCancelling(false);
+
+            toast.success(msg);
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 2500);
+
+            return;
+          }
+
+          // ❌ REJECTED
+          if (status === 4) {
+            const msg = "Cancellation rejected by hotel.";
+
+            setCancelState("rejected");
+            setCancelMessage(msg);
+            setIsCancelling(false);
+
+            toast.error(msg);
+
+            return;
+          }
+        } catch (err) {
+          const msg = "Error checking cancellation status.";
+
+          setCancelState("failed");
+          setCancelMessage(msg);
           setIsCancelling(false);
+
+          toast.error(msg);
         }
-      }, 5000);
+      };
+
+      // ✅ Start polling
+      pollStatus();
+
+      // setCancelMessage("Tracking cancellation status...");
+      // toast.info("Waiting for hotel confirmation...");
+
+      // const pollInterval = setInterval(async () => {
+      //   const statusResp = await getHotelCancelStatus({
+      //     ChangeRequestId: changeRequestId,
+      //   });
+
+      //   const result = statusResp?.data?.data?.HotelChangeRequestStatusResult;
+      //   console.log("resp hotel cancel status", result);
+      //   const status = result?.ChangeRequestStatus;
+
+      //   console.log("Cancellation status:", status);
+
+      //   // ⏳ Still processing
+      //   if (status === 1 || status === 2) {
+      //     setCancelMessage("⏳ Cancellation is being processed...");
+      //     return;
+      //   }
+
+      //   // ✅ SUCCESS
+      //   if (status === 3) {
+      //     clearInterval(pollInterval);
+
+      //     const refund = result?.RefundedAmount || 0;
+      //     const charge =
+      //       result?.CancellationChargeBreakUp?.CancellationFees || 0;
+      //     const creditNote = result?.CreditNoteNo || null;
+
+      //     await confirmBookingCancellation({
+      //       bookingId,
+      //       refundAmount: refund,
+      //       cancellationCharge: charge,
+      //       creditNote,
+      //       vendorResponse: result,
+      //     });
+
+      //     setCancelState("success");
+      //     setCancelResult({ refund, charge, creditNote });
+      //     const msg = "Hotel booking cancelled successfully.";
+      //    setCancelMessage(msg);
+      //     setIsCancelling(false);
+      //     toast.success(msg);
+      //     setTimeout(() => {
+      //       window.location.reload();
+      //     }, 2500);
+      //   }
+
+      //   // ❌ REJECTED
+      //   if (status === 4) {
+      //     clearInterval(pollInterval);
+      //     const msg = "Cancellation rejected by hotel.";
+      //     setCancelState("rejected");
+      //    setCancelMessage(msg);
+      //     setIsCancelling(false);
+      //     toast.error(msg);
+      //   }
+      // }, 5000);
     } catch (err) {
+      const msg = "Cancellation failed. Please try again.";
       setCancelState("failed");
-      setCancelMessage("❌ Cancellation failed. Try again later.");
+      setCancelMessage(msg);
       setIsCancelling(false);
+      toast.error(msg);
     }
   };
+
+  useEffect(() => {
+    const handleBack = (e) => {
+      if (isCancelling) {
+        e.preventDefault();
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+
+    if (isCancelling) {
+      window.history.pushState(null, "", window.location.href);
+      window.addEventListener("popstate", handleBack);
+    }
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, [isCancelling]);
 
   // ================= Render UI ==================
   if (loading) {
@@ -198,6 +330,12 @@ export default function HotelView({ booking }) {
 
   return (
     <>
+      <BlockingLoader
+        show={isCancelling}
+        title="Cancelling Booking"
+        message="Your cancellation request is being processed. Please do not go back or close this window. This may take up to 30 seconds."
+      />
+
       {/* Cancellation Status Alerts */}
       {cancelState === "processing" && (
         <div className="alert alert-warning">{cancelMessage}</div>
@@ -254,15 +392,24 @@ export default function HotelView({ booking }) {
         </tbody>
       </table>
 
+      {(status === "confirmed" || status === "cancelled") && (
+        <button
+          className="btn btn-outline-primary"
+          onClick={() => handleDownloadInvoice(booking.bookingId)}
+        >
+          Download Invoice
+        </button>
+      )}
+
       {/* Action Buttons */}
       {status === "confirmed" && (
         <>
-          <button
+          {/* <button
             className="btn btn-outline-primary"
             onClick={() => handleDownloadInvoice(booking.bookingId)}
           >
             Download Invoice
-          </button>
+          </button> */}
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronUp, faChevronDown } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Bus.css";
@@ -10,12 +9,12 @@ import {
   Bus_getCityList,
   Bus_busSearch,
   Bus_busLayout,
-  fetchBoardingPoints,
 } from "../services/busservice";
 import Loading from "../common/loading";
 import BusSeatLayout from "./BusSeatLayout";
-
+ 
 function BusList() {
+  const location = useLocation();
   const [busData, setBusData] = useState([]);
   const [filteredBusData, setFilteredBusData] = useState([]);
   const [selectedBus, setSelectedBus] = useState(null);
@@ -124,72 +123,37 @@ function BusList() {
   }, []);
 
   // FIXED: Auto-load Bangalore to Hyderabad buses when cities are loaded
+
   useEffect(() => {
     const performInitialBusSearch = async () => {
-      if (cities.length > 0 && !autoLoaded) {
-        try {
-          setIsInitialLoading(true);
-          console.log("🔄 Auto-loading Bangalore to Hyderabad buses...");
+      if (!cities.length) return;
 
-          // Find Bangalore and Hyderabad cities (exact match)
-          const bangaloreCity = cities.find((city) => {
-            const cityName = city.CityName?.trim().toLowerCase();
-            return cityName === "bangalore" || cityName === "bengaluru";
-          });
+      const passedData = location.state;
 
-          const hyderabadCity = cities.find(
-            (city) => city.CityName?.trim().toLowerCase() === "hyderabad",
-          );
+      // ✅ If coming from previous page
+      if (passedData?.fromCityId && passedData?.toCityId) {
+        console.log("📥 Received search data:", passedData);
 
-          if (!bangaloreCity || !hyderabadCity) {
-            console.warn(
-              "⚠️ Could not find Bangalore or Hyderabad in city list",
-            );
-            return;
-          }
+        setSearchParams({
+          fromCity: passedData.fromCityName,
+          fromCityId: passedData.fromCityId,
+          toCity: passedData.toCityName,
+          toCityId: passedData.toCityId,
+          travelDate: passedData.travelDate,
+        });
 
-          console.log("✅ Found cities:", {
-            bangalore: bangaloreCity.CityName,
-            hyderabad: hyderabadCity.CityName,
-            bangaloreId: bangaloreCity.CityId || bangaloreCity.CityCode,
-            hyderabadId: hyderabadCity.CityId || hyderabadCity.CityCode,
-          });
+        setAutoLoaded(true);
 
-          const today = new Date().toISOString().split("T")[0];
-
-          // Update search params with SIMPLE city names
-          setSearchParams((prev) => ({
-            ...prev,
-            fromCity: "Bangalore", // Simple single word
-            toCity: "Hyderabad", // Simple single word
-            fromCityId: bangaloreCity.CityId || bangaloreCity.CityCode,
-            toCityId: hyderabadCity.CityId || hyderabadCity.CityCode,
-            travelDate: today,
-          }));
-
-          // Mark as auto-loaded to prevent multiple calls
-          setAutoLoaded(true);
-
-          // Auto-search for Bangalore to Hyderabad using same search logic
-          console.log(
-            "🚀 Auto-initiating search for Bangalore to Hyderabad...",
-          );
-
-          await performBusSearch(
-            bangaloreCity.CityId || bangaloreCity.CityCode,
-            hyderabadCity.CityId || hyderabadCity.CityCode,
-            today,
-          );
-        } catch (err) {
-          console.error("❌ Initial bus search error:", err);
-        } finally {
-          setIsInitialLoading(false);
-        }
+        await performBusSearch(
+          passedData.fromCityId,
+          passedData.toCityId,
+          passedData.travelDate,
+        );
       }
     };
 
     performInitialBusSearch();
-  }, [cities]);
+  }, [cities, location.state]);
 
   const getSeatFare = (seat) => {
     return (
@@ -269,12 +233,14 @@ function BusList() {
           <div class='busSeatrgt'>
             <div class='busSeat'><div class='seatcontainer clearfix'>
               ${Array.from(
-          { length: 20 },
-          (_, i) =>
-            `<div class="nseat" style="top:${i * 35
-            }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${selectedBus?.price || 500
-            }')">S${i + 1}</div>`,
-        ).join("")}
+                { length: 20 },
+                (_, i) =>
+                  `<div class="nseat" style="top:${
+                    i * 35
+                  }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${
+                    selectedBus?.price || 500
+                  }')">S${i + 1}</div>`,
+              ).join("")}
             </div></div>
           </div>
         </div>`,
@@ -625,47 +591,45 @@ function BusList() {
 const handleConfirmSeats = async () => {
   if (selectedSeats.length === 0) return;
 
-  try {
-    const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
-    const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
+    try {
+      const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
+      const ResultIndex = selectedBus?.resultIndex ?? selectedBus?.ResultIndex;
 
-    const seatCharges = selectedSeats.map((seat) => ({
-      SeatIndex: seat.SeatIndex,
-      SeatName: seat.SeatName,
-      BaseFare: seat.Pricing?.baseFare ?? 0,
-      Tax: seat.Pricing?.taxAmount ?? 0,
-      FinalAmount: seat.Pricing?.finalAmount ?? 0,
-    }));
+      const seatCharges = selectedSeats.map((seat) => ({
+        SeatIndex: seat.SeatIndex,
+        SeatName: seat.SeatName,
+        BaseFare: seat.Pricing?.baseFare ?? 0,
+        Tax: seat.Pricing?.taxAmount ?? 0,
+        FinalAmount: seat.Pricing?.finalAmount ?? 0,
+      }));
 
-    const totalPayableAmount = selectedSeats.reduce(
-      (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
-      0
-    );
+      const totalPayableAmount = selectedSeats.reduce(
+        (sum, seat) => sum + (seat.Pricing?.finalAmount ?? 0),
+        0,
+      );
 
-    const pricing = {
-      currency: "INR",
-      seatsCount: selectedSeats.length,
-      seatCharges,
-      totalAmount: totalPayableAmount,
-    };
+      const pricing = {
+        currency: "INR",
+        seatsCount: selectedSeats.length,
+        seatCharges,
+        totalAmount: totalPayableAmount,
+      };
 
-    navigate("/Bus-checkout", {
-      state: {
-        bus: selectedBus,
-        seats: selectedSeats,
-        pricing,
-        traceId: TraceId,
-        resultIndex: ResultIndex,
-      },
-    });
+      navigate("/Bus-checkout", {
+        state: {
+          bus: selectedBus,
+          seats: selectedSeats,
+          pricing,
+          traceId: TraceId,
+          resultIndex: ResultIndex,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
 
-  } catch (error) {
-    console.error(error);
-  }
-
-  handleCloseModal();
-};
-
+    handleCloseModal();
+  };
 
   const calculateDisplayTotal = () => {
     const exactTotal = selectedSeats.reduce(
@@ -723,15 +687,15 @@ const handleConfirmSeats = async () => {
   //   );
   // };
 
-const renderSeatsFromAPI = () => {
-  return (
-    <BusSeatLayout
-      seatLayoutData={seatLayoutData}
-      selectedSeats={selectedSeats}
-      onSeatSelect={handleSeatSelect}
-    />
-  );
-};
+  const renderSeatsFromAPI = () => {
+    return (
+      <BusSeatLayout
+        seatLayoutData={seatLayoutData}
+        selectedSeats={selectedSeats}
+        onSeatSelect={handleSeatSelect}
+      />
+    );
+  };
 
   const handleToggle = (section) => {
     setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -791,6 +755,24 @@ const renderSeatsFromAPI = () => {
     }
 
     setSearchParams(newSearchParams);
+  };
+
+  const filterCities = (searchText) => {
+    if (!searchText) return cities;
+
+    const text = searchText.toLowerCase().trim();
+
+    return [
+      // Exact startsWith match first
+      ...cities.filter((c) => c.CityName.toLowerCase().startsWith(text)),
+
+      // Then includes match
+      ...cities.filter(
+        (c) =>
+          !c.CityName.toLowerCase().startsWith(text) &&
+          c.CityName.toLowerCase().includes(text),
+      ),
+    ];
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -918,15 +900,12 @@ const renderSeatsFromAPI = () => {
   }
 
   const Legend = ({ color, label }) => (
-  <div className="legend-item">
+    <div className="legend-item">
+      <div className={`legend-box ${color}`} />
 
-    <div className={`legend-box ${color}`} />
-
-    <span>{label}</span>
-
-  </div>
-);
-
+      <span>{label}</span>
+    </div>
+  );
 
   return (
     <div>
@@ -975,34 +954,29 @@ const renderSeatsFromAPI = () => {
                         const searchText = searchParams.fromCity
                           .trim()
                           .toLowerCase();
-
-                        const sortedCities = searchText
-                          ? [
-                            ...fromCities.filter((city) =>
-                              city.toLowerCase().startsWith(searchText),
-                            ),
-                            ...fromCities.filter(
-                              (city) =>
-                                !city.toLowerCase().startsWith(searchText) &&
-                                city.toLowerCase().includes(searchText),
-                            ),
-                          ]
-                          : fromCities;
-
-                        return sortedCities.slice(0, 15).map((city) => (
-                          <div
-                            key={city}
-                            className="p-2 border-bottom hover-bg-light"
-                            style={{ cursor: "pointer" }}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              handleSearchParamChange("fromCity", city);
-                              setShowFromSuggestions(false);
-                            }}
-                          >
-                            {city}
-                          </div>
-                        ));
+                        return filterCities(searchParams.fromCity)
+                          .slice(0, 15)
+                          .map((city) => (
+                            <div
+                              key={city.CityId}
+                              className="p-2 border-bottom hover-bg-light"
+                              style={{ cursor: "pointer" }}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                handleSearchParamChange(
+                                  "fromCity",
+                                  city.CityName,
+                                );
+                                setSearchParams((prev) => ({
+                                  ...prev,
+                                  fromCityId: city.CityId,
+                                }));
+                                setShowFromSuggestions(false);
+                              }}
+                            >
+                              {city.CityName}
+                            </div>
+                          ));
                       })()}
                     </div>
                   )}
@@ -1036,33 +1010,29 @@ const renderSeatsFromAPI = () => {
                           .trim()
                           .toLowerCase();
 
-                        const sortedCities = searchText
-                          ? [
-                            ...toCities.filter((city) =>
-                              city.toLowerCase().startsWith(searchText),
-                            ),
-                            ...toCities.filter(
-                              (city) =>
-                                !city.toLowerCase().startsWith(searchText) &&
-                                city.toLowerCase().includes(searchText),
-                            ),
-                          ]
-                          : toCities;
-
-                        return sortedCities.slice(0, 15).map((city) => (
-                          <div
-                            key={city}
-                            className="p-2 border-bottom hover-bg-light"
-                            style={{ cursor: "pointer" }}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              handleSearchParamChange("toCity", city);
-                              setShowToSuggestions(false);
-                            }}
-                          >
-                            {city}
-                          </div>
-                        ));
+                        return filterCities(searchParams.toCity)
+                          .slice(0, 15)
+                          .map((city) => (
+                            <div
+                              key={city.CityId}
+                              className="p-2 border-bottom hover-bg-light"
+                              style={{ cursor: "pointer" }}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                handleSearchParamChange(
+                                  "toCity",
+                                  city.CityName,
+                                );
+                                setSearchParams((prev) => ({
+                                  ...prev,
+                                  toCityId: city.CityId,
+                                }));
+                                setShowToSuggestions(false);
+                              }}
+                            >
+                              {city.CityName}
+                            </div>
+                          ));
                       })()}
                     </div>
                   )}
@@ -1270,7 +1240,7 @@ const renderSeatsFromAPI = () => {
                           {/* ==== Left Image ==== */}
                           <div className="col-sm-2">
                             <img
-                              src={`https://via.placeholder.com/150x120/667eea/ffffff?text=Bus+${bus.busId}`}
+                              src={"/Images/busdemo.png"}
                               alt={bus.busName}
                               className="bus-img img-fluid rounded"
                               style={{
@@ -1623,4 +1593,4 @@ const renderSeatsFromAPI = () => {
   );
 }
 
-export default BusList
+export default BusList;

@@ -30,7 +30,7 @@ const bots = [
   {
     icon: "/Images/gmail.png",
     label: "Mail",
-    email: "tomharry192999@gmail.com",
+    email: "support@safarixjourneys.com",
     subject: "Service Inquiry",
     body: "Hi, I'm interested in your services. Please provide more info.",
     type: "mail",

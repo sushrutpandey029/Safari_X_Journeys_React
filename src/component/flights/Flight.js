@@ -22,6 +22,7 @@ import { getIndianAirports, Flight_search } from "../services/flightService";
 import FlightDetail from "./Flghitdetail";
 import Laoding from "../common/loading";
 import { Offcanvas } from "react-bootstrap";
+import { useLocation } from "react-router-dom";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AirportDropdown — defined OUTSIDE Flight so it is not recreated on every render
@@ -77,7 +78,6 @@ const AirportDropdown = ({
     filtered = filtered.filter(
       (airport) => !excludedAirports.has(airport.airport_code)
     );
-    // BUG FIX: use spread to avoid mutating the original array with .reverse()
     setFilteredAirports([...filtered.slice(0, 15)].reverse());
   }, [searchTerm, airports, flights, segmentIndex, type, getExcludedAirports]);
 
@@ -167,15 +167,8 @@ const AirportDropdown = ({
 // Main Flight Component
 // ─────────────────────────────────────────────────────────────────────────────
 const Flight = () => {
-  const [flights, setFlights] = useState([
-    {
-      from: "DEL",
-      to: "BOM",
-      date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-    },
-  ]);
+  // Flight segments (multi-city form)
+  const [flights, setFlights] = useState([]);
 
   const [selectedFlights, setSelectedFlights] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -207,9 +200,9 @@ const Flight = () => {
   const [visibleCount, setVisibleCount] = useState(6);
   const [showTravellerDropdown, setShowTravellerDropdown] = useState(false);
   const [showMobileFilter, setShowMobileFilter] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [isDomestic, setIsDomestic] = useState(true);
-
 
   const [dynamicPriceBounds, setDynamicPriceBounds] = useState({
     min: 0,
@@ -233,14 +226,33 @@ const Flight = () => {
     duration: true,
   });
 
-  // ─── Cabin / Journey maps ────────────────────────────────────────────────
-  const cabinClassMap = { Economy: 1, "Premium Economy": 2, Business: 3, "First Class": 4 };
-  const journeyTypeMap = { oneway: 1, round: 2, multi: 3, special: 5 };
+  const location = useLocation();
+  const navigationState = location.state;
 
-  // ─── Pricing helpers ─────────────────────────────────────────────────────
+  console.log("navigationState in flight", navigationState);
+
+  // Add city functions
+  const addCity = () => {
+    if (flights.length < 4) {
+      setFlights([...flights, { from: "", to: "", date: "" }]);
+    }
+  };
+
+  const removeCity = (index) => {
+    if (flights.length > 1) {
+      const newFlights = flights.filter((_, i) => i !== index);
+      setFlights(newFlights);
+    }
+  };
+
+  // ✅ HELPER FUNCTION TO GET DISPLAY PRICE
   const getDisplayPrice = (flight) => {
     if (!flight) return 0;
-    if (flight.DisplayPrice != null) return flight.DisplayPrice;
+
+    if (flight.DisplayPrice !== undefined && flight.DisplayPrice !== null) {
+      return flight.DisplayPrice;
+    }
+
     if (flight.Fare) {
       if (flight.Fare.DisplayPrice != null) return flight.Fare.DisplayPrice;
       if (flight.Fare.OfferedFare != null) return flight.Fare.OfferedFare;
@@ -262,9 +274,7 @@ const Flight = () => {
     return { commissionAmount, commissionPercent, finalAmount, gstAmount, gstPercent, netFare };
   };
 
-
-  // price dynaim
-
+  // price dynamic
   useEffect(() => {
     if (!searchResults || searchResults.length === 0) return;
 
@@ -286,7 +296,6 @@ const Flight = () => {
       max: maxPrice,
     });
 
-    // Reset filter automatically when tab/search changes
     setFilters((prev) => ({
       ...prev,
       priceRange: {
@@ -295,9 +304,6 @@ const Flight = () => {
       },
     }));
   }, [searchResults, activeTab, tripType]);
-
-
-
 
   // ─── Recalculate totals when selection changes ────────────────────────────
   useEffect(() => {
@@ -343,7 +349,79 @@ const Flight = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ─── Domestic check helpers ───────────────────────────────────────────────
+  // ============ FILTER FUNCTIONS ============
+  const handleFilterChange = (filterType, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterType]: value,
+    }));
+  };
+
+  const handleAirlineFilter = (airlineCode, isChecked) => {
+    setFilters((prev) => ({
+      ...prev,
+      airlines: isChecked
+        ? [...prev.airlines, airlineCode]
+        : prev.airlines.filter((code) => code !== airlineCode),
+    }));
+  };
+
+  const handleStopFilter = (stopCount, isChecked) => {
+    setFilters((prev) => ({
+      ...prev,
+      stops: isChecked
+        ? [...prev.stops, stopCount]
+        : prev.stops.filter((stop) => stop !== stopCount),
+    }));
+  };
+
+  const handlePriceRangeChange = (type, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      priceRange: {
+        ...prev.priceRange,
+        [type]: value,
+      },
+    }));
+  };
+
+  const handleDepartureTimeFilter = (timeRange, isChecked) => {
+    setFilters((prev) => ({
+      ...prev,
+      departureTimes: isChecked
+        ? [...prev.departureTimes, timeRange]
+        : prev.departureTimes.filter(
+          (range) =>
+            !(range[0] === timeRange[0] && range[1] === timeRange[1]),
+        ),
+    }));
+  };
+
+  const handleDurationFilter = (duration, isChecked) => {
+    setFilters((prev) => ({
+      ...prev,
+      durations: isChecked
+        ? [...prev.durations, duration.label]
+        : prev.durations.filter((d) => d !== duration.label),
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      refundableOnly: false,
+      airlines: [],
+      stops: [],
+      priceRange: { min: 0, max: 100000 },
+      departureTimes: [],
+      durations: [],
+    });
+  };
+
+  const handleToggle = (section) => {
+    setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // ✅ Helper function to check if an airport is Indian
   const isIndianAirport = (airport) => {
     if (!airport) return false;
     if (airport.country_code === "IN") return true;
@@ -374,7 +452,252 @@ const Flight = () => {
     return "";
   };
 
-  // ─── App initialisation ───────────────────────────────────────────────────
+  // ✅ FIXED: Get filtered results based on trip type and active tab
+  const getFilteredResultsForDisplay = () => {
+    if (!searchResults || searchResults.length === 0) return [];
+
+    if (
+      Array.isArray(searchResults[0]) &&
+      searchResults[0].length > 0 &&
+      Array.isArray(searchResults[1]) &&
+      searchResults[1].length > 0
+    ) {
+      if (tripType === "round") {
+        return activeTab === 0 ? searchResults[0] : searchResults[1];
+      }
+
+      if (tripType === "multi" && Array.isArray(searchResults[0])) {
+        if (activeTab < searchResults.length) {
+          return searchResults[activeTab] || [];
+        }
+        return [];
+      }
+
+      return searchResults.flat();
+    }
+
+    if (tripType === "round" && isDomestic) {
+      const outboundFlights = searchResults.filter(
+        (flight) =>
+          flight.TripIndicator === "OB" ||
+          flight.TripIndicator === "Outbound" ||
+          flight.TripIndicator === "1",
+      );
+
+      const inboundFlights = searchResults.filter(
+        (flight) =>
+          flight.TripIndicator === "IB" ||
+          flight.TripIndicator === "Inbound" ||
+          flight.TripIndicator === "RT" ||
+          flight.TripIndicator === "Return" ||
+          flight.TripIndicator === "2",
+      );
+
+      if (outboundFlights.length > 0 || inboundFlights.length > 0) {
+        return activeTab === 0 ? outboundFlights : inboundFlights;
+      }
+
+      const origin = flights[0]?.from;
+      const destination = flights[0]?.to;
+
+      const obFlights = searchResults.filter((flight) => {
+        const segments = flight.Segments || [];
+        if (segments.length === 0) return false;
+
+        const firstSegment = segments[0];
+        const segment = Array.isArray(firstSegment)
+          ? firstSegment[0]
+          : firstSegment;
+        if (!segment) return false;
+
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+
+        return segOrigin === origin && segDest === destination;
+      });
+
+      const ibFlights = searchResults.filter((flight) => {
+        const segments = flight.Segments || [];
+        if (segments.length === 0) return false;
+
+        const firstSegment = segments[0];
+        const segment = Array.isArray(firstSegment)
+          ? firstSegment[0]
+          : firstSegment;
+        if (!segment) return false;
+
+        const segOrigin = getAirportCodeFromSegment(segment, "origin");
+        const segDest = getAirportCodeFromSegment(segment, "destination");
+
+        return segOrigin === destination && segDest === origin;
+      });
+
+      return activeTab === 0 ? obFlights : ibFlights;
+    }
+
+    if (tripType === "multi") {
+      if (!Array.isArray(searchResults)) return [];
+
+      if (Array.isArray(searchResults[activeTab])) {
+        return searchResults[activeTab];
+      }
+
+      return [];
+    }
+
+    return searchResults;
+  };
+
+  const applyFilters = (flights) => {
+    if (!flights || flights.length === 0) return [];
+
+    return flights.filter((flight) => {
+      if (filters.refundableOnly && !flight.IsRefundable) {
+        return false;
+      }
+
+      if (filters.airlines.length > 0) {
+        let airlineCode = "";
+        if (flight.Airline && flight.Airline.AirlineCode) {
+          airlineCode = flight.Airline.AirlineCode;
+        } else if (
+          flight.Segments &&
+          flight.Segments[0] &&
+          flight.Segments[0][0] &&
+          flight.Segments[0][0].Airline
+        ) {
+          airlineCode = flight.Segments[0][0].Airline.AirlineCode;
+        } else if (
+          flight.Segments &&
+          flight.Segments[0] &&
+          flight.Segments[0].Airline
+        ) {
+          airlineCode = flight.Segments[0].Airline.AirlineCode;
+        }
+
+        if (!airlineCode || !filters.airlines.includes(airlineCode)) {
+          return false;
+        }
+      }
+
+      if (filters.stops.length > 0) {
+        let stopCount = 0;
+        if (flight.Segments && flight.Segments[0]) {
+          const firstSegment = Array.isArray(flight.Segments[0])
+            ? flight.Segments[0][0]
+            : flight.Segments[0];
+          stopCount = firstSegment && firstSegment.StopOver ? 1 : 0;
+        }
+
+        if (
+          !filters.stops.includes(stopCount) &&
+          !(stopCount >= 2 && filters.stops.includes(2))
+        ) {
+          return false;
+        }
+      }
+
+      const price = getDisplayPrice(flight);
+      if (price < filters.priceRange.min || price > filters.priceRange.max) {
+        return false;
+      }
+
+      if (filters.departureTimes.length > 0) {
+        let departureTime = "";
+        if (flight.Segments && flight.Segments[0]) {
+          const firstSegment = Array.isArray(flight.Segments[0])
+            ? flight.Segments[0][0]
+            : flight.Segments[0];
+          departureTime = firstSegment?.Origin?.DepTime;
+        }
+
+        if (departureTime) {
+          const hour = new Date(departureTime).getHours();
+          const matchesTime = filters.departureTimes.some(
+            ([start, end]) => hour >= start && hour < end,
+          );
+          if (!matchesTime) return false;
+        }
+      }
+
+      if (filters.durations.length > 0) {
+        let duration = 0;
+        if (flight.Segments && flight.Segments[0]) {
+          const firstSegment = Array.isArray(flight.Segments[0])
+            ? flight.Segments[0][0]
+            : flight.Segments[0];
+          duration = firstSegment?.Duration || 0;
+        }
+
+        let matchesDuration = false;
+        filters.durations.forEach((durLabel) => {
+          if (durLabel === "Short (< 2 hours)" && duration < 120)
+            matchesDuration = true;
+          if (
+            durLabel === "Medium (2-4 hours)" &&
+            duration >= 120 &&
+            duration <= 240
+          )
+            matchesDuration = true;
+          if (durLabel === "Long (> 4 hours)" && duration > 240)
+            matchesDuration = true;
+        });
+
+        if (!matchesDuration) return false;
+      }
+
+      return true;
+    });
+  };
+
+  // ✅ HANDLE FLIGHT SELECTION WITH PRICING DATA
+  const handleFlightSelect = (flight) => {
+    const newSelectedFlights = [...selectedFlights];
+
+    const flightPricing = getPricingData(flight);
+
+    const flightWithPricing = {
+      ...flight,
+      Pricing: flightPricing,
+    };
+
+    const existingIndex = newSelectedFlights.findIndex(
+      (f) =>
+        f &&
+        f.Segments &&
+        flight.Segments &&
+        f.Segments[0]?.[0]?.Airline?.FlightNumber ===
+        flight.Segments[0]?.[0]?.Airline?.FlightNumber &&
+        f.Segments[0]?.[0]?.Origin?.DepTime ===
+        flight.Segments[0]?.[0]?.Origin?.DepTime,
+    );
+
+    if (existingIndex === activeTab) {
+      newSelectedFlights[activeTab] = null;
+    } else {
+      newSelectedFlights[activeTab] = flightWithPricing;
+    }
+
+    setSelectedFlights(newSelectedFlights);
+  };
+
+  // Cabin class mapping
+  const cabinClassMap = {
+    Economy: 1,
+    "Premium Economy": 2,
+    Business: 3,
+    "First Class": 4,
+  };
+
+  // Journey type mapping
+  const journeyTypeMap = {
+    oneway: 1,
+    round: 2,
+    multi: 3,
+    special: 5,
+  };
+
+  // ✅ DYNAMIC AIRPORTS INITIALIZATION
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -409,77 +732,51 @@ const Flight = () => {
         }
       } finally {
         setLoading(false);
+        setIsInitialLoading(false);
       }
     };
     initializeApp();
   }, []);
 
-  // Auto search once airports load
+  // Handle navigation data from FlightPopularDestination
   useEffect(() => {
-    if (airports.length > 0) {
-      const timer = setTimeout(async () => {
-        try {
-          setIsInitialLoading(true);
-          await searchFlights();
-        } catch (err) {
-          console.error("Initial search error:", err);
-        } finally {
-          setIsInitialLoading(false);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
+    if (navigationState) {
+      console.log("Received navigation state:", navigationState);
+
+      if (navigationState.flights && navigationState.flights.length > 0) {
+        setFlights(navigationState.flights);
+      }
+
+      if (navigationState.tripType) {
+        setTripType(navigationState.tripType);
+      }
+
+      if (navigationState.passengers) {
+        setAdults(navigationState.passengers.adults || 1);
+        setChildren(navigationState.passengers.children || 0);
+        setInfants(navigationState.passengers.infants || 0);
+      }
+
+      if (navigationState.travelClass) {
+        setTravelClass(navigationState.travelClass);
+      }
+
+      if (navigationState.isDomestic !== undefined) {
+        setIsDomestic(navigationState.isDomestic);
+      }
+    } else {
+      setFlights([
+        {
+          from: "DEL",
+          to: "BOM",
+          date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
+        },
+      ]);
     }
-  }, [airports]);
+  }, [navigationState]);
 
-  // ─── Filter helpers ───────────────────────────────────────────────────────
-  const handleFilterChange = (filterType, value) =>
-    setFilters((prev) => ({ ...prev, [filterType]: value }));
-
-  const handleAirlineFilter = (code, isChecked) =>
-    setFilters((prev) => ({
-      ...prev,
-      airlines: isChecked ? [...prev.airlines, code] : prev.airlines.filter((c) => c !== code),
-    }));
-
-  const handleStopFilter = (stopCount, isChecked) =>
-    setFilters((prev) => ({
-      ...prev,
-      stops: isChecked ? [...prev.stops, stopCount] : prev.stops.filter((s) => s !== stopCount),
-    }));
-
-  const handlePriceRangeChange = (type, value) =>
-    setFilters((prev) => ({ ...prev, priceRange: { ...prev.priceRange, [type]: value } }));
-
-  const handleDepartureTimeFilter = (timeRange, isChecked) =>
-    setFilters((prev) => ({
-      ...prev,
-      departureTimes: isChecked
-        ? [...prev.departureTimes, timeRange]
-        : prev.departureTimes.filter((r) => !(r[0] === timeRange[0] && r[1] === timeRange[1])),
-    }));
-
-  const handleDurationFilter = (duration, isChecked) =>
-    setFilters((prev) => ({
-      ...prev,
-      durations: isChecked
-        ? [...prev.durations, duration.label]
-        : prev.durations.filter((d) => d !== duration.label),
-    }));
-
-  const clearAllFilters = () =>
-    setFilters({
-      refundableOnly: false,
-      airlines: [],
-      stops: [],
-      priceRange: { min: 0, max: 1000000 },
-      departureTimes: [],
-      durations: [],
-    });
-
-  const handleToggle = (section) =>
-    setToggle((prev) => ({ ...prev, [section]: !prev[section] }));
-
-  // ─── Flight form handlers ─────────────────────────────────────────────────
   const handleFromChange = (index, value) => {
     const newFlights = [...flights];
     newFlights[index] = { ...newFlights[index], from: value };
@@ -491,30 +788,64 @@ const Flight = () => {
     const newFlights = [...flights];
     newFlights[index] = { ...newFlights[index], to: value };
     setFlights(newFlights);
-    if (index === 0 && newFlights[0].from) setIsDomestic(checkIfDomestic(newFlights[0].from, value));
-  };
 
-  const addCity = () => {
-    if (flights.length >= 4) {
-      alert("Maximum 4 cities allowed for multi-city trip");
-      return;
+    if (index === 0 && newFlights[0].from) {
+      const domesticStatus = checkIfDomestic(newFlights[0].from, value);
+      setIsDomestic(domesticStatus);
     }
-    const last = flights[flights.length - 1];
-    setFlights([...flights, {
-      from: last.to || "",
-      to: "",
-      date: last.date || new Date().toISOString().split("T")[0],
-    }]);
-    setSelectedFlights((prev) => [...prev, null]);
-    setActiveTab(flights.length);
   };
 
-  const removeCity = (index) => {
-    if (flights.length <= 1) return;
-    const newFlights = flights.filter((_, i) => i !== index);
-    setFlights(newFlights);
-    setSelectedFlights((prev) => prev.filter((_, i) => i !== index));
-    if (activeTab >= newFlights.length) setActiveTab(newFlights.length - 1);
+  const onViewPrices = () => {
+    if (tripType === "round") {
+      if (!selectedFlights[0] || !selectedFlights[1]) {
+        alert("Please select outbound and return flights");
+        return;
+      }
+    } else if (tripType === "oneway") {
+      if (!selectedFlights[0]) {
+        alert("Please select a flight");
+        return;
+      }
+    } else if (tripType === "multi") {
+      if (!selectedFlights[activeTab]) {
+        alert(`Please select flight for segment ${activeTab + 1}`);
+        return;
+      }
+    }
+
+    let flightsToSend = [];
+
+    if (tripType === "multi") {
+      flightsToSend = [selectedFlights[activeTab]];
+    } else {
+      flightsToSend = selectedFlights.filter(Boolean);
+    }
+
+    const passengerData = {
+      passengers: {
+        adults,
+        children,
+        infants,
+      },
+      tripType,
+      flights: flightsToSend,
+      totalPrice,
+      pricingBreakdown,
+      origin: flights?.[activeTab]?.from,
+      destination: flights?.[activeTab]?.to,
+      departureDate: flights?.[activeTab]?.date,
+      travelClass,
+      TraceId,
+      isDomestic,
+      activeTab,
+    };
+
+    setSearchData(passengerData);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
   };
 
   const handleTripTypeChange = (newTripType) => {
@@ -560,6 +891,7 @@ const Flight = () => {
 
     const domesticCheck = checkIfDomestic(flights[0].from, flights[0].to);
     setIsDomestic(domesticCheck);
+
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults([]);
@@ -614,12 +946,13 @@ const Flight = () => {
         JourneyType: journeyTypeMap[tripType],
         PreferredAirlines: [],
         Segments: segments,
+        Sources: ["GDS"],
       };
 
       const searchResponse = await Flight_search(searchPayload);
+      console.log("flight search resp", searchResponse);
       let foundFlights = [];
 
-      // ── Parse response ──────────────────────────────────────────────────
       const rawResults =
         searchResponse?.data?.Response?.Results ||
         searchResponse?.data?.Results ||
@@ -629,11 +962,9 @@ const Flight = () => {
         const isArrayOfArrays = Array.isArray(rawResults[0]);
 
         if (tripType === "multi") {
-          // ✅ MULTICITY: API returns array-of-arrays → use directly
           if (isArrayOfArrays) {
             foundFlights = rawResults;
           } else {
-            // Flat array fallback → split by segment route
             const segmentedResults = flights.map((flight) => {
               return rawResults.filter((f) => {
                 const segments = f.Segments || [];
@@ -650,10 +981,8 @@ const Flight = () => {
             foundFlights = segmentedResults;
           }
         } else if (tripType === "round" && domesticCheck) {
-          // Domestic round: array-of-arrays [OB, IB]
           foundFlights = isArrayOfArrays ? rawResults : [rawResults];
         } else {
-          // One-way or international round
           foundFlights = isArrayOfArrays ? rawResults.flat() : rawResults;
         }
       } else if (Array.isArray(searchResponse?.data)) {
@@ -677,196 +1006,6 @@ const Flight = () => {
     } finally {
       setSearchLoading(false);
     }
-  };
-
-  // ─── FLIGHT SELECTION ─────────────────────────────────────────────────────
-  const handleFlightSelect = (flight) => {
-    const newSelected = [...selectedFlights];
-    const flightWithPricing = { ...flight, Pricing: getPricingData(flight) };
-
-    const alreadySelected =
-      newSelected[activeTab] &&
-      newSelected[activeTab].Segments?.[0]?.[0]?.Airline?.FlightNumber ===
-      flight.Segments?.[0]?.[0]?.Airline?.FlightNumber &&
-      newSelected[activeTab].Segments?.[0]?.[0]?.Origin?.DepTime ===
-      flight.Segments?.[0]?.[0]?.Origin?.DepTime;
-
-    newSelected[activeTab] = alreadySelected ? null : flightWithPricing;
-    setSelectedFlights(newSelected);
-  };
-
-  const isFlightSelected = (flight) =>
-    !!(
-      selectedFlights[activeTab]?.Segments &&
-      flight.Segments &&
-      selectedFlights[activeTab].Segments?.[0]?.[0]?.Airline?.FlightNumber ===
-      flight.Segments?.[0]?.[0]?.Airline?.FlightNumber &&
-      selectedFlights[activeTab].Segments?.[0]?.[0]?.Origin?.DepTime ===
-      flight.Segments?.[0]?.[0]?.Origin?.DepTime
-    );
-
-  // ─── VIEW PRICES (from flightold.js — per-segment logic) ──────────────────
-  const onViewPrices = () => {
-    if (tripType === "round") {
-      if (!selectedFlights[0] || !selectedFlights[1]) {
-        alert("Please select both outbound and return flights");
-        return;
-      }
-    } else if (tripType === "oneway") {
-      if (!selectedFlights[0]) {
-        alert("Please select a flight");
-        return;
-      }
-    } else if (tripType === "multi") {
-      // Only require the currently active tab's flight
-      if (!selectedFlights[activeTab]) {
-        alert(`Please select a flight for segment ${activeTab + 1}`);
-        return;
-      }
-    }
-
-    const flightsToSend =
-      tripType === "multi"
-        ? [selectedFlights[activeTab]]
-        : selectedFlights.filter(Boolean);
-
-    const passengerData = {
-      passengers: { adults, children, infants },
-      tripType,
-      flights: flightsToSend,
-      totalPrice,
-      pricingBreakdown,
-      origin: flights?.[activeTab]?.from,
-      destination: flights?.[activeTab]?.to,
-      departureDate: flights?.[activeTab]?.date,
-      returnDate: flights?.[0]?.returnDate,
-      travelClass,
-      TraceId,
-      isDomestic,
-      activeTab,
-    };
-
-    setSearchData(passengerData);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => setShowModal(false);
-
-  // ─── GET RESULTS FOR CURRENT TAB ──────────────────────────────────────────
-  const getFilteredResultsForDisplay = () => {
-    if (!searchResults || searchResults.length === 0) return [];
-
-    const isArrayOfArrays = Array.isArray(searchResults[0]);
-
-    // ✅ MULTICITY — results are array-of-arrays, one per segment
-    if (tripType === "multi") {
-      if (isArrayOfArrays) {
-        return searchResults[activeTab] || [];
-      }
-      // Flat array fallback: filter by current segment route
-      const currentFlight = flights[activeTab];
-      if (!currentFlight) return [];
-      return searchResults.filter((f) => {
-        const segments = f.Segments || [];
-        if (!segments.length) return false;
-        const firstSeg = segments[0];
-        const seg = Array.isArray(firstSeg) ? firstSeg[0] : firstSeg;
-        if (!seg) return false;
-        const segOrigin = getAirportCodeFromSegment(seg, "origin");
-        const segDest = getAirportCodeFromSegment(seg, "destination");
-        if (f.SegmentIndex !== undefined) return f.SegmentIndex === activeTab;
-        return segOrigin === currentFlight.from && segDest === currentFlight.to;
-      });
-    }
-
-    // ✅ DOMESTIC ROUND — OB / IB tabs
-    if (tripType === "round" && isDomestic) {
-      if (isArrayOfArrays) {
-        return activeTab === 0 ? (searchResults[0] || []) : (searchResults[1] || []);
-      }
-      // Flat array: try TripIndicator first
-      const obFlights = searchResults.filter((f) =>
-        ["OB", "Outbound", "1"].includes(f.TripIndicator)
-      );
-      const ibFlights = searchResults.filter((f) =>
-        ["IB", "Inbound", "RT", "Return", "2"].includes(f.TripIndicator)
-      );
-      if (obFlights.length > 0 || ibFlights.length > 0)
-        return activeTab === 0 ? obFlights : ibFlights;
-
-      // Fallback: route-based
-      const origin = flights[0]?.from;
-      const dest = flights[0]?.to;
-      const filterByRoute = (from, to) =>
-        searchResults.filter((f) => {
-          const segments = f.Segments || [];
-          if (!segments.length) return false;
-          const firstSeg = segments[0];
-          const seg = Array.isArray(firstSeg) ? firstSeg[0] : firstSeg;
-          if (!seg) return false;
-          return (
-            getAirportCodeFromSegment(seg, "origin") === from &&
-            getAirportCodeFromSegment(seg, "destination") === to
-          );
-        });
-      return activeTab === 0 ? filterByRoute(origin, dest) : filterByRoute(dest, origin);
-    }
-
-    // ✅ ONE-WAY / INTERNATIONAL ROUND
-    return searchResults;
-  };
-
-  // ─── APPLY FILTERS ────────────────────────────────────────────────────────
-  const applyFilters = (flightList) => {
-    if (!flightList || flightList.length === 0) return [];
-    return flightList.filter((flight) => {
-      if (filters.refundableOnly && !flight.IsRefundable) return false;
-
-      if (filters.airlines.length > 0) {
-        let code =
-          flight.Airline?.AirlineCode ||
-          flight.Segments?.[0]?.[0]?.Airline?.AirlineCode ||
-          flight.Segments?.[0]?.Airline?.AirlineCode ||
-          "";
-        if (!code || !filters.airlines.includes(code)) return false;
-      }
-
-      if (filters.stops.length > 0) {
-        const firstSeg = flight.Segments?.[0];
-        const seg = Array.isArray(firstSeg) ? firstSeg[0] : firstSeg;
-        const stopCount = seg?.StopOver ? 1 : 0;
-        if (!filters.stops.includes(stopCount) && !(stopCount >= 2 && filters.stops.includes(2)))
-          return false;
-      }
-
-      const price = getDisplayPrice(flight);
-      if (price < filters.priceRange.min || price > filters.priceRange.max) return false;
-
-      if (filters.departureTimes.length > 0) {
-        const firstSeg = flight.Segments?.[0];
-        const seg = Array.isArray(firstSeg) ? firstSeg[0] : firstSeg;
-        const depTime = seg?.Origin?.DepTime;
-        if (depTime) {
-          const hour = new Date(depTime).getHours();
-          if (!filters.departureTimes.some(([s, e]) => hour >= s && hour < e)) return false;
-        }
-      }
-
-      if (filters.durations.length > 0) {
-        const firstSeg = flight.Segments?.[0];
-        const seg = Array.isArray(firstSeg) ? firstSeg[0] : firstSeg;
-        const duration = seg?.Duration || 0;
-        let match = false;
-        filters.durations.forEach((label) => {
-          if (label === "Short (< 2 hours)" && duration < 120) match = true;
-          if (label === "Medium (2-4 hours)" && duration >= 120 && duration <= 240) match = true;
-          if (label === "Long (> 4 hours)" && duration > 240) match = true;
-        });
-        if (!match) return false;
-      }
-
-      return true;
-    });
   };
 
   // ─── Available airlines (memoised) ───────────────────────────────────────
@@ -904,11 +1043,10 @@ const Flight = () => {
   const renderTabs = () => {
     if (searchResults.length === 0) return null;
 
-    // ✅ MULTICITY tabs — iterate over searchResults (array-of-arrays)
     if (tripType === "multi") {
       const segmentArrays = Array.isArray(searchResults[0])
         ? searchResults
-        : flights.map(() => []);  // fallback empty
+        : flights.map(() => []);
 
       return (
         <div className="mb-4">
@@ -950,7 +1088,6 @@ const Flight = () => {
       );
     }
 
-    // ✅ DOMESTIC ROUND tabs
     if (tripType === "round") {
       const isArrayOfArrays = Array.isArray(searchResults[0]);
       const obCount = isArrayOfArrays ? searchResults[0]?.length : 0;
@@ -989,6 +1126,9 @@ const Flight = () => {
               <strong>Round Trip</strong> — Showing{" "}
               {activeTab === 0 ? "Outbound (Departure)" : "Inbound (Return)"} flights
             </small>
+            <div className="small mt-1">
+              Segment {activeTab + 1} of {searchResults.length}
+            </div>
           </div>
         </div>
       );
@@ -997,29 +1137,46 @@ const Flight = () => {
     return null;
   };
 
-  // ─── RENDER FLIGHT RESULTS ────────────────────────────────────────────────
+  // ✅ Check if a flight is selected for current active tab
+  const isFlightSelected = (flight) => {
+    return (
+      selectedFlights[activeTab] &&
+      selectedFlights[activeTab].Segments &&
+      flight.Segments &&
+      selectedFlights[activeTab].Segments[0]?.[0]?.Airline?.FlightNumber ===
+      flight.Segments[0]?.[0]?.Airline?.FlightNumber &&
+      selectedFlights[activeTab].Segments[0]?.[0]?.Origin?.DepTime ===
+      flight.Segments[0]?.[0]?.Origin?.DepTime
+    );
+  };
+
+  // Render flight results
   const renderFlightResults = () => {
     if (searchLoading) return <div className="text-center py-5"><Laoding /></div>;
     if (searchError) return <Alert variant="danger" className="text-center">{searchError}</Alert>;
 
     const currentFlights = getFilteredResultsForDisplay();
+    console.log("current flights", currentFlights);
     const filteredResults = applyFilters(currentFlights);
-
-    if (filteredResults.length === 0 && currentFlights.length > 0)
+    console.log("filtered flights", filteredResults);
+    
+    if (filteredResults.length === 0 && currentFlights.length > 0) {
       return (
         <div className="text-center py-5 text-muted">
           <h5>No flights match your filters</h5>
           <Button variant="outline-primary" size="sm" onClick={clearAllFilters}>Clear All Filters</Button>
         </div>
       );
+    }
 
-    if (filteredResults.length === 0)
+    if (filteredResults.length === 0) {
       return (
         <div className="text-center py-5 text-muted">
           <h5>No flights found</h5>
           <p>Try adjusting your search criteria</p>
         </div>
       );
+    }
 
     const visibleFlights = filteredResults.slice(0, visibleCount);
 
@@ -1135,10 +1292,10 @@ const Flight = () => {
                 </small>
               </Col>
               <Col md={4} className="text-end">
-                <h4 className="text-primary fw-bold mb-0">Total: ₹ {Math.ceil(totalPrice)}</h4>
+                <h4 className="fw-bold mb-0">Total: ₹ {Math.ceil(totalPrice)}</h4>
               </Col>
               <Col md={2}>
-                <Button variant="primary" className="w-100" onClick={onViewPrices}>
+                <Button variant="primary" className="w-100 view-price-flight mt-0" onClick={onViewPrices}>
                   VIEW PRICES
                 </Button>
               </Col>
@@ -1264,19 +1421,18 @@ const Flight = () => {
         </div>
 
         {/* Price Range */}
-        {/* Price Range */}
-        <div className="filter-section">
+        <div className="filter-section mb-3">
           <div
-            className="filter-header"
+            className="filter-header d-flex justify-content-between"
             onClick={() => handleToggle("price")}
             style={{ cursor: "pointer", fontWeight: "600" }}
           >
-            Price Range
+            <span className="flight-heading">Price Range</span>
+            <FontAwesomeIcon icon={toggle.price ? faChevronUp : faChevronDown} />
           </div>
 
           {toggle.price && (
-            <div className="filter-body">
-
+            <div className="filter-body mt-2">
               <div className="mb-2">
                 <strong>
                   ₹{filters.priceRange.min.toLocaleString()} – ₹
@@ -1314,7 +1470,6 @@ const Flight = () => {
                 <small>₹{dynamicPriceBounds.min.toLocaleString()}</small>
                 <small>₹{dynamicPriceBounds.max.toLocaleString()}</small>
               </div>
-
             </div>
           )}
         </div>
@@ -1334,7 +1489,6 @@ const Flight = () => {
                 { label: "Evening (18:00-24:00)", range: [18, 24] },
               ].map((time, i) => (
                 <div className="form-check" key={i}>
-                  {/* BUG FIX: unique ids per panel using idSuffix */}
                   <input className="form-check-input" type="checkbox"
                     id={`departure-${i}${idSuffix}`}
                     checked={filters.departureTimes.some((t) => t[0] === time.range[0] && t[1] === time.range[1])}
@@ -1423,7 +1577,7 @@ const Flight = () => {
                 <Form.Group>
                   <Form.Label className="fw-semibold small">From</Form.Label>
                   <AirportDropdown
-                    value={flights[0].from}
+                    value={flights[0]?.from}
                     onChange={(v) => handleFromChange(0, v)}
                     placeholder="From City"
                     type="from"
@@ -1441,7 +1595,7 @@ const Flight = () => {
                 <Form.Group>
                   <Form.Label className="fw-semibold small">To</Form.Label>
                   <AirportDropdown
-                    value={flights[0].to}
+                    value={flights[0]?.to}
                     onChange={(v) => handleToChange(0, v)}
                     placeholder="To City"
                     type="to"
@@ -1651,7 +1805,6 @@ const Flight = () => {
           <Offcanvas.Title>Filters</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
-          {/* BUG FIX: unique idSuffix so checkbox ids don't clash with desktop panel */}
           <FilterPanel idSuffix="-mobile" />
         </Offcanvas.Body>
       </Offcanvas>

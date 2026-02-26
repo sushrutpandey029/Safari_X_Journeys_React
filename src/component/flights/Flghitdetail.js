@@ -12,7 +12,7 @@ const getRouteLabel = (fareRuleItem) => {
 
 const FlightDetail = ({ flightContext, showModal, onHide }) => {
   const navigate = useNavigate();
-
+  const [showFullRule, setShowFullRule] = useState(null);
   const {
     TraceId,
     tripType,
@@ -25,7 +25,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
   const [fareRules, setFareRules] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedIndexes, setSelectedIndexes] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   /* ===============================
@@ -61,7 +61,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
             TraceId,
             ResultIndex: index,
           });
-
+          console.log("farerule reps", res);
           responses.push({
             ResultIndex: index,
             rules: res?.data?.Response?.FareRules || [],
@@ -70,7 +70,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
 
         setFareRules(responses);
       } catch (err) {
-        setError("Failed to fetch fare rules");
+        setError("Failed to fetch fare rules", err.response);
       } finally {
         setLoading(false);
       }
@@ -118,6 +118,39 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
     onHide();
   };
 
+  const extractFareSummary = (fareRule) => {
+    const miniRules = fareRule?.MiniFarRules?.Rules || [];
+    const currency = fareRule?.MiniFarRules?.Currency || "INR";
+
+    const getFee = (type, departureType) => {
+      const match = miniRules.find(
+        (r) =>
+          r.Type === type &&
+          r.DepartureType.toLowerCase().includes(departureType.toLowerCase()),
+      );
+      return match?.PaxPenalties?.[0]?.AirlineFee ?? null;
+    };
+
+    const refundFee = getFee(0, "Before Departure");
+    const changeFee = getFee(1, "Before Departure");
+    const noShowFee = getFee(1, "No Show");
+
+    return {
+      airline: fareRule.Airline,
+      departureTime: fareRule.DepartureTime,
+      fareBasis: fareRule.FareBasisCode,
+      origin: fareRule.Origin,
+      destination: fareRule.Destination,
+      route: `${fareRule.Origin} → ${fareRule.Destination}`,
+      currency,
+      refundFee,
+      changeFee,
+      noShowFee,
+      isRefundable: refundFee !== null && refundFee !== 0,
+      fullHTML: fareRule.FareRuleDetail,
+    };
+  };
+
   /* ===============================
      RENDER
   =============================== */
@@ -128,32 +161,32 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
       size="lg"
       centered
       scrollable
-      className="flight-detail-modal"
+      dialogClassName="modern-flight-modal"
     >
       {/* ================= HEADER ================= */}
-      <Modal.Header closeButton className="modal-header-custom" style={{color:"#000"}}>
-        <Modal.Title className="w-100">
-          <div className="modal-main-title">
-            Flight Details and Fare Options
+      <Modal.Header closeButton className="modern-modal-header">
+        <div className="w-100">
+          <div className="d-flex justify-content-between align-items-center">
+            <h5 className="fw-bold mb-0 text-white">Flight Fare Options</h5>
+            <Badge bg="primary">{tripType?.toUpperCase()}</Badge>
           </div>
 
-          <div className="flight-segments-summary">
-            <Badge bg="info">{tripType?.toUpperCase()}</Badge>
-            {isDomestic && tripType === "round" && (
-              <Badge bg="secondary">Domestic Return</Badge>
-            )}
-          </div>
+          {isDomestic && tripType === "round" && (
+            <Badge bg="secondary" className="mt-2">
+              Domestic Return
+            </Badge>
+          )}
 
-          <div className="passenger-count-display mt-2">
-            <small style={{color:"black"}}>Please select any one plan to continue</small>
-          </div>
-        </Modal.Title>
+          <small className="plan-booking d-block mt-2">
+            Please select plan to continue booking
+          </small>
+        </div>
       </Modal.Header>
 
       {/* ================= BODY ================= */}
-      <Modal.Body className="modal-body-custom">
+      <Modal.Body className="modern-modal-body">
         {loading && (
-          <div className="text-center py-4">
+          <div className="d-flex flex-column justify-content-center align-items-center py-5 w-100">
             <Spinner animation="border" />
             <p className="mt-2">Fetching fare rules…</p>
           </div>
@@ -163,14 +196,16 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
 
         {/* ===== DEPART / RETURN TABS ===== */}
         {!loading && fareRules.length > 1 && (
-          <div className="fare-tabs mb-4 d-flex gap-2">
+          <div className="fare-tabs mb-4 d-flex gap-2 flex-wrap">
             {fareRules.map((item, idx) => {
               const routeLabel = getRouteLabel(item);
 
               return (
                 <Button
                   key={idx}
-                  variant={activeTab === idx ? "primary" : "outline-primary"}
+                  className={`modern-tab-btn ${
+                    activeTab === idx ? "active" : ""
+                  }`}
                   onClick={() => setActiveTab(idx)}
                 >
                   {idx === 0
@@ -183,16 +218,125 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
         )}
 
         {/* ===== FARE RULE CARDS ===== */}
-        {!loading &&
+        {!loading && fareRules.length > 0 && (
+          <div className="fare-card-container">
+            {fareRules.map((item, idx) => {
+              const rule = item.rules?.[0];
+              if (!rule) return null;
+
+              const summary = extractFareSummary(rule);
+
+              const isSelected = selectedIndexes[idx] === item.ResultIndex;
+
+              return (
+                <div
+                  key={idx}
+                  className={`fare-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleSelect(idx, item.ResultIndex)}
+                >
+                  {/* Label */}
+                  <div className="fare-type-label">
+                    {tripType === "round"
+                      ? idx === 0
+                        ? "DEPART FLIGHT"
+                        : "RETURN FLIGHT"
+                      : "FLIGHT"}
+                  </div>
+
+                  {/* Route */}
+                  <div className="fare-route">
+                    {summary.origin} → {summary.destination}
+                  </div>
+
+                  {/* Airline */}
+                  <div className="fare-airline">Airline: {summary.airline}</div>
+
+                  {/* Departure */}
+                  <div className="fare-airline">
+                    Departure:{" "}
+                    {new Date(summary.departureTime).toLocaleString()}
+                  </div>
+
+                  {/* Refund badge */}
+                  <div
+                    className={`fare-badge ${
+                      summary.isRefundable ? "refundable" : "non-refundable"
+                    }`}
+                  >
+                    {summary.isRefundable ? "Refundable" : "Non-Refundable"}
+                  </div>
+
+                  {/* Fees */}
+                  <div className="fare-body">
+                    <div className="fare-row">
+                      <span>Cancellation</span>
+                      <span>
+                        {summary.refundFee === null
+                          ? "Not Allowed"
+                          : summary.refundFee === 0
+                            ? "Free"
+                            : `₹${summary.refundFee}`}
+                      </span>
+                    </div>
+
+                    <div className="fare-row">
+                      <span>Change</span>
+                      <span>
+                        {summary.changeFee === null
+                          ? "Not Allowed"
+                          : summary.changeFee === 0
+                            ? "Free"
+                            : `₹${summary.changeFee}`}
+                      </span>
+                    </div>
+
+                    <div className="fare-row">
+                      <span>No-show</span>
+                      <span>
+                        {summary.noShowFee === null
+                          ? "Not Allowed"
+                          : summary.noShowFee === 0
+                            ? "Free"
+                            : `₹${summary.noShowFee}`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Read More */}
+                  <Button
+                    variant="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setShowFullRule((prev) => (prev === idx ? null : idx));
+                    }}
+                  >
+                    {showFullRule === idx ? "Hide Details" : "Read More"}
+                  </Button>
+
+                  {showFullRule === idx && (
+                    <div
+                      className="fare-full-rule"
+                      dangerouslySetInnerHTML={{
+                        __html: summary.fullHTML,
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {/* {!loading &&
           fareRules[activeTab] &&
           (fareRules[activeTab].rules.length > 0 ? (
             fareRules[activeTab].rules.map((rule, rIdx) => (
               <div
                 key={rIdx}
-                className={`fare-option-card clickable-fare ${
+                className={`modern-fare-card ${
                   selectedIndexes[activeTab] ===
                   fareRules[activeTab].ResultIndex
-                    ? "selected"
+                    ? "active"
                     : ""
                 }`}
                 onClick={() =>
@@ -200,7 +344,7 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
                 }
               >
                 <div
-                  className="fare-rules-content"
+                  className="fare-content"
                   dangerouslySetInnerHTML={{
                     __html:
                       rule.FareRuleDetail ||
@@ -210,20 +354,20 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
               </div>
             ))
           ) : (
-            <div className="text-muted">
+            <div className="segment">
               No fare rules available for this segment.
             </div>
-          ))}
+          ))} */}
       </Modal.Body>
 
       {/* ================= FOOTER ================= */}
-      <Modal.Footer className="modal-footer-custom">
+      <Modal.Footer className="modern-modal-footer">
         <Button
-          className="book-now-main-btn"
+          className="continue-btn-modern"
           onClick={handleContinue}
           disabled={!canContinue || loading}
         >
-          CONTINUE
+          Continue Booking →
         </Button>
       </Modal.Footer>
     </Modal>

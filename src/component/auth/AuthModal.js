@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "../home/Home.css";
-import { registerOrLogin, userResendOtp } from "../services/authService";
+import {
+  registerOrLogin,
+  userResendOtp,
+  forgotPassword,
+  emailVerifyOtp,
+  resenOtp,
+  resetPassword,
+} from "../services/authService";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/slices/authSlice";
 import { Modal } from "react-bootstrap";
@@ -28,10 +35,11 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
     phonenumber: "",
     fullname: "",
     password: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-  const isValidEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailid);
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -53,7 +61,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
         return;
       }
     } catch (err) {
-      console.log("error n identifire",err)
+      console.log("error n identifire", err);
       console.log("err in handleIdentifierSubmit", err.response);
       if (err?.response?.data?.userExists === true) {
         setStep(2);
@@ -82,7 +90,10 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
       }
       if (response.data.status === true) {
         dispatch(
-          loginSuccess({ user: response.data.user, token: response.data.token })
+          loginSuccess({
+            user: response.data.user,
+            token: response.data.token,
+          }),
         );
         saveUserInfo(response);
         setShowUserLogin(false);
@@ -135,6 +146,96 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
     }
   };
 
+  // forgate passwor start.........
+
+  const VerifyforgotPassword = async () => {
+    try {
+      console.log("forgot calling api");
+      setLoading(true);
+      const payload = {
+        email: formData.emailid,
+      };
+      console.log("payload before senign api", payload);
+      const res = await forgotPassword(payload);
+      console.log("resp of forgot password", res);
+      setStep(6);
+      // if (res.data.status === true) {
+      //   dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
+      //   saveUserInfo(res);
+      //   setShowUserLogin(false);
+      // }
+    } catch (err) {
+      console.log("error in forgot pasrd otp", err.response);
+      alert(err.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const VerifyforgotEmailOtp = async () => {
+    try {
+      console.log("forgot otp api");
+      setLoading(true);
+      const payload = {
+        email: formData.emailid,
+        otp: emailOtp,
+      };
+      console.log("payload before senign otp api", payload);
+      const res = await emailVerifyOtp(payload);
+      console.log("resp of verify otp", res);
+      setStep(7);
+    } catch (err) {
+      console.log("error in verify otp", err.response);
+      alert(err.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ResendforgotOtp = async () => {
+    try {
+      console.log("Resend otp api");
+      setLoading(true);
+      const payload = {
+        email: formData.emailid,
+      };
+      console.log(" Resend payload before senign api", payload);
+      const res = await resenOtp(payload);
+      console.log("resp Rsend otp", res);
+      // if (res.data.status === true) {
+      //   dispatch(loginSuccess({ user: res.data.user, token: res.data.token }));
+      //   saveUserInfo(res);
+      //   setShowUserLogin(false);
+      // }
+    } catch (err) {
+      console.log("error in Resend otp", err.response);
+      alert(err.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ResetUserPassword = async () => {
+    try {
+      console.log("Rset password");
+      setLoading(true);
+      const payload = {
+        email: formData.emailid,
+        newPassword: formData.newPassword,
+        confirmPassword: formData.confirmPassword,
+      };
+      console.log("payload reset password", payload);
+      const res = await resetPassword(payload);
+      console.log("resp of verify otp", res);
+      setStep(1);
+    } catch (err) {
+      console.log("error in verify otp", err.response);
+      alert(err.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  //  end -----------------
   const handleResendOtp = async () => {
     try {
       setResending(true);
@@ -163,8 +264,9 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
   };
 
   useEffect(() => {
-    if (step === 4) {
-      setResendTimer(120);
+    if (step === 4 || step === 6 || step === 7) {
+      // setResendTimer(120);
+      setResendTimer(10);
 
       const interval = setInterval(() => {
         setResendTimer((prev) => {
@@ -195,6 +297,9 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
           {step === 2 && <Modal.Title>Login</Modal.Title>}
           {step === 3 && <Modal.Title>Create an account</Modal.Title>}
           {step === 4 && <Modal.Title>Verify OTP</Modal.Title>}
+          {step === 5 && <Modal.Title>Enter Email</Modal.Title>}
+          {step === 6 && <Modal.Title>verify Email Otp</Modal.Title>}
+          {step === 7 && <Modal.Title>Reset Password</Modal.Title>}
         </Modal.Header>
 
         {/* Modal Body */}
@@ -294,6 +399,13 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                 </span>
               </div>
 
+              <button
+                className="btn btn-link p-0 text-primary fw-bold"
+                onClick={() => setStep(5)}
+              >
+                forgot Password?{" "}
+              </button>
+
               <div className="mb-3">
                 <button
                   className={`explore-btn ${
@@ -345,7 +457,7 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
 
               <div className="mb-3 position-relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   className="form-control pe-5"
                   placeholder="Password"
                   name="password"
@@ -353,15 +465,22 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                   onChange={handleChange}
                   required
                 />
+
                 <span
                   className="position-absolute"
                   style={{
                     right: "10px",
                     top: "50%",
                     transform: "translateY(-50%)",
+                    cursor: "pointer",
                   }}
+                  onClick={() => setShowPassword((prev) => !prev)}
                 >
-                  👁️
+                  <i
+                    className={`bi ${
+                      showPassword ? "bi-eye-slash-fill" : "bi-eye-fill"
+                    }`}
+                  ></i>
                 </span>
               </div>
 
@@ -433,6 +552,135 @@ function AuthModal({ show, onClose, setShowUserLogin }) {
                   </button>
                 )}
               </div>
+            </>
+          )}
+
+          {step === 5 && (
+            <>
+              <h5 className="text-center mb-2"> Verify email</h5>
+              <p className="text-muted text-center">
+                {message
+                  ? `${message}`
+                  : `We’ve sent a verification code to ${formData.emailid}`}
+              </p>
+
+              <input
+                type="text"
+                className="form-control mb-3"
+                placeholder="Enter Email"
+                name="emailid"
+                value={formData.emailid}
+                onChange={handleChange}
+              />
+
+              <button
+                className={`explore-btn ${
+                  emailOtp.length === 6
+                    ? "btn-primary text-white"
+                    : "btn-light text-muted"
+                }`}
+                onClick={VerifyforgotPassword}
+              >
+                {loading ? "processing..." : "Submit"}
+              </button>
+
+              {/* 🔁 Resend OTP */}
+              <div className="text-center mt-3">
+                {resendTimer > 0 ? (
+                  <small className="text-muted">
+                    Resend OTP in {Math.floor(resendTimer / 60)}:
+                    {String(resendTimer % 60).padStart(2, "0")}
+                  </small>
+                ) : (
+                  <button
+                    className="btn btn-link p-0"
+                    disabled={resending}
+                    onClick={handleResendOtp}
+                  >
+                    {resending ? "Resending..." : "Resend OTP"}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {step === 6 && (
+            <>
+              <h5 className="text-center mb-2"> verify Email Otp </h5>
+              <p className="text-muted text-center">
+                {message
+                  ? `${message}`
+                  : `We’ve sent a verification code to ${formData.emailid}`}
+              </p>
+
+              <input
+                type="text"
+                className="form-control mb-3"
+                placeholder="Enter verify Otp"
+                value={emailOtp}
+                onChange={(e) => setEmailOtp(e.target.value)}
+              />
+
+              <button
+                className={`explore-btn ${
+                  emailOtp.length === 6
+                    ? "btn-primary text-white"
+                    : "btn-light text-muted"
+                }`}
+                disabled={emailOtp.length !== 6}
+                onClick={VerifyforgotEmailOtp}
+              >
+                {loading ? "processing..." : "Verify"}
+              </button>
+
+              {/* 🔁 Resend OTP */}
+              <div className="text-center mt-3">
+                {resendTimer > 0 ? (
+                  <small className="text-muted">
+                    Resend OTP in {Math.floor(resendTimer / 60)}:
+                    {String(resendTimer % 60).padStart(2, "0")}
+                  </small>
+                ) : (
+                  <button
+                    className="btn btn-link p-0"
+                    disabled={resending}
+                    onClick={ResendforgotOtp}
+                  >
+                    {resending ? "Resending..." : "Resend OTP"}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {step === 7 && (
+            <>
+              <h5 className="text-center mb-2"> Reset Password </h5>
+
+              <input
+                type="text"
+                className="form-control mb-3"
+                name="newPassword"
+                placeholder="Enter New Password"
+                value={formData.newPassword}
+                onChange={handleChange}
+              />
+
+              <input
+                type="text"
+                className="form-control mb-3"
+                name="confirmPassword"
+                placeholder="Enter Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+
+              <button
+                className="btn-primary text-white"
+                onClick={ResetUserPassword}
+              >
+                {loading ? "processing..." : "Submit"}
+              </button>
             </>
           )}
         </Modal.Body>

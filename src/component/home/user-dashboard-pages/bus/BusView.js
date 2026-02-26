@@ -5,6 +5,8 @@ import autoTable from "jspdf-autotable";
 import { bus_getBookingDetails } from "../../../services/busservice";
 import useCancellation from "../../../hooks/useCancellation";
 import { downloadBookingPDF } from "../../../services/bookingService";
+import BlockingLoader from "../loader/BlockingLoader";
+import { toast } from "react-toastify";
 
 export default function BusView({ booking }) {
   const {
@@ -27,14 +29,14 @@ export default function BusView({ booking }) {
     bookResult?.BookingId ||
     bookResult?.BusBookingId ||
     null;
-    console.log("bus id",BusId)
+  console.log("bus id", BusId);
 
   // Extract from DB serviceDetails
-  const {  TraceId, EndUserIp } = serviceDetails || {};
+  const { TraceId, EndUserIp } = serviceDetails || {};
   // const { TokenId, TraceId, EndUserIp } = serviceDetails || {};
-  console.log("service detials",serviceDetails)
+  console.log("service detials", serviceDetails);
   console.log("traceid in busview", TraceId);
- 
+
   // LIVE DATA STATE
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,9 +85,8 @@ export default function BusView({ booking }) {
   };
 
   useEffect(() => {
-
-    if ( TraceId && BusId) fetchBusBookingDetails();
-  }, [ TraceId, BusId]);
+    if (TraceId && BusId) fetchBusBookingDetails();
+  }, [TraceId, BusId]);
   // useEffect(() => {
 
   //   if (TokenId && TraceId && BusId) fetchBusBookingDetails();
@@ -135,6 +136,12 @@ export default function BusView({ booking }) {
 
   return (
     <>
+      <BlockingLoader
+        show={isCancelling}
+        title="Cancelling Booking"
+        message="Your cancellation request is being processed. Please do not go back or close this window. This may take up to 30 seconds."
+      />
+
       {/* Cancellation messages */}
       {cancelStatus === "processing" && (
         <div className="alert alert-warning mt-3">{cancelMessage}</div>
@@ -279,17 +286,18 @@ export default function BusView({ booking }) {
           ))}
         </tbody>
       </table>
+      {(status === "confirmed" || status === "cancelled") && (
+        <button
+          className="btn btn-outline-primary"
+          onClick={() => handleDownloadInvoice(booking.bookingId)}
+        >
+          Download Invoice
+        </button>
+      )}
 
       {/* ACTION BUTTONS */}
       {status === "confirmed" && (
         <>
-          <button
-            className="btn btn-outline-primary"
-            onClick={() => handleDownloadInvoice(booking.bookingId)}
-          >
-            Download Invoice
-          </button>
-
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

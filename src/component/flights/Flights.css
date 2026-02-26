@@ -7,7 +7,7 @@
   border: 1px solid #5b7f0a !important;
 }
 .flight-section {
-  border: none; /* agar border hataana ho */
+  border: none; 
   border: none;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 } /* thoda shadow fancy look ke liye */
@@ -435,6 +435,7 @@
 .modal-main-title {
   font-weight: 700;
   font-size: 18px;
+  color: #fff;
 }
 
 /* Summary row */
@@ -453,19 +454,25 @@
 
 /* Passenger text */
 .passenger-count-display small {
-  color: #e6efff;
-  font-size: 13px;
+  color: #e6efff !important;
+  font-size: 15px;
 }
 
 /* Close button (X) */
 .modal-header-custom .btn-close {
   filter: invert(1);
-  opacity: 0.9;
+  opacity: 1;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  border-radius: 0px;
 }
 
 .modal-header-custom .btn-close:hover {
   opacity: 1;
 }
+.sticky-bottom{    --bs-bg-opacity: 1;
+  background-color: #f2f9e1;}
 
 /* ================= TWO CARD LAYOUT ================= */
 
@@ -477,10 +484,10 @@
 /* card container */
 .fare-option-card {
   width: 100%;
-  background: #ffffff;
-  border: 2px solid #e5e7eb;
+  background: #e0f2ff;
+  border: 1px solid #4889b9;
   border-radius: 16px;
-  padding: 20px;
+  padding: 10px;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -648,16 +655,16 @@
 }
 
 .modal-header {
-  padding: 10px;
-  background: #4889b9;
-  border-radius: 12px 12px 0 0;
-  font-size: 6px;
+  padding: 10px !important; 
+  background: #4889b9 !important;
+  font-size: 17px;
 }
 .modal-content {
-  padding: 0px;
+  width: 100% !important;
+  padding: 0px !important;
 }
 .fare-rules-content h2 {
-  font-size: 20px;
+  font-size: 16px;
   padding: 6px 0px;
 }
 /* Seat Modal Styles */
@@ -1192,6 +1199,206 @@ label {
 }
 
 
+/* ===== FARE RULE WRAPPER ===== */
+.fare-content{
+  font-size:14px;
+  line-height:1.6;
+  }
+  
+  /* ===== TABLE ===== */
+  .fare-content table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,0.05);
+  }
+  
+  .fare-content th{
+  background:#f1f5fb;
+  padding:10px;
+  font-size:13px;
+  font-weight:600;
+  text-align:left;
+  border-bottom:1px solid #e6ecf3;
+  }
+  
+  .fare-content td{
+  padding:10px;
+  font-size:13px;
+  border-bottom:1px solid #f0f0f0;
+  }
+  
+  .fare-content tr:hover{
+  background:#f8fbff;
+  }
+  
+  .fare-content h1,
+  .fare-content h2,
+  .fare-content h3{
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:10px;
+  }
+  
+  .fare-content p{
+  margin-bottom:8px;
+  color:#444;
+  }
+  
+  .fare-content strong{
+  color:#000;
+  font-weight:600;
+  }
+  
+  /* ===== BADGES ===== */
+  .plan-booking{
+  background:#ffd653dd;
+  width:fit-content;
+  border-radius:39px;
+  padding:3px 25px;
+  }
+  
+  .badge{
+  background-color:#198754;
+  border:1px solid #fff;
+  margin-right:40px;
+  }
+  
+  .btn-close{
+  opacity:1;
+  position:absolute;
+  top:7px;
+  right:4px;
+  }
+  
+  /* ===== CARD GRID ===== */
+  .modern-modal-body{
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+  }
+  
+  /* ===== MODERN FARE CARD ===== */
+  .modern-fare-card{
+  width:calc(50% - 10px);
+  background:#fafafa;
+  padding:20px 18px 18px 50px;
+  border-radius:14px;
+  border:2px dashed #dcdcdc;
+  cursor:pointer;
+  transition:all 0.25s ease;
+  position:relative;
+  }
+  
+  /* hover */
+  .modern-fare-card:hover{
+  background:#ffffff;
+  border-style:solid;
+  border-color:#0d6efd55;
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  }
+  
+  /* ===== CIRCLE CHECKBOX ===== */
+  .modern-fare-card::before{
+  content:"";
+  position:absolute;
+  left:15px;
+  top:20px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  border:2px solid #bbb;
+  background:#fff;
+  transition:all 0.25s ease;
+  }
+  
+  /* select text */
+  .modern-fare-card::after{
+  content:"Click to Select";
+  position:absolute;
+  top:10px;
+  right:12px;
+  font-size:11px;
+  color:#999;
+  font-weight:500;
+  }
+  
+  /* ===== ACTIVE SELECTED ===== */
+  .modern-fare-card.active{
+  border:2px solid #28a745;
+  background:#f4fff7;
+  box-shadow:0 8px 20px rgba(40,167,69,0.15);
+  }
+  
+  /* green circle */
+  .modern-fare-card.active::before{
+  background:#28a745;
+  border-color:#28a745;
+  }
+  
+  /* check icon */
+  .modern-fare-card.active::after{
+  content:"✔ Selected";
+  background:#28a745;
+  color:#fff;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  }
+
+  /* RIGHT SIDE CIRCLE */
+.modern-fare-card::after{
+  content:"";
+  position:absolute;
+  top:18px;
+  right:15px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  border:2px solid #bbb;
+  background:#fff;
+  transition:all 0.25s ease;
+  }
+  
+  /* SELECTED RIGHT CHECK */
+  .modern-fare-card.active::after{
+  content:"✔";
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:bold;
+  color:#fff;
+  background:#28a745;
+  border-color:#28a745;
+  }
+  
+  
+  /* ===== MOBILE ===== */
+  @media(max-width:768px){
+  
+  .modern-fare-card{
+  width:100%;
+  }
+  
+  .fare-content table{
+  display:block;
+  overflow-x:auto;
+  white-space:nowrap;
+  }
+  
+  .fare-content th,
+  .fare-content td{
+  padding:8px;
+  font-size:12px;
+  }
+  
+  }
+  
 
 
 
@@ -1488,4 +1695,112 @@ label {
     padding: 0 !important;
 }
 
+}
+
+
+/* fare rule */
+.fare-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.fare-card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.fare-card.selected {
+  border: 2px solid #0d6efd;
+  background: #f4f8ff;
+}
+
+.fare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fare-route {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fare-badge {
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.fare-badge.refundable {
+  background: #e7f7ee;
+  color: #0a8f4c;
+}
+
+.fare-badge.non-refundable {
+  background: #fdecea;
+  color: #d93025;
+}
+
+.select-text {
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.fare-body {
+  margin-top: 12px;
+}
+
+.fare-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+/* Container should be horizontal */
+.fare-card-container {
+  display: flex;
+  flex-direction: row;     /* horizontal */
+  gap: 16px;
+  overflow-x: auto;        /* scroll if more cards */
+  padding-bottom: 8px;
+}
+
+/* Each card width */
+.fare-card {
+  min-width: 320px;
+  max-width: 360px;
+  flex: 0 0 auto;          /* prevent shrinking */
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Selected card highlight */
+.fare-card.selected {
+  border-color: #0d6efd;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+/* Hover effect */
+.fare-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Optional label styling */
+.fare-type-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 6px;
 }

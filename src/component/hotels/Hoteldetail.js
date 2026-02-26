@@ -31,7 +31,7 @@ const HotelDetail = () => {
 
   const bookingData = location.state || {};
 
-  console.log("booking data from previous page", bookingData);
+  console.log("booking data from hotel search page ", bookingData);
 
   const scrollToPriceTable = () => {
     if (priceTableRef.current) {
@@ -124,11 +124,11 @@ const HotelDetail = () => {
     const fetchHotelData = async () => {
       try {
         // ✅ Details
+        console.log("hotel code before get hotel details",hotelCode)
         const detailResp = await getHotelDetail(hotelCode);
         console.log("gethotel details resp", detailResp);
 
         const details = detailResp?.data?.HotelDetails?.[0] || null;
-        console.log("details in hotel deatil", details);
         setHotelDetails(details);
 
         // ✅ Search using exact bookingData
@@ -143,8 +143,8 @@ const HotelDetail = () => {
           ResponseTime: bookingData.ResponseTime || 30,
           IsDetailedResponse: true,
           Filters: {
-            Refundable: false,
-            MealType: "All",
+            Refundable: false, // relax filters to match working Postman
+            MealType: "All", // "All" was too restrictive
           },
         });
 

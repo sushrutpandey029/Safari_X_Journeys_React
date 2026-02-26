@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 
 import RootNavigation from "./component/navigations/RootNavigation";
 import ScrollToTop from "./component/common/ScrollToTop";
@@ -59,6 +63,15 @@ function App() {
     <div>
       <ScrollToTop />
       <RootNavigation />
+       <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 }
