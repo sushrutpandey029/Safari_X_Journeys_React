@@ -173,16 +173,12 @@ const Flightcheckout = () => {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(FLIGHT_CHECKOUT_STORAGE_KEY);
-
       if (!saved) {
-        console.log("No saved data");
         setRestoreChecked(true);
         return;
       }
 
       const parsed = JSON.parse(saved);
-
-      console.log("Restoring flight checkout:", parsed);
 
       if (parsed.passengers?.length > 0) {
         setPassengers(parsed.passengers);
@@ -192,16 +188,13 @@ const Flightcheckout = () => {
       if (parsed.contactEmail) setContactEmail(parsed.contactEmail);
       if (parsed.contactMobile) setContactMobile(parsed.contactMobile);
       if (parsed.gstDetails) setGstDetails(parsed.gstDetails);
-      if (parsed.selectedMeals) setSelectedMeals(parsed.selectedMeals);
-      if (parsed.selectedBaggage) setSelectedBaggage(parsed.selectedBaggage);
-      if (parsed.selectedSeats) setSelectedSeats(parsed.selectedSeats);
-      if (parsed.selectedInsurancePlan)
-        setSelectedInsurancePlan(parsed.selectedInsurancePlan);
       if (parsed.appliedCoupon) setAppliedCoupon(parsed.appliedCoupon);
-      if (parsed.passengerConfirmed)
-        setPassengerConfirmed(parsed.passengerConfirmed);
+      if (parsed.passengerConfirmed) setPassengerConfirmed(parsed.passengerConfirmed);
 
-      setRestoreChecked(true); // ✅ VERY IMPORTANT
+      // ❌ selectedMeals, selectedBaggage, selectedSeats, selectedInsurancePlan
+      // RESTORE NAHI KARO — ye always fresh start hona chahiye
+
+      setRestoreChecked(true);
     } catch (err) {
       console.error("Restore error:", err);
       setRestoreChecked(true);
@@ -209,25 +202,14 @@ const Flightcheckout = () => {
   }, []);
 
   // ✅ AUTO SAVE CHECKOUT DATA
+  // ✅ FIXED AUTO SAVE - Only save passenger form data, NOT SSR/insurance
   useEffect(() => {
     try {
-      if (!passengers || passengers.length === 0) return;
-
-      const hasData = passengers.some(
-        (p) => p.firstName || p.lastName || p.dateOfBirth || p.contactNo,
-      );
-
-      if (!hasData) return;
-
       const dataToSave = {
         passengers,
         contactEmail,
         contactMobile,
         gstDetails,
-        selectedMeals,
-        selectedBaggage,
-        selectedSeats,
-        selectedInsurancePlan,
         appliedCoupon,
         passengerConfirmed,
         lastUpdated: Date.now(),
@@ -237,8 +219,6 @@ const Flightcheckout = () => {
         FLIGHT_CHECKOUT_STORAGE_KEY,
         JSON.stringify(dataToSave),
       );
-
-      console.log("Flight checkout saved");
     } catch (err) {
       console.error("Save error:", err);
     }
@@ -247,14 +227,9 @@ const Flightcheckout = () => {
     contactEmail,
     contactMobile,
     gstDetails,
-    selectedMeals,
-    selectedBaggage,
-    selectedSeats,
-    selectedInsurancePlan,
     appliedCoupon,
     passengerConfirmed,
   ]);
-
   useEffect(() => {
     // wait until restore check is complete
     if (!state || !restoreChecked) return;
@@ -398,41 +373,66 @@ const Flightcheckout = () => {
     };
   };
 
+  // const handleResetFormData = () => {
+  //   if (
+  //     !window.confirm("Are you sure you want to reset passenger form data?")
+  //   ) {
+  //     return;
+  //   }
+
+  //   // ✅ Reset only passenger form fields
+  //   initializePassengers(
+  //     state?.passengerCount || {
+  //       adults: 1,
+  //       children: 0,
+  //       infants: 0,
+  //     },
+  //   );
+
+  //   // ✅ Reset contact details
+  //   setContactEmail("");
+  //   setContactMobile("");
+
+  //   // ✅ Reset GST details
+  //   setGstDetails({
+  //     gstNumber: "",
+  //     companyName: "",
+  //     companyAddress: "",
+  //     companyEmail: "",
+  //   });
+
+  //   // ✅ Reset confirmation flag
+  //   setPassengerConfirmed(false);
+
+  //   // ✅ Remove saved form data from localStorage
+  //   localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
+
+  //   // ✅ Update restore flag
+  //   setIsRestored(false);
+
+  //   toast.success("Form reset successfully.");
+  // };
+
+
   const handleResetFormData = () => {
-    if (
-      !window.confirm("Are you sure you want to reset passenger form data?")
-    ) {
-      return;
-    }
+    if (!window.confirm("Are you sure you want to reset passenger form data?")) return;
 
-    // ✅ Reset only passenger form fields
-    initializePassengers(
-      state?.passengerCount || {
-        adults: 1,
-        children: 0,
-        infants: 0,
-      },
-    );
-
-    // ✅ Reset contact details
+    initializePassengers(state?.passengerCount || { adults: 1, children: 0, infants: 0 });
     setContactEmail("");
     setContactMobile("");
-
-    // ✅ Reset GST details
-    setGstDetails({
-      gstNumber: "",
-      companyName: "",
-      companyAddress: "",
-      companyEmail: "",
-    });
-
-    // ✅ Reset confirmation flag
+    setGstDetails({ gstNumber: "", companyName: "", companyAddress: "", companyEmail: "" });
     setPassengerConfirmed(false);
 
-    // ✅ Remove saved form data from localStorage
-    localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
+    // ✅ Also clear SSR + insurance
+    setSelectedMeals({});
+    setSelectedBaggage({});
+    setSelectedSeats({});
+    setSelectedSeatList([]);
+    setSelectedMealList([]);
+    setSelectedBaggageList([]);
+    setSelectedInsurancePlan(null);
 
-    // ✅ Update restore flag
+    localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
     setIsRestored(false);
 
     toast.success("Form reset successfully.");
@@ -1061,12 +1061,12 @@ const Flightcheckout = () => {
         },
         ...(shouldSendGST
           ? {
-              GSTNumber: gstDetails.gstNumber,
-              GSTCompanyName: gstDetails.companyName,
-              GSTCompanyAddress: gstDetails.companyAddress,
-              GSTCompanyEmail: gstDetails.companyEmail,
-              GSTCompanyContactNumber: pax.contactNo,
-            }
+            GSTNumber: gstDetails.gstNumber,
+            GSTCompanyName: gstDetails.companyName,
+            GSTCompanyAddress: gstDetails.companyAddress,
+            GSTCompanyEmail: gstDetails.companyEmail,
+            GSTCompanyContactNumber: pax.contactNo,
+          }
           : {}),
       };
     });
@@ -1131,7 +1131,7 @@ const Flightcheckout = () => {
 
     const insurancePremium = selectedInsurancePlan
       ? selectedInsurancePlan.Premium *
-        (getPassengerCount().adults + getPassengerCount().children)
+      (getPassengerCount().adults + getPassengerCount().children)
       : 0;
 
     return {
@@ -1153,10 +1153,10 @@ const Flightcheckout = () => {
       // InsuranceData: selectedInsurancePlan || null,
       InsuranceData: selectedInsurancePlan
         ? {
-            ResultIndex: selectedInsurancePlan.ResultIndex,
-            premiumAmount: selectedInsurancePlan.VendorPrice,
-            totalAmount: selectedInsurancePlan.Pricing.finalAmount,
-          }
+          ResultIndex: selectedInsurancePlan.ResultIndex,
+          premiumAmount: selectedInsurancePlan.VendorPrice,
+          totalAmount: selectedInsurancePlan.Pricing.finalAmount,
+        }
         : null,
       InsuranceTraceid: insuranceTraceId || null,
       TripType: state?.tripType || searchData?.tripType || "oneway",
@@ -1346,7 +1346,7 @@ const Flightcheckout = () => {
 
     const insuranceAmount = selectedInsurancePlan
       ? selectedInsurancePlan.Pricing.finalAmount *
-        (passengerCount.adults + passengerCount.children)
+      (passengerCount.adults + passengerCount.children)
       : 0;
 
     const taxes =
@@ -1357,46 +1357,46 @@ const Flightcheckout = () => {
     return (
       <div className="fare-breakdown modern-fare-breakdown mb-3">
 
-  <div className="fare-row">
-    <span>Base Fare</span>
-    <span>₹ {formatPrice(fareBreakdown.baseFare)}</span>
-  </div>
+        <div className="fare-row">
+          <span>Base Fare</span>
+          <span>₹ {formatPrice(fareBreakdown.baseFare)}</span>
+        </div>
 
-  <div className="fare-row">
-    <span>Taxes & Fees</span>
-    <span>₹ {formatPrice(taxes)}</span>
-  </div>
+        <div className="fare-row">
+          <span>Taxes & Fees</span>
+          <span>₹ {formatPrice(taxes)}</span>
+        </div>
 
-  {ssrTotal > 0 && (
-    <div className="fare-row">
-      <span>Seats / Meals / Baggage</span>
-      <span>₹ {formatPrice(ssrTotal)}</span>
-    </div>
-  )}
+        {ssrTotal > 0 && (
+          <div className="fare-row">
+            <span>Seats / Meals / Baggage</span>
+            <span>₹ {formatPrice(ssrTotal)}</span>
+          </div>
+        )}
 
-  {insuranceAmount > 0 && (
-    <div className="fare-row">
-      <span>Travel Insurance</span>
-      <span>₹ {formatPrice(insuranceAmount)}</span>
-    </div>
-  )}
+        {insuranceAmount > 0 && (
+          <div className="fare-row">
+            <span>Travel Insurance</span>
+            <span>₹ {formatPrice(insuranceAmount)}</span>
+          </div>
+        )}
 
-  {expanded && (
-    <>
-      <div className="fare-info">
-        Includes airline charges, convenience fee & GST where applicable.
+        {expanded && (
+          <>
+            <div className="fare-info">
+              Includes airline charges, convenience fee & GST where applicable.
+            </div>
+          </>
+        )}
+
+        <div className="fare-divider"></div>
+
+        <div className="fare-total">
+          <span>Total Amount</span>
+          <span>₹ {formatPrice(totalAmount)}</span>
+        </div>
+
       </div>
-    </>
-  )}
-
-  <div className="fare-divider"></div>
-
-  <div className="fare-total">
-    <span>Total Amount</span>
-    <span>₹ {formatPrice(totalAmount)}</span>
-  </div>
-
-</div>
 
     );
   };
@@ -2335,7 +2335,7 @@ const Flightcheckout = () => {
                 className="d-flex justify-content-between cursor-pointer"
               >
                 <strong>Baggage</strong>
-                <span className="text-end">
+                {/* <span className="text-end">
                   {selectedBaggageList.length > 0 ? (
                     <>
                       <Badge bg="success" className="me-2">
@@ -2357,6 +2357,51 @@ const Flightcheckout = () => {
                             {f.items.map((t, i) => (
                               <div key={i} className="ms-2 text-muted">
                                 • {t}
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <small className="text-muted">Select</small>
+                  )}
+                </span> */}
+
+                <span className="text-end">
+                  {selectedBaggageList.length > 0 ? (
+                    <>
+                      <Badge bg="success" className="me-2">✓</Badge>
+                      <small className="text-muted d-block">
+                        {selectedBaggageList.length} of {requiredSeatCount} selected
+                      </small>
+                      <div className="mt-1" style={{ fontSize: "12px" }}>
+                        {baggageSummaryByFlight.map((f, idx) => (
+                          <div key={idx}>
+                            <div className="fw-semibold text-primary">{f.route}</div>
+                            {f.items.map((t, i) => (
+                              <div key={i} className="ms-2 text-muted d-flex align-items-center gap-1">
+                                • {t}
+                                <span
+                                  className="text-danger"
+                                  style={{ cursor: "pointer", fontWeight: "bold" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Remove this passenger's baggage
+                                    setSelectedBaggageList((prev) => {
+                                      const copy = [...prev];
+                                      copy.splice(i, 1);
+                                      return copy;
+                                    });
+                                    setSelectedBaggage((prev) => {
+                                      const flightBags = { ...(prev[idx] || {}) };
+                                      delete flightBags[i];
+                                      return { ...prev, [idx]: flightBags };
+                                    });
+                                  }}
+                                >
+                                  ✕
+                                </span>
                               </div>
                             ))}
                           </div>
@@ -2415,10 +2460,9 @@ const Flightcheckout = () => {
                       <div
                         className="progress-bar"
                         style={{
-                          width: `${
-                            (selectedBaggageList.length / requiredSeatCount) *
+                          width: `${(selectedBaggageList.length / requiredSeatCount) *
                             100
-                          }%`,
+                            }%`,
                         }}
                       />
                     </div>
@@ -2444,9 +2488,8 @@ const Flightcheckout = () => {
                     return (
                       <div
                         key={i}
-                        className={`ssr-option p-3 mb-2 rounded border ${
-                          isSelected ? "border-primary bg-light" : ""
-                        }`}
+                        className={`ssr-option p-3 mb-2 rounded border ${isSelected ? "border-primary bg-light" : ""
+                          }`}
                         style={{ cursor: "pointer" }}
                         onClick={() => {
                           setSelectedBaggageList((prev) => {
@@ -2567,32 +2610,40 @@ const Flightcheckout = () => {
                 <strong>Seats</strong>
 
                 <span className="text-end">
-                  {Object.keys(selectedSeats[activeFlightIndex] || {}).length >
-                  0 ? (
+                  {Object.keys(selectedSeats[activeFlightIndex] || {}).length > 0 ? (
                     <>
-                      <Badge bg="success" className="me-2">
-                        ✓
-                      </Badge>
-
+                      <Badge bg="success" className="me-2">✓</Badge>
                       <small className="text-muted d-block">
-                        {
-                          Object.keys(selectedSeats[activeFlightIndex] || {})
-                            .length
-                        }{" "}
-                        seat(s) selected
+                        {Object.keys(selectedSeats[activeFlightIndex] || {}).length} seat(s) selected
                       </small>
-
-                      <div
-                        className="mt-1 text-primary"
-                        style={{ fontSize: "12px" }}
-                      >
+                      <div className="mt-1 text-primary" style={{ fontSize: "12px" }}>
                         {seatSummaryByFlight.map((flight, idx) => (
                           <div key={idx} className="mb-1">
                             <div className="fw-semibold">{flight.route}</div>
-
                             {flight.seats.map((s, i) => (
-                              <div key={i} className="ms-2 text-muted">
+                              <div key={i} className="ms-2 text-muted d-flex align-items-center gap-1">
                                 • {s.label} → {s.seat}
+                                <span
+                                  className="text-danger"
+                                  style={{ cursor: "pointer", fontWeight: "bold" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Find which flight index this summary entry belongs to
+                                    const flightIndex = Object.keys(selectedSeats).find(
+                                      (fi) => selectedSeats[fi]?.[i]?.Code === s.seat
+                                    );
+                                    if (flightIndex !== undefined) {
+                                      setSelectedSeats((prev) => {
+                                        const flightSeatMap = { ...(prev[flightIndex] || {}) };
+                                        delete flightSeatMap[i];
+                                        return { ...prev, [flightIndex]: flightSeatMap };
+                                      });
+                                      setSelectedSeatList((prev) => prev.filter((seat) => seat.Code !== s.seat));
+                                    }
+                                  }}
+                                >
+                                  ✕
+                                </span>
                               </div>
                             ))}
                           </div>
@@ -2671,12 +2722,11 @@ const Flightcheckout = () => {
                             {insuranceData.map((plan, index) => (
                               <div
                                 key={index}
-                                className={`insurance-plan p-2 mb-2 border rounded ${
-                                  selectedInsurancePlan?.PlanCode ===
+                                className={`insurance-plan p-2 mb-2 border rounded ${selectedInsurancePlan?.PlanCode ===
                                   plan.PlanCode
-                                    ? "border-primary"
-                                    : ""
-                                }`}
+                                  ? "border-primary"
+                                  : ""
+                                  }`}
                                 onClick={() => setSelectedInsurancePlan(plan)}
                                 style={{ cursor: "pointer" }}
                               >
@@ -2956,17 +3006,16 @@ const Flightcheckout = () => {
                       return (
                         <React.Fragment key={`${seat.Code}-${seatIndex}`}>
                           <button
-                            className={`seat-button ${
-                              !isAvailable
-                                ? "seat-occupied"
-                                : isSelected
-                                  ? "seat-selected"
-                                  : seat.Price === 0
-                                    ? "seat-free"
-                                    : seat.Price <= 500
-                                      ? "seat-200-500"
-                                      : "seat-650-2300"
-                            }`}
+                            className={`seat-button ${!isAvailable
+                              ? "seat-occupied"
+                              : isSelected
+                                ? "seat-selected"
+                                : seat.Price === 0
+                                  ? "seat-free"
+                                  : seat.Price <= 500
+                                    ? "seat-200-500"
+                                    : "seat-650-2300"
+                              }`}
                             disabled={!isAvailable}
                             onClick={() => {
                               if (!isAvailable) return;
@@ -3112,9 +3161,8 @@ const Flightcheckout = () => {
                   }}
                 >
                   {selectedSeatList.length < requiredSeatCount
-                    ? `Select ${
-                        requiredSeatCount - selectedSeatList.length
-                      } more seat(s)`
+                    ? `Select ${requiredSeatCount - selectedSeatList.length
+                    } more seat(s)`
                     : "Done"}
                 </Button>
               </>
@@ -3323,7 +3371,7 @@ const Flightcheckout = () => {
               )}
 
               {/* MEALS */}
-              {Object.keys(selectedMeals).length > 0 && (
+              {/* {Object.keys(selectedMeals).length > 0 && (
                 <div className="mb-3">
                   <h6 className="fw-bold">Meals</h6>
 
@@ -3353,8 +3401,54 @@ const Flightcheckout = () => {
                     );
                   })}
                 </div>
-              )}
+              )} */}
 
+
+              <span>
+                {Object.values(selectedMeals).some(m => Object.values(m || {}).some(Boolean)) ? (
+                  <>
+                    <Badge bg="success" className="me-2">✓</Badge>
+                    <div style={{ fontSize: "12px" }}>
+                      {selectedFlights.map((flight, flightIndex) => {
+                        const mealsForFlight = selectedMeals[flightIndex];
+                        if (!mealsForFlight) return null;
+                        const mealItems = Object.entries(mealsForFlight).filter(([, m]) => m);
+                        if (!mealItems.length) return null;
+                        const info = extractFlightInfo(flight);
+                        return (
+                          <div key={flightIndex}>
+                            <div className="fw-semibold text-primary">
+                              {info?.origin.code} → {info?.destination.code}
+                            </div>
+                            {mealItems.map(([paxIndex, meal]) => (
+                              <div key={paxIndex} className="ms-2 text-muted d-flex align-items-center gap-1">
+                                • Pax {Number(paxIndex) + 1}: {meal.AirlineDescription}
+                                <span
+                                  className="text-danger"
+                                  style={{ cursor: "pointer", fontWeight: "bold" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedMeals((prev) => {
+                                      const flightMeals = { ...(prev[flightIndex] || {}) };
+                                      delete flightMeals[paxIndex];
+                                      return { ...prev, [flightIndex]: flightMeals };
+                                    });
+                                    setSelectedMealList((prev) => prev.filter((_, i) => String(i) !== paxIndex));
+                                  }}
+                                >
+                                  ✕
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <small className="text-muted">Select</small>
+                )}
+              </span>
               {/* INSURANCE DETAILS */}
               {selectedInsurancePlan && (
                 <div className="mb-3">
@@ -3376,7 +3470,7 @@ const Flightcheckout = () => {
                       Premium ₹{" "}
                       {formatPrice(
                         selectedInsurancePlan.Pricing?.finalAmount *
-                          (passengerCount.adults + passengerCount.children),
+                        (passengerCount.adults + passengerCount.children),
                       )}
                     </div>
                   </div>

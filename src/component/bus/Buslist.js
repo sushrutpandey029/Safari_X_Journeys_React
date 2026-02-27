@@ -12,7 +12,7 @@ import {
 } from "../services/busservice";
 import Loading from "../common/loading";
 import BusSeatLayout from "./BusSeatLayout";
- 
+
 function BusList() {
   const location = useLocation();
   const [busData, setBusData] = useState([]);
@@ -95,8 +95,7 @@ function BusList() {
         const cityResponse = await Bus_getCityList();
         console.log("✅ City Response:", cityResponse);
 
-        const cityData =
-          cityResponse?.resposnse?.BusCities ||
+        const cityData = cityResponse?.resposnse?.BusCities ||
           cityResponse?.BusCities ||
           cityResponse;
 
@@ -126,13 +125,14 @@ function BusList() {
 
   useEffect(() => {
     const performInitialBusSearch = async () => {
-      if (!cities.length) return;
+      if (!cities.length || autoLoaded) return;
 
       const passedData = location.state;
 
-      // ✅ If coming from previous page
       if (passedData?.fromCityId && passedData?.toCityId) {
         console.log("📥 Received search data:", passedData);
+
+        setAutoLoaded(true);
 
         setSearchParams({
           fromCity: passedData.fromCityName,
@@ -141,8 +141,6 @@ function BusList() {
           toCityId: passedData.toCityId,
           travelDate: passedData.travelDate,
         });
-
-        setAutoLoaded(true);
 
         await performBusSearch(
           passedData.fromCityId,
@@ -233,14 +231,12 @@ function BusList() {
           <div class='busSeatrgt'>
             <div class='busSeat'><div class='seatcontainer clearfix'>
               ${Array.from(
-                { length: 20 },
-                (_, i) =>
-                  `<div class="nseat" style="top:${
-                    i * 35
-                  }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${
-                    selectedBus?.price || 500
-                  }')">S${i + 1}</div>`,
-              ).join("")}
+          { length: 20 },
+          (_, i) =>
+            `<div class="nseat" style="top:${i * 35
+            }px; left:10px;" onclick="AddRemoveSeat('S${i + 1}', '${selectedBus?.price || 500
+            }')">S${i + 1}</div>`,
+        ).join("")}
             </div></div>
           </div>
         </div>`,
@@ -289,24 +285,28 @@ function BusList() {
 
   // Shared search implementation used by both auto-search and manual search
   const performBusSearch = async (fromCityId, toCityId, travelDate) => {
-    if (!fromCityId || !toCityId || !travelDate) {
+    // ✅ Date object aa jaye toh convert karo
+    const formattedDate = travelDate instanceof Date
+      ? travelDate.toISOString().split("T")[0]
+      : travelDate;
+
+    if (!fromCityId || !toCityId || !formattedDate) {
       console.log("❌ Missing parameters for bus search");
       return;
     }
 
+    setVisibleCount(6);
     setIsSearchingBuses(true);
-
     setError(null);
 
     try {
-      console.log("🔍 Starting bus search...");
-
       const searchData = {
-        DateOfJourney: travelDate,
+        DateOfJourney: formattedDate, // ✅ string use karo
         OriginId: fromCityId,
         DestinationId: toCityId,
         PreferredCurrency: "INR",
       };
+
 
       console.log("📦 Bus Search Payload:", {
         fromCityId,
@@ -321,6 +321,15 @@ function BusList() {
         searchResponse?.data?.BusSearchResult ||
         searchResponse?.BusSearchResult ||
         searchResponse;
+
+      if (searchResult?.ResponseStatus === 3 || searchResult?.Error?.ErrorCode) {
+        const errMsg = searchResult?.Error?.ErrorMessage || "Invalid source/destination ID";
+        console.error("❌ API Error:", errMsg);
+        setError(`Search failed: ${errMsg}`);
+        setBusData([]);
+        setFilteredBusData([]);
+        return;
+      }
 
       if (
         searchResult?.ResponseStatus === 1 &&
@@ -550,8 +559,8 @@ function BusList() {
   //       droppingPoints: droppingData,
   //     };
 
-    
- 
+
+
   //     const navigationState = {
   //       bus: completeBusData,
   //       seats: selectedSeats,
@@ -588,8 +597,8 @@ function BusList() {
 
   // Calculate total price
 
-const handleConfirmSeats = async () => {
-  if (selectedSeats.length === 0) return;
+  const handleConfirmSeats = async () => {
+    if (selectedSeats.length === 0) return;
 
     try {
       const TraceId = selectedBus?.traceId || selectedBus?.TraceId;
@@ -615,6 +624,7 @@ const handleConfirmSeats = async () => {
         totalAmount: totalPayableAmount,
       };
 
+      // ✅ Pehle navigate karo (data ke saath)
       navigate("/Bus-checkout", {
         state: {
           bus: selectedBus,
@@ -624,13 +634,15 @@ const handleConfirmSeats = async () => {
           resultIndex: ResultIndex,
         },
       });
+
+      // ✅ Phir modal band karo
+      handleCloseModal();
+
     } catch (error) {
-      console.error(error);
+      console.error("❌ Error:", error);
+      alert("Something went wrong. Please try again.");
     }
-
-    handleCloseModal();
   };
-
   const calculateDisplayTotal = () => {
     const exactTotal = selectedSeats.reduce(
       (total, seat) => total + (seat.Pricing?.finalAmount ?? 0),
@@ -830,7 +842,10 @@ const handleConfirmSeats = async () => {
   const { fromCities, toCities } = getCityOptions();
 
   useEffect(() => {
-    if (!busData || busData.length === 0) return;
+    if (!busData || busData.length === 0) {
+      setFilteredBusData([]); // ✅ empty set karo, return mat karo silently
+      return;
+    }
 
     let filteredData = [...busData];
 
@@ -869,6 +884,7 @@ const handleConfirmSeats = async () => {
     console.log("filtered data", filteredData);
 
     setFilteredBusData(filteredData);
+    setVisibleCount(6); // ✅ filter change hone pe bhi reset karo
   }, [filters, busData]);
 
   useEffect(() => {
@@ -963,15 +979,9 @@ const handleConfirmSeats = async () => {
                               style={{ cursor: "pointer" }}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
-                                handleSearchParamChange(
-                                  "fromCity",
-                                  city.CityName,
-                                );
-                                setSearchParams((prev) => ({
-                                  ...prev,
-                                  fromCityId: city.CityId,
-                                }));
-                                setShowFromSuggestions(false);
+                                console.log("FULL CITY OBJECT:", city); // ← add this
+                                handleSearchParamChange("fromCity", city.CityName);
+                                setSearchParams(prev => ({ ...prev, fromCityId: city.CityId }));
                               }}
                             >
                               {city.CityName}
@@ -1467,127 +1477,61 @@ const handleConfirmSeats = async () => {
         </div>
       )} */}
       {/* PROFESSIONAL SEAT MODAL */}
-{showModal && (
-  <div className="bus-modal-overlay">
+      {showModal && (
+        <div className="bus-modal-overlay">
+          <div className="bus-modal">
+            {/* ... header, legend ... */}
 
-    <div className="bus-modal">
+            {/* BODY */}
+            <div className="bus-modal-body">
+              {loadingSeats ? (
+                <div className="bus-seat-loading">Loading seat layout...</div>
+              ) : (
+                <BusSeatLayout
+                  seatLayoutData={seatLayoutData}
+                  selectedSeats={selectedSeats}
+                  onSeatSelect={handleSeatSelect}
+                  onProceed={handleConfirmSeats}  
+                  onClose={handleCloseModal}
+                />
+              )}
+            </div>
 
-      {/* HEADER */}
-      <div className="bus-modal-header">
+            {/* FOOTER */}
+            <div className="bus-modal-footer">
+              <div className="bus-footer-left">
+                <div className="selected-seats">
+                  {selectedSeats.length > 0
+                    ? selectedSeats.map(seat => seat.SeatName).join(", ")
+                    : "No seats selected"}
+                </div>
+                <div className="total-amount">
+                  ₹{calculateDisplayTotal()}
+                </div>
+              </div>
 
-        <div className="bus-modal-header-left">
+              <div className="bus-footer-right">
+                <button
+                  className="bus-btn-cancel"
+                  onClick={handleCloseModal}
+                >
+                  Cancel
+                </button>
 
-          <h3 className="bus-modal-title">
-            Select Seats
-          </h3>
-
-          <div className="bus-modal-subtitle">
-
-            <span className="bus-name">
-              {selectedBus?.busName}
-            </span>
-
-            <span className="bus-route">
-              {searchParams.fromCity} → {searchParams.toCity}
-            </span>
-
-            <span className="bus-time">
-              {selectedBus?.departureTime} • {searchParams.travelDate}
-            </span>
+                {/* ✅ YE BUTTON handleConfirmSeats call kare */}
+                <button
+                  className="bus-btn-proceed"
+                  onClick={handleConfirmSeats}
+                  disabled={selectedSeats.length === 0}
+                >
+                  Proceed ({selectedSeats.length} Seat{selectedSeats.length !== 1 ? "s" : ""})
+                </button>
+              </div>
+            </div>
 
           </div>
-
         </div>
-
-        <button
-          className="bus-modal-close"
-          onClick={handleCloseModal}
-        >
-          ✕
-        </button>
-
-      </div>
-
-
-      {/* LEGEND */}
-      <div className="bus-seat-legend">
-
-        <Legend color="available" label="Available" />
-
-        <Legend color="selected" label="Selected" />
-
-        <Legend color="booked" label="Booked" />
-
-        <Legend color="ladies" label="Ladies" />
-
-      </div>
-
-
-      {/* BODY */}
-      <div className="bus-modal-body">
-
-        {loadingSeats ? (
-
-          <div className="bus-seat-loading">
-            Loading seat layout...
-          </div>
-
-        ) : (
-
-          <BusSeatLayout
-            seatLayoutData={seatLayoutData}
-            selectedSeats={selectedSeats}
-            onSeatSelect={handleSeatSelect}
-          />
-
-        )}
-
-      </div>
-
-
-      {/* FOOTER */}
-      <div className="bus-modal-footer">
-
-        <div className="bus-footer-left">
-
-          <div className="selected-seats">
-            {selectedSeats.length > 0
-              ? selectedSeats.map(seat => seat.SeatName).join(", ")
-              : "No seats selected"}
-          </div>
-
-          <div className="total-amount">
-            ₹{calculateDisplayTotal()}
-          </div>
-
-        </div>
-
-
-        <div className="bus-footer-right">
-
-          <button
-            className="bus-btn-cancel"
-            onClick={handleCloseModal}
-          >
-            Cancel
-          </button>
-
-          <button
-            className="bus-btn-proceed"
-            onClick={handleConfirmSeats}
-            disabled={selectedSeats.length === 0}
-          >
-            Proceed
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-)}
+      )}
 
     </div>
   );

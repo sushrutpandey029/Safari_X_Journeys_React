@@ -1,6 +1,6 @@
 // export const BASE_URL = "http://localhost:2625/";
 // export const BASE_URL = "http://10.52.152.26:2625";
-// export const BASE_URL = "http://192.168.1.17:2625";
+// export const BASE_URL = "http://192.168.1.13:2625";
 
 export const BASE_URL = "https://dash.safarixjourneys.com";
 
@@ -70,6 +70,7 @@ export const API = {
   HOTEL_CANCEL: `${BASE_URL}/api/hotel/cancel`,
   HOTEL_CANCEL_STATUS: `${BASE_URL}/api/hotel/cancel-status`,
   USER_HOTEL_BOOKING_DETAILS: `${BASE_URL}/api/booking-detail`,
+
 
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
