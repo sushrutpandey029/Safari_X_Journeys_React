@@ -5,7 +5,6 @@ import { fetchBoardingPoints } from "../services/busservice";
 import { getUserData } from "../utils/storage";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { bus_block } from "../services/busservice";
-import { toast } from "react-toastify";
 
 const BusCheckout = () => {
   const { startPayment } = useCashfreePayment();
@@ -13,15 +12,6 @@ const BusCheckout = () => {
   const navigate = useNavigate();
   const state = location?.state || {};
   console.log("state in buscheckout", state);
- 
-  const traceId =
-    state?.traceId || state?.bus?.TraceId || state?.bus?.traceId || null;
-
-  const resultIndex =
-    state?.resultIndex ??
-    state?.bus?.ResultIndex ??
-    state?.bus?.resultIndex ??
-    null;
 
   const pricingFromSearch = state?.pricing || null;
 
@@ -52,18 +42,7 @@ const BusCheckout = () => {
   const [blockResponse, setBlockResponse] = useState(null);
   const [blockLoading, setBlockLoading] = useState(false);
 
-  // ✅ UNIQUE KEY FOR BUS CHECKOUT FORM
-  const BUS_FORM_STORAGE_KEY = `bus_form_data`;
-
-  const userDetails = getUserData("safarix_user");
-
-  useEffect(() => {
-    if (!userDetails) {
-      toast.info("Please login first, before proceed to booking.", {
-        toastId: "login-warning",
-      });
-    }
-  }, []);
+  const BOOK_ENDPOINT = "https://busbe.tektravels.com/BusService.svc/rest/Book";
 
   // --------------------------- UTILS ------------------------------
 
@@ -86,6 +65,14 @@ const BusCheckout = () => {
         })
       : "";
 
+  const calculateDuration = (start, end) => {
+    if (!start || !end) return "N/A";
+    const diff = new Date(end) - new Date(start);
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return `${h}h ${m}m`;
+  };
+
   const filteredBoardingPoints = boardingPoints.filter((p) =>
     `${p.CityPointName} ${p.CityPointLocation}`
       .toLowerCase()
@@ -100,49 +87,78 @@ const BusCheckout = () => {
 
   // --------------------------- FETCH BOARDING POINTS ------------------------------
 
-  //   useEffect(() => {
-  //     console.log("selected seats", selectedSeats);
-  //     if (!selectedSeats || !busDetails) return;
+  const fetchBoardingPointsData = async (busData) => {
+    try {
+      setApiLoading(true);
+      const TraceId = busData?.TraceId || state.traceId;
+      const ResultIndex = busData?.ResultIndex ?? state.resultIndex;
 
-  //     const arr = selectedSeats.map((seat, i) => {
-  //       const seatId =
-  //         seat.SeatId ?? seat.SeatIndex ?? Number(seat.SeatName) ?? null;
-  //       const price = seat.SeatFare ?? seat.Price ?? seat.Price?.BasePrice ?? 0;
+      if (!TraceId || ResultIndex == null) {
+        setError("Missing TraceId / ResultIndex");
+        return;
+      }
 
-  //       return {
-  //         id: i + 1,
-  //         seatNumber: seat.SeatName,
-  //         firstName: "",
-  //         lastName: "",
-  //         age: "",
-  //         gender: "Male",
-  //         price,
+      const response = await fetchBoardingPoints(TraceId, ResultIndex);
+      console.log("response of fetchboardingpoints", response);
+      const boardingData =
+        response?.data?.BoardingPointsDetails ||
+        response?.BoardingPointsDetails ||
+        response?.boardingPoints ||
+        [];
 
-  //         // REQUIRED
-  //         fullSeatObject: seat, // <--- THIS is the key change
+      const droppingData =
+        response?.data?.DroppingPointsDetails ||
+        response?.DroppingPointsDetails ||
+        response?.droppingPoints ||
+        [];
 
-  //         seatIndex: seat.SeatIndex,
-  //         seatName: seat.SeatName,
-  //         idType: "",
-  //         idNumber: "",
-  //       };
-  //     });
+      setBoardingPoints(boardingData);
+      setDroppingPoints(droppingData);
 
-  //     // setPassengers(arr);
-  //     setPassengers(prev => {
-  //   if (prev && prev.length) {
-  //     return arr.map((newP, i) => ({
-  //       ...newP,
-  //       ...prev[i], // preserve restored values
-  //     }));
-  //   }
-  //   return arr;
-  // });
-  //   }, [selectedSeats, busDetails]);
+      if (boardingData.length > 0) setSelectedBoarding(boardingData[0]);
+      if (droppingData.length > 0) setSelectedDropping(droppingData[0]);
+    } catch (err) {
+      setError("Failed to load boarding points");
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
+  // --------------------------- INITIALIZE ------------------------------
+
   useEffect(() => {
+    const init = async () => {
+      const bus =
+        state?.bus || JSON.parse(localStorage.getItem("selectedBus") || "null");
+      const seats =
+        state?.seats ||
+        JSON.parse(localStorage.getItem("selectedSeats") || "[]");
+
+      if (!bus) {
+        setError("No bus details found");
+        setLoading(false);
+        return;
+      }
+      console.log("seats", seats);
+      console.log("bus", bus);
+      setBusDetails(bus);
+      setSelectedSeats(seats);
+
+      await fetchBoardingPointsData(bus);
+      setLoading(false);
+    };
+    init();
+  }, [location]);
+
+  // --------------------------- MAP SEATS TO PASSENGERS ------------------------------
+
+  useEffect(() => {
+    console.log("selected seats", selectedSeats);
     if (!selectedSeats || !busDetails) return;
 
     const arr = selectedSeats.map((seat, i) => {
+      const seatId =
+        seat.SeatId ?? seat.SeatIndex ?? Number(seat.SeatName) ?? null;
       const price = seat.SeatFare ?? seat.Price ?? seat.Price?.BasePrice ?? 0;
 
       return {
@@ -153,7 +169,10 @@ const BusCheckout = () => {
         age: "",
         gender: "Male",
         price,
-        fullSeatObject: seat,
+
+        // REQUIRED
+        fullSeatObject: seat, // <--- THIS is the key change
+
         seatIndex: seat.SeatIndex,
         seatName: seat.SeatName,
         idType: "",
@@ -161,126 +180,8 @@ const BusCheckout = () => {
       };
     });
 
-    // ✅ PRESERVE EXISTING DATA
-    setPassengers((prev) => {
-      if (prev && prev.length) {
-        return arr.map((newP, i) => ({
-          ...newP,
-          ...prev[i],
-        }));
-      }
-      return arr;
-    });
+    setPassengers(arr);
   }, [selectedSeats, busDetails]);
-
-  const fetchBoardingPointsData = async () => {
-    try {
-      setApiLoading(true);
-      setError(null);
-
-      if (!traceId || resultIndex == null) {
-        setError("Missing TraceId / ResultIndex");
-        return;
-      }
-
-      console.log("📤 Calling Boarding API:", {
-        traceId,
-        resultIndex,
-      });
-
-      const response = await fetchBoardingPoints(traceId, resultIndex);
-
-      console.log("📥 Boarding API Response:", response);
-
-      const boardingData =
-        response?.data?.BoardingPointsDetails ||
-        response?.BoardingPointsDetails ||
-        [];
-
-      const droppingData =
-        response?.data?.DroppingPointsDetails ||
-        response?.DroppingPointsDetails ||
-        [];
-
-      setBoardingPoints(boardingData);
-      setDroppingPoints(droppingData);
-
-      if (boardingData.length > 0) {
-        setSelectedBoarding(boardingData[0]);
-      }
-
-      if (droppingData.length > 0) {
-        setSelectedDropping(droppingData[0]);
-      }
-    } catch (err) {
-      console.error("Boarding API error:", err);
-      setError("Failed to load boarding points");
-    } finally {
-      setApiLoading(false);
-    }
-  };
-
-  // --------------------------- INITIALIZE ------------------------------
-
-  // useEffect(() => {
-  //   const init = async () => {
-  //     const bus =
-  //       state?.bus || JSON.parse(localStorage.getItem("selectedBus") || "null");
-  //     const seats =
-  //       state?.seats ||
-  //       JSON.parse(localStorage.getItem("selectedSeats") || "[]");
-
-  //     if (!bus) {
-  //       setError("No bus details found");
-  //       setLoading(false);
-  //       return;
-  //     }
-  //     console.log("seats", seats);
-  //     console.log("bus", bus);
-  //     setBusDetails(bus);
-  //     setSelectedSeats(seats);
-
-  //     await fetchBoardingPointsData(bus);
-  //     setLoading(false);
-  //   };
-  //   init();
-  // }, [location]);
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        setLoading(true);
-
-        const bus =
-          state?.bus ||
-          JSON.parse(localStorage.getItem("selectedBus") || "null");
-
-        const seats =
-          state?.seats ||
-          JSON.parse(localStorage.getItem("selectedSeats") || "[]");
-
-        if (!bus) {
-          setError("No bus details found");
-          return;
-        }
-
-        setBusDetails(bus);
-        setSelectedSeats(seats);
-
-        // ✅ CALL BOARDING API HERE
-        await fetchBoardingPointsData();
-      } catch (err) {
-        console.error("Checkout init error:", err);
-        setError("Failed to initialize checkout");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
-  }, []);
-
-  // --------------------------- MAP SEATS TO PASSENGERS ------------------------------
 
   const handlePassengerChange = (i, f, v) => {
     const arr = [...passengers];
@@ -537,7 +438,6 @@ const BusCheckout = () => {
 
       // ✅ START PAYMENT (Cashfree)
       startPayment(bookingPayload);
-      localStorage.removeItem(BUS_FORM_STORAGE_KEY);
     } catch (err) {
       console.error("❌ Book Now Error:", err);
       alert("Unable to proceed with booking. Please try again.");
@@ -639,144 +539,6 @@ const BusCheckout = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleResetBusForm = () => {
-    if (
-      !window.confirm("Are you sure you want to reset passenger form data?")
-    ) {
-      return;
-    }
-
-    // ✅ Reset passengers (preserve seat info but clear form fields)
-    setPassengers((prev) =>
-      prev.map((p) => ({
-        ...p,
-        firstName: "",
-        lastName: "",
-        age: "",
-        gender: "Male",
-        idType: "",
-        idNumber: "",
-      })),
-    );
-
-    // ✅ Reset contact
-    setContactDetails({
-      email: "",
-      mobile: "",
-    });
-
-    // ✅ Reset boarding & dropping (optional: keep first default)
-    if (boardingPoints.length > 0) {
-      setSelectedBoarding(boardingPoints[0]);
-    }
-
-    if (droppingPoints.length > 0) {
-      setSelectedDropping(droppingPoints[0]);
-    }
-
-    // ✅ Reset insurance
-    setInsurance(false);
-
-    // ✅ Clear errors
-    setFieldErrors({});
-
-    // ✅ Remove localStorage
-    localStorage.removeItem(BUS_FORM_STORAGE_KEY);
-
-    toast.success("Form reset successfully.");
-  };
-
-  useEffect(() => {
-    try {
-      if (!passengers || passengers.length === 0) return;
-
-      // prevent saving empty form
-      const hasData = passengers.some(
-        (p) => p.firstName || p.lastName || p.age || p.idType || p.idNumber,
-      );
-
-      if (!hasData) return;
-
-      const dataToSave = {
-        passengers: passengers.map((p) => ({
-          firstName: p.firstName,
-          lastName: p.lastName,
-          age: p.age,
-          gender: p.gender,
-          idType: p.idType,
-          idNumber: p.idNumber,
-        })),
-        contactDetails,
-        selectedBoarding,
-        selectedDropping,
-        insurance,
-        lastUpdated: Date.now(),
-      };
-
-      localStorage.setItem(BUS_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
-
-      console.log("💾 Bus form saved");
-    } catch (err) {
-      console.error("Save error:", err);
-    }
-  }, [
-    passengers,
-    contactDetails,
-    selectedBoarding,
-    selectedDropping,
-    insurance,
-  ]);
-
-  useEffect(() => {
-    try {
-      // ❗ wait until passengers initialized from seats
-      if (!passengers || passengers.length === 0) return;
-
-      const saved = localStorage.getItem(BUS_FORM_STORAGE_KEY);
-
-      if (!saved) {
-        console.log("No saved bus form found");
-        return;
-      }
-
-      const parsed = JSON.parse(saved);
-
-      console.log("Restoring saved bus form:", parsed);
-
-      // restore passengers safely
-      if (parsed.passengers?.length) {
-        setPassengers((prev) =>
-          prev.map((p, i) => ({
-            ...p,
-            ...(parsed.passengers[i] || {}),
-          })),
-        );
-      }
-
-      // restore contact
-      if (parsed.contactDetails) {
-        setContactDetails(parsed.contactDetails);
-      }
-
-      // restore boarding/dropping
-      if (parsed.selectedBoarding) {
-        setSelectedBoarding(parsed.selectedBoarding);
-      }
-
-      if (parsed.selectedDropping) {
-        setSelectedDropping(parsed.selectedDropping);
-      }
-
-      if (parsed.insurance !== undefined) {
-        setInsurance(parsed.insurance);
-      }
-
-      console.log("✅ Bus form restored successfully");
-    } catch (err) {
-      console.error("Restore error:", err);
-    }
-  }, [passengers.length]); // ✅ CRITICAL FIX
-
   // --------------------------- UI ------------------------------
 
   if (loading) {
@@ -835,11 +597,7 @@ const BusCheckout = () => {
               <div className="position-relative">
                 <input
                   className="form-control"
-                  placeholder={
-                    apiLoading
-                      ? "Loading boarding points..."
-                      : "Search boarding point"
-                  }
+                  placeholder="Search boarding point"
                   value={
                     showBoardingDropdown
                       ? boardingSearch
@@ -850,7 +608,6 @@ const BusCheckout = () => {
                     setBoardingSearch(e.target.value);
                     setShowBoardingDropdown(true);
                   }}
-                  disabled={apiLoading}
                 />
 
                 {showBoardingDropdown && (
@@ -894,13 +651,7 @@ const BusCheckout = () => {
               <div className="position-relative">
                 <input
                   className="form-control"
-                  // placeholder="Search dropping point"
-                  placeholder={
-                    apiLoading
-                      ? "Loading dropping points..."
-                      : "Search dropping point"
-                  }
-                  disabled={apiLoading}
+                  placeholder="Search dropping point"
                   value={
                     showDroppingDropdown
                       ? droppingSearch
@@ -949,23 +700,14 @@ const BusCheckout = () => {
 
             {/* Passengers */}
             <div className="section-card">
-              {/* <h2 className="section-title">Passenger Details</h2> */}
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2 className="section-title mb-0">Passenger Details</h2>
+              <h2 className="section-title">Passenger Details</h2>
 
-                {localStorage.getItem(BUS_FORM_STORAGE_KEY) && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={handleResetBusForm}
-                  >
-                    Reset Form
-                  </button>
-                )}
-              </div>
               {passengers.map((p, i) => (
                 <div key={i} className="passenger-card">
-                  <h4>Passenger {i + 1}</h4>
+                  <h4>
+                    Passenger {i + 1}
+                    {/* Passenger {i + 1} — {p.seatNumber} */}
+                  </h4>
 
                   <div className="passenger-form">
                     {/* First Name */}
@@ -1159,7 +901,7 @@ const BusCheckout = () => {
             <button
               className="continue-btn"
               onClick={handleFinalSubmit}
-              disabled={apiLoading || !selectedBoarding || !selectedDropping}
+              disabled={apiLoading}
             >
               {blockLoading ? "Blocking Seats..." : "Continue to Payment"}
             </button>

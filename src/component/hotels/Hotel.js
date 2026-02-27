@@ -5,6 +5,7 @@ import HotelPopularDestination from "./HotelPopularDestination";
 import "./HotelBooking.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
 function Hotel() {
   const navigate = useNavigate();
 
@@ -77,28 +78,27 @@ function Hotel() {
     setShowCountrySuggestions(true);
   };
 
+
+
+
+  // ✅ Handle country selection from dropdown
   const handleCountrySelect = (country) => {
     setSelectedCountry(country.Code);
-
     setCountrySearch(country.Name);
-
     setShowCountrySuggestions(false);
 
-    // reset city
+    // Reset city when country changes
     setSelectedCity("");
     setSelectedCityName("");
-    setCitySearch("");
   };
 
-  // Default checkin/checkout = today/tomorrow
+  // ✅ Default check-in = tomorrow, check-out = day after tomorrow
   useEffect(() => {
     const today = new Date();
 
-    // ✅ check-in = tomorrow
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
-    // ✅ check-out = day after tomorrow
     const dayAfterTomorrow = new Date(today);
     dayAfterTomorrow.setDate(today.getDate() + 2);
 
@@ -146,16 +146,11 @@ function Hotel() {
 
         setCityList(cities);
 
-        if (cities.length > 0 && !selectedCity) {
-          const defaultCityCode = cities[0].CityCode || cities[0].Code;
-          const defaultCityName =
-            cities[0].CityName || cities[0].Name || cities[0].City;
-
-          setSelectedCity(defaultCityCode);
-          setSelectedCityName(defaultCityName);
-
-          // IMPORTANT
-          setCitySearch(defaultCityName);
+        if (cities.length > 0) {
+          setSelectedCity(cities[0].CityCode || cities[0].Code);
+          setSelectedCityName(
+            cities[0].CityName || cities[0].Name || cities[0].City
+          );
         }
       } catch (err) {
         console.error("Error fetching cities:", err);
@@ -163,6 +158,7 @@ function Hotel() {
         setLoading(false);
       }
     };
+
     fetchCities();
   }, [selectedCountry]);
 
@@ -231,10 +227,9 @@ function Hotel() {
 
     console.log(
       "➡️ Passing Filters to hotel-list:",
-      JSON.stringify(filters, null, 2),
+      JSON.stringify(filters, null, 2)
     );
 
-    // Navigate with state
     navigate("/hotel-list", { state: filters });
   };
 
@@ -327,18 +322,16 @@ function Hotel() {
                 )}
               </div>
 
-              {/* Check-in */}
+              {/* Check-In */}
               <div className="col-md-2">
                 <label className="form-label">Check-In</label>
                 <DatePicker
                   selected={checkIn ? new Date(checkIn) : null}
                   onChange={(date) => {
                     if (!date) return;
-
                     const checkInDate = date.toISOString().split("T")[0];
                     setCheckIn(checkInDate);
 
-                    // ⭐ Automatically set Check-Out = tomorrow date
                     const nextDay = new Date(date);
                     nextDay.setDate(nextDay.getDate() + 1);
                     setCheckOut(nextDay.toISOString().split("T")[0]);
@@ -361,7 +354,7 @@ function Hotel() {
                   className="form-control"
                   dateFormat="yyyy-MM-dd"
                   minDate={checkIn ? new Date(checkIn) : new Date()}
-                  excludeDates={checkIn ? [new Date(checkIn)] : []} // ⭐ Hide check-in date
+                  excludeDates={checkIn ? [new Date(checkIn)] : []}
                   placeholderText="Select Check-Out"
                 />
               </div>
@@ -375,8 +368,7 @@ function Hotel() {
                   style={{ cursor: "pointer" }}
                 >
                   {rooms} Room{rooms > 1 ? "s" : ""},{" "}
-                  {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)}{" "}
-                  Guests
+                  {paxRooms.reduce((acc, r) => acc + r.Adults + r.Children, 0)} Guests
                   <span>▼</span>
                 </div>
 
@@ -435,10 +427,7 @@ function Hotel() {
                                     updated[idx].Children -= 1;
                                     updated[idx].ChildrenAges = updated[
                                       idx
-                                    ].ChildrenAges.slice(
-                                      0,
-                                      updated[idx].Children,
-                                    );
+                                    ].ChildrenAges.slice(0, updated[idx].Children);
                                   }
                                   setPaxRooms(updated);
                                 }}
@@ -467,9 +456,7 @@ function Hotel() {
                         {/* Children Ages */}
                         {room.Children > 0 && (
                           <div>
-                            <label className="form-label">
-                              Age(s) of Children
-                            </label>
+                            <label className="form-label">Age(s) of Children</label>
                             <div className="d-flex gap-2">
                               {room.ChildrenAges.map((age, cIdx) => (
                                 <select
@@ -480,19 +467,18 @@ function Hotel() {
                                   onChange={(e) => {
                                     const updated = [...paxRooms];
                                     updated[idx].ChildrenAges[cIdx] = Number(
-                                      e.target.value,
+                                      e.target.value
                                     );
                                     setPaxRooms(updated);
                                   }}
                                 >
-                                  {Array.from(
-                                    { length: 12 },
-                                    (_, i) => i + 1,
-                                  ).map((a) => (
-                                    <option key={a} value={a}>
-                                      {a}
-                                    </option>
-                                  ))}
+                                  {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                                    (a) => (
+                                      <option key={a} value={a}>
+                                        {a}
+                                      </option>
+                                    )
+                                  )}
                                 </select>
                               ))}
                             </div>
@@ -549,6 +535,7 @@ function Hotel() {
                   Search
                 </button>
               </div>
+
             </div>
           </div>
         </div>

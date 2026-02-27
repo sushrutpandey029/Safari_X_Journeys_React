@@ -22,8 +22,6 @@ export default function FlightView({ booking }) {
     serviceType,
   } = booking || {};
 
-  console.log("booking in flightview page", booking);
-
   // Normalize vendor booking IDs
   const bookingIds = React.useMemo(() => {
     if (Array.isArray(booking?.vendorResponse?.bookingIds)) {
@@ -103,6 +101,31 @@ export default function FlightView({ booking }) {
 
   const airline = firstSegment?.Airline;
 
+  //cancellation logic
+
+const now = new Date();
+
+// Check airline allows refund
+const onlineRefundAllowed =
+  flightItinerary?.MiniFareRules?.find(
+    (rule) => rule.Type === "Cancellation"
+  )?.OnlineRefundAllowed ?? false;
+
+// cutoff hours (recommended 3)
+const cutoffHours = 3;
+
+let cutoffTime = null;
+
+if (depTime) {
+  cutoffTime = new Date(depTime);
+  cutoffTime.setHours(cutoffTime.getHours() - cutoffHours);
+}
+
+const canCancelFlight =
+  depTime &&
+  now < cutoffTime &&
+  onlineRefundAllowed &&
+  status === "confirmed";
   const getBookingDetails = async (bookingIdToFetch) => {
     try {
       if (!bookingIdToFetch) return;
@@ -115,10 +138,7 @@ export default function FlightView({ booking }) {
       console.log("Fetching booking details for:", bookingIdToFetch);
 
       const resp = await flight_getBookingDetails(payload);
-      console.log(
-        "live flight details data",
-        JSON.stringify(resp.data, null, 2),
-      );
+      console.log("live flight details data", JSON.stringify(resp.data,null,2));
       setLiveBookingData(resp.data);
     } catch (err) {
       console.error("Flight getBookingDetails error", err);
@@ -440,16 +460,8 @@ export default function FlightView({ booking }) {
       )}
 
       {/* ACTION BUTTONS */}
-      {status === "confirmed" && (
+      {canCancelFlight && (
         <>
-          {/* <button
-            className="btn btn-outline-primary"
-            onClick={() =>
-              handleDownloadInvoice(booking.bookingId, vendorBookingId)
-            }
-          >
-            Download Invoice
-          </button> */}
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

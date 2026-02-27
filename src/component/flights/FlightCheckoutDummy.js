@@ -18,7 +18,6 @@ import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { searchInsurance } from "../services/insuranceService";
 import { toast } from "react-toastify";
-import { fetchCoupons } from "../services/couponService";
 
 const Flightcheckout = () => {
   const location = useLocation();
@@ -44,11 +43,8 @@ const Flightcheckout = () => {
   const [fareLoading, setFareLoading] = useState(false);
   const [confirmingPassengers, setConfirmingPassengers] = useState(false);
 
-  //coupon state
   const [couponCode, setCouponCode] = useState("");
-  const [selectedCoupon, setSelectedCoupon] = useState(null);
-  const [coupons, setCoupons] = useState([]);
-
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [error, setError] = useState(null);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -201,7 +197,7 @@ const Flightcheckout = () => {
       if (parsed.selectedSeats) setSelectedSeats(parsed.selectedSeats);
       if (parsed.selectedInsurancePlan)
         setSelectedInsurancePlan(parsed.selectedInsurancePlan);
-      if (parsed.selectedCoupon) setSelectedCoupon(parsed.selectedCoupon);
+      if (parsed.appliedCoupon) setAppliedCoupon(parsed.appliedCoupon);
       if (parsed.passengerConfirmed)
         setPassengerConfirmed(parsed.passengerConfirmed);
 
@@ -210,33 +206,6 @@ const Flightcheckout = () => {
       console.error("Restore error:", err);
       setRestoreChecked(true);
     }
-  }, []);
-
-  const fetchCouponData = async () => {
-    try {
-      const userdetails = await getUserData("safarix_user");
-
-      if (!userdetails?.id) return;
-
-      const resp = await fetchCoupons(userdetails.id);
-
-      if (resp?.data?.success) {
-        const activeCoupons = resp.data.coupons.filter(
-          (c) =>
-            c.status === "active" &&
-            new Date(c.startDate) <= new Date() &&
-            new Date(c.endDate) >= new Date(),
-        );
-
-        setCoupons(activeCoupons);
-      }
-    } catch (err) {
-      console.log("err in coupon fetching", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchCouponData();
   }, []);
 
   // ✅ AUTO SAVE CHECKOUT DATA
@@ -259,7 +228,7 @@ const Flightcheckout = () => {
         selectedBaggage,
         selectedSeats,
         selectedInsurancePlan,
-        selectedCoupon,
+        appliedCoupon,
         passengerConfirmed,
         lastUpdated: Date.now(),
       };
@@ -282,7 +251,7 @@ const Flightcheckout = () => {
     selectedBaggage,
     selectedSeats,
     selectedInsurancePlan,
-    selectedCoupon,
+    appliedCoupon,
     passengerConfirmed,
   ]);
 
@@ -848,14 +817,23 @@ const Flightcheckout = () => {
     setPassengers(newPassengers);
   };
 
-  const applyCoupon = (coupon) => {
-    setSelectedCoupon(coupon);
-    toast.success(`Coupon applied successfully.`);
+  // ✅ Apply coupon
+  const applyCoupon = () => {
+    if (couponCode.trim() && couponCode.length >= 4) {
+      const discount = Math.min(200, calculateTotalAmount() * 0.1);
+      setAppliedCoupon({
+        code: couponCode.toUpperCase(),
+        discount: Math.floor(discount),
+        description: "Discount applied successfully",
+      });
+      setCouponCode("");
+    } else {
+      alert("Please enter a valid coupon code (minimum 4 characters)");
+    }
   };
 
   const removeCoupon = () => {
-    setSelectedCoupon(null);
-    toast.warning(`Coupon removed successfully.`);
+    setAppliedCoupon(null);
   };
 
   // ✅ Format time and date
@@ -964,49 +942,37 @@ const Flightcheckout = () => {
 
     return ssrTotal;
   };
-  const calculateCouponDiscount = () => {
-    if (!selectedCoupon) return 0;
 
-    const fareBreakdown = calculateTotalFareBreakdown();
-
-    const platformCharge =
-      Number(fareBreakdown.commissionAmount || 0) +
-      Number(fareBreakdown.gstAmount || 0);
-
-    let discount = 0;
-
-    if (selectedCoupon.discountType === "percentage") {
-      discount = (platformCharge * selectedCoupon.discountValue) / 100;
-    } else {
-      discount = Math.min(selectedCoupon.discountValue, platformCharge);
-    }
-
-    return Math.floor(discount);
-  };
   // ✅ UPDATED: Calculate total amount including everything - ACTUAL PAYMENT AMOUNT
   const calculateTotalAmount = () => {
     const { baseFare, commissionAmount, gstAmount, otherTaxes } =
       calculateTotalFareBreakdown();
 
+    // ✅ START: Payment Amount = Net Fare + Commission + GST + Other Taxes
     const flightPaymentAmount =
       baseFare + commissionAmount + gstAmount + (otherTaxes || 0);
 
     let finalTotal = flightPaymentAmount;
 
+    // ✅ Add SSR charges
     const ssrCharges = calculateSSRCharges();
     finalTotal += ssrCharges;
 
+    // ✅ Add insurance
     if (selectedInsurancePlan) {
       const passengerCount = getPassengerCount();
+      const totalPassengers = passengerCount.adults + passengerCount.children;
+
       finalTotal +=
-        (selectedInsurancePlan.Pricing?.finalAmount || 0) *
-        (passengerCount.adults + passengerCount.children);
+        (selectedInsurancePlan.Pricing?.finalAmount || 0) * totalPassengers;
     }
 
-    const couponDiscount = calculateCouponDiscount();
-    finalTotal -= couponDiscount;
+    // ✅ Apply coupon discount
+    if (appliedCoupon) {
+      finalTotal = Math.max(0, finalTotal - appliedCoupon.discount);
+    }
 
-    return Math.max(0, finalTotal);
+    return finalTotal;
   };
 
   // ✅ NEW: Calculate Net Fare + Commission only (for display on proceed button)
@@ -1195,7 +1161,7 @@ const Flightcheckout = () => {
       InsuranceTraceid: insuranceTraceId || null,
       TripType: state?.tripType || searchData?.tripType || "oneway",
       TravelClass: state?.travelClass || searchData?.travelClass || "Economy",
-      couponId: selectedCoupon?.id || null,
+
       PricingBreakdown: {
         ...fareBreakdown,
         insurancePremium,
@@ -1420,13 +1386,6 @@ const Flightcheckout = () => {
               Includes airline charges, convenience fee & GST where applicable.
             </div>
           </>
-        )}
-
-        {selectedCoupon && (
-          <div className="fare-row text-success">
-            <span>Coupon Discount ({selectedCoupon.code})</span>
-            <span>- ₹ {formatPrice(calculateCouponDiscount())}</span>
-          </div>
         )}
 
         <div className="fare-divider"></div>
@@ -2058,6 +2017,27 @@ const Flightcheckout = () => {
                               </Form.Group>
                             </Col>
                           )}
+
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Contact Number *</Form.Label>
+                              <Form.Control
+                                type="tel"
+                                placeholder="Enter contact number"
+                                maxLength={10}
+                                pattern="[0-9]{10}"
+                                value={passenger.contactNo}
+                                onChange={(e) =>
+                                  handlePassengerChange(
+                                    index,
+                                    "contactNo",
+                                    e.target.value,
+                                  )
+                                }
+                                required
+                              />
+                            </Form.Group>
+                          </Col>
                         </Row>
 
                         <Row>
@@ -2471,16 +2451,19 @@ const Flightcheckout = () => {
                               (b) => b?.Code === bag?.Code,
                             );
 
+                            // 🔁 CASE 1: deselect if same clicked again
                             if (existsIndex !== -1) {
                               const copy = [...prev];
                               copy.splice(existsIndex, 1);
                               return copy;
                             }
 
+                            // ➕ CASE 2: space available
                             if (prev.length < requiredSeatCount) {
                               return [...prev, bag];
                             }
 
+                            // 🔄 CASE 3: replace (IMPORTANT FIX)
                             return [bag];
                           });
                         }}
@@ -2735,55 +2718,6 @@ const Flightcheckout = () => {
                       )}
                     </div>
 
-                    {/* Coupon Section */}
-                    <div className="coupon-section mb-3 p-3 border rounded">
-                      <h6>Available Coupons</h6>
-
-                      {coupons.length === 0 && (
-                        <small className="text-muted">
-                          No active coupons available
-                        </small>
-                      )}
-
-                      {coupons.map((coupon) => {
-                        const isApplied = selectedCoupon?.id === coupon.id;
-
-                        return (
-                          <div
-                            key={coupon.id}
-                            className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
-                          >
-                            <div>
-                              <strong>{coupon.code}</strong>
-                              <div className="small text-muted">
-                                {coupon.discountType === "percentage"
-                                  ? `${coupon.discountValue}% off on service fee`
-                                  : `₹${coupon.discountValue} off on service fee`}
-                              </div>
-                            </div>
-
-                            {isApplied ? (
-                              <Button
-                                size="sm"
-                                variant="outline-danger"
-                                onClick={removeCoupon}
-                              >
-                                Remove
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="primary"
-                                onClick={() => applyCoupon(coupon)}
-                              >
-                                Apply
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
                     {/* Proceed Button - SHOWING NET FARE + COMMISSION BUT ACTUAL PAYMENT INCLUDES EVERYTHING */}
                     <Button
                       variant="primary"
@@ -2795,6 +2729,9 @@ const Flightcheckout = () => {
                       }
                     >
                       <div className="small text-light opacity-75">
+                        <span className="text-warning text-decoration-underline">
+                          Total Payment: ₹ {formatPrice(totalAmount)}
+                        </span>
                         <div className="small text-light">Click to proceed</div>
                       </div>
                     </Button>

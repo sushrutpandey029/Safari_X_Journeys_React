@@ -221,8 +221,6 @@ export default function HotelView({ booking }) {
 
       // ✅ Start polling
       pollStatus();
-
-     
     } catch (err) {
       const msg = "Cancellation failed. Please try again.";
       setCancelState("failed");
@@ -250,6 +248,14 @@ export default function HotelView({ booking }) {
     };
   }, [isCancelling]);
 
+  const now = new Date();
+
+  const checkInDate = bookingDetailData?.CheckInDate
+    ? new Date(bookingDetailData.CheckInDate)
+    : null;
+
+  // true if cancellation is allowed
+  const canCancel = checkInDate && now < checkInDate && status === "confirmed";
   // ================= Render UI ==================
   if (loading) {
     return <div className="alert alert-info">⏳ Loading details...</div>;
@@ -345,14 +351,8 @@ export default function HotelView({ booking }) {
       )}
 
       {/* Action Buttons */}
-      {status === "confirmed" && (
+      {canCancel && (
         <>
-          {/* <button
-            className="btn btn-outline-primary"
-            onClick={() => handleDownloadInvoice(booking.bookingId)}
-          >
-            Download Invoice
-          </button> */}
           <button
             className="btn btn-outline-danger"
             disabled={isCancelling}

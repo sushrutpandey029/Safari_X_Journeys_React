@@ -12,10 +12,12 @@ function Booking() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const itemsPerPage = 10;
 
   const fetchDetails = async () => {
+    setLoading(true);
     const userdetails = await getUserData("safarix_user");
     try {
       const resp = await userBookingDetails(userdetails.id);
@@ -23,6 +25,8 @@ function Booking() {
       setBookings(resp.data || []);
     } catch (err) {
       console.log("err in user booking details", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,7 +70,18 @@ function Booking() {
         </thead>
 
         <tbody>
-          {currentBookings.length > 0 ? (
+          {loading ? (
+    <tr>
+      <td colSpan="4" className="text-center">
+        <div className="d-flex justify-content-center align-items-center">
+          <div className="spinner-border text-info me-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          Loading bookings...
+        </div>
+      </td>
+    </tr>
+  ) :currentBookings.length > 0 ? (
             currentBookings.map((booking) => (
               <tr key={booking.id}>
                 <td>{formatDate(booking.createdAt)}</td>

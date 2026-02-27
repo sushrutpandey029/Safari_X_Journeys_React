@@ -33,9 +33,6 @@ export default function BusView({ booking }) {
 
   // Extract from DB serviceDetails
   const { TraceId, EndUserIp } = serviceDetails || {};
-  // const { TokenId, TraceId, EndUserIp } = serviceDetails || {};
-  console.log("service detials", serviceDetails);
-  console.log("traceid in busview", TraceId);
 
   // LIVE DATA STATE
   const [liveData, setLiveData] = useState(null);
@@ -62,8 +59,7 @@ export default function BusView({ booking }) {
         BusId: booking.vendorResponse?.BookResult?.BusId, // IMPORTANT
         IsBaseCurrencyRequired: false,
       };
-      console.log("payload before bus booking detail", payload);
-
+ 
       const response = await bus_getBookingDetails(payload);
 
       console.log("🔵 RAW BUS API RESPONSE:", response);
@@ -87,10 +83,8 @@ export default function BusView({ booking }) {
   useEffect(() => {
     if (TraceId && BusId) fetchBusBookingDetails();
   }, [TraceId, BusId]);
-  // useEffect(() => {
 
-  //   if (TokenId && TraceId && BusId) fetchBusBookingDetails();
-  // }, [TokenId, TraceId, BusId]);
+
 
   if (!liveData) return <div>Loading...</div>;
 
@@ -109,7 +103,17 @@ export default function BusView({ booking }) {
     BoardingPointdetails,
     CancelPolicy = [],
   } = itinerary;
+  // cancellation eligibility logic
+const now = new Date();
 
+const departureDateTime = DepartureTime
+  ? new Date(DepartureTime)
+  : null;
+
+const canCancel =
+  departureDateTime &&
+  now < departureDateTime &&
+  status === "confirmed";
   // PDF Invoice
 
   const handleDownloadInvoice = async (bookingId) => {
@@ -296,7 +300,7 @@ export default function BusView({ booking }) {
       )}
 
       {/* ACTION BUTTONS */}
-      {status === "confirmed" && (
+      {canCancel  && (
         <>
           <button
             className="btn btn-outline-danger"

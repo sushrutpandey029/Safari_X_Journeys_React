@@ -272,7 +272,7 @@ function BusPopularDestination() {
               onChange={(date) =>
                 handleSearchParamChange(
                   "travelDate",
-                  date.toISOString().split("T")[0],
+                  date?.toISOString().split("T")[0],
                 )
               }
               className="form-control"

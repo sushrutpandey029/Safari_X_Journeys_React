@@ -99,4 +99,7 @@ export const API = {
   //insurance endpoints
   SEARCH_INSURANCE: `${BASE_URL}/insurance/search`,
   GET_INSURANCE_BOOKING_DETAILS: `${BASE_URL}/insurance/getBookingDetail`,
+
+  //coupons route
+  FETCH_COUPONS : (id) => `${BASE_URL}/api/coupons/available?id=${id}`
 };

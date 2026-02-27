@@ -132,25 +132,40 @@ const HotelDetail = () => {
         setHotelDetails(details);
 
         // ✅ Search using exact bookingData
+        // ✅ FIXED - searchResp se rooms extract karna
         const searchResp = await searchHotels({
           CheckIn: bookingData.checkIn,
           CheckOut: bookingData.checkOut,
           HotelCodes: hotelCode.toString(),
-          GuestNationality: bookingData.guestNationality || "IN",
+          GuestNationality: bookingData.GuestNationality || bookingData.guestNationality || "IN",
           NoOfRooms: bookingData.NoOfRooms || 1,
           PaxRooms: bookingData.PaxRooms,
           ResponseTime: bookingData.ResponseTime || 30,
-          IsDetailedResponse: true, // force true for details
+          IsDetailedResponse: true,
           Filters: {
             Refundable: false, // relax filters to match working Postman
             MealType: "All", // "All" was too restrictive
           },
         });
 
-        console.log("🔍 searchResp:", searchResp);
+        console.log("🔍 Full searchResp:", JSON.stringify(searchResp?.data, null, 2));
+
+        // ✅ FIXED: Multiple response structures try karo
+        const hotelResults =
+          searchResp?.data?.data?.HotelResult ||
+          searchResp?.data?.HotelResult ||
+          searchResp?.HotelResult ||
+          [];
+
+        console.log("🏨 hotelResults length:", hotelResults.length);
 
         const searchHotel =
-          searchResp?.HotelResult?.find((h) => h.HotelCode == hotelCode) || {};
+          hotelResults.find(
+            (h) => h.HotelCode?.toString() === hotelCode?.toString()
+          ) || {};
+
+        console.log("🛏️ Matched hotel:", searchHotel);
+        console.log("🛏️ Rooms found:", searchHotel?.Rooms?.length || 0);
 
         const roomData = searchHotel?.Rooms || [];
         setRooms(roomData);
@@ -484,11 +499,10 @@ const HotelDetail = () => {
                                 </div>
                               ) : (
                                 <span
-                                  className={`badge ${
-                                    isRefundable === "Yes"
+                                  className={`badge ${isRefundable === "Yes"
                                       ? "bg-success"
                                       : "bg-danger"
-                                  }`}
+                                    }`}
                                 >
                                   {isRefundable}
                                 </span>

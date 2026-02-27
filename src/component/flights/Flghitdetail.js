@@ -257,50 +257,9 @@ const FlightDetail = ({ flightContext, showModal, onHide }) => {
                     {new Date(summary.departureTime).toLocaleString()}
                   </div>
 
-                  {/* Refund badge */}
-                  <div
-                    className={`fare-badge ${
-                      summary.isRefundable ? "refundable" : "non-refundable"
-                    }`}
-                  >
-                    {summary.isRefundable ? "Refundable" : "Non-Refundable"}
-                  </div>
+                 
 
-                  {/* Fees */}
-                  <div className="fare-body">
-                    <div className="fare-row">
-                      <span>Cancellation</span>
-                      <span>
-                        {summary.refundFee === null
-                          ? "Not Allowed"
-                          : summary.refundFee === 0
-                            ? "Free"
-                            : `₹${summary.refundFee}`}
-                      </span>
-                    </div>
-
-                    <div className="fare-row">
-                      <span>Change</span>
-                      <span>
-                        {summary.changeFee === null
-                          ? "Not Allowed"
-                          : summary.changeFee === 0
-                            ? "Free"
-                            : `₹${summary.changeFee}`}
-                      </span>
-                    </div>
-
-                    <div className="fare-row">
-                      <span>No-show</span>
-                      <span>
-                        {summary.noShowFee === null
-                          ? "Not Allowed"
-                          : summary.noShowFee === 0
-                            ? "Free"
-                            : `₹${summary.noShowFee}`}
-                      </span>
-                    </div>
-                  </div>
+             
 
                   {/* Read More */}
                   <Button

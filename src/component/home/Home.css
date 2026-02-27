@@ -653,7 +653,7 @@ header {
 /************book-hotel*************/
 
 .book-hotel {
-  background-color: #f7f7ff;
+  background-color: #e5f7ff;
   padding: 70px 0px;
 
   h2 {
@@ -859,7 +859,7 @@ header {
 /************testimonial-faq-newslettetr-footer*************/
 .modern-faq-section {
   padding: 70px 0;
-  background-color: #f7f7ff;
+  background-color: #e5f7ff;
 }
 
 .faq-title-left {
@@ -1361,37 +1361,60 @@ header {
   text-align: center;
 }
 
-.foot {
-  position: relative;
-  top: -25px;
+/* =========================
+   FLOATING SUPPORT ICONS
+========================= */
 
+.floating-support{
+  position: fixed;
+  left: 10px;
 
-  .chatbot-box img {
-    height: 35px;
-    width: 35px;
+  /* 🔥 CENTER OF SCREEN */
+  top: 50%;
+  transform: translateY(-50%);
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 9999;
+}
+
+/* icon button */
+.support-btn{
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  transition: all .3s ease;
+}
+
+/* icon */
+.support-btn img{
+  width: 28px;
+  height: 28px;
+}
+
+/* hover animation */
+.support-btn:hover{
+  transform: scale(1.1);
+}
+
+/* mobile */
+@media(max-width:768px){
+  .floating-support{
+    right: 12px;
   }
 
-  .d-flex {
-    display: contents !important;
-  }
-
-  .chatbot-box {
-    background: #000000;
-    border-radius: 30px;
-    padding: 8px 20px;
-    display: flex;
-    z-index: 5;
-    position: relative;
-    margin: 0px 0px 0px 23px;
-    color: #fff;
-
-    p {
-      margin-bottom: 0;
-      line-height: 35px;
-      padding-left: 9px;
-    }
+  .support-btn{
+    width:48px;
+    height:48px;
   }
 }
+
 
 .blog-box {
   cursor: pointer;
@@ -1404,7 +1427,6 @@ header {
 footer {
   position: relative;
   padding: 100px 0 40px;
-  margin-top: -50px;
   color: #fff;
   overflow: hidden;
   /* z-index: -1; REMOVE THIS */
@@ -1524,8 +1546,8 @@ footer > * {
 /****newsletter******/
 /* Background */
 .newsletter-modern {
-  padding: 30px 0 80px;
-  background: #f7f7ff;
+  padding: 80px 0px;
+  background: #e5f7ff;
   /* Light grey like screenshot */
 }
 
@@ -1537,13 +1559,12 @@ footer > * {
   border-radius: 14px;
   text-align: center;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  width: 70%;
 }
 
 /* Title */
 .newsletter-title {
-  font-size: 42px;
-  font-weight: 600;
-  font-family: "Georgia", serif;
+  font-size: 32px;
   color: #333;
   margin-bottom: 25px;
 }
@@ -1569,10 +1590,10 @@ footer > * {
 /* Input */
 .newsletter-field {
   width: 450px;
-  padding: 15px 20px;
+  padding: 10px 20px;
   background: #fff;
   border: 1px solid #dcdcdc;
-  border-radius: 12px;
+  border-radius: 50px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   font-size: 16px;
   transition: 0.3s ease;
@@ -1585,13 +1606,13 @@ footer > * {
 
 /* Button */
 .newsletter-btn {
-  padding: 15px 30px;
+  padding: 10px 22px;
   background: #4889b9;
   color: #fff;
   border: none;
   border-radius: 50px;
   transition: 0.5s;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   transition: 0.3s ease;
@@ -2069,7 +2090,6 @@ footer > * {
         }
     }
 }
-
 footer {
     padding: 40px 0px 30px;
 
@@ -2082,22 +2102,7 @@ footer {
         line-height: 21px;
     }
 }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**************************responsive**************************/
 @media (max-width: 768px) {
@@ -2219,10 +2224,4 @@ footer {
       width: 50%;
     }
   }
-  .why-choose::before {
-    width: 100px;
-}
-
-
-
 }

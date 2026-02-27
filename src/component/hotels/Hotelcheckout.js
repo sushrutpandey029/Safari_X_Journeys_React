@@ -4,6 +4,7 @@ import useCashfreePayment from "../hooks/useCashfreePayment";
 import { getUserData } from "../utils/storage";
 import { hotel_prebook } from "../services/hotelService";
 import { toast } from "react-toastify";
+import { fetchCoupons } from "../services/couponService";
 
 const HotelCheckout = () => {
   const location = useLocation();
@@ -13,8 +14,10 @@ const HotelCheckout = () => {
   const navigate = useNavigate();
 
   console.log("payload in hotel chckout", payload);
+  console.log("user details dta", userdetails);
 
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [showAllPolicies, setShowAllPolicies] = useState(false);
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [preBookResponse, setPreBookResponse] = useState(null);
@@ -27,7 +30,24 @@ const HotelCheckout = () => {
   const [startDate, setStartDate] = useState(payload?.startDate || "");
   const [endDate, setEndDate] = useState(payload?.endDate || "");
   const [city, setCity] = useState(payload?.city || "");
-  const [roomsData, setRoomsData] = useState([]); // For dynamic rooms & passengers
+  const [roomsData, setRoomsData] = useState([]);
+
+  // Coupon states
+  const [coupons, setCoupons] = useState([]);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+
+  const basePricing = payload?.serviceDetails?.Pricing || {};
+
+  const hotelFare = Number(basePricing.netFare || 0);
+
+  const platformCharge =
+    Number(basePricing.commissionAmount || 0) +
+    Number(basePricing.gstAmount || 0);
+
+  const originalTotal = hotelFare + platformCharge;
+
+  const [finalAmount, setFinalAmount] = useState(originalTotal);
 
   const [price, setPrice] = useState({
     basePrice: 0,
@@ -42,6 +62,7 @@ const HotelCheckout = () => {
   const [preBookInfo, setPreBookInfo] = useState(null);
   const [validationInfo, setValidationInfo] = useState(null);
   const [initialPreBookLoading, setInitialPreBookLoading] = useState(false);
+
   const decodeHtml = (html) => {
     const txt = document.createElement("textarea");
     txt.innerHTML = html;
@@ -181,6 +202,61 @@ const HotelCheckout = () => {
 
     toast.success("Form reset successfully.");
   };
+
+  const fetchCouponData = async () => {
+    try {
+      const resp = await fetchCoupons(userdetails.id);
+
+      if (resp?.data?.success) {
+        const activeCoupons = resp.data.coupons.filter(
+          (c) =>
+            c.status === "active" &&
+            new Date(c.startDate) <= new Date() &&
+            new Date(c.endDate) >= new Date(),
+        );
+
+        setCoupons(activeCoupons);
+      }
+    } catch (err) {
+      console.log("err in coupon fetching", err);
+    }
+  };
+
+  const applyCoupon = (coupon) => {
+    let discount = 0;
+
+    // Apply coupon ONLY on platformCharge
+    if (coupon.discountType === "percentage") {
+      discount = (platformCharge * coupon.discountValue) / 100;
+    } else {
+      discount = Math.min(coupon.discountValue, platformCharge);
+    }
+
+    const newFinalAmount = hotelFare + platformCharge - discount;
+
+    setSelectedCoupon(coupon);
+
+    setDiscountAmount(discount);
+
+    setFinalAmount(newFinalAmount);
+
+    toast.success(`Coupon applied. You saved ₹${Math.ceil(discount)}`);
+  };
+
+  const removeCoupon = () => {
+    setSelectedCoupon(null);
+
+    setDiscountAmount(0);
+
+    setFinalAmount(originalTotal);
+
+    toast.info("Coupon removed");
+  };
+
+  useEffect(() => {
+    fetchCouponData();
+  }, []);
+
   useEffect(() => {
     if (!userdetails) {
       toast.info("Please login first, before proceed to booking.", {
@@ -456,7 +532,9 @@ const HotelCheckout = () => {
         vendorType: "hotel",
         vendorId: hotel?.hotelCode,
         startDate: startDate,
-        totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
+        // totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
+        totalAmount: Math.ceil(finalAmount),
+        couponId: selectedCoupon?.id || null,
         BookingCode: hotel?.bookingCode,
         IsVoucherBooking: true,
         GuestNationality: hotel?.guestNationality || "IN",
@@ -500,6 +578,7 @@ const HotelCheckout = () => {
         if (!hotelResult) return;
 
         setPreBookInfo(hotelResult);
+        console.log("prebook reps", hotelResult);
         setValidationInfo(data?.ValidationInfo || null);
 
         console.log("Initial PreBook Data:", hotelResult);
@@ -696,51 +775,6 @@ const HotelCheckout = () => {
                         </>
                       )}
 
-                      {/* {pax.LeadPassenger && (
-                        <>
-                          <div className="mb-2">
-                            <label className="form-label">Email</label>
-                            <input
-                              type="email"
-                              className="form-control"
-                              value={pax.Email}
-                              onChange={(e) =>
-                                handlePassengerChange(
-                                  roomIndex,
-                                  paxIndex,
-                                  "Email",
-                                  e.target.value,
-                                )
-                              }
-                              required
-                            />
-                          </div>
-
-                          <div className="mb-2">
-                            <label className="form-label">
-                              PAN{" "}
-                              {hotel?.guestNationality !== "IN" && (
-                                <span className="text-danger">*</span>
-                              )}
-                            </label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={pax.PAN}
-                              onChange={(e) =>
-                                handlePassengerChange(
-                                  roomIndex,
-                                  paxIndex,
-                                  "PAN",
-                                  e.target.value,
-                                )
-                              }
-                              required
-                            />
-                          </div>
-                        </>
-                      )} */}
-
                       {pax.PaxType === 2 && (
                         <div className="mb-2">
                           <label className="form-label">Age</label>
@@ -780,7 +814,6 @@ const HotelCheckout = () => {
                                 e.target.value.replace(/\D/g, ""),
                               )
                             }
-                            maxLength={15}
                             required
                           />
                         </div>
@@ -808,11 +841,36 @@ const HotelCheckout = () => {
             <h5 className="fw-bold text-center mb-3">💰 Price Summary</h5>
 
             <div className="price-row">
+              <span>Hotel Fare</span>
+              <span>₹{Math.ceil(hotelFare)}</span>
+            </div>
+
+            <div className="price-row">
+              <span>Tax + Service Fees</span>
+              <span>₹{Math.ceil(platformCharge)}</span>
+            </div>
+
+            {selectedCoupon && (
+              <div className="price-row text-success">
+                <span>Coupon Discount</span>
+
+                <span>-₹{Math.ceil(discountAmount)}</span>
+              </div>
+            )}
+
+            <hr />
+
+            <div className="price-row total">
+              <span>Total Amount</span>
+
+              <span>₹{Math.ceil(finalAmount)}</span>
+            </div>
+
+            {/* <div className="price-row">
               <span>Price </span>
               <span className="price-value">
                 ₹{Math.ceil(payload?.serviceDetails?.Pricing?.netFare || 0)}
-                {/* ₹{(price?.basePrice || 0).toFixed(2)} */}
-              </span>
+               </span>
             </div>
 
             <div className="price-row">
@@ -823,21 +881,67 @@ const HotelCheckout = () => {
                   payload?.serviceDetails?.Pricing?.commissionAmount +
                     payload?.serviceDetails?.Pricing?.gstAmount || 0,
                 )}
-                {/* ₹{(price?.tax || 0).toFixed(2)} */}
-              </span>
-            </div>
+               </span>
+            </div> */}
 
-            <hr className="my-3" />
+            {/* <hr className="my-3" />
 
             <div className="price-row total">
               <span>Total Amount</span>
               <span>
                 ₹{Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount || 0)}
               </span>
-              {/* <span>₹{(price?.totalFare || 0).toFixed(2)}</span> */}
-            </div>
+            </div> */}
           </div>
+          {/* COUPON CARD */}
+          <div className="card shadow-sm p-3 rounded-4 mb-3">
+            <h6 className="fw-bold mb-2">Available Coupons</h6>
 
+            {coupons.length === 0 && (
+              <p className="text-muted small">No coupons available</p>
+            )}
+
+            {coupons.map((coupon) => {
+              const isApplied = selectedCoupon?.id === coupon.id;
+
+              return (
+                <div
+                  key={coupon.id}
+                  className="border rounded p-2 mb-2 d-flex justify-content-between align-items-center"
+                >
+                  <div>
+                    <strong>{coupon.code}</strong>
+
+                    <div className="small text-success">
+                      {coupon.discountType === "percentage"
+                        ? `${coupon.discountValue}% OFF on platform charges`
+                        : `₹${coupon.discountValue} OFF on platform charges`}
+                    </div>
+
+                    <div className="small text-muted">
+                      Valid till {coupon.endDate}
+                    </div>
+                  </div>
+
+                  {isApplied ? (
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={removeCoupon}
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => applyCoupon(coupon)}
+                    >
+                      Apply
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           {/* CANCELLATION CARD */}
 
           {preBookInfo && (
@@ -905,12 +1009,16 @@ const HotelCheckout = () => {
               )}
 
               {/* 🔹 Rate Conditions (NEW) */}
+              {/* 🔹 Rate Conditions */}
               {preBookInfo.RateConditions?.length > 0 && (
                 <>
                   <h6 className="fw-bold mt-3">Hotel Policies & Conditions</h6>
 
                   <div className="small">
-                    {preBookInfo.RateConditions.map((rule, idx) => (
+                    {(showAllPolicies
+                      ? preBookInfo.RateConditions
+                      : preBookInfo.RateConditions.slice(0, 2)
+                    ).map((rule, idx) => (
                       <div
                         key={idx}
                         className="mb-2"
@@ -920,6 +1028,17 @@ const HotelCheckout = () => {
                       />
                     ))}
                   </div>
+
+                  {preBookInfo.RateConditions.length > 2 && (
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 small"
+                      onClick={() => setShowAllPolicies((prev) => !prev)}
+                      style={{ color: "blue" }}
+                    >
+                      {showAllPolicies ? "Show less" : "Read more"}
+                    </button>
+                  )}
                 </>
               )}
             </div>
@@ -960,7 +1079,7 @@ const HotelCheckout = () => {
 
             <h4>
               Final Price: ₹
-              {Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount)}
+              {Math.ceil(finalAmount)}
             </h4>
             {/* <h4>Final Price: ₹{finalNetAmount.toFixed()}</h4> */}
 
