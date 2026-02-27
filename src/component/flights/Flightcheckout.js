@@ -177,16 +177,12 @@ const Flightcheckout = () => {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(FLIGHT_CHECKOUT_STORAGE_KEY);
-
       if (!saved) {
-        console.log("No saved data");
         setRestoreChecked(true);
         return;
       }
 
       const parsed = JSON.parse(saved);
-
-      console.log("Restoring flight checkout:", parsed);
 
       if (parsed.passengers?.length > 0) {
         setPassengers(parsed.passengers);
@@ -205,7 +201,10 @@ const Flightcheckout = () => {
       if (parsed.passengerConfirmed)
         setPassengerConfirmed(parsed.passengerConfirmed);
 
-      setRestoreChecked(true); // ✅ VERY IMPORTANT
+      // ❌ selectedMeals, selectedBaggage, selectedSeats, selectedInsurancePlan
+      // RESTORE NAHI KARO — ye always fresh start hona chahiye
+
+      setRestoreChecked(true);
     } catch (err) {
       console.error("Restore error:", err);
       setRestoreChecked(true);
@@ -240,16 +239,9 @@ const Flightcheckout = () => {
   }, []);
 
   // ✅ AUTO SAVE CHECKOUT DATA
+  // ✅ FIXED AUTO SAVE - Only save passenger form data, NOT SSR/insurance
   useEffect(() => {
     try {
-      if (!passengers || passengers.length === 0) return;
-
-      const hasData = passengers.some(
-        (p) => p.firstName || p.lastName || p.dateOfBirth || p.contactNo,
-      );
-
-      if (!hasData) return;
-
       const dataToSave = {
         passengers,
         contactEmail,
@@ -268,8 +260,6 @@ const Flightcheckout = () => {
         FLIGHT_CHECKOUT_STORAGE_KEY,
         JSON.stringify(dataToSave),
       );
-
-      console.log("Flight checkout saved");
     } catch (err) {
       console.error("Save error:", err);
     }
@@ -285,7 +275,6 @@ const Flightcheckout = () => {
     selectedCoupon,
     passengerConfirmed,
   ]);
-
   useEffect(() => {
     // wait until restore check is complete
     if (!state || !restoreChecked) return;
@@ -429,41 +418,73 @@ const Flightcheckout = () => {
     };
   };
 
+  // const handleResetFormData = () => {
+  //   if (
+  //     !window.confirm("Are you sure you want to reset passenger form data?")
+  //   ) {
+  //     return;
+  //   }
+
+  //   // ✅ Reset only passenger form fields
+  //   initializePassengers(
+  //     state?.passengerCount || {
+  //       adults: 1,
+  //       children: 0,
+  //       infants: 0,
+  //     },
+  //   );
+
+  //   // ✅ Reset contact details
+  //   setContactEmail("");
+  //   setContactMobile("");
+
+  //   // ✅ Reset GST details
+  //   setGstDetails({
+  //     gstNumber: "",
+  //     companyName: "",
+  //     companyAddress: "",
+  //     companyEmail: "",
+  //   });
+
+  //   // ✅ Reset confirmation flag
+  //   setPassengerConfirmed(false);
+
+  //   // ✅ Remove saved form data from localStorage
+  //   localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
+
+  //   // ✅ Update restore flag
+  //   setIsRestored(false);
+
+  //   toast.success("Form reset successfully.");
+  // };
+
   const handleResetFormData = () => {
-    if (
-      !window.confirm("Are you sure you want to reset passenger form data?")
-    ) {
+    if (!window.confirm("Are you sure you want to reset passenger form data?"))
       return;
-    }
 
-    // ✅ Reset only passenger form fields
     initializePassengers(
-      state?.passengerCount || {
-        adults: 1,
-        children: 0,
-        infants: 0,
-      },
+      state?.passengerCount || { adults: 1, children: 0, infants: 0 },
     );
-
-    // ✅ Reset contact details
     setContactEmail("");
     setContactMobile("");
-
-    // ✅ Reset GST details
     setGstDetails({
       gstNumber: "",
       companyName: "",
       companyAddress: "",
       companyEmail: "",
     });
-
-    // ✅ Reset confirmation flag
     setPassengerConfirmed(false);
 
-    // ✅ Remove saved form data from localStorage
-    localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
+    // ✅ Also clear SSR + insurance
+    setSelectedMeals({});
+    setSelectedBaggage({});
+    setSelectedSeats({});
+    setSelectedSeatList([]);
+    setSelectedMealList([]);
+    setSelectedBaggageList([]);
+    setSelectedInsurancePlan(null);
 
-    // ✅ Update restore flag
+    localStorage.removeItem(FLIGHT_CHECKOUT_STORAGE_KEY);
     setIsRestored(false);
 
     toast.success("Form reset successfully.");
@@ -1184,8 +1205,7 @@ const Flightcheckout = () => {
       isLCC: fareRules?.isLCC,
 
       InsuranceRequired: !!selectedInsurancePlan,
-      // InsuranceData: selectedInsurancePlan || null,
-      InsuranceData: selectedInsurancePlan
+       InsuranceData: selectedInsurancePlan
         ? {
             ResultIndex: selectedInsurancePlan.ResultIndex,
             premiumAmount: selectedInsurancePlan.VendorPrice,
@@ -1429,6 +1449,7 @@ const Flightcheckout = () => {
           </div>
         )}
 
+        <div className="fare-divider"></div>
         <div className="fare-divider"></div>
 
         <div className="fare-total">
@@ -2352,7 +2373,7 @@ const Flightcheckout = () => {
                 className="d-flex justify-content-between cursor-pointer"
               >
                 <strong>Baggage</strong>
-                <span className="text-end">
+                {/* <span className="text-end">
                   {selectedBaggageList.length > 0 ? (
                     <>
                       <Badge bg="success" className="me-2">
@@ -2374,6 +2395,64 @@ const Flightcheckout = () => {
                             {f.items.map((t, i) => (
                               <div key={i} className="ms-2 text-muted">
                                 • {t}
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <small className="text-muted">Select</small>
+                  )}
+                </span> */}
+
+                <span className="text-end">
+                  {selectedBaggageList.length > 0 ? (
+                    <>
+                      <Badge bg="success" className="me-2">
+                        ✓
+                      </Badge>
+                      <small className="text-muted d-block">
+                        {selectedBaggageList.length} of {requiredSeatCount}{" "}
+                        selected
+                      </small>
+                      <div className="mt-1" style={{ fontSize: "12px" }}>
+                        {baggageSummaryByFlight.map((f, idx) => (
+                          <div key={idx}>
+                            <div className="fw-semibold text-primary">
+                              {f.route}
+                            </div>
+                            {f.items.map((t, i) => (
+                              <div
+                                key={i}
+                                className="ms-2 text-muted d-flex align-items-center gap-1"
+                              >
+                                • {t}
+                                <span
+                                  className="text-danger"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontWeight: "bold",
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Remove this passenger's baggage
+                                    setSelectedBaggageList((prev) => {
+                                      const copy = [...prev];
+                                      copy.splice(i, 1);
+                                      return copy;
+                                    });
+                                    setSelectedBaggage((prev) => {
+                                      const flightBags = {
+                                        ...(prev[idx] || {}),
+                                      };
+                                      delete flightBags[i];
+                                      return { ...prev, [idx]: flightBags };
+                                    });
+                                  }}
+                                >
+                                  ✕
+                                </span>
                               </div>
                             ))}
                           </div>
@@ -2587,7 +2666,6 @@ const Flightcheckout = () => {
                       <Badge bg="success" className="me-2">
                         ✓
                       </Badge>
-
                       <small className="text-muted d-block">
                         {
                           Object.keys(selectedSeats[activeFlightIndex] || {})
@@ -2595,7 +2673,6 @@ const Flightcheckout = () => {
                         }{" "}
                         seat(s) selected
                       </small>
-
                       <div
                         className="mt-1 text-primary"
                         style={{ fontSize: "12px" }}
@@ -2603,10 +2680,48 @@ const Flightcheckout = () => {
                         {seatSummaryByFlight.map((flight, idx) => (
                           <div key={idx} className="mb-1">
                             <div className="fw-semibold">{flight.route}</div>
-
                             {flight.seats.map((s, i) => (
-                              <div key={i} className="ms-2 text-muted">
+                              <div
+                                key={i}
+                                className="ms-2 text-muted d-flex align-items-center gap-1"
+                              >
                                 • {s.label} → {s.seat}
+                                <span
+                                  className="text-danger"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontWeight: "bold",
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Find which flight index this summary entry belongs to
+                                    const flightIndex = Object.keys(
+                                      selectedSeats,
+                                    ).find(
+                                      (fi) =>
+                                        selectedSeats[fi]?.[i]?.Code === s.seat,
+                                    );
+                                    if (flightIndex !== undefined) {
+                                      setSelectedSeats((prev) => {
+                                        const flightSeatMap = {
+                                          ...(prev[flightIndex] || {}),
+                                        };
+                                        delete flightSeatMap[i];
+                                        return {
+                                          ...prev,
+                                          [flightIndex]: flightSeatMap,
+                                        };
+                                      });
+                                      setSelectedSeatList((prev) =>
+                                        prev.filter(
+                                          (seat) => seat.Code !== s.seat,
+                                        ),
+                                      );
+                                    }
+                                  }}
+                                >
+                                  ✕
+                                </span>
                               </div>
                             ))}
                           </div>
@@ -2757,8 +2872,8 @@ const Flightcheckout = () => {
                               <strong>{coupon.code}</strong>
                               <div className="small text-muted">
                                 {coupon.discountType === "percentage"
-                                  ? `${coupon.discountValue}% off on service fee`
-                                  : `₹${coupon.discountValue} off on service fee`}
+                                  ? `${coupon.discountValue}% off`
+                                  : `₹${coupon.discountValue} off`}
                               </div>
                             </div>
 
@@ -3282,7 +3397,7 @@ const Flightcheckout = () => {
               )}
 
               {/* MEALS */}
-              {Object.keys(selectedMeals).length > 0 && (
+              {/* {Object.keys(selectedMeals).length > 0 && (
                 <div className="mb-3">
                   <h6 className="fw-bold">Meals</h6>
 
@@ -3312,8 +3427,75 @@ const Flightcheckout = () => {
                     );
                   })}
                 </div>
-              )}
+              )} */}
 
+              <span>
+                {Object.values(selectedMeals).some((m) =>
+                  Object.values(m || {}).some(Boolean),
+                ) ? (
+                  <>
+                    <Badge bg="success" className="me-2">
+                      ✓
+                    </Badge>
+                    <div style={{ fontSize: "12px" }}>
+                      {selectedFlights.map((flight, flightIndex) => {
+                        const mealsForFlight = selectedMeals[flightIndex];
+                        if (!mealsForFlight) return null;
+                        const mealItems = Object.entries(mealsForFlight).filter(
+                          ([, m]) => m,
+                        );
+                        if (!mealItems.length) return null;
+                        const info = extractFlightInfo(flight);
+                        return (
+                          <div key={flightIndex}>
+                            <div className="fw-semibold text-primary">
+                              {info?.origin.code} → {info?.destination.code}
+                            </div>
+                            {mealItems.map(([paxIndex, meal]) => (
+                              <div
+                                key={paxIndex}
+                                className="ms-2 text-muted d-flex align-items-center gap-1"
+                              >
+                                • Pax {Number(paxIndex) + 1}:{" "}
+                                {meal.AirlineDescription}
+                                <span
+                                  className="text-danger"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontWeight: "bold",
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedMeals((prev) => {
+                                      const flightMeals = {
+                                        ...(prev[flightIndex] || {}),
+                                      };
+                                      delete flightMeals[paxIndex];
+                                      return {
+                                        ...prev,
+                                        [flightIndex]: flightMeals,
+                                      };
+                                    });
+                                    setSelectedMealList((prev) =>
+                                      prev.filter(
+                                        (_, i) => String(i) !== paxIndex,
+                                      ),
+                                    );
+                                  }}
+                                >
+                                  ✕
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <small className="text-muted">Select</small>
+                )}
+              </span>
               {/* INSURANCE DETAILS */}
               {selectedInsurancePlan && (
                 <div className="mb-3">

@@ -980,7 +980,7 @@ const Flight = () => {
         JourneyType: journeyTypeMap[tripType],
         PreferredAirlines: [],
         Segments: segments,
-        Sources: ["GDS"],
+        // Sources: ["GDS"],
       };
 
       const searchResponse = await Flight_search(searchPayload);
@@ -1268,7 +1268,7 @@ const Flight = () => {
                   <br />
                   <small className="text-muted">{originAirport?.CityName || "--"}</small>
                 </Col>
-
+                
                 {/* Duration */}
                 <Col md={2} className="text-center">
                   <p className="mb-1 text-success fw-bold">{formatDuration(segmentData.Duration)}</p>

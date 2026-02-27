@@ -6,6 +6,7 @@ import { getUserData } from "../utils/storage";
 import useCashfreePayment from "../hooks/useCashfreePayment";
 import { bus_block } from "../services/busservice";
 import { toast } from "react-toastify";
+import { fetchCoupons } from "../services/couponService";
 
 const BusCheckout = () => {
   const { startPayment } = useCashfreePayment();
@@ -13,7 +14,7 @@ const BusCheckout = () => {
   const navigate = useNavigate();
   const state = location?.state || {};
   console.log("state in buscheckout", state);
- 
+
   const traceId =
     state?.traceId || state?.bus?.TraceId || state?.bus?.traceId || null;
 
@@ -52,10 +53,56 @@ const BusCheckout = () => {
   const [blockResponse, setBlockResponse] = useState(null);
   const [blockLoading, setBlockLoading] = useState(false);
 
+  // Coupon States
+  const [coupons, setCoupons] = useState([]);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+
   // ✅ UNIQUE KEY FOR BUS CHECKOUT FORM
   const BUS_FORM_STORAGE_KEY = `bus_form_data`;
 
   const userDetails = getUserData("safarix_user");
+
+  const fetchCouponData = async () => {
+    try {
+      if (!userDetails?.id) return;
+
+      const resp = await fetchCoupons(userDetails.id);
+
+      if (resp?.data?.success) {
+        const activeCoupons = resp.data.coupons.filter(
+          (c) =>
+            c.status === "active" &&
+            new Date(c.startDate) <= new Date() &&
+            new Date(c.endDate) >= new Date(),
+        );
+
+        setCoupons(activeCoupons);
+      }
+    } catch (err) {
+      console.log("err in coupon fetching", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCouponData();
+  }, []);
+
+  const calculateCouponDiscount = () => {
+    if (!selectedCoupon) return 0;
+
+    // Service fee + GST only
+    const platformCharge = serviceAndGST;
+
+    let discount = 0;
+
+    if (selectedCoupon.discountType === "percentage") {
+      discount = (platformCharge * selectedCoupon.discountValue) / 100;
+    } else {
+      discount = Math.min(selectedCoupon.discountValue, platformCharge);
+    }
+
+    return Math.floor(discount);
+  };
 
   useEffect(() => {
     if (!userDetails) {
@@ -416,7 +463,10 @@ const BusCheckout = () => {
       setShowConfirmModal(true);
     } catch (err) {
       console.error("Bus block error", err);
-      alert("Unable to block seats. Please try again.");
+      alert(
+        err?.response?.data?.message ||
+          "Unable to block seats. Please try again.",
+      );
     } finally {
       setBlockLoading(false);
     }
@@ -493,7 +543,7 @@ const BusCheckout = () => {
         startDate: formatFullDate(selectedBoarding?.CityPointTime),
 
         // totalAmount: calculateTotalPrice(),
-        totalAmount: pricingBreakup.totalAmount,
+        totalAmount: totalPayable,
 
         pricing: pricingBreakup,
 
@@ -503,13 +553,10 @@ const BusCheckout = () => {
           TokenId,
           TraceId,
           ResultIndex,
-
-          // 🔐 BLOCK DATA
+          couponId: selectedCoupon?.id || null,
           BlockId: blockResponse.BlockId || blockResponse.TraceId,
-
           BoardingPointId: selectedBoarding.CityPointIndex,
           DroppingPointId: selectedDropping.CityPointIndex,
-          // ✅ SAVE PRICING AGAIN (SERVICE LEVEL)
           Pricing: pricingBreakup,
           Passenger: passengers.map((p, i) => ({
             LeadPassenger: i === 0,
@@ -803,7 +850,10 @@ const BusCheckout = () => {
     0,
   );
 
-  const totalPayable = busCharges + serviceAndGST;
+  // const totalPayable = busCharges + serviceAndGST;
+  const totalBeforeDiscount = busCharges + serviceAndGST;
+  const couponDiscount = calculateCouponDiscount();
+  const totalPayable = Math.max(0, totalBeforeDiscount - couponDiscount);
 
   return (
     <div className="bus-checkout" style={{ marginTop: "100px" }}>
@@ -1119,21 +1169,6 @@ const BusCheckout = () => {
 
           {/* RIGHT COLUMN */}
           <div className="right-column">
-            {/* <div className="summary-card">
-              <h3>Fare Summary</h3>
-
-              <div className="fare-item">
-                <span>Base Fare ({passengers.length})</span>
-                <span>
-                  ₹{passengers.reduce((t, p) => t + (Number(p.price) || 0), 0)}
-                </span>
-              </div>
-
-              <div className="fare-total">
-                <strong>Total</strong>
-                <span>₹{calculateTotalPrice()}</span>
-              </div>
-            </div> */}
             <div className="summary-card">
               <h3>Fare Summary</h3>
 
@@ -1147,12 +1182,67 @@ const BusCheckout = () => {
                 <span>₹{Math.ceil(serviceAndGST)}</span>
               </div>
 
-              <hr />
+              {selectedCoupon && (
+                <div className="fare-item text-success">
+                  <span>Coupon Discount ({selectedCoupon.code})</span>
+                  <span>-₹{Math.ceil(couponDiscount)}</span>
+                </div>
+              )}
+
+              {/* <hr /> */}
 
               <div className="fare-total">
                 <strong>Total Amount</strong>
                 <span>₹{Math.ceil(totalPayable)}</span>
               </div>
+            </div>
+
+            {/* //coupon section */}
+            <div className="summary-card">
+              <h3>Available Coupons</h3>
+
+              {coupons.length === 0 && (
+                <small className="text-muted">No coupons available</small>
+              )}
+
+              {coupons.map((coupon) => {
+                const isApplied = selectedCoupon?.id === coupon.id;
+
+                return (
+                  <div
+                    key={coupon.id}
+                    className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
+                  >
+                    <div>
+                      <strong>{coupon.code}</strong>
+                      <div className="small text-success">
+                        {coupon.discountType === "percentage"
+                          ? `${coupon.discountValue}% OFF`
+                          : `₹${coupon.discountValue} OFF`}
+                      </div>
+                      <div className="small text-muted">
+                        Valid till {coupon.endDate}
+                      </div>
+                    </div>
+
+                    {isApplied ? (
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => setSelectedCoupon(null)}
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        onClick={() => setSelectedCoupon(coupon)}
+                      >
+                        Apply
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Final Button */}

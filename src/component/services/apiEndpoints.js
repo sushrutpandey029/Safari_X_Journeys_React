@@ -71,6 +71,7 @@ export const API = {
   HOTEL_CANCEL_STATUS: `${BASE_URL}/api/hotel/cancel-status`,
   USER_HOTEL_BOOKING_DETAILS: `${BASE_URL}/api/booking-detail`,
 
+
   // flights
   Flight_Indian_Airports: `${BASE_URL}/flight/getIndianAirports`,
   Flight_authenticate: `${BASE_URL}/flight/authenticate`,

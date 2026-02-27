@@ -1,5 +1,5 @@
 // import React from "react";
-// import "./BusSeatLayout.css";
+// import "./Bubus-modal-overlaySeatLayout.css";
 
 // const BusSeatLayout = ({
 //   seatLayoutData,

@@ -10,81 +10,155 @@ function BusPopularDestination() {
   const fromRef = useRef(null);
   const toRef = useRef(null);
 
-  // =============================
-  // Static Popular Routes (Delhi → other cities)
-  // =============================
-  const popularRoutes = [
-    { CityId: 8463, CityName: "Bangalore", image: "/Images/shimla.jpg" },
-    { CityId: 9573, CityName: "Hyderabad", image: "/Images/shimla.jpg" },
-    { CityId: 16332, CityName: "Chennai", image: "/Images/shimla.jpg" },
-    { CityId: 16294, CityName: "Goa", image: "/Images/goa.jpg" },
-    { CityId: 7362, CityName: "Lucknow", image: "/Images/shimla.jpg" },
-    { CityId: 3027, CityName: "Varanasi", image: "/Images/varanasi.jpg" },
-    { CityId: 7692, CityName: "Shimla", image: "/Images/shimla.jpg" },
-    { CityId: 1051, CityName: "Kedarnath", image: "/Images/kedarnath.jpg" },
-  ];
-
-  // =============================
-  // State
-  // =============================
   const [cities, setCities] = useState([]);
+  const [popularRoutes, setPopularRoutes] = useState([]);
   const [showFromSuggestions, setShowFromSuggestions] = useState(false);
   const [showToSuggestions, setShowToSuggestions] = useState(false);
+  const [citiesLoading, setCitiesLoading] = useState(true);
 
-  const getTomorrow = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow;
+  // ✅ Timezone-safe aaj ki date
+  const getToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  };
+
+  // ✅ Timezone-safe date string (YYYY-MM-DD)
+  const formatDate = (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
 
   const [searchParams, setSearchParams] = useState({
-    fromCity: "Delhi",
-    fromCityId: 16593,
+    fromCity: "",
+    fromCityId: "",
     toCity: "",
     toCityId: "",
-    travelDate: getTomorrow(),
+    travelDate: getToday(), // ✅ aaj ki date
   });
 
-  const [isSearchingBuses, setIsSearchingBuses] = useState(false);
+  const routeNames = [
+    { name: "Bangalore", image: "/Images/shimla.jpg" },
+    { name: "Hyderabad", image: "/Images/shimla.jpg" },
+    { name: "Chennai", image: "/Images/shimla.jpg" },
+    { name: "Goa", image: "/Images/goa.jpg" },
+    { name: "Lucknow", image: "/Images/shimla.jpg" },
+    { name: "Varanasi", image: "/Images/varanasi.jpg" },
+    { name: "Shimla", image: "/Images/shimla.jpg" },
+    { name: "Kedarnath", image: "/Images/kedarnath.jpg" },
+  ];
 
   // =============================
-  // Load cities from API
+  // Load Cities from API
   // =============================
   useEffect(() => {
     const loadCities = async () => {
       try {
+        setCitiesLoading(true);
         const cityResponse = await Bus_getCityList();
-        console.log("city resp in bus", cityResponse?.resposnse);
-        if (cityResponse?.resposnse?.Status === 1) {
-          setCities(cityResponse.resposnse?.BusCities);
+
+        const cityData =
+          cityResponse?.resposnse?.BusCities ||
+          cityResponse?.BusCities ||
+          cityResponse;
+
+        if (!Array.isArray(cityData) || cityData.length === 0) {
+          console.error("❌ No cities found in response");
+          return;
         }
+
+        setCities(cityData);
+        console.log(`✅ ${cityData.length} cities loaded`);
+
+        // ✅ Delhi ka real ID dynamically dhundo
+        const delhi = cityData.find(
+          (c) =>
+            c.CityName.toLowerCase() === "delhi" ||
+            c.CityName.toLowerCase() === "new delhi"
+        );
+
+        if (delhi) {
+          console.log("✅ Delhi found:", delhi);
+          setSearchParams((prev) => ({
+            ...prev,
+            fromCity: delhi.CityName,
+            fromCityId: delhi.CityId,
+          }));
+        } else {
+          console.warn("⚠️ Delhi not found in city list");
+        }
+
+        // ✅ Popular routes ke real IDs dynamically resolve karo
+        const resolved = routeNames
+          .map((route) => {
+            const city = cityData.find((c) =>
+              c.CityName.toLowerCase().includes(route.name.toLowerCase())
+            );
+            if (!city) {
+              console.warn(`⚠️ City not found: ${route.name}`);
+              return null;
+            }
+            return {
+              CityId: city.CityId,
+              CityName: city.CityName,
+              image: route.image,
+            };
+          })
+          .filter(Boolean);
+
+        setPopularRoutes(resolved);
+        console.log("✅ Resolved popular routes:", resolved);
       } catch (err) {
-        console.error("Error loading bus cities:", err);
+        console.error("❌ Error loading bus cities:", err);
+      } finally {
+        setCitiesLoading(false);
       }
     };
 
     loadCities();
   }, []);
 
+  // =============================
+  // Click Outside Handler
+  // =============================
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close From dropdown
       if (fromRef.current && !fromRef.current.contains(event.target)) {
         setShowFromSuggestions(false);
       }
-
-      // Close To dropdown
       if (toRef.current && !toRef.current.contains(event.target)) {
         setShowToSuggestions(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // =============================
+  // Filter Cities (smart search)
+  // =============================
+  const filterCities = (searchText) => {
+    if (!searchText || !searchText.trim()) return cities.slice(0, 15);
+
+    const text = searchText.toLowerCase().trim();
+
+    const exactMatch = cities.filter(
+      (c) => c.CityName.toLowerCase() === text
+    );
+    const startsWith = cities.filter(
+      (c) =>
+        c.CityName.toLowerCase().startsWith(text) &&
+        c.CityName.toLowerCase() !== text
+    );
+    const includes = cities.filter(
+      (c) =>
+        !c.CityName.toLowerCase().startsWith(text) &&
+        c.CityName.toLowerCase().includes(text)
+    );
+
+    return [...exactMatch, ...startsWith, ...includes].slice(0, 15);
+  };
 
   // =============================
   // Handle Search Param Change
@@ -93,27 +167,23 @@ function BusPopularDestination() {
     setSearchParams((prev) => ({
       ...prev,
       [field]: value,
-      ...(cityId && {
-        [field + "Id"]: cityId,
-      }),
+      ...(cityId !== null
+        ? { [field + "Id"]: cityId }
+        : { [field + "Id"]: "" }),
     }));
   };
 
   // =============================
-  // Handle Search Click
+  // Handle Search Button Click
   // =============================
   const handleSearch = () => {
-    if (!searchParams.fromCityId || !searchParams.toCityId) return;
-
     if (!searchParams.fromCityId || !searchParams.toCityId) {
-      alert("Please select both cities");
+      alert("Please select both source and destination cities.");
       return;
     }
 
-    if (searchParams.fromCityId === searchParams.toCityId) {
-      alert("Source and destination cannot be same");
-      return;
-    }
+    // ✅ Timezone-safe conversion
+    const travelDate = formatDate(searchParams.travelDate);
 
     navigate("/bus-list", {
       state: {
@@ -121,50 +191,42 @@ function BusPopularDestination() {
         fromCityName: searchParams.fromCity,
         toCityId: searchParams.toCityId,
         toCityName: searchParams.toCity,
-        travelDate: searchParams.travelDate,
+        travelDate,
       },
     });
   };
 
   // =============================
-  // Handle Card Click
+  // Handle Popular Route Card Click
   // =============================
   const handleRouteClick = (route) => {
+    if (!searchParams.fromCityId) {
+      alert("Source city (Delhi) not loaded yet. Please wait.");
+      return;
+    }
+
+    // ✅ Timezone-safe aaj ki date
+    const travelDate = formatDate(getToday());
+
     navigate("/bus-list", {
       state: {
-        fromCityId: 16593,
-        fromCityName: "Delhi",
+        fromCityId: searchParams.fromCityId,
+        fromCityName: searchParams.fromCity,
         toCityId: route.CityId,
         toCityName: route.CityName,
+        travelDate,
       },
     });
   };
 
   // =============================
-  // Filter Cities
+  // RENDER
   // =============================
-  const filterCities = (searchText) => {
-    if (!searchText) return cities;
-
-    const text = searchText.toLowerCase();
-
-    return [
-      ...cities.filter((c) => c.CityName.toLowerCase().startsWith(text)),
-      ...cities.filter(
-        (c) =>
-          !c.CityName.toLowerCase().startsWith(text) &&
-          c.CityName.toLowerCase().includes(text),
-      ),
-    ];
-  };
-
   return (
     <div className="book-bus">
       <div className="container">
-        {/* =============================
-            Search Section
-        ============================= */}
-        {/* <div style={{ marginTop: "100px" }}>rendering filter</div> */}
+
+        {/* Search Section */}
         <div
           style={{ marginTop: "100px" }}
           className="row g-3 align-items-center justify-content-center mb-4"
@@ -172,11 +234,11 @@ function BusPopularDestination() {
           {/* From */}
           <div ref={fromRef} className="col-md-3 position-relative">
             <label className="small text-muted">From</label>
-
             <input
               className="form-control fw-bold"
               value={searchParams.fromCity}
-              placeholder="Select source city"
+              placeholder={citiesLoading ? "Loading cities..." : "Select source city"}
+              disabled={citiesLoading}
               onChange={(e) => {
                 handleSearchParamChange("fromCity", e.target.value);
                 setShowFromSuggestions(true);
@@ -184,27 +246,21 @@ function BusPopularDestination() {
               onFocus={() => setShowFromSuggestions(true)}
             />
 
-            {showFromSuggestions && (
+            {showFromSuggestions && !citiesLoading && (
               <div className="position-absolute w-100 bg-white border shadow max-h-200 overflow-auto z-3">
-                {filterCities(searchParams.fromCity)
-                  .slice(0, 15)
-                  .map((city) => (
-                    <div
-                      key={city.CityId}
-                      className="p-2 border-bottom"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => {
-                        handleSearchParamChange(
-                          "fromCity",
-                          city.CityName,
-                          city.CityId,
-                        );
-                        setShowFromSuggestions(false);
-                      }}
-                    >
-                      {city.CityName}
-                    </div>
-                  ))}
+                {filterCities(searchParams.fromCity).map((city) => (
+                  <div
+                    key={city.CityId}
+                    className="p-2 border-bottom"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      handleSearchParamChange("fromCity", city.CityName, city.CityId);
+                      setShowFromSuggestions(false);
+                    }}
+                  >
+                    {city.CityName}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -212,49 +268,37 @@ function BusPopularDestination() {
           {/* To */}
           <div ref={toRef} className="col-md-3 position-relative">
             <label className="small text-muted">To</label>
-
             <input
               className="form-control fw-bold"
               value={searchParams.toCity}
-              onChange={(e) =>
-                handleSearchParamChange("toCity", e.target.value)
-              }
+              placeholder={citiesLoading ? "Loading cities..." : "Select destination"}
+              disabled={citiesLoading}
+              onChange={(e) => {
+                handleSearchParamChange("toCity", e.target.value);
+                setShowToSuggestions(true);
+              }}
               onFocus={() => setShowToSuggestions(true)}
-              placeholder="Select destination"
             />
 
-            {showToSuggestions && (
+            {showToSuggestions && !citiesLoading && (
               <div className="position-absolute w-100 bg-white border shadow max-h-200 overflow-auto z-3">
-                {filterCities(searchParams.toCity)
-                  .slice(0, 15)
-                  .map((city) => {
-                    const isDisabled = city.CityId === searchParams.fromCityId;
-
-                    return (
-                      <div
-                        key={city.CityId}
-                        className={`p-2 border-bottom ${
-                          isDisabled ? "text-muted bg-light" : ""
-                        }`}
-                        style={{
-                          cursor: isDisabled ? "not-allowed" : "pointer",
-                        }}
-                        onClick={() => {
-                          if (isDisabled) return;
-
-                          handleSearchParamChange(
-                            "toCity",
-                            city.CityName,
-                            city.CityId,
-                          );
-
-                          setShowToSuggestions(false);
-                        }}
-                      >
-                        {city.CityName}
-                      </div>
-                    );
-                  })}
+                {filterCities(searchParams.toCity).map((city) => {
+                  const isDisabled = city.CityId === searchParams.fromCityId;
+                  return (
+                    <div
+                      key={city.CityId}
+                      className={`p-2 border-bottom ${isDisabled ? "text-muted bg-light" : ""}`}
+                      style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
+                      onClick={() => {
+                        if (isDisabled) return;
+                        handleSearchParamChange("toCity", city.CityName, city.CityId);
+                        setShowToSuggestions(false);
+                      }}
+                    >
+                      {city.CityName}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -262,66 +306,66 @@ function BusPopularDestination() {
           {/* Date */}
           <div className="col-md-3">
             <label className="small text-muted">Travel Date</label>
-
             <DatePicker
-              selected={
-                searchParams.travelDate
-                  ? new Date(searchParams.travelDate)
-                  : null
-              }
-              onChange={(date) =>
-                handleSearchParamChange(
-                  "travelDate",
-                  date?.toISOString().split("T")[0],
-                )
-              }
+              selected={searchParams.travelDate}
+              onChange={(date) => {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0); // ✅ time reset
+                setSearchParams((prev) => ({ ...prev, travelDate: d }));
+              }}
               className="form-control"
-              minDate={new Date()}
+              minDate={getToday()} // ✅ aaj se pehle block
               dateFormat="yyyy-MM-dd"
             />
           </div>
 
-          {/* Search */}
+          {/* Search Button */}
           <div className="col-md-2">
             <button
               className="explore-btn w-100"
               onClick={handleSearch}
-              disabled={!searchParams.toCityId}
+              disabled={citiesLoading || !searchParams.toCityId || !searchParams.fromCityId}
             >
-              SEARCH
+              {citiesLoading ? "Loading..." : "SEARCH"}
             </button>
           </div>
         </div>
 
-        {/* =============================
-            Popular Routes Cards
-        ============================= */}
-
+        {/* Popular Routes */}
         <div className="row">
           <div className="col-12 mb-3">
             <h2>
-              Top Bus Routes from <span>Delhi</span>
+              Top Bus Routes from <span>{searchParams.fromCity || "Delhi"}</span>
             </h2>
           </div>
 
-          {popularRoutes.map((route, index) => (
-            <div key={index} className="col-md-3 col-6 mb-4">
-              <div
-                className="destination-card"
-                style={{ cursor: "pointer" }}
-                onClick={() => handleRouteClick(route)}
-              >
-                <img
-                  src={route.image}
-                  alt={route.CityName}
-                  className="img-fluid"
-                />
-
-                <div className="card-destination">Delhi → {route.CityName}</div>
-              </div>
+          {citiesLoading ? (
+            <div className="col-12 text-center py-4">
+              <div className="spinner-border text-primary" role="status" />
+              <p className="mt-2">Loading popular routes...</p>
             </div>
-          ))}
+          ) : (
+            popularRoutes.map((route, index) => (
+              <div key={index} className="col-md-3 col-6 mb-4">
+                <div
+                  className="destination-card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleRouteClick(route)}
+                >
+                  <img
+                    src={route.image}
+                    alt={route.CityName}
+                    className="img-fluid"
+                  />
+                  <div className="card-destination">
+                    {searchParams.fromCity || "Delhi"} → {route.CityName}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
+
       </div>
     </div>
   );

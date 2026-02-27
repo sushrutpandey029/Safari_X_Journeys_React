@@ -534,7 +534,7 @@ const HotelCheckout = () => {
         startDate: startDate,
         // totalAmount: Math.ceil(payload?.serviceDetails?.Pricing?.finalAmount),
         totalAmount: Math.ceil(finalAmount),
-        couponId: selectedCoupon?.id || null,
+
         BookingCode: hotel?.bookingCode,
         IsVoucherBooking: true,
         GuestNationality: hotel?.guestNationality || "IN",
@@ -544,6 +544,7 @@ const HotelCheckout = () => {
           endDate,
           city,
           NetAmount: finalNetAmount,
+          couponId: selectedCoupon?.id || null,
         },
         HotelRoomsDetails: hotelRoomsDetails,
       };
@@ -914,8 +915,8 @@ const HotelCheckout = () => {
 
                     <div className="small text-success">
                       {coupon.discountType === "percentage"
-                        ? `${coupon.discountValue}% OFF on platform charges`
-                        : `₹${coupon.discountValue} OFF on platform charges`}
+                        ? `${coupon.discountValue}% OFF`
+                        : `₹${coupon.discountValue} OFF`}
                     </div>
 
                     <div className="small text-muted">
@@ -1077,10 +1078,7 @@ const HotelCheckout = () => {
 
             <hr />
 
-            <h4>
-              Final Price: ₹
-              {Math.ceil(finalAmount)}
-            </h4>
+            <h4>Final Price: ₹{Math.ceil(finalAmount)}</h4>
             {/* <h4>Final Price: ₹{finalNetAmount.toFixed()}</h4> */}
 
             <div className="modal-actions">
