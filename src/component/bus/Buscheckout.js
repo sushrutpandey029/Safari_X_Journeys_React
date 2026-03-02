@@ -67,7 +67,7 @@ const BusCheckout = () => {
       if (!userDetails?.id) return;
 
       const resp = await fetchCoupons(userDetails.id);
-
+      console.log("coupon resp", resp);
       if (resp?.data?.success) {
         const activeCoupons = resp.data.coupons.filter(
           (c) =>
